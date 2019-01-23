@@ -36,3 +36,12 @@ Use Alt-+ to make displacement pop up or down. Displacement is bound to bump hei
 Also to bring up windows file selectors use 'o' for obj files and 'i' for images.
 Images importing is affected by the last O. image menu click.
 Thus if 'O. bump image' was clicked, bump map is imported.
+
+---
+
+How to set up development with CodeBlocks.
+
+Assume you did all the above.
+Check CodeBlocksLinker.txt for lines to set up Trips Code project in your Code Blocks development environment.
+Also these lines can be project based, if you develop something else and wish not mess up primary settings.
+To do it right click on project and find target options.
