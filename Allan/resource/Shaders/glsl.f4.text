@@ -1,0 +1,166 @@
+#version 420
+
+layout (binding = 0) uniform sampler2D tex;
+layout (binding = 1) uniform sampler2DShadow ShadowMap;
+layout (binding = 2) uniform sampler2D normalMap;
+layout (binding = 3) uniform sampler2D bumpMap;
+
+layout (depth_greater) out float gl_FragDepth;
+
+in vec3 Position;
+in vec4 ShadowCoord;
+
+uniform bool Night;
+//uniform bool Selected;
+uniform float Reflects;
+uniform float Shine;
+
+layout (binding = 1) uniform Fog
+{
+    vec4 Color;
+    float Distance;
+    float min_Dist;
+}
+fog;
+/*
+layout (binding = 2) uniform Selected
+{
+	bool S;
+}
+sel;
+*/
+in Data
+{
+    vec2 texpos;
+    vec4 Color;
+    vec3 Ambient;
+    vec3 lightPos;
+    vec3 normal;
+    float Intensity;
+    vec3 lightDir;
+    vec3 viewDir;
+}
+In;
+/*
+layout (binding = 3) uniform Material
+{
+	vec3 Ka;
+	vec3 Kd;
+	vec3 Ks;
+	float Shininess;
+}
+material;
+
+vec3 phongModel( vec3 norm, vec3 diffR )
+{
+    vec3 r = reflect( -In.lightDir, norm );
+
+    vec3 ambient = In.Intensity * material.Ka;
+    float sDotN = max( dot(In.lightDir, norm), 0.0 );
+    vec3 diffuse = In.Intensity * diffR * sDotN;
+
+    vec3 spec = vec3(0.0);
+    if( sDotN > 0.0 )
+        spec = In.Intensity * material.Ks *
+               pow( max( dot(r,In.viewDir), 0.0 ),
+                       material.Shininess );
+
+    return ambient + diffuse + spec;
+}
+*/
+subroutine void RenderPassType();
+subroutine uniform RenderPassType RenderPass;
+
+subroutine (RenderPassType)
+void shadeWithShadow()
+{
+    float Intensity;
+    float Highlight;
+    float fog_intensity;
+    vec3 lightDir;
+    vec3 color;
+    vec3 shadowcolor;
+    vec3 D, V1;
+
+    if (In.Color.r == 0 && In.Color.g == 0 && In.Color.b == 1 && int(gl_FragCoord.x + (int(gl_FragCoord.y) % 4)) % 4 > 0)
+        //if (sel.S && int(gl_FragCoord.x + (int(gl_FragCoord.y) % 4)) % 4 > 0)
+    {
+        discard;
+    }
+    else
+    {
+        float sum = 0;
+        float shadow = 1.0;
+        float grayweight = 0.25;
+        if( ShadowCoord.z >= 0 )
+        {
+            //shadow = textureProj(ShadowMap, ShadowCoord);
+
+            sum += textureProjOffset(ShadowMap, ShadowCoord,
+                                     ivec2(-1,-1));
+            sum += textureProjOffset(ShadowMap, ShadowCoord,
+                                     ivec2(-1,1));
+            sum += textureProjOffset(ShadowMap, ShadowCoord,
+                                     ivec2(1,1));
+            sum += textureProjOffset(ShadowMap, ShadowCoord,
+                                     ivec2(1,-1));
+            shadow = sum * 0.25;
+        }
+
+        vec4 normal = 2.0 * texture(normalMap, In.texpos) - 1.0;
+
+        //lightDir = normalize(In.lightPos - Position);
+        //D = In.Intensity * normal.xyz;
+        //V1 = (D - In.lightDir) / Reflects;
+
+        float bump = texture(bumpMap, In.texpos).r - 0.5;
+
+        V1 = reflect(-In.lightDir + bump * bump, normal.xyz * Reflects);
+        Highlight = dot(V1, In.viewDir); //-normalize(Position));
+        if (Highlight > 0)
+        {
+            Intensity = In.Intensity + pow(Highlight, Shine);
+        }
+        else
+        {
+            Intensity = In.Intensity;
+        }
+        fog_intensity = max(min((Position.z - fog.min_Dist) / fog.Distance, 1.0), 0);
+        if (Night)
+        {
+            color = Intensity * vec3(texture2D(tex, In.texpos) * In.Color) * In.Ambient;
+        }
+        else
+        {
+            color = Intensity * min(vec3(texture2D(tex, In.texpos) * In.Color), 1.0);
+        }
+        shadow = min(shadow + 0.5, 1);
+        shadowcolor = (1 - In.Ambient) * shadow + In.Ambient * (1 - shadow);
+        if (!Night)
+        {
+            shadowcolor = shadowcolor * (1 - grayweight) + vec3(shadow) * grayweight;
+        }
+
+        //vec4 texColor = texture( tex, In.texpos );
+
+        //color = phongModel(normal.xyz, texColor.rgb);
+
+        color *= shadowcolor;
+
+        gl_FragColor = vec4(vec3(fog.Color) * fog_intensity + color * (1.0 - fog_intensity), texture2D(tex, In.texpos).a);
+        gl_FragDepth = gl_FragCoord.z;
+    }
+}
+
+subroutine (RenderPassType)
+void recordDepth()
+{
+    // Do nothing, depth will be written automatically
+    gl_FragDepth = gl_FragCoord.z + (1 - texture2D(tex, In.texpos).a);
+}
+
+void main()
+{
+    // This will call either shadeWithShadow or recordDepth
+    RenderPass();
+}

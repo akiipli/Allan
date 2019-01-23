@@ -1,0 +1,17 @@
+#version 420
+
+in layout(location=0) vec2 position;
+in layout(location=1) vec2 uv;
+
+uniform mat4 ProjectionMatrix;
+
+out vec2 texpos;
+
+
+void main(void)
+{
+
+    gl_Position = ProjectionMatrix * vec4(position, 0, 1);
+    texpos = uv;
+
+}

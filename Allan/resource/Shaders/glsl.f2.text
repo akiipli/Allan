@@ -1,0 +1,76 @@
+#version 420
+
+uniform sampler2D tex;
+
+in vec3 Position;
+uniform bool Night;
+//uniform bool Selected;
+uniform float Reflects;
+
+layout (binding = 1) uniform Fog
+{
+    vec4 Color;
+    float Distance;
+    float min_Dist;
+}
+fog;
+/*
+layout (binding = 2) uniform Selected
+{
+	bool S;
+}
+sel;
+*/
+in Data
+{
+    vec2 texpos;
+    vec4 Color;
+    vec3 Ambient;
+    vec3 lightPos;
+    vec3 normal;
+    float Intensity;
+}
+In;
+
+void main(void)
+{
+    float Intensity;
+    float Highlight;
+    float fog_intensity;
+    vec3 lightDir;
+    vec3 color;
+    vec3 D, V1;
+
+    if (In.Color.r == 0 && In.Color.g == 0 && In.Color.b == 1 && int(gl_FragCoord.x + (int(gl_FragCoord.y) % 4)) % 4 > 0)
+        //if (sel.S && int(gl_FragCoord.x + (int(gl_FragCoord.y) % 4)) % 4 > 0)
+    {
+        discard;
+    }
+    else
+    {
+        lightDir = normalize(In.lightPos - Position);
+        D = In.Intensity * In.normal;
+        V1 = (D - lightDir) / Reflects;
+        Highlight = dot(V1, -normalize(Position));
+        if (Highlight > 0)
+        {
+            Intensity = In.Intensity + pow(Highlight, 2);
+        }
+        else
+        {
+            Intensity = In.Intensity;
+        }
+
+        fog_intensity = max(min((Position.z - fog.min_Dist) / fog.Distance, 1.0), 0);
+        if (Night)
+        {
+            color = Intensity * vec3(texture2D(tex, In.texpos) * In.Color) * In.Ambient;
+        }
+        else
+        {
+            //color = Intensity * min(vec3(texture2D(tex, In.texpos) * In.Color) + In.Ambient, 1.0);
+            color = Intensity * min(vec3(texture2D(tex, In.texpos) * In.Color), 1.0);
+        }
+        gl_FragColor = vec4(vec3(fog.Color) * fog_intensity + color * (1.0 - fog_intensity), texture2D(tex, In.texpos).a);
+    }
+}
