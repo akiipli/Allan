@@ -1,0 +1,130 @@
+# depslib dependency file v1.0
+1548248127 source:c:\gl_sdl_hybrid\main.c
+	<Windows.h>
+	"Dialog.h"
+	<dirent.h>
+	"Cursors.h"
+	"SDL/SDL_image.h"
+	"SDL/SDL_syswm.h"
+	"SDL/SDL_mouse.h"
+	"SDL/glew.h"
+	<GL/gl.h>
+	<GL/glu.h>
+	<IL/il.h>
+	<IL/ilu.h>
+	<IL/ilut.h>
+	"Transformer.h"
+	"Object.h"
+	"Curves.h"
+	<ft2build.h>
+	"UserInterface.h"
+	"Deformer.h"
+	"Poses.h"
+	"Bones.h"
+	"Shaders.h"
+	"File_IO.h"
+	"Materials.h"
+	"ImageLoad.h"
+	"MathFunctions.h"
+	"Cameras.h"
+	"Saving.h"
+	"InitializingFunctions.h"
+	"ExtensionFunctions.h"
+	"Subdivision.h"
+	"Generators.h"
+	"Creators.h"
+	"Transforms.h"
+	"Arrays.h"
+	"Lights.h"
+	"Rendering.h"
+	"Selections.h"
+	"Hierarchys.h"
+	"Validators.h"
+	"Loading.h"
+	"Modeling.h"
+	<windows.h>
+	<io.h>
+	<fcntl.h>
+
+1540493296 c:\gl_sdl_hybrid\dialog.h
+	<ctype.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<malloc.h>
+	<math.h>
+	<time.h>
+	<libgen.h>
+
+1540493296 c:\gl_sdl_hybrid\cursors.h
+	"SDL/SDL.h"
+
+1540493296 c:\gl_sdl_hybrid\transformer.h
+
+1541517952 c:\gl_sdl_hybrid\object.h
+
+1541078686 c:\gl_sdl_hybrid\curves.h
+
+1548115683 c:\gl_sdl_hybrid\userinterface.h
+	<sys/types.h>
+	<sys/stat.h>
+	<unistd.h>
+	<errno.h>
+
+1540493296 c:\gl_sdl_hybrid\deformer.h
+
+1540493296 c:\gl_sdl_hybrid\poses.h
+
+1540493296 c:\gl_sdl_hybrid\bones.h
+
+1548248209 c:\gl_sdl_hybrid\shaders.h
+
+1540493296 c:\gl_sdl_hybrid\file_io.h
+
+1548115655 c:\gl_sdl_hybrid\imageload.h
+
+1540493296 c:\gl_sdl_hybrid\mathfunctions.h
+
+1540493296 c:\gl_sdl_hybrid\cameras.h
+
+1541586510 c:\gl_sdl_hybrid\saving.h
+
+1540493296 c:\gl_sdl_hybrid\initializingfunctions.h
+
+1540493296 c:\gl_sdl_hybrid\extensionfunctions.h
+
+1540493296 c:\gl_sdl_hybrid\subdivision.h
+
+1541517992 c:\gl_sdl_hybrid\generators.h
+
+1540493296 c:\gl_sdl_hybrid\creators.h
+	"ZData.h"
+	"ZPlane.h"
+	"CubeData.h"
+
+1540493296 c:\gl_sdl_hybrid\zdata.h
+
+1540493296 c:\gl_sdl_hybrid\zplane.h
+
+1540550928 c:\gl_sdl_hybrid\cubedata.h
+
+1540493296 c:\gl_sdl_hybrid\transforms.h
+
+1544630008 c:\gl_sdl_hybrid\arrays.h
+
+1542184611 c:\gl_sdl_hybrid\lights.h
+
+1544630008 c:\gl_sdl_hybrid\rendering.h
+
+1540493296 c:\gl_sdl_hybrid\selections.h
+
+1540493296 c:\gl_sdl_hybrid\hierarchys.h
+
+1540493296 c:\gl_sdl_hybrid\validators.h
+
+1541586510 c:\gl_sdl_hybrid\loading.h
+
+1540493296 c:\gl_sdl_hybrid\modeling.h
+
+1544726373 c:\gl_sdl_hybrid\materials.h
+
