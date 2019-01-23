@@ -1,0 +1,9 @@
+Linker settings
+Other linker options
+-lglew32mx -lglew32 -lfreetype -lDevIL -lILU -lILUT -lmingw32 -lSDLmain -lSDL -lSDL_image -lsdlgfx -lSDL_mixer -lSDL_ttf
+Search directories
+Compiler
+C:\SDL-1.2.15\include
+C:\SDL-1.2.15\include\freetype2
+Linker
+C:\SDL-1.2.15\lib
