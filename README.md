@@ -16,6 +16,9 @@ in Shader.h in 'void render_text_(const char * text, float x, float y, int font_
 As much i can observe it is a freetype problem with NVIDIA.
 Open GL errorchecking give no results.
 
+Update 5/4/2019: disabled shaders with Nvidia.
+To retest Nvidia situations enable them in main.c where NVIDIA block tests glversion in "init" function.
+
 ---
 
 How to use.
