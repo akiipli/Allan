@@ -17,6 +17,7 @@ look for CUBECOMMENT
 
 /*CORRECT IT*/
 
+
 #define DEBUG_WITHOUT_IL 0 //  change this to 1
 
 #include <Windows.h> // dialog
@@ -588,22 +589,33 @@ int init()
     SDL_WM_SetCaption(caption, NULL);
     fonts_on = init_fonts();
 
-    SHADERS = init_shaders_();
-    if (SHADERS)
+    // cannot use shaders if NVIDIA
+
+    const GLubyte * glversion = glGetString(GL_VERSION);
+
+    char nstr[7] = "NVIDIA";
+    memcpy(nstr, &glversion[6], 6);
+
+    if (strcmp(nstr, "NVIDIA") != 0)
     {
-        init_Hint();
-        init_LIGHT_THEME();
-        update_Light(Light_Themes[0]);
-        init_lights();
-        init_fog();
-        /* shadows */
-        //init_MATERIALS();
-        //init_materialS();
-        init_shadows();
-        /* shadow map */
-        setupFBO();
-        setMatrices();
+        SHADERS = init_shaders_();
+        if (SHADERS)
+        {
+            init_Hint();
+            init_LIGHT_THEME();
+            update_Light(Light_Themes[0]);
+            init_lights();
+            init_fog();
+            /* shadows */
+            //init_MATERIALS();
+            //init_materialS();
+            init_shadows();
+            /* shadow map */
+            setupFBO();
+            setMatrices();
+        }
     }
+
     if (!fonts_on) quit_app(0);
     printf("fonts on %d\n", fonts_on);
     init_ui();
