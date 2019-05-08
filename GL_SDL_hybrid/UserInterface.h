@@ -942,7 +942,7 @@ void draw_Button_pose_text(const char * text, int width, int height, int index, 
         strcat(Text, text);
     }
 
-    draw_text(text, origin_x, origin_y, font_height, 0);
+    draw_text(Text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_defr_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed)
@@ -985,7 +985,7 @@ void draw_Button_defr_text(const char * text, int width, int height, int index, 
         strcat(Text, text);
     }
 
-    draw_text(text, origin_x, origin_y, font_height, 0);
+    draw_text(Text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_hier_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed, int italic)
@@ -1028,7 +1028,7 @@ void draw_Button_hier_text(const char * text, int width, int height, int index, 
         strcat(Text, text);
     }
 
-    draw_text(text, origin_x, origin_y, font_height, italic);
+    draw_text(Text, origin_x, origin_y, font_height, italic);
 }
 
 void draw_Button_sels_text(const char * text, int width, int height, int index, int colorchange, int frame_it)
