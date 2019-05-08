@@ -427,10 +427,10 @@ int init_shaders_()
 	return 1;
 }
 
-void render_text_(const char * text, float x, float y, int font_height)
+void render_text_(const char * text, float x, float y, int font_height, int italic)
 {
 	const char * p;
-	FT_GlyphSlot G = face->glyph;
+	FT_GlyphSlot G = face[italic]->glyph;
 
 	/* Create a texture that will be used to hold one "glyph" */
 	glActiveTexture(GL_TEXTURE0);
@@ -469,7 +469,7 @@ void render_text_(const char * text, float x, float y, int font_height)
 	for(p = text; * p; p ++)
     {
 		/* Try to load and render the character */
-		if (FT_Load_Char(face, * p, FT_LOAD_RENDER))
+		if (FT_Load_Char(face[italic], * p, FT_LOAD_RENDER))
         {
             continue;
         }
@@ -521,7 +521,7 @@ void render_text_(const char * text, float x, float y, int font_height)
 
 GLfloat White[4] = {1, 1, 1, 1};
 
-void display_font_(const char * text, float origin_x, float origin_y, int font_height, float color[4])
+void display_font_(const char * text, float origin_x, float origin_y, int font_height, float color[4], int italic)
 {
     glMatrixMode(GL_PROJECTION);
 
@@ -533,12 +533,12 @@ void display_font_(const char * text, float origin_x, float origin_y, int font_h
 
 	glUniform4fv(uniform_color0, 1, color);
 
-	render_text_(text, origin_x, origin_y, font_height);
+	render_text_(text, origin_x, origin_y, font_height, italic);
 
 	glUseProgram(0);
 }
 
-void display_font(const char * text, int width, int height)
+void display_font(const char * text, int width, int height, int italic)
 {
 	//glDisable(GL_LIGHTING);
 	//glDisable(GL_DEPTH_TEST);
@@ -574,7 +574,7 @@ void display_font(const char * text, int width, int height)
 
     int font_height = 11; //120 * view;
 	/* Set font size to 48 pixels */
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[italic], 0, font_height);
 
 	glUniformMatrix4fv(uniform_proj1, 1, GL_FALSE, projectionMatrix);
 
@@ -584,7 +584,7 @@ void display_font(const char * text, int width, int height)
 	float origin_x = 10; //-(float)width * view;
 	float origin_y = 20; //-(float)height * view;
 
-	render_text_(text, origin_x, origin_y, font_height);
+	render_text_(text, origin_x, origin_y, font_height, italic);
 
 	glPopMatrix();
 

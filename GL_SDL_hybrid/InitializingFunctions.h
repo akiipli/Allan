@@ -541,7 +541,7 @@ int initialize_object(int index,
 
     if (put_transformer)
     {
-        O->T = malloc(sizeof(transformer));
+        O->T = calloc(1, sizeof(transformer));
         init_transformer(O->T, &World, "Object");
         O->T->Object = O;
         O->T->rot_Order = zxy;

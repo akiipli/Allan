@@ -68,7 +68,7 @@ int LISTLENGTH = 12;
 
 int SHADERS = 0;
 
-void display_font_(const char * text, float origin_x, float origin_y, int font_height, float color[4]);
+void display_font_(const char * text, float origin_x, float origin_y, int font_height, float color[4], int italic);
 
 int dir_lists = 0;
 int selected_deformer_node = 0;
@@ -512,7 +512,7 @@ int list_poses(char **, int, int, int *, int *);
 
 int list_deformers(char **, int, int, int *, int *);
 
-int list_hierarcys(char **, int, int, int *, int *);
+int list_hierarcys(char **, int, int, int *, int *, int *);
 
 int list_selections(char **, int, int, char *);
 
@@ -724,7 +724,7 @@ int list_directory(char * path, char ** out_list, int start, int n, const char *
 }
 
 FT_Library ft;
-FT_Face face;
+FT_Face face[2];
 
 GLuint font_tex;
 
@@ -741,18 +741,26 @@ int init_fonts()
     dirfile[0] = '\0';
     strcat(dirfile, resources_dir);
     strcat(dirfile, "courbd.ttf ");
-	if (FT_New_Face(ft, dirfile, 0, &face)) {
+	if (FT_New_Face(ft, dirfile, 0, &face[0])) {
 		fprintf(stderr, "Could not open font\n");
+		return 0;
+	}
+
+    dirfile[0] = '\0';
+    strcat(dirfile, resources_dir);
+    strcat(dirfile, "courbi.ttf ");
+	if (FT_New_Face(ft, dirfile, 0, &face[1])) {
+		fprintf(stderr, "Could not open italic font\n");
 		return 0;
 	}
 
 	return 1;
 }
 
-void render_text(const char * text, float x, float y, int font_height)
+void render_text(const char * text, float x, float y, int font_height, int italic)
 {
 	const char * p;
-	FT_GlyphSlot G = face->glyph;
+	FT_GlyphSlot G = face[italic]->glyph;
 
 	/* Create a texture that will be used to hold one "glyph" */
 	glActiveTexture(GL_TEXTURE0);
@@ -777,7 +785,7 @@ void render_text(const char * text, float x, float y, int font_height)
 	int tab_c = 0;
 	for(p = text; * p; p ++) {
 		/* Try to load and render the character */
-		if (FT_Load_Char(face, * p, FT_LOAD_RENDER))
+		if (FT_Load_Char(face[italic], * p, FT_LOAD_RENDER))
         {
             continue;
         }
@@ -829,17 +837,17 @@ void render_text(const char * text, float x, float y, int font_height)
 	}
 }
 
-void draw_text(const char * text, int origin_x, int origin_y, int font_height)
+void draw_text(const char * text, int origin_x, int origin_y, int font_height, int italic)
 {
     if (SHADERS)
     {
         float color[4];
         glGetFloatv(GL_CURRENT_COLOR, color);
-        display_font_(text, origin_x, origin_y, font_height, color);
+        display_font_(text, origin_x, origin_y, font_height, color, italic);
     }
     else
     {
-        render_text(text, origin_x, origin_y, font_height);
+        render_text(text, origin_x, origin_y, font_height, italic);
     }
 }
 
@@ -869,7 +877,7 @@ void draw_Button_bone_text(const char * text, int width, int height, int index, 
 {
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -891,14 +899,14 @@ void draw_Button_bone_text(const char * text, int width, int height, int index, 
 	else
         glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_pose_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed)
 {
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 * x_offset;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -934,14 +942,14 @@ void draw_Button_pose_text(const char * text, int width, int height, int index, 
         strcat(Text, text);
     }
 
-    draw_text(Text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_defr_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed)
 {
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 * x_offset;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -977,14 +985,14 @@ void draw_Button_defr_text(const char * text, int width, int height, int index, 
         strcat(Text, text);
     }
 
-    draw_text(Text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_hier_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed)
+void draw_Button_hier_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed, int italic)
 {
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[italic], 0, font_height);
 
 	float origin_x = 5 * x_offset;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -1020,14 +1028,14 @@ void draw_Button_hier_text(const char * text, int width, int height, int index, 
         strcat(Text, text);
     }
 
-    draw_text(Text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, italic);
 }
 
 void draw_Button_sels_text(const char * text, int width, int height, int index, int colorchange, int frame_it)
 {
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -1049,14 +1057,14 @@ void draw_Button_sels_text(const char * text, int width, int height, int index, 
 	else
         glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_text_text(const char * text, int width, int height, int index, int colorchange, int frame_it)
 {
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -1078,7 +1086,7 @@ void draw_Button_text_text(const char * text, int width, int height, int index, 
 	else
         glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_material_text(const char * text, int width, int height, int index, int colorchange)
@@ -1087,7 +1095,7 @@ void draw_Button_material_text(const char * text, int width, int height, int ind
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -1097,7 +1105,7 @@ void draw_Button_material_text(const char * text, int width, int height, int ind
 	else
         glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_item_text(const char * text, int width, int height, int index, int colorchange, int selected)
@@ -1106,7 +1114,7 @@ void draw_Button_item_text(const char * text, int width, int height, int index, 
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -1118,7 +1126,7 @@ void draw_Button_item_text(const char * text, int width, int height, int index, 
 	else
         glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_text(const char * text, int width, int height, int index, int colorchange)
@@ -1127,7 +1135,7 @@ void draw_Button_text(const char * text, int width, int height, int index, int c
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -1137,7 +1145,7 @@ void draw_Button_text(const char * text, int width, int height, int index, int c
 	else
         glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_Text(const char * text, int width, int height, int index, int colorchange)
@@ -1169,14 +1177,14 @@ void draw_Button_Text(const char * text, int width, int height, int index, int c
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * (index + 1) + 10;
 
 	glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_item(const char * text, int width, int height, int index, int colorchange)
@@ -1208,14 +1216,14 @@ void draw_Button_item(const char * text, int width, int height, int index, int c
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * (index + 1) + 10;
 
 	glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_deform(const char * text, int width, int height, int index, int colorchange)
@@ -1247,14 +1255,14 @@ void draw_Button_deform(const char * text, int width, int height, int index, int
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * (index + 1) + 10;
 
 	glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_sels(const char * text, int width, int height, int index, int colorchange)
@@ -1286,14 +1294,14 @@ void draw_Button_sels(const char * text, int width, int height, int index, int c
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * (index + 1) + 10;
 
 	glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_scene_ext(const char * text, int width, int height, int index, int colorchange)
@@ -1325,14 +1333,14 @@ void draw_Button_scene_ext(const char * text, int width, int height, int index, 
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * (index + 1) + 10;
 
 	glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_ext(const char * text, int width, int height, int index, int colorchange)
@@ -1364,14 +1372,14 @@ void draw_Button_ext(const char * text, int width, int height, int index, int co
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * (index + 1) + 10;
 
 	glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Collapsed(const char * text, int width, int collapsed, int index)
@@ -1404,7 +1412,7 @@ void draw_Collapsed(const char * text, int width, int collapsed, int index)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -1418,7 +1426,7 @@ void draw_Collapsed(const char * text, int width, int collapsed, int index)
         strcat(Text, "< ");
     strcat(Text, text);
 
-    draw_text(Text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button(const char * text, int width, int height, int index, int colorchange)
@@ -1450,14 +1458,14 @@ void draw_Button(const char * text, int width, int height, int index, int colorc
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_text_horizontal(const char * text, int index, int colorchange)
@@ -1489,14 +1497,14 @@ void draw_Button_text_horizontal(const char * text, int index, int colorchange)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + h_dim;
 	float origin_y = 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_bone_horizontal(const char * text, int index, int colorchange)
@@ -1528,14 +1536,14 @@ void draw_Button_bone_horizontal(const char * text, int index, int colorchange)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + h_dim;
 	float origin_y = 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_scene_horizontal(const char * text, int width, int colorchange)
@@ -1567,14 +1575,14 @@ void draw_Button_scene_horizontal(const char * text, int width, int colorchange)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + h_dim;
 	float origin_y = 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_pose_horizontal(const char * text, int index, int colorchange)
@@ -1606,14 +1614,14 @@ void draw_Button_pose_horizontal(const char * text, int index, int colorchange)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + h_dim;
 	float origin_y = 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_defr_horizontal(const char * text, int index, int colorchange)
@@ -1645,14 +1653,14 @@ void draw_Button_defr_horizontal(const char * text, int index, int colorchange)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + h_dim;
 	float origin_y = 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_hier_horizontal(const char * text, int index, int colorchange)
@@ -1684,14 +1692,14 @@ void draw_Button_hier_horizontal(const char * text, int index, int colorchange)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + h_dim;
 	float origin_y = 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_sels_horizontal(const char * text, int index, int colorchange)
@@ -1723,14 +1731,14 @@ void draw_Button_sels_horizontal(const char * text, int index, int colorchange)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + h_dim;
 	float origin_y = 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_last_message(const char * text, int width)
@@ -1759,14 +1767,14 @@ void draw_last_message(const char * text, int width)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + h_dim;
 	float origin_y = 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_horizontal(const char * text, int index, int colorchange)
@@ -1798,14 +1806,14 @@ void draw_Button_horizontal(const char * text, int index, int colorchange)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + h_dim;
 	float origin_y = 10;
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Bones_List(int s_height, int start, int clear_background, int current_bone)
@@ -2042,6 +2050,7 @@ void draw_Hierarchys_List(int s_height, int start, int clear_background, int cur
 	char * hierarchys_list[LISTLENGTH];
 	int hier_x_offset[LISTLENGTH];
 	int hier_x_collapsed[LISTLENGTH];
+	int hier_italic[LISTLENGTH];
 
     int i;
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -2049,11 +2058,11 @@ void draw_Hierarchys_List(int s_height, int start, int clear_background, int cur
         hierarchys_list[i] = malloc(255 * sizeof(char));
     }
 
-    int s = list_hierarcys(hierarchys_list, start, LISTLENGTH, hier_x_offset, hier_x_collapsed);
+    int s = list_hierarcys(hierarchys_list, start, LISTLENGTH, hier_x_offset, hier_x_collapsed, hier_italic);
 
 	for (i = 0; i < s; i ++)
     {
-        draw_Button_hier_text(hierarchys_list[i], d_width, d_height, i, 1, 0, hier_x_offset[i], hier_x_collapsed[i]);
+        draw_Button_hier_text(hierarchys_list[i], d_width, d_height, i, 1, 0, hier_x_offset[i], hier_x_collapsed[i], hier_italic[i]);
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -2333,7 +2342,7 @@ void draw_Button_path(char * path, int Edit_Lock)
 
     int font_height = 12;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 5 + BUTTON_WIDTH;
 	float origin_y = DIALOG_HEIGHT - BUTTON_HEIGHT + 10;
@@ -2343,7 +2352,7 @@ void draw_Button_path(char * path, int Edit_Lock)
     else
         glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(path, origin_x, origin_y, font_height);
+    draw_text(path, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Files_Box(int s_height, int clear_background)
@@ -3684,12 +3693,12 @@ void display_osd_font(const char * text, int width, int height)
 
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face, 0, font_height);
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
 	float origin_x = 10;
 	float origin_y = 20;
 
-    draw_text(text, origin_x, origin_y, font_height);
+    draw_text(text, origin_x, origin_y, font_height, 0);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

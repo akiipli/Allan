@@ -97,7 +97,7 @@ void init_Cameras()
 
     for (c = 0; c < CAMERAS; c ++)
     {
-        cameras[c]->T = malloc(sizeof(transformer));
+        cameras[c]->T = calloc(1, sizeof(transformer));
         cameras[c]->P = malloc(sizeof(camera_pose));
         init_transformer(cameras[c]->T, &World, "Camera");
     }

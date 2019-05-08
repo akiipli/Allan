@@ -1865,7 +1865,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
 
     if (!drag_rectangle && SHADERS)
     {
-        display_font(Hint, screen_width, screen_height);
+        display_font(Hint, screen_width, screen_height, 0);
     }
 
     if (Swap)
@@ -3886,7 +3886,7 @@ int list_deformers(char ** deformers_list, int start, int n, int * defr_x_offset
     return def;
 }
 
-int list_hierarcys(char ** hierarchys_list, int start, int n, int * hier_x_offset, int * hier_x_collapsed)
+int list_hierarcys(char ** hierarchys_list, int start, int n, int * hier_x_offset, int * hier_x_collapsed, int * hier_italic)
 {
     int h = start;
     int hir = 0;
@@ -3897,6 +3897,7 @@ int list_hierarcys(char ** hierarchys_list, int start, int n, int * hier_x_offse
         sprintf(hierarchys_list[hir], "%s", Hier_Names[h]);
         hier_x_offset[hir] = Hier_X_Offset[h];
         hier_x_collapsed[hir] = Hier_X_Collapsed[h];
+        hier_italic[hir] = Hier_Italic[h];
         h ++;
     }
     return hir;
@@ -7292,7 +7293,7 @@ int add_New_Bone()
 
     if (transformerIndex < TRANSFORMERS)
     {
-        transformer * T = malloc(sizeof(transformer));
+        transformer * T = calloc(1, sizeof(transformer));
 
         Locators[locatorIndex ++] = T;
 
@@ -7309,7 +7310,7 @@ int add_New_Bone()
         currentLocator = transformerIndex - 1;
         current_T = transformers[currentLocator];
 
-        transformer * T = malloc(sizeof(transformer));
+        transformer * T = calloc(1, sizeof(transformer));
 
         Locators[locatorIndex ++] = T;
 
@@ -7336,7 +7337,7 @@ void new_Locator()
 
     if (transformerIndex < TRANSFORMERS)
     {
-        T = malloc(sizeof(transformer));
+        T = calloc(1, sizeof(transformer));
 
         Locators[locatorIndex ++] = T;
 

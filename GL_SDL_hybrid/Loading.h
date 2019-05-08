@@ -782,7 +782,7 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                     return 0;
                 }
 
-                T = malloc(sizeof(transformer));
+                T = calloc(1, sizeof(transformer));
 
                 if (T == NULL)
                 {

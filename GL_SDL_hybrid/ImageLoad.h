@@ -830,10 +830,10 @@ int create_Glyph()
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    FT_Set_Pixel_Sizes(face, 0, 48);
+    FT_Set_Pixel_Sizes(face[0], 0, 48);
 
-    FT_GlyphSlot G = face->glyph;
-    FT_Load_Char(face, *p, FT_LOAD_RENDER);
+    FT_GlyphSlot G = face[0]->glyph;
+    FT_Load_Char(face[0], *p, FT_LOAD_RENDER);
 
     //gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, surface->w, surface->h, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
 

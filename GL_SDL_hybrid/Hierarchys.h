@@ -13,6 +13,7 @@ int hier_start;
 
 int Hier_X_Offset[HIERARCHYS];
 int Hier_X_Collapsed[HIERARCHYS];
+int Hier_Italic[HIERARCHYS];
 
 int selected_transformers[HIERARCHYS];
 int selected_transformer_count = 0;
@@ -64,6 +65,7 @@ void list_transformers(transformer * T, int depth)
 
     Hier_X_Offset[Hierarchys_c] = depth;
     Hier_X_Collapsed[Hierarchys_c] = T->collapsed;
+    Hier_Italic[Hierarchys_c] = T->selected;
     T->index = transformerIndex;
     transformers[transformerIndex ++] = T;
 
