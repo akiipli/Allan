@@ -6109,11 +6109,14 @@ void add_Pose()
 void delete_Bone(bone * B)
 {
     Draw_Bottom_Message("delete Bone\n");
-    //if (BIND_POSE)
-    //{
-    remove_Bone_From_Deformer(B);
-    remove_Bone_From_Bones(B);
-    //}
+    if (B->D == NULL)
+    {
+        //if (BIND_POSE)
+        //{
+        remove_Bone_From_Deformer(B);
+        remove_Bone_From_Bones(B);
+        //}
+    }
 }
 
 void remove_Bone()
@@ -7533,6 +7536,14 @@ void delete_Locator()
             index = l;
             condition = 1;
             break;
+        }
+    }
+
+    if (condition)
+    {
+        if (!BIND_POSE && current_T->Deformer != NULL)
+        {
+            condition = 0;
         }
     }
 
