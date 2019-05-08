@@ -8724,6 +8724,7 @@ void reload_All_Textures()
 
 void modify_Texture_Seams(object * O)
 {
+#if DEBUG_WITHOUT_IL == 0
     // for displacement to be seamed
 
     surface_Material * M = &Materials[O->surface];
@@ -8771,6 +8772,7 @@ void modify_Texture_Seams(object * O)
             update_BumpFrom_Surface(texture, M->bump);
         }
     }
+#endif
 }
 
 void reload_Texture()
