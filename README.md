@@ -9,15 +9,8 @@ Guidelines are in C:\GL_SDL_hybrid\README.txt.
 
 ---
 
-I am interested in results with other graphics processors.
-For example on my MSI Laptop on NVIDIA high performance processor,
-it hangs and because it fails to execute line 'glDrawArrays(GL_QUADS, 0, 4);'
-in Shader.h in 'void render_text_(const char * text, float x, float y, int font_height)'.
-As much i can observe it is a freetype problem with NVIDIA.
-Open GL errorchecking give no results.
-
-Update 5/4/2019: disabled shaders with Nvidia.
-To retest Nvidia situations enable them in main.c where NVIDIA block tests glversion in "init" function.
+5/9/2019: Problem solved - missed disable_VBO in main.c init SHADERS block.
+This is due to fact that CoordPointers are not supported parallel with Shaders.
 
 ---
 
