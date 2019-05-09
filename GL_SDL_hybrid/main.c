@@ -589,31 +589,22 @@ int init()
     SDL_WM_SetCaption(caption, NULL);
     fonts_on = init_fonts();
 
-    // cannot use shaders if NVIDIA
-
-    const GLubyte * glversion = glGetString(GL_VERSION);
-
-    char nstr[7] = "NVIDIA";
-    memcpy(nstr, &glversion[6], 6);
-
-    if (strcmp(nstr, "NVIDIA") != 0)
+    SHADERS = init_shaders_();
+    if (SHADERS)
     {
-        SHADERS = init_shaders_();
-        if (SHADERS)
-        {
-            init_Hint();
-            init_LIGHT_THEME();
-            update_Light(Light_Themes[0]);
-            init_lights();
-            init_fog();
-            /* shadows */
-            //init_MATERIALS();
-            //init_materialS();
-            init_shadows();
-            /* shadow map */
-            setupFBO();
-            setMatrices();
-        }
+        disable_VBO();
+        init_Hint();
+        init_LIGHT_THEME();
+        update_Light(Light_Themes[0]);
+        init_lights();
+        init_fog();
+        /* shadows */
+        //init_MATERIALS();
+        //init_materialS();
+        init_shadows();
+        /* shadow map */
+        setupFBO();
+        setMatrices();
     }
 
     if (!fonts_on) quit_app(0);
