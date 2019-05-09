@@ -13484,6 +13484,14 @@ int main(int argc, char * args[])
         else if (message == 76)
         {
             SHADERS = !SHADERS;
+            if (!SHADERS && VBO)
+            {
+                enable_VBO();
+            }
+            else
+            {
+                disable_VBO();
+            }
         }
         else if (message == 77)
         {
