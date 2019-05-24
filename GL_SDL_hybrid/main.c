@@ -105,6 +105,7 @@ look for CUBECOMMENT
 #define tif_EXTENSION 2
 #define PSD_EXTENSION 3
 
+int NVIDIA = 0;
 int Bottom_Message = 1;
 char * caption = "Trips Code c program | ";
 char bottom_message[STRLEN];
@@ -415,6 +416,8 @@ static void setup_opengl(int width, int height)
 {
     const GLubyte * glversion = glGetString(GL_VERSION);
     printf("OpenGL %s\n", glversion);
+
+    NVIDIA = find_card(glversion);
 
     VAO = enable_VAO();
     VBO = enable_VBO();
@@ -3339,7 +3342,7 @@ void set_Button_sels(int idx)
     if (UPDATE_SELECTIONS)
         create_Selections_List(selected_objects, selected_object_count, idx);
 
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (dialog_lock)
     {
         if (dialog_type == SELS_DIALOG)
@@ -3979,7 +3982,7 @@ void open_Selections_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = SELS_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     UPDATE_COLORS = 0;
@@ -4032,7 +4035,7 @@ void open_Bones_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = BONE_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     if (dialog_lock)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4109,7 +4112,7 @@ void open_Poses_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = POSE_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     if (dialog_lock)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4156,7 +4159,7 @@ void open_Deformers_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = DEFR_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     if (dialog_lock)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4199,7 +4202,7 @@ void open_Hierarchys_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = HIER_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     if (dialog_lock)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4239,7 +4242,7 @@ void open_Textures_List()
         SDL_SetCursor(Arrow);
         dialog_lock = 1;
         dialog_type = TEXT_DIALOG;
-        glDrawBuffer(GL_FRONT_AND_BACK);
+        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
         UPDATE_COLORS = 1;
         if (dialog_lock)
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4301,7 +4304,7 @@ void open_Materials_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = MATERIAL_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     if (dialog_lock)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4344,7 +4347,7 @@ void open_Items_List()
         edgedraw = 1;
         dialog_lock = 1;
         dialog_type = ITEM_DIALOG;
-        glDrawBuffer(GL_FRONT_AND_BACK);
+        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
         UPDATE_COLORS = 1;
         if (dialog_lock)
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4374,7 +4377,7 @@ void open_Saves_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = SAVES_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     if (dialog_lock)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4426,7 +4429,7 @@ void open_Loading_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = LOADING_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     if (dialog_lock)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4465,7 +4468,7 @@ void open_OBJ_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = OBJ_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     if (dialog_lock)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4512,7 +4515,7 @@ void open_Img_List()
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
     dialog_type = IMG_DIALOG;
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
     if (dialog_lock)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -4652,7 +4655,7 @@ void update_Deformers_List(int blit)
         blit_ViewPort();
     }
 
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 
     draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                     defr_start, 1, DefrIndex - defr_start,
@@ -4670,7 +4673,7 @@ void update_Loading_List(int update, int blit)
         blit_ViewPort();
     }
 
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 
     if (update)
         draw_Loading_Dialog(scene_files_dir, "Load scene", screen_height, scene_extension, scene_extensions, scene_ext_count, scene_files_start, 1, 1, Edit_Lock);
@@ -4688,7 +4691,7 @@ void update_Saves_List(int update, int blit)
         blit_ViewPort();
     }
 
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 
     if (update)
         draw_Saves_Dialog(scene_files_dir, "Save scene", screen_height, scene_extension, scene_extensions, scene_ext_count, scene_files_start, 1, 1, Edit_Lock);
@@ -4709,7 +4712,7 @@ void update_Bones_List(int update, int blit)
         blit_ViewPort();
     }
 
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
         draw_Bones_Dialog("Bones List", screen_height, bone_start, 1, BoneIndex - bone_start);
@@ -4733,7 +4736,7 @@ void update_Poses_List(int update, int blit)
         blit_ViewPort();
     }
 
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
         draw_Poses_Dialog("Poses List", screen_height, pose_start, 1, PoseIndex - pose_start);
@@ -4749,7 +4752,7 @@ void update_Poses_List(int update, int blit)
 
 void update_Texts_List()
 {
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     draw_Textures_Dialog("Textures List", screen_height, text, texts, texts_count, texts_start, 1, currentObject);
@@ -4761,7 +4764,7 @@ void update_Texts_List()
 
 void update_Items_List()
 {
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
@@ -4781,7 +4784,7 @@ void update_Materials_List(int update, int blit)
         blit_ViewPort();
     }
 
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
         draw_Materials_Dialog("Materials L.", screen_height, materials_start, 1, currentObject);
@@ -4805,7 +4808,7 @@ void update_Selections_List(int update, int blit)
         blit_ViewPort();
     }
 
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
         draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
@@ -5273,7 +5276,7 @@ void update_Hierarcys_List(int update, int blit)
         blit_ViewPort();
     }
 
-    glDrawBuffer(GL_FRONT_AND_BACK);
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
         draw_Hierarchys_Dialog("Hierarchys L.", screen_height, hier_start, 1, HierIndex - hier_start);
@@ -6965,7 +6968,7 @@ void handle_dialog(char letter, SDLMod mod)
         if (UPDATE_BACKGROUND)
         {
             all_objects_in_frame(Camera);
-            glDrawBuffer(GL_FRONT_AND_BACK);
+            if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
             DRAW_UI = 0;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
             ItemList[currentObject - items_start].color = UI_BACKL;
@@ -9841,7 +9844,7 @@ int main(int argc, char * args[])
                     {
                         DRAW_UI = 0;
 
-                        //glDrawBuffer(GL_FRONT_AND_BACK);
+                        //if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                         //poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                         //if (dialog_lock)
                             //draw_Dialog();
@@ -9861,7 +9864,7 @@ int main(int argc, char * args[])
                 }
                 else if (event.button.button == SDL_BUTTON_LEFT)
                 {
-//                    glDrawBuffer(GL_FRONT_AND_BACK);
+//                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 //                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
 //                    if (dialog_lock)
 //                        draw_Dialog();
@@ -9984,7 +9987,7 @@ int main(int argc, char * args[])
                                     create_Bones_List(BoneIndex);
 
                                     DRAW_UI = 0;
-                                    glDrawBuffer(GL_FRONT_AND_BACK);
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_Bones_Dialog("Bones List", screen_height,
                                                 bone_start, 1, BoneIndex - bone_start);
@@ -10027,7 +10030,7 @@ int main(int argc, char * args[])
                                         create_Poses_List(PoseIndex);
                                     }
                                     DRAW_UI = 0;
-                                    glDrawBuffer(GL_FRONT_AND_BACK);
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_Poses_Dialog("Poses List", screen_height,
                                                 pose_start, 1, PoseIndex - pose_start);
@@ -10077,7 +10080,7 @@ int main(int argc, char * args[])
                                         }
                                         DRAW_UI = 0;
                                         UPDATE_COLORS = 1;
-                                        glDrawBuffer(GL_FRONT_AND_BACK);
+                                        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                         draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                                                             defr_start, 1, DefrIndex - defr_start,
@@ -10354,7 +10357,7 @@ int main(int argc, char * args[])
                                 if (Buttonindex > -1 && Buttonindex < SCENE_EXT_NUM && Button_scene_ext[Buttonindex].func != NULL)
                                 {
                                     (*Button_scene_ext[Buttonindex].func)(Buttonindex, dialog_type);
-                                    glDrawBuffer(GL_FRONT_AND_BACK);
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     draw_Saves_Dialog(scene_files_dir, "Save scene", screen_height, scene_extension, scene_extensions, scene_ext_count, scene_files_start, 1, 1, Edit_Lock);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
@@ -10365,7 +10368,7 @@ int main(int argc, char * args[])
                                 if (Buttonindex > -1 && Buttonindex < SCENE_EXT_NUM && Button_scene_ext[Buttonindex].func != NULL)
                                 {
                                     (*Button_scene_ext[Buttonindex].func)(Buttonindex, dialog_type);
-                                    glDrawBuffer(GL_FRONT_AND_BACK);
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     draw_Loading_Dialog(scene_files_dir, "Load scene", screen_height, scene_extension, scene_extensions, scene_ext_count, scene_files_start, 1, 1, Edit_Lock);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
@@ -10388,7 +10391,7 @@ int main(int argc, char * args[])
                                 if (Buttonindex > -1 && Buttonindex < defr_type_count && Button_defr[Buttonindex].func != NULL)
                                 {
                                     (*Button_defr[Buttonindex].func)(Buttonindex);
-                                    glDrawBuffer(GL_FRONT_AND_BACK);
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                                                             defr_start, 1, DefrIndex - defr_start,
                                                             hier_start, HierIndex - hier_start,
@@ -10402,7 +10405,7 @@ int main(int argc, char * args[])
                                 if (Buttonindex > -1 && Buttonindex < sel_type_count && Button_sels[Buttonindex].func != NULL)
                                 {
                                     (*Button_sels[Buttonindex].func)(Buttonindex);
-                                    glDrawBuffer(GL_FRONT_AND_BACK);
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
@@ -10423,7 +10426,7 @@ int main(int argc, char * args[])
                                 if (Buttonindex > -1 && Buttonindex < items_count && Button_item[Buttonindex].func != NULL)
                                 {
                                     (*Button_item[Buttonindex].func)(Buttonindex);
-                                    glDrawBuffer(GL_FRONT_AND_BACK);
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
@@ -10434,7 +10437,7 @@ int main(int argc, char * args[])
                                 if (Buttonindex > -1 && Buttonindex < ext_count && Button_ext[Buttonindex].func != NULL)
                                 {
                                     (*Button_ext[Buttonindex].func)(Buttonindex, dialog_type);
-                                    glDrawBuffer(GL_FRONT_AND_BACK);
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     files_num = query_files(files_dir, extension);
                                     if (dialog_type == OBJ_DIALOG)
                                     {
@@ -10917,7 +10920,7 @@ int main(int argc, char * args[])
 
                         assert_Element_Selection_(O);
 
-                        glDrawBuffer(GL_FRONT_AND_BACK);
+                        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 
                         DRAW_UI = 1;
                     }
@@ -11724,7 +11727,7 @@ int main(int argc, char * args[])
                 }
                 else if (drag_rectangle)
                 {
-                    glDrawBuffer(GL_FRONT_AND_BACK);
+                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                     UPDATEDRAG = 1;
                     if (subdLevel > -1)
                         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, 0);
@@ -12161,7 +12164,7 @@ int main(int argc, char * args[])
                             O = objects[currentObject];
                             DRAW_UI = 0;
 
-                            glDrawBuffer(GL_FRONT_AND_BACK);
+                            if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 
                             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                             if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)
@@ -12268,7 +12271,7 @@ int main(int argc, char * args[])
                             O = objects[currentObject];
                             DRAW_UI = 0;
 
-                            glDrawBuffer(GL_FRONT_AND_BACK);
+                            if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 
                             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                             if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)

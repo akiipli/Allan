@@ -43,6 +43,33 @@ int IsExtensionSupported(char * szTargetExtension)
     return 0;
 }
 
+int find_card(const GLubyte * glversion)
+{
+    int white_spaces[10]; // Estimate number GL_ARB_vertex_buffer_object is listed before.
+    int w_count = 0;
+    white_spaces[w_count] = 0;
+
+    int L = strlen("NVIDIA");
+    int l = strlen((char *)glversion);
+    char card_Name[30];
+    int i;
+    int p;
+    for (i = 0; i < l; i ++)
+    {
+        if (glversion[i] == ' ')
+            white_spaces[w_count++] = i + 1;
+    }
+    for (p = 0; p < w_count; p ++)
+    {
+        memcpy(card_Name, &glversion[white_spaces[p]], L);
+        card_Name[L] = '\0';
+
+        if (strcmp(card_Name, "NVIDIA") == 0)
+            return 1;
+    }
+    return 0;
+}
+
 int disable_VBO()
 {
     if (IsExtensionSupported("GL_ARB_vertex_buffer_object"))
