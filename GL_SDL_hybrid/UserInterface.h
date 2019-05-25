@@ -1426,7 +1426,7 @@ void draw_Collapsed(const char * text, int width, int collapsed, int index)
         strcat(Text, "< ");
     strcat(Text, text);
 
-    draw_text(text, origin_x, origin_y, font_height, 0);
+    draw_text(Text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button(const char * text, int width, int height, int index, int colorchange)
