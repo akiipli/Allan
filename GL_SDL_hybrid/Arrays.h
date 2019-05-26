@@ -19,8 +19,8 @@ int IsExtensionSupported(char * szTargetExtension)
     //printf("Extensions %s\n", pszExtensions);
 
     int white_spaces[300]; // Estimate number GL_ARB_vertex_buffer_object is listed before.
-    int w_count = 0;
-    white_spaces[w_count] = 0;
+    int w_count = 1;
+    white_spaces[0] = 0;
 
     int L = strlen(szTargetExtension);
     int l = strlen((char *)pszExtensions);
@@ -30,7 +30,10 @@ int IsExtensionSupported(char * szTargetExtension)
     for (i = 0; i < l; i ++)
     {
         if (pszExtensions[i] == ' ')
-            white_spaces[w_count++] = i + 1;
+        {
+            white_spaces[w_count] = i + 1;
+            w_count ++;
+        }
     }
     for (p = 0; p < w_count; p ++)
     {
@@ -43,25 +46,28 @@ int IsExtensionSupported(char * szTargetExtension)
     return 0;
 }
 
-int find_card(const GLubyte * glversion)
+int find_card(const GLubyte * glvendor)
 {
     int white_spaces[10]; // Estimate number GL_ARB_vertex_buffer_object is listed before.
-    int w_count = 0;
-    white_spaces[w_count] = 0;
+    int w_count = 1;
+    white_spaces[0] = 0;
 
     int L = strlen("NVIDIA");
-    int l = strlen((char *)glversion);
+    int l = strlen((char *)glvendor);
     char card_Name[30];
     int i;
     int p;
     for (i = 0; i < l; i ++)
     {
-        if (glversion[i] == ' ')
-            white_spaces[w_count++] = i + 1;
+        if (glvendor[i] == ' ')
+        {
+            white_spaces[w_count] = i + 1;
+            w_count ++;
+        }
     }
     for (p = 0; p < w_count; p ++)
     {
-        memcpy(card_Name, &glversion[white_spaces[p]], L);
+        memcpy(card_Name, &glvendor[white_spaces[p]], L);
         card_Name[L] = '\0';
 
         if (strcmp(card_Name, "NVIDIA") == 0)

@@ -417,7 +417,10 @@ static void setup_opengl(int width, int height)
     const GLubyte * glversion = glGetString(GL_VERSION);
     printf("OpenGL %s\n", glversion);
 
-    NVIDIA = find_card(glversion);
+    const GLubyte * glvendor = glGetString(GL_VENDOR);
+
+    NVIDIA = find_card(glvendor);
+    printf("%s %d\n", glvendor, NVIDIA);
 
     VAO = enable_VAO();
     VBO = enable_VBO();
