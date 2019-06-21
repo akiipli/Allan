@@ -3951,6 +3951,16 @@ int list_texts(char ** texts_list, int start, int n, const char * type)
     return t;
 }
 
+void black_out_SelectionsList()
+{
+    int s;
+
+    for (s = 0; s < LISTLENGTH; s ++)
+    {
+        SelsList[s].color = UI_BLACK;
+    }
+}
+
 void open_Selections_List()
 {
     int idx = 0;
@@ -3969,6 +3979,8 @@ void open_Selections_List()
     }
 
     set_Button_sels(idx);
+
+    black_out_SelectionsList();
 
 //    if (UPDATE_SELECTIONS)
 //        create_Selections_List(selected_objects, selected_object_count, idx);
@@ -10291,6 +10303,7 @@ int main(int argc, char * args[])
 
                                     if (ItemIndex < objectIndex && ItemIndex >= 0)
                                     {
+                                        sels_start[current_sel_type] = 0;
                                         if (controlDown)
                                         {
                                             objects[ItemIndex]->selected = 0;
@@ -10732,6 +10745,7 @@ int main(int argc, char * args[])
                             }
                             else if (Object_Mode && o < objectIndex && o >= 0)
                             {
+                                sels_start[current_sel_type] = 0;
                                 O = objects[o];
                                 currentObject = o;
                                 printf("%s\n", objects[currentObject]->Name);
@@ -11899,6 +11913,7 @@ int main(int argc, char * args[])
                         }
                         else if (Object_Mode && o < objectIndex && o >= 0)
                         {
+                            sels_start[current_sel_type] = 0;
                             O = objects[o];
                             currentObject = o;
                             if (add_selection_mode)
@@ -12890,7 +12905,14 @@ int main(int argc, char * args[])
                 frame_object(Camera, 1);
 
                 if (dialog_lock)
+                {
+                    if (dialog_type == SELS_DIALOG)
+                    {
+                        sels_start[current_sel_type] = 0;
+                    }
                     draw_Dialog();
+                }
+
             }
             if (dialog_lock);
             else
