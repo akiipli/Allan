@@ -8055,8 +8055,8 @@ void select_Locator_Selections(int currentLocator)
             }
         }
     }
-    if (S != NULL)
-        set_Vert_Selection(S);
+//    if (S != NULL)
+//        set_Vert_Selection(S);
 }
 
 void start_Movement()
