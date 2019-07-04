@@ -227,7 +227,7 @@ float distance_To_Point_On_Line(float Normal[3], float parentpos[3], float pos_A
 
 void smallest_Distances_In_Deformer(deformer * D)
 {
-    int k, i, v, o, b;
+    int k, i, v, o_s, o, b;
     weight_encapsulator * W;
     object * O;
     bone * B;
@@ -241,66 +241,94 @@ void smallest_Distances_In_Deformer(deformer * D)
 
     for (o = 0; o < D->Objects_Count; o ++)
     {
-        O = D->Objects[o];
-        for (v = 0; v < O->vertcount; v ++)
+        condition = 0;
+
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
         {
-            O->WEncapsulator[v].Aggregate_dist = 0;
-            for (i = 0; i < INFLUENCES; i ++)
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
             {
-                O->WEncapsulator[v].Candidate_dist[i] = BIG_DIST;
-                O->WEncapsulator[v].Candidate_bones[i] = NULL;
-                O->WEncapsulator[v].Influences_Count = 0;
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                O->WEncapsulator[v].Aggregate_dist = 0;
+                for (i = 0; i < INFLUENCES; i ++)
+                {
+                    O->WEncapsulator[v].Candidate_dist[i] = BIG_DIST;
+                    O->WEncapsulator[v].Candidate_bones[i] = NULL;
+                    O->WEncapsulator[v].Influences_Count = 0;
+                }
             }
         }
     }
 
     for (o = 0; o < D->Objects_Count; o ++)
     {
-        O = D->Objects[o];
-        for (v = 0; v < O->vertcount; v ++)
+        condition = 0;
+
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
         {
-            W = &O->WEncapsulator[v];
-            min_Dist = BIG_DIST;
-            for (b = 0; b < D->Bones_Count; b ++)
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
             {
-                B = D->Bones[b];
-                condition = 0;
-                if (B->Distances[o][v] <= min_Dist)
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                W = &O->WEncapsulator[v];
+                min_Dist = BIG_DIST;
+                for (b = 0; b < D->Bones_Count; b ++)
                 {
-                    condition = 1;
-                }
-                else
-                {
-                    for (i = 0; i < INFLUENCES; i ++)
+                    B = D->Bones[b];
+                    condition = 0;
+                    if (B->Distances[o][v] <= min_Dist)
                     {
-                        if (B->Distances[o][v] <= W->Candidate_dist[i])
-                        {
-                            condition = 1;
-                            break;
-                        }
+                        condition = 1;
                     }
-                }
-                if (condition)
-                {
-                    min_Dist = B->Distances[o][v];
-                    W->Influences_Count ++;
-                    for (i = 0; i < INFLUENCES - 1; i ++)
+                    else
                     {
-                        for (k = 0; k < INFLUENCES - i - 1; k ++)
+                        for (i = 0; i < INFLUENCES; i ++)
                         {
-                            if (W->Candidate_dist[k] < W->Candidate_dist[k + 1]) // to reverse use other comparison
+                            if (B->Distances[o][v] <= W->Candidate_dist[i])
                             {
-                                B0 = W->Candidate_bones[k + 1];
-                                D0 = W->Candidate_dist[k + 1];
-                                W->Candidate_bones[k + 1] = W->Candidate_bones[k];
-                                W->Candidate_dist[k + 1] = W->Candidate_dist[k];
-                                W->Candidate_bones[k] = B0;
-                                W->Candidate_dist[k] = D0;
+                                condition = 1;
+                                break;
                             }
                         }
                     }
-                    O->WEncapsulator[v].Candidate_dist[0] = min_Dist;
-                    O->WEncapsulator[v].Candidate_bones[0] = B;
+                    if (condition)
+                    {
+                        min_Dist = B->Distances[o][v];
+                        W->Influences_Count ++;
+                        for (i = 0; i < INFLUENCES - 1; i ++)
+                        {
+                            for (k = 0; k < INFLUENCES - i - 1; k ++)
+                            {
+                                if (W->Candidate_dist[k] < W->Candidate_dist[k + 1]) // to reverse use other comparison
+                                {
+                                    B0 = W->Candidate_bones[k + 1];
+                                    D0 = W->Candidate_dist[k + 1];
+                                    W->Candidate_bones[k + 1] = W->Candidate_bones[k];
+                                    W->Candidate_dist[k + 1] = W->Candidate_dist[k];
+                                    W->Candidate_bones[k] = B0;
+                                    W->Candidate_dist[k] = D0;
+                                }
+                            }
+                        }
+                        O->WEncapsulator[v].Candidate_dist[0] = min_Dist;
+                        O->WEncapsulator[v].Candidate_bones[0] = B;
+                    }
                 }
             }
         }
@@ -308,15 +336,29 @@ void smallest_Distances_In_Deformer(deformer * D)
 
     for (o = 0; o < D->Objects_Count; o ++)
     {
-        O = D->Objects[o];
-        for (v = 0; v < O->vertcount; v ++)
+        condition = 0;
+
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
         {
-            W = &O->WEncapsulator[v];
-            if (W->Influences_Count > INFLUENCES)
-                W->Influences_Count = INFLUENCES;
-            for (i = 0; i < W->Influences_Count; i ++)
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
             {
-                W->Aggregate_dist += W->Candidate_dist[i];
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                W = &O->WEncapsulator[v];
+                if (W->Influences_Count > INFLUENCES)
+                    W->Influences_Count = INFLUENCES;
+                for (i = 0; i < W->Influences_Count; i ++)
+                {
+                    W->Aggregate_dist += W->Candidate_dist[i];
+                }
             }
         }
     }
@@ -324,7 +366,7 @@ void smallest_Distances_In_Deformer(deformer * D)
 
 void add_Encapsulated_Weights_To_Deformer(deformer * D)
 {
-    int s, i, v, o;
+    int s, i, v, o_s, o;
     object * O;
     bone * B;
 
@@ -333,38 +375,54 @@ void add_Encapsulated_Weights_To_Deformer(deformer * D)
     weight_encapsulator * W;
     float Weight;
 
+    int condition;
+
     for (o = 0; o < D->Objects_Count; o ++)
     {
-        O = D->Objects[o];
-        for (v = 0; v < O->vertcount; v ++)
-        {
-            W = &O->WEncapsulator[v];
-            for (i = 0; i < W->Influences_Count; i ++)
-            {
-                B = W->Candidate_bones[i];
-                if (B != NULL)
-                {
-                    T = B->A;
-                    if (T != NULL)
-                    {
-                        //    This means that current distance is subtracted from aggregate
-                        //    and result is divided with aggregate and subtracted from 1.
+        condition = 0;
 
-                        if (W->Influences_Count > 1)
-                            Weight = (W->Aggregate_dist - W->Candidate_dist[i]) / ((W->Influences_Count - 1) * W->Aggregate_dist);
-                        else
-                            Weight = 1;
-                        //Weight = 1 - ((W->Aggregate_dist - W->Candidate_dist[i]) / W->Aggregate_dist);
-                        //Weight = 1 - (W->Candidate_dist[i] / W->Aggregate_dist);
-                        for (s = 0; s < T->Selections_Count; s ++)
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
+        {
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
+            {
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                W = &O->WEncapsulator[v];
+                for (i = 0; i < W->Influences_Count; i ++)
+                {
+                    B = W->Candidate_bones[i];
+                    if (B != NULL)
+                    {
+                        T = B->A;
+                        if (T != NULL)
                         {
-                            S = T->Selections[s];
-                            if (S->index == B->index && S->Object == O)
+                            //    This means that current distance is subtracted from aggregate
+                            //    and result is divided with aggregate and subtracted from 1.
+
+                            if (W->Influences_Count > 1)
+                                Weight = (W->Aggregate_dist - W->Candidate_dist[i]) / ((W->Influences_Count - 1) * W->Aggregate_dist);
+                            else
+                                Weight = 1;
+                            //Weight = 1 - ((W->Aggregate_dist - W->Candidate_dist[i]) / W->Aggregate_dist);
+                            //Weight = 1 - (W->Candidate_dist[i] / W->Aggregate_dist);
+                            for (s = 0; s < T->Selections_Count; s ++)
                             {
-                                S->indices = realloc(S->indices, (S->indices_count + 1) * sizeof(int));
-                                S->weights = realloc(S->weights, (S->indices_count + 1) * sizeof(float));
-                                S->indices[S->indices_count] = v;
-                                S->weights[S->indices_count ++] = Weight;
+                                S = T->Selections[s];
+                                if (S->index == B->index && S->Object == O)
+                                {
+                                    S->indices = realloc(S->indices, (S->indices_count + 1) * sizeof(int));
+                                    S->weights = realloc(S->weights, (S->indices_count + 1) * sizeof(float));
+                                    S->indices[S->indices_count] = v;
+                                    S->weights[S->indices_count ++] = Weight;
+                                }
                             }
                         }
                     }
@@ -421,47 +479,63 @@ void join_vertex_groups(vert_selection * S, split_selection S0)
 
 void normalize_Weights_In_Deformer(deformer * D)
 {
-    int i, w, idx, s, o;
+    int i, w, idx, s, o_s, o;
 
     object * O;
     vert_selection * S;
 
+    int condition;
+
     for (o = 0; o < D->Objects_Count; o ++)
     {
-        O = D->Objects[o];
+        condition = 0;
 
-        for (w = 0; w < O->vertcount; w ++)
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
         {
-            O->WEncapsulator[w].Aggregate_dist = 0;
-        }
-
-        for (s = 0; s < D->Selections_Count; s ++)
-        {
-            S = D->Selections[s];
-
-            if (S->Object == O)
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
             {
-                for (i = 0; i < S->indices_count; i ++)
-                {
-                    idx = S->indices[i];
-                    O->WEncapsulator[idx].Aggregate_dist += S->weights[i];
-                }
+                condition = 1;
+                break;
             }
         }
 
-        for (s = 0; s < D->Selections_Count; s ++)
+        if (condition)
         {
-            S = D->Selections[s];
 
-            if (S->Object == O)
+            for (w = 0; w < O->vertcount; w ++)
             {
-                for (i = 0; i < S->indices_count; i ++)
+                O->WEncapsulator[w].Aggregate_dist = 0;
+            }
+
+            for (s = 0; s < D->Selections_Count; s ++)
+            {
+                S = D->Selections[s];
+
+                if (S->Object == O)
                 {
-                    idx = S->indices[i];
-                    if (O->WEncapsulator[idx].Aggregate_dist > 0)
-                        S->weights[i] /= O->WEncapsulator[idx].Aggregate_dist;
-                    else
-                        S->weights[i] = 0;
+                    for (i = 0; i < S->indices_count; i ++)
+                    {
+                        idx = S->indices[i];
+                        O->WEncapsulator[idx].Aggregate_dist += S->weights[i];
+                    }
+                }
+            }
+
+            for (s = 0; s < D->Selections_Count; s ++)
+            {
+                S = D->Selections[s];
+
+                if (S->Object == O)
+                {
+                    for (i = 0; i < S->indices_count; i ++)
+                    {
+                        idx = S->indices[i];
+                        if (O->WEncapsulator[idx].Aggregate_dist > 0)
+                            S->weights[i] /= O->WEncapsulator[idx].Aggregate_dist;
+                        else
+                            S->weights[i] = 0;
+                    }
                 }
             }
         }
@@ -470,49 +544,65 @@ void normalize_Weights_In_Deformer(deformer * D)
 
 void generate_Extended_Groups_In_Deformer(deformer * D)
 {
-    int c, o, s, v, b;
+    int c, o_s, o, s, v, b;
 
     bone * B, * B0, * B1;
     object * O, * O0, * O1;
     vert_selection * S, * S0;
 
+    int condition;
+
     for (o = 0; o < D->Objects_Count; o ++)
     {
-        O = D->Objects[o];
-        for (b = 0; b < D->Bones_Count; b ++)
+        condition = 0;
+
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
         {
-            B = D->Bones[b];
-            B0 = B->A->parent->Bone;
-            for (s = 0; s < B->A->Selections_Count; s ++)
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
             {
-                S = B->A->Selections[s];
-                O0 = S->Object;
-                if (O == O0)
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            for (b = 0; b < D->Bones_Count; b ++)
+            {
+                B = D->Bones[b];
+                B0 = B->A->parent->Bone;
+                for (s = 0; s < B->A->Selections_Count; s ++)
                 {
-                    if (B0 != NULL)
+                    S = B->A->Selections[s];
+                    O0 = S->Object;
+                    if (O == O0)
                     {
-                        for (v = 0; v < B0->A->Selections_Count; v ++)
+                        if (B0 != NULL)
                         {
-                            S0 = B0->A->Selections[v];
-                            O1 = S0->Object;
-                            if (O == O1)
+                            for (v = 0; v < B0->A->Selections_Count; v ++)
                             {
-                                join_vertex_groups(S, S0->split[1]);
-                            }
-                        }
-                    }
-                    for (c = 0; c < B->B->childcount; c ++)
-                    {
-                        B1 = B->B->childs[c]->Bone;
-                        if (B1 != NULL)
-                        {
-                            for (v = 0; v < B1->A->Selections_Count; v ++)
-                            {
-                                S0 = B1->A->Selections[v];
+                                S0 = B0->A->Selections[v];
                                 O1 = S0->Object;
                                 if (O == O1)
                                 {
-                                    join_vertex_groups(S, S0->split[0]);
+                                    join_vertex_groups(S, S0->split[1]);
+                                }
+                            }
+                        }
+                        for (c = 0; c < B->B->childcount; c ++)
+                        {
+                            B1 = B->B->childs[c]->Bone;
+                            if (B1 != NULL)
+                            {
+                                for (v = 0; v < B1->A->Selections_Count; v ++)
+                                {
+                                    S0 = B1->A->Selections[v];
+                                    O1 = S0->Object;
+                                    if (O == O1)
+                                    {
+                                        join_vertex_groups(S, S0->split[0]);
+                                    }
                                 }
                             }
                         }
@@ -649,7 +739,7 @@ void free_Bone_Distances_In_Deformer(deformer * D)
 
 void generate_Vertex_Groups_In_Deformer(deformer * D)
 {
-    int b, o, i, index;
+    int b, o_s, o, i, index;
     int condition;
 
     bone * B;
@@ -660,55 +750,69 @@ void generate_Vertex_Groups_In_Deformer(deformer * D)
 
     for (o = 0; o < D->Objects_Count; o ++)
     {
-        for (b = 0; b < D->Bones_Count; b ++)
+        condition = 0;
+
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
         {
-            B = D->Bones[b];
-            T = B->A;
-            O = D->Objects[o];
-
-            sprintf(Name, "%s %d", "Vert", B->index);
-            condition = 1;
-            for (i = 0; i < O->vertex_selections; i ++)
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
             {
-                if (strcmp(O->vertex_selection[i]->Name, Name) == 0)
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            for (b = 0; b < D->Bones_Count; b ++)
+            {
+                B = D->Bones[b];
+                T = B->A;
+
+                sprintf(Name, "%s %d", "Vert", B->index);
+                condition = 1;
+                for (i = 0; i < O->vertex_selections; i ++)
                 {
-                    index = i;
-                    printf("Selection exists!\n");
-                    condition = 0;
-                    break;
+                    if (strcmp(O->vertex_selection[i]->Name, Name) == 0)
+                    {
+                        index = i;
+                        printf("Selection exists!\n");
+                        condition = 0;
+                        break;
+                    }
                 }
-            }
-            if (condition)
-            {
-                index = O->vertex_selections;
-                O->vertex_selections ++;
-                O->vertex_selection = realloc(O->vertex_selection, O->vertex_selections * sizeof(vert_selection*));
-                O->vertex_selection[index] = malloc(sizeof(vert_selection));
-                O->vertex_selection[index]->indices_count = 0;
-                O->vertex_selection[index]->indices = malloc(0 * sizeof(int));
-                O->vertex_selection[index]->weights = malloc(0 * sizeof(float));
-                O->vertex_selection[index]->Object = O;
-                O->vertex_selection[index]->Transformer = T;
+                if (condition)
+                {
+                    index = O->vertex_selections;
+                    O->vertex_selections ++;
+                    O->vertex_selection = realloc(O->vertex_selection, O->vertex_selections * sizeof(vert_selection*));
+                    O->vertex_selection[index] = malloc(sizeof(vert_selection));
+                    O->vertex_selection[index]->indices_count = 0;
+                    O->vertex_selection[index]->indices = malloc(0 * sizeof(int));
+                    O->vertex_selection[index]->weights = malloc(0 * sizeof(float));
+                    O->vertex_selection[index]->Object = O;
+                    O->vertex_selection[index]->Transformer = T;
 
-                O->vertex_selection[index]->split[0].indices_count = 0;
-                O->vertex_selection[index]->split[0].indices = malloc(0 * sizeof(int));
-                O->vertex_selection[index]->split[0].weights = malloc(0 * sizeof(int));
-                O->vertex_selection[index]->split[1].indices_count = 0;
-                O->vertex_selection[index]->split[1].indices = malloc(0 * sizeof(int));
-                O->vertex_selection[index]->split[1].weights = malloc(0 * sizeof(int));
+                    O->vertex_selection[index]->split[0].indices_count = 0;
+                    O->vertex_selection[index]->split[0].indices = malloc(0 * sizeof(int));
+                    O->vertex_selection[index]->split[0].weights = malloc(0 * sizeof(int));
+                    O->vertex_selection[index]->split[1].indices_count = 0;
+                    O->vertex_selection[index]->split[1].indices = malloc(0 * sizeof(int));
+                    O->vertex_selection[index]->split[1].weights = malloc(0 * sizeof(int));
 
-                O->vertex_selection[index]->index = B->index; // temporarily
-                O->vertex_selection[index]->Name = malloc(STRLEN * sizeof(char));
-                memcpy(O->vertex_selection[index]->Name, Name,
-                       strlen(Name));
-                O->vertex_selection[index]->Name[strlen(Name)] = '\0';
+                    O->vertex_selection[index]->index = B->index; // temporarily
+                    O->vertex_selection[index]->Name = malloc(STRLEN * sizeof(char));
+                    memcpy(O->vertex_selection[index]->Name, Name,
+                           strlen(Name));
+                    O->vertex_selection[index]->Name[strlen(Name)] = '\0';
+                }
+                else
+                {
+                    O->vertex_selection[index]->indices_count = 0;
+                    O->vertex_selection[index]->index = B->index; // temporarily
+                }
+                add_Selection_To_Deformer(O, Name, T, D);
             }
-            else
-            {
-                O->vertex_selection[index]->indices_count = 0;
-                O->vertex_selection[index]->index = B->index; // temporarily
-            }
-            add_Selection_To_Deformer(O, Name, T, D);
         }
     }
     add_Encapsulated_Weights_To_Deformer(D);
@@ -717,7 +821,7 @@ void generate_Vertex_Groups_In_Deformer(deformer * D)
 
 void generate_Bones_Distances_In_Deformer(deformer * D)
 {
-    int v, o, b;
+    int v, o_s, o, b;
     vertex * V;
     object * O;
     bone * B;
@@ -725,25 +829,41 @@ void generate_Bones_Distances_In_Deformer(deformer * D)
     float pos[3];
     float norm[3];
 
+    int condition;
+
     for (o = 0; o < D->Objects_Count; o ++)
     {
-        O = D->Objects[o];
-        for (v = 0; v < O->vertcount; v ++)
+        condition = 0;
+
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
         {
-            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-
-            pos[0] = V->x;
-            pos[1] = V->y;
-            pos[2] = V->z;
-
-            norm[0] = V->N.x;
-            norm[1] = V->N.y;
-            norm[2] = V->N.z;
-
-            for (b = 0; b < D->Bones_Count; b ++)
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
             {
-                B = D->Bones[b];
-                B->Distances[o][v] = distance_To_Point_On_Line(norm, pos, B->A->pos, B->B->pos);
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                pos[0] = V->x;
+                pos[1] = V->y;
+                pos[2] = V->z;
+
+                norm[0] = V->N.x;
+                norm[1] = V->N.y;
+                norm[2] = V->N.z;
+
+                for (b = 0; b < D->Bones_Count; b ++)
+                {
+                    B = D->Bones[b];
+                    B->Distances[o][v] = distance_To_Point_On_Line(norm, pos, B->A->pos, B->B->pos);
+                }
             }
         }
     }
@@ -765,6 +885,7 @@ void generate_Bones_Distances_Mapping_In_Deformer(deformer * D)
     for (o = 0; o < D->Objects_Count; o ++)
     {
         O = D->Objects[o];
+
         for (b = 0; b < D->Bones_Count; b ++)
         {
             B = D->Bones[b];
