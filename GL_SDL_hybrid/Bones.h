@@ -737,6 +737,95 @@ void free_Bone_Distances_In_Deformer(deformer * D)
     }
 }
 
+void delete_Zero_Selections_From_Deformer(deformer * D)
+{
+    int o_s, o, v, index, s, d, t, t_s;
+    int condition;
+
+    object * O;
+    vert_selection * S;
+    transformer * T;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        condition = 0;
+
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
+        {
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
+            {
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            for (v = 0; v < O->vertex_selections; v ++)
+            {
+                S = O->vertex_selection[v];
+                if (S->indices_count == 0)
+                {
+                    condition = 0;
+
+                    for (s = 0; s < D->Selections_Count; s ++)
+                    {
+                        if (D->Selections[s] == S)
+                        {
+                            index = s;
+                            condition = 1;
+                            break;
+                        }
+                    }
+
+                    if (condition)
+                    {
+                        //printf("--- %s %d %u\n", S->Name, S->indices_count, (unsigned)&S);
+
+                        D->Selections_Count --;
+                        for (d = index; d < D->Selections_Count; d ++)
+                        {
+                            D->Selections[d] = D->Selections[d + 1];
+                        }
+
+                        T = S->Transformer;
+
+                        if (T != NULL)
+                        {
+                            //printf("%s\n", T->Name);
+
+                            for (t_s = 0; t_s < T->Selections_Count; t_s ++)
+                            {
+                                condition = 0;
+
+                                //printf("%s %d %u\n", T->Selections[t_s]->Name, T->Selections[t_s]->indices_count, (unsigned)&T->Selections[t_s]);
+
+                                if (T->Selections[t_s]->indices_count == 0)
+                                {
+                                    index = t_s;
+                                    condition = 1;
+                                }
+
+                                if (condition)
+                                {
+                                    //printf("1\n");
+                                    S->Transformer = NULL;
+                                    T->Selections_Count --;
+                                    for (t = index; t < T->Selections_Count; t ++)
+                                    {
+                                        T->Selections[t] = T->Selections[t + 1];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void generate_Vertex_Groups_In_Deformer(deformer * D)
 {
     int b, o_s, o, i, index;
