@@ -3743,6 +3743,21 @@ void open_Img()
 //    SetFocus(gHwnd);
 }
 
+void deselect_Objects()
+{
+    int o;
+    object * O;
+    for (o = 0; o < objectIndex; o ++)
+    {
+        O = objects[o];
+        O->selected = 0;
+    }
+    O = objects[currentObject];
+    O->selected = 1;
+    selected_object_count = 1;
+    selected_objects[0] = currentObject;
+}
+
 void open_OBJ_dialog()
 {
     int result;
@@ -3780,9 +3795,7 @@ void open_OBJ_dialog()
         {
             currentLocator = transformerIndex - 1;
             currentObject = objectIndex - 1;
-            O = objects[currentObject];
-            O->selected = 1;
-            selected_objects[selected_object_count ++] = currentObject;
+            deselect_Objects();
             subdLevel = -1;
         }
     }
@@ -3805,9 +3818,9 @@ void open_OBJ(char * fileName)
         {
             currentLocator = transformerIndex - 1;
             currentObject = objectIndex - 1;
-            O = objects[currentObject];
-            O->selected = 1;
-            selected_objects[selected_object_count ++] = currentObject;
+
+            deselect_Objects();
+
             subdLevel = -1;
         }
     }
@@ -13273,17 +13286,7 @@ int main(int argc, char * args[])
             }
             else if (Object_Mode)
             {
-                int o;
-                object * O;
-                for (o = 0; o < objectIndex; o ++)
-                {
-                    O = objects[o];
-                    O->selected = 0;
-                }
-                O = objects[currentObject];
-                O->selected = 1;
-                selected_object_count = 1;
-                selected_objects[0] = currentObject;
+                deselect_Objects();
             }
             else if (Polygon_Mode)
             {
