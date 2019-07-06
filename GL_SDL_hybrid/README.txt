@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+10:30 AM 7/6/2019
+Enchancements to objects binding. 
+Now only selected objects are initiated in deformers List by pressing b.
+Also zero length Selections are automaticly deleted now.
+
 9:27 PM 11/8/2018
 If displacement map has inconsistency at uv seams, 
 Shift + M can be used to fix it for current subdivision level.

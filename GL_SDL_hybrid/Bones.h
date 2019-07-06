@@ -737,6 +737,67 @@ void free_Bone_Distances_In_Deformer(deformer * D)
     }
 }
 
+void delete_Zero_Selections_From_Objects(deformer * D)
+{
+    int o_s, o, v, i;
+    int condition;
+
+    object * O;
+    vert_selection * S;
+    transformer * T;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        condition = 0;
+
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
+        {
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
+            {
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            for (v = O->vertex_selections - 1; v >= 0; v --)
+            {
+                S = O->vertex_selection[v];
+                T = S->Transformer;
+
+                if (S->indices_count == 0)
+                {
+                    if (T == NULL)
+                    {
+                        //printf("%u %u\n", sizeof(S->indices), sizeof(S->weights));
+                        free(O->vertex_selection[v]->indices);
+                        free(O->vertex_selection[v]->weights);
+
+                        //printf("%u %u\n", sizeof(S->split[0].indices), sizeof(S->split[0].weights));
+                        free(O->vertex_selection[v]->split[0].indices);
+                        free(O->vertex_selection[v]->split[0].weights);
+
+                        //printf("%u %u\n", sizeof(S->split[1].indices), sizeof(S->split[1].weights));
+                        free(O->vertex_selection[v]->split[1].indices);
+                        free(O->vertex_selection[v]->split[1].weights);
+
+                        free(O->vertex_selection[v]);
+
+                        O->vertex_selections -= 1;
+                        for (i = v; i < O->vertex_selections; i ++)
+                        {
+                            O->vertex_selection[i] = O->vertex_selection[i + 1];
+                            O->vertex_selection[i]->index -= 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void delete_Zero_Selections_From_Deformer(deformer * D)
 {
     int o_s, o, v, index, s, d, t, t_s;

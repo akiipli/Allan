@@ -423,7 +423,7 @@ void remove_Selection()
                     free(O->vertex_selection[index]->split[0].weights);
 
                     free(O->vertex_selection[index]->split[1].indices);
-                    free(O->vertex_selection[index]->split[2].weights);
+                    free(O->vertex_selection[index]->split[1].weights);
 
                     free(O->vertex_selection[index]);
 

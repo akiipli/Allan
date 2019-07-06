@@ -6059,6 +6059,7 @@ void init_Deformer_Objects_Binding(deformer * D)
     generate_Vertex_Groups_In_Deformer(D);
     free_Bone_Distances_In_Deformer(D);
     delete_Zero_Selections_From_Deformer(D);
+    delete_Zero_Selections_From_Objects(D);
 
     /* smooth binding */
     create_Hierarchys_List();
