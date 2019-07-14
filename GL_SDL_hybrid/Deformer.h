@@ -295,49 +295,76 @@ void normalize_Deformer_Selections(deformer * D)
     }
     overlap;
 
-    int i, v, o, s;
+    int i, v, o, o_s, s;
+
     object * O;
+    vertex * V;
     transformer * T;
     vert_selection * S;
 
-    for(o = 0; o < D->Objects_Count; o ++)
+    int condition;
+
+    for (o = 0; o < D->Objects_Count; o ++)
     {
-        O = D->Objects[o];
-        overlap * OV = malloc(O->vertcount * sizeof(overlap));
-        for (v = 0; v < O->vertcount; v ++)
+        condition = 0;
+
+        for (o_s = 0; o_s < selected_object_count; o_s ++)
         {
-            OV[v].index = v;
-            OV[v].weights = 0;
-        }
-        for (v = 0; v < O->vertcount; v ++)
-        {
-            for (s = 0; s < O->vertex_selections; s ++)
+            O = objects[selected_objects[o_s]];
+            if (O == D->Objects[o])
             {
-                S = O->vertex_selection[s];
-                T = S->Transformer;
-                if (T != NULL)
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            overlap * OV = malloc(O->vertcount * sizeof(overlap));
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                OV[v].index = 0;
+                OV[v].weights = 0;
+            }
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                if (V->selected == 0)
                 {
-                    for (i = 0; i < S->indices_count; i ++)
+                    continue;
+                }
+
+                for (s = 0; s < O->vertex_selections; s ++)
+                {
+                    S = O->vertex_selection[s];
+                    T = S->Transformer;
+                    if (T != NULL)
                     {
-                        if (S->indices[i] == v)
+                        for (i = 0; i < S->indices_count; i ++)
                         {
-                            OV[v].weights += S->weights[i];
-                            break;
+                            if (S->indices[i] == v)
+                            {
+                                OV[v].index ++;
+                                OV[v].weights += S->weights[i];
+                                break;
+                            }
                         }
                     }
                 }
             }
-        }
-        for (s = 0; s < O->vertex_selections; s ++)
-        {
-            S = O->vertex_selection[s];
-            for (i = 0; i < S->indices_count; i ++)
+            for (s = 0; s < O->vertex_selections; s ++)
             {
-                if (OV[S->indices[i]].weights > 0)
-                    S->weights[i] /= OV[S->indices[i]].weights;
+                S = O->vertex_selection[s];
+                for (i = 0; i < S->indices_count; i ++)
+                {
+                    if (OV[S->indices[i]].index > 0 && OV[S->indices[i]].weights > 0)
+                        //S->weights[i] /= OV[S->indices[i]].weights;
+                        S->weights[i] = 1.0 / (float)OV[S->indices[i]].index;
+                }
             }
+            free(OV);
         }
-        free(OV);
     }
 }
 

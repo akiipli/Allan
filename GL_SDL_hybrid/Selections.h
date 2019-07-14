@@ -709,6 +709,7 @@ void assign_Selection_L()
             }
 
             int * selected_elements = malloc(O->vertcount * sizeof(int));
+            float * selected_weights = malloc(O->vertcount * sizeof(int));
             int selected_elements_count = 0;
 
             for (v = 0; v < O->vertcount; v ++)
@@ -716,6 +717,7 @@ void assign_Selection_L()
                 V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
                 if (V->selected)
                 {
+                    selected_weights[selected_elements_count] = 1.0;
                     selected_elements[selected_elements_count ++] = v;
                 }
                 else
@@ -724,6 +726,7 @@ void assign_Selection_L()
                     {
                         if (O->vertex_selection[index]->indices[i_c] == v)
                         {
+                            selected_weights[selected_elements_count] = O->vertex_selection[index]->weights[i_c];
                             selected_elements[selected_elements_count ++] = v;
                             break;
                         }
@@ -737,13 +740,14 @@ void assign_Selection_L()
             for (i = 0; i < selected_elements_count; i ++)
             {
                 O->vertex_selection[index]->indices[i] = selected_elements[i];
-                O->vertex_selection[index]->weights[i] = 1;
+                O->vertex_selection[index]->weights[i] = selected_weights[i];
             }
             if (O->vertex_selection[index]->Transformer != NULL)
             {
                 normalize_Deformer_Selections(O->vertex_selection[index]->Transformer->Deformer);
             }
             free(selected_elements);
+            free(selected_weights);
         }
     }
     create_Selections_List(selected_objects, selected_object_count, current_sel_type);
