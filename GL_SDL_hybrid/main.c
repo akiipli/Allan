@@ -3976,22 +3976,23 @@ void black_out_SelectionsList()
 
 void open_Selections_List()
 {
-    int idx = 0;
+//    int idx = 0;
+//
+//    if (selection_Mode == POLYS)
+//    {
+//        idx = 1;
+//    }
+//    else if (selection_Mode == EDGES)
+//    {
+//        idx = 2;
+//    }
+//    else if (selection_Mode == VERTS)
+//    {
+//        idx = 3;
+//    }
 
-    if (selection_Mode == POLYS)
-    {
-        idx = 1;
-    }
-    else if (selection_Mode == EDGES)
-    {
-        idx = 2;
-    }
-    else if (selection_Mode == VERTS)
-    {
-        idx = 3;
-    }
-
-    set_Button_sels(idx);
+    //set_Button_sels(idx);
+    set_Button_sels(current_sel_type);
 
     black_out_SelectionsList();
 
