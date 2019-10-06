@@ -1,6 +1,7 @@
 Linker settings
 Other linker options
 -lglew32mx -lglew32 -lfreetype -lDevIL -lILU -lILUT -lmingw32 -lSDLmain -lSDL -lSDL_image -lsdlgfx -lSDL_mixer -lSDL_ttf
+-lopengl32 -lglu32 -lgdi32 -mwindows
 Search directories
 Compiler
 C:\SDL-1.2.15\include
