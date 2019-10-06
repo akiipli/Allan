@@ -1118,14 +1118,14 @@ void rotate_Deformer_pose(transformer * T)
         rotate_(C); // rotate_ got updated with scaling in rotate_scale
     }
 
-    for (c = child_collection_count - 1; c >= 0; c --)
-    {
-        C = child_collection[c];
-        if (C->Bone != NULL && C == C->Bone->A)
-        {
-            synthesize_Bone_Axis(C->Bone, C->scl_vec);
-        }
-    }
+//    for (c = child_collection_count - 1; c >= 0; c --)
+//    {
+//        C = child_collection[c];
+//        if (C->Bone != NULL && C == C->Bone->A)
+//        {
+//            synthesize_Bone_Axis(C->Bone, C->scl_vec);
+//        }
+//    }
 
 //    for (c = 0; c < child_collection_count; c ++)
 //    {
