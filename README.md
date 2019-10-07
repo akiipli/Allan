@@ -1,8 +1,7 @@
 # Allan
+Place GL_SDL_hybrid to c drive.
 Place Allan to your windows c drive.
-
-Place SDL-1.2.15 to your c drive too.
-
+Place SDL-1.2.15 to your c drive too (developing).
 Copy runtime librarys to Windows/SysWOW64.
 
 Place Trips Code to c drive.
