@@ -3,16 +3,9 @@ Place Allan to your windows c drive.
 Place SDL-1.2.15 to your c drive too.
 Copy runtime librarys to Windows/SysWOW64.
 Place Trips Code to c drive.
-Run with integrated Intel graphics processor.
+
 Exe files are in C:\GL_SDL_hybrid\bin\Release.
 Guidelines are in C:\GL_SDL_hybrid\README.txt.
-
----
-
-5/9/2019: Problem solved - missed disable_VBO in main.c init SHADERS block.
-This is due to fact that CoordPointers are not supported parallel with Shaders.
-
----
 
 How to use.
 
