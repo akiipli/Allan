@@ -1,7 +1,10 @@
 # Allan
 Place Allan to your windows c drive.
+
 Place SDL-1.2.15 to your c drive too.
+
 Copy runtime librarys to Windows/SysWOW64.
+
 Place Trips Code to c drive.
 
 Exe files are in C:\GL_SDL_hybrid\bin\Release.
