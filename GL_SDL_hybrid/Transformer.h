@@ -1118,14 +1118,14 @@ void rotate_Deformer_pose(transformer * T)
         rotate_(C); // rotate_ got updated with scaling in rotate_scale
     }
 
-//    for (c = child_collection_count - 1; c >= 0; c --)
-//    {
-//        C = child_collection[c];
-//        if (C->Bone != NULL && C == C->Bone->A)
-//        {
-//            synthesize_Bone_Axis(C->Bone, C->scl_vec);
-//        }
-//    }
+    for (c = child_collection_count - 1; c >= 0; c --)
+    {
+        C = child_collection[c];
+        if (C->Bone != NULL && C == C->Bone->A)
+        {
+            synthesize_Bone_Axis(C->Bone, C->scl_vec);
+        }
+    }
 
 //    for (c = 0; c < child_collection_count; c ++)
 //    {
@@ -1270,6 +1270,22 @@ void paste_rotVec()
         if (T->Bone != NULL)
         {
             memcpy(T->Bone->rotVec_, T->rotVec_, sizeof(T->Bone->rotVec_));
+        }
+    }
+}
+
+void paste_rotVec_()
+{
+    int t;
+    transformer * T;
+
+    for (t = 0; t < transformerIndex; t ++)
+    {
+        T = transformers[t];
+        memcpy(T->rotVec_, T->rotVec, sizeof(T->rotVec_));
+        if (T->Bone != NULL)
+        {
+            memcpy(T->Bone->rotVec_, T->rotVec, sizeof(T->Bone->rotVec_));
         }
     }
 }

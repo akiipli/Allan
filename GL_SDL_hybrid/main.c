@@ -7853,6 +7853,8 @@ void set_Bind_Mode()
 
         create_Hierarchys_List(); // because of collapsed locators
 
+        paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
+
         Button_Mode[4].color = UI_GRAYB;
         Button_Mode[selection_Mode].color = UI_GRAYD;
 
