@@ -405,6 +405,11 @@ void make_osd(object * O)
             p += sprintf(&osd_font[p], "%s\n", T->Name);
     }
 
+    if (BIND_POSE)
+    {
+        p += sprintf(&osd_font[p], "ALIGN\t%d\n", ALIGN_IS_ON);
+    }
+
     if (subdLevel >= 0)
         p += sprintf(&osd_font[p], "quads\t%d\n", O->quadcount_[subdLevel]);
     else
@@ -13050,6 +13055,10 @@ int main(int argc, char * args[])
                 SDL_GetMouseState(&mouse_x, &mouse_y);
                 Camera = find_View(mouse_x, mouse_y, splitview);
                 frame_object(Camera, 1);
+            }
+            else if (BIND_POSE)
+            {
+                ALIGN_IS_ON = !ALIGN_IS_ON;
             }
             else if (mod & KMOD_ALT)
             {

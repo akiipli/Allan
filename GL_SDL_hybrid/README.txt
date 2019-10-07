@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+1:23 PM 10/7/2019
+Now pressing a in Bind Mode toggles Align Mode. This is useful when drawing bones or
+changing their placement.
+
 10:30 AM 7/6/2019
 Enchancements to objects binding. 
 Now only selected objects are initiated in deformers List by pressing b.

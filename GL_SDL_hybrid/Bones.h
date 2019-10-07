@@ -11,6 +11,8 @@ Copyright <2018> <Allan Kiipli>
 #define BONES 200
 #define bone_end 1
 
+int ALIGN_IS_ON = 1;
+
 float  sharpness = 2.0;
 float  sharpness2 = 4.0;
 
@@ -1189,7 +1191,7 @@ void synthesize_Bone_Alignement(bone * B)
             B->rotVec_[1][2] = 0;
         }
 
-        if (B->A->parent->parent != NULL)
+        if (ALIGN_IS_ON && B->A->parent->parent != NULL)
         {
             closest_Point_On_Line(B->A->parent->parent->pos, B->A->pos, B->B->pos, pos);
             B->rotVec_[0][0] = B->A->parent->parent->pos[0] - pos[0];
@@ -1243,7 +1245,7 @@ void synthesize_Bone_Alignement(bone * B)
             B->rotVec_[2][2] = 1;
         }
 
-        if (B->A->parent->parent != NULL)
+        if (ALIGN_IS_ON && B->A->parent->parent != NULL)
         {
             closest_Point_On_Line(B->A->parent->parent->pos, B->A->pos, B->B->pos, pos);
             B->rotVec_[0][0] = B->A->parent->parent->pos[0] - pos[0];
@@ -1297,7 +1299,7 @@ void synthesize_Bone_Alignement(bone * B)
             B->rotVec_[0][2] = 0;
         }
 
-        if (B->A->parent->parent != NULL)
+        if (ALIGN_IS_ON && B->A->parent->parent != NULL)
         {
             closest_Point_On_Line(B->A->parent->parent->pos, B->A->pos, B->B->pos, pos);
             B->rotVec_[1][0] = B->A->parent->parent->pos[0] - pos[0];
@@ -1351,7 +1353,7 @@ void synthesize_Bone_Alignement(bone * B)
             B->rotVec_[2][2] = 1;
         }
 
-        if (B->A->parent->parent != NULL)
+        if (ALIGN_IS_ON && B->A->parent->parent != NULL)
         {
             closest_Point_On_Line(B->A->parent->parent->pos, B->A->pos, B->B->pos, pos);
             B->rotVec_[1][0] = B->A->parent->parent->pos[0] - pos[0];
@@ -1405,7 +1407,7 @@ void synthesize_Bone_Alignement(bone * B)
             B->rotVec_[1][2] = 0;
         }
 
-        if (B->A->parent->parent != NULL)
+        if (ALIGN_IS_ON && B->A->parent->parent != NULL)
         {
             closest_Point_On_Line(B->A->parent->parent->pos, B->A->pos, B->B->pos, pos);
             B->rotVec_[2][0] = B->A->parent->parent->pos[0] - pos[0];
@@ -1459,7 +1461,7 @@ void synthesize_Bone_Alignement(bone * B)
             B->rotVec_[0][2] = 0;
         }
 
-        if (B->A->parent->parent != NULL)
+        if (ALIGN_IS_ON && B->A->parent->parent != NULL)
         {
             closest_Point_On_Line(B->A->parent->parent->pos, B->A->pos, B->B->pos, pos);
             B->rotVec_[2][0] = B->A->parent->parent->pos[0] - pos[0];
