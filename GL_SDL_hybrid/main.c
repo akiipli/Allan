@@ -1372,7 +1372,7 @@ void frame_object(camera * C, int all_Views)
 
     if (DRAW_LOCATORS && Object_Mode)
     {
-        for (t = 0; t < transformerIndex; t ++)
+        for (t = 5; t < transformerIndex; t ++) // skip world and cameras
         {
             T = transformers[t];
             if (T->selected || t == currentLocator)
