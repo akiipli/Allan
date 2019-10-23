@@ -11,7 +11,6 @@ Copyright <2018> <Allan Kiipli>
 #include <unistd.h>
 #include <errno.h>
 
-#define STRLEN 256
 #define SCENE_EXT_NUM 6
 
 #define SIDEBAR 100

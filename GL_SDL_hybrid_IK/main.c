@@ -654,6 +654,7 @@ void cleanup()
     free_deformers();
     free_poses();
     free_bones();
+    free_ikChains();
 
     if (SHADERS)
     {
@@ -8438,6 +8439,23 @@ void clear_Deformers()
     }
 }
 
+void clear_ikChains()
+{
+    if (!dialog_lock)
+    {
+        int i;
+
+        ikChain * I;
+
+        for (i = iksIndex - 1; i >= 0; i --)
+        {
+            I = ikChains[i];
+
+            remove_ikChain_From_ikChains_(I);
+        }
+    }
+}
+
 void clear_Bones()
 {
     if (!dialog_lock)
@@ -8586,6 +8604,7 @@ void clear_All()
 {
     if (!dialog_lock)
     {
+        clear_ikChains();
         clear_Deformers();
 
         //clear_Objects();
@@ -8604,6 +8623,7 @@ void clear_All()
         deformerIndex = 0;
         objectIndex = 1; /*CUBECOMMENT*/
         bonesIndex = 0;
+        iksIndex = 0; // IK
         PoseIndex = 0;
         posesCount = 0;
         Materials_count = 4;
@@ -8928,26 +8948,43 @@ void reload_Texture()
 #endif
 }
 
+void exit_Bind_Mode()
+{
+    reset_Bones_Rotation();
+
+    set_Bone_len(); // IK theme
+
+    update_IKchains(); // IK theme
+
+    set_Bind_Pose_For_Transformers(1);
+
+    normalize_rotation_parent_childs(&World);
+
+    transfer_rotVec_B(&World);
+
+    transfer_Bones_rotVec_();
+
+    reset_Scale();
+
+    update_Default_Pose();
+
+    move_Deformers_To_Delta_Position();
+
+    create_Hierarchys_List(); // because of collapsed locators
+
+    paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
+
+    Button_Mode[4].color = UI_GRAYB;
+    Button_Mode[selection_Mode].color = UI_GRAYD;
+
+    set_Object_Mode();
+}
+
 void save_load_Scene()
 {
     if (BIND_POSE)
     {
-        set_Bind_Pose_For_Transformers(1);
-
-        normalize_rotation_parent_childs(&World);
-
-        transfer_rotVec_B(&World);
-
-        transfer_Bones_rotVec_();
-
-        reset_Scale();
-
-        update_Default_Pose();
-
-        Button_Mode[4].color = UI_GRAYB;
-        Button_Mode[selection_Mode].color = UI_GRAYD;
-
-        set_Object_Mode();
+        exit_Bind_Mode();
         BIND_POSE = 0;
     }
 

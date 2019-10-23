@@ -3881,7 +3881,7 @@ void render_IK_Chains()
     int i;
     ikChain * I;
 
-    for (i = 0; i < ikChains_c; i ++)
+    for (i = 0; i < iksIndex; i ++)
     {
         I = ikChains[i];
         draw_IK_Chain(I);

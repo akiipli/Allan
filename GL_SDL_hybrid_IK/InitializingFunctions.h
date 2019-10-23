@@ -14,6 +14,29 @@ Copyright <2018> <Allan Kiipli>
 
 void create_Transformers_List();
 
+void free_ikChain(ikChain * I)
+{
+    free(I->Name);
+    free(I->Bones);
+    free(I->vectors);
+    free(I->vectors_bone);
+    free(I->positions_A);
+    free(I->positions_B);
+    free(I->bones_Rot);
+    free(I);
+}
+
+void free_ikChains()
+{
+    int i;
+    ikChain * I;
+    for (i = 0; i < iksIndex; i ++)
+    {
+        I = ikChains[i];
+        free_ikChain(I);
+    }
+}
+
 void free_bone(bone * B)
 {
     int d;
@@ -69,6 +92,7 @@ void free_deformers()
         free(D->Selections);
         free(D->Objects);
         free(D->Bones);
+        free(D->IKchains);
         //free(D->Poses);
     }
 }

@@ -329,6 +329,9 @@ void save_Deformers(char * deformers_files_dir)
 
     pose ** Poses;
     int Poses_Count;
+
+    ikChain ** IKchains;
+    int IKchains_Count;
 */
 
     char n[8];
@@ -354,13 +357,14 @@ void save_Deformers(char * deformers_files_dir)
         fprintf(F, "Deformer\n");
         fprintf(F, "%s\n", D->Name);
         fprintf(F, "%u\n", (unsigned)D);
-        fprintf(F, "%d %d %d %d %d %d\n",
+        fprintf(F, "%d %d %d %d %d %d %d\n",
                 D->collapsed,
                 D->Transformers_Count,
                 D->Selections_Count,
                 D->Objects_Count,
                 D->Bones_Count,
-                D->Poses_Count);
+                D->Poses_Count,
+                D->IKchains_Count);
         for (i = 0; i < D->Transformers_Count; i ++)
         {
             fprintf(F, "%u\n", (unsigned)D->Transformers[i]);
@@ -380,6 +384,10 @@ void save_Deformers(char * deformers_files_dir)
         for (i = 0; i < D->Poses_Count; i ++)
         {
             fprintf(F, "%u\n", (unsigned)D->Poses[i]);
+        }
+        for (i = 0; i < D->IKchains_Count; i ++)
+        {
+            fprintf(F, "%u\n", (unsigned)D->IKchains[i]);
         }
 
         fprintf(F, "%d\n", D->current_pose);
@@ -579,25 +587,85 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
                 B->rotVec_I[2][0], B->rotVec_I[2][1], B->rotVec_I[2][2]);
         fprintf(F, "%u %u %u\n", (unsigned)B->A, (unsigned)B->B, (unsigned)B->D);
         fprintf(F, "%d %f\n", B->IK_member, B->len);
-
-        /*
-        int index;
-        unsigned address; // assigned after loading
-        char * Name;
-        int selected;
-        bone * parent;
-        float rotVec_[3][3];
-        float rotVec_I[3][3];
-        transformer * A;
-        transformer * B;
-        deformer * D;
-        float ** Distances;
-        int Distances_Count;
-        */
+        fprintf(F, "%u\n", (unsigned)B->IK);
     }
 
     fprintf(F, "\n");
     fclose(F);
+
+    dirfile[0] = '\0';
+    strcat(dirfile, hierarchys_files_dir);
+    strcat(dirfile, "/");
+    strcat(dirfile, "ikChains");
+    strcat(dirfile, ".txt");
+
+    F = fopen(dirfile, "w");
+
+    if (F == NULL) return 0;
+
+    fprintf(F, "ikChains\n");
+    fprintf(F, "%d\n", iksIndex);
+
+    ikChain * I;
+
+    for (i = 0; i < iksIndex; i ++)
+    {
+        I = ikChains[i];
+
+        fprintf(F, "%s\n", I->Name);
+        fprintf(F, "%u\n", (unsigned)I);
+        fprintf(F, "%u\n", (unsigned)I->Deformer);
+        fprintf(F, "%d\n", I->bonescount);
+        for (b = 0; b < I->bonescount; b ++)
+        {
+            fprintf(F, "%u\n", (unsigned)I->Bones[b]);
+        }
+        fprintf(F, "%f\n", I->sum_length);
+        for (b = 0; b < I->bonescount; b ++)
+        {
+            fprintf(F, "%f %f %f\n", I->vectors[b].vec[0], I->vectors[b].vec[1], I->vectors[b].vec[2]);
+            fprintf(F, "%f %f %f\n", I->vectors_bone[b].vec[0], I->vectors_bone[b].vec[1], I->vectors_bone[b].vec[2]);
+            fprintf(F, "%f %f %f\n", I->positions_A[b].vec[0], I->positions_A[b].vec[1], I->positions_A[b].vec[2]);
+            fprintf(F, "%f %f %f\n", I->positions_B[b].vec[0], I->positions_B[b].vec[1], I->positions_B[b].vec[2]);
+            fprintf(F, "%f %f %f\n", I->bones_Rot[b].vec[0], I->bones_Rot[b].vec[1], I->bones_Rot[b].vec[2]);
+        }
+        fprintf(F, "%u\n", (unsigned)I->A);
+        fprintf(F, "%u\n", (unsigned)I->B);
+        fprintf(F, "%f %f %f %f %f %f %f %f %f\n",
+                I->rotVec_0[0][0], I->rotVec_0[0][1], I->rotVec_0[0][2],
+                I->rotVec_0[1][0], I->rotVec_0[1][1], I->rotVec_0[1][2],
+                I->rotVec_0[2][0], I->rotVec_0[2][1], I->rotVec_0[2][2]);
+        fprintf(F, "%f %f %f %f %f %f %f %f %f\n",
+                I->rotVec_1[0][0], I->rotVec_1[0][1], I->rotVec_1[0][2],
+                I->rotVec_1[1][0], I->rotVec_1[1][1], I->rotVec_1[1][2],
+                I->rotVec_1[2][0], I->rotVec_1[2][1], I->rotVec_1[2][2]);
+        fprintf(F, "%f %f\n", I->poleRot, I->P.distance);
+        fprintf(F, "%f %f %f\n", I->P.vec[0], I->P.vec[1], I->P.vec[2]);
+    }
+
+    fprintf(F, "\n");
+    fclose(F);
+    /*
+    int index;
+    unsigned address; // assigned after loading
+    char * Name;
+    int selected;
+    deformer * Deformer;
+    int bonescount;
+    bone ** Bones;
+    float sum_length; // sum of bone lengths
+    vec3 * vectors; // transition into stretched pose
+    vec3 * vectors_bone; // in between bone vectors
+    vec3 * positions_A; // A points in the chain
+    vec3 * positions_B; // B points in the chain
+    vec3 * bones_Rot; // Bones rotational axis
+    transformer * A;
+    transformer * B;
+    float rotVec_0[3][3]; // intermediate matrix
+    float rotVec_1[3][3]; // final pose matrix
+    float poleRot;
+    direction_Pack P;
+    */
     return 1;
 }
 

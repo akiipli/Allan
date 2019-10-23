@@ -38,6 +38,8 @@ matrix. Before pole rotation is applied to this matrix.
 #define IK_START 1
 #define IK_END 2
 
+#define STRLEN 256
+
 int ALIGN_IS_ON = 1;
 
 typedef struct
@@ -55,6 +57,10 @@ vec3;
 
 struct ikChain
 {
+    int index;
+    unsigned address; // assigned after loading
+    char * Name;
+    int selected;
     deformer * Deformer;
     int bonescount;
     bone ** Bones;
@@ -75,6 +81,7 @@ struct ikChain
 
 int ikChains_c = 0;
 ikChain * ikChains[IKCHAINS];
+int iksIndex = 0;
 
 int bones_Count;
 bone * bone_Collection[BONES];
@@ -158,7 +165,13 @@ int init_ikChain(deformer * Deformer)
     ikChain * I = malloc(sizeof(ikChain));
     if (I == NULL)
         return 0;
-    ikChains[ikChains_c ++] = I;
+    ikChains[iksIndex] = I;
+
+    I->index = iksIndex;
+    I->Name = malloc(STRLEN * sizeof(char));
+    sprintf(I->Name, "%s %d", "ikChain", iksIndex);
+    I->selected = 0;
+
     I->Deformer = Deformer;
     I->bonescount = bones_Count;
     I->Bones = malloc(bones_Count * sizeof(bone *));
@@ -183,7 +196,7 @@ int init_ikChain(deformer * Deformer)
 
     I->poleRot = 0;
     I->P = length_AB(I->A->pos, I->B->pos);
-
+    iksIndex ++;
     return 1;
 }
 
@@ -235,7 +248,7 @@ void update_IKchains()
 
     mag = 0;
 
-    for (i = 0; i < ikChains_c; i ++)
+    for (i = 0; i < iksIndex; i ++)
     {
         I = ikChains[i];
         I->sum_length = 0;

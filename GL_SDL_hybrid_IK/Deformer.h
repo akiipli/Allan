@@ -963,4 +963,80 @@ void paste_Deformer_rotVec(deformer * D)
         }
     }
 }
+
+void free_ikChain(ikChain * I);
+
+void remove_ikChain_From_Deformer(ikChain * I, deformer * D)
+{
+    int i, index;
+    int condition = 0;
+
+    for (i = 0; i < D->IKchains_Count; i ++)
+    {
+        if (I == D->IKchains[i])
+        {
+            index = i;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        D->IKchains_Count --;
+        for (i = index; i < D->IKchains_Count; i ++)
+        {
+            D->IKchains[i] = D->IKchains[i + 1];
+        }
+        D->IKchains = realloc(D->IKchains, D->IKchains_Count * sizeof(ikChain*));
+    }
+}
+
+void remove_ikChain_From_ikChains_(ikChain * I)
+{
+    int index, i, b;
+
+    bone * B;
+
+    int condition = 0;
+
+    for (i = 0; i < iksIndex; i ++)
+    {
+        if (I == ikChains[i])
+        {
+            index = i;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+
+        // cycle and pack Deformers ikChains list
+        // cycle bones and set their IK member and IK to zero
+
+        for (b = 0; b < I->bonescount; b ++)
+        {
+            B = I->Bones[b];
+            B->IK = NULL;
+            B->IK_member = 0;
+        }
+
+        if(I->Deformer != NULL)
+        {
+            //printf("DEFORMER %s\n", I->Deformer->Name);
+            //remove_ikChain_From_Deformer(I, I->Deformer);
+        }
+
+        free_ikChain(I);
+
+        iksIndex --;
+        for (i = index; i < iksIndex; i ++)
+        {
+            ikChains[i] = ikChains[i + 1];
+            ikChains[i]->index = i;
+        }
+    }
+}
 #endif // DEFORMER_H_INCLUDED

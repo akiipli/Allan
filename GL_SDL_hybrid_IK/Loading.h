@@ -21,6 +21,12 @@ Deformer_In;
 
 typedef struct
 {
+    int chainsIndex;
+}
+ikChains_In;
+
+typedef struct
+{
     int bonesIndex;
 }
 Bones_In;
@@ -224,15 +230,14 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
             D->address = DEFR_IN->address;
 
             fgets(buff, BUF_SIZE, fp);
-            sscanf(buff, "%d %d %d %d %d %d",
+            sscanf(buff, "%d %d %d %d %d %d %d",
                     &D->collapsed,
                     &D->Transformers_Count,
                     &D->Selections_Count,
                     &D->Objects_Count,
                     &D->Bones_Count,
-                    &D->Poses_Count);
-
-            D->IKchains_Count = 0; // complete later
+                    &D->Poses_Count,
+                    &D->IKchains_Count);
 
             D->Transformers = malloc(D->Transformers_Count * sizeof(transformer*));
             if (D->Transformers == NULL)
@@ -297,7 +302,11 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
                 sscanf(buff, "%u", (unsigned*)&D->Poses[i]);
             }
 
-             // complete later IKchains
+            for (i = 0; i < D->IKchains_Count; i ++)
+            {
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&D->IKchains[i]);
+            }
 
             if (fgets(buff, BUF_SIZE, fp))
                 sscanf(buff, "%d", &D->current_pose);
@@ -310,6 +319,141 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
     }
 
     deformerIndex ++;
+
+    fclose(fp);
+    return 1;
+}
+
+int read_ikChains_file(ikChains_In * CHAINS_IN, char * fileName)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    int i, b;
+
+    char * p;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("ikChains\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &CHAINS_IN->chainsIndex);
+
+            for (i = 0; i < CHAINS_IN->chainsIndex; i ++)
+            {
+                if (iksIndex >= IKCHAINS)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                ikChain * I = malloc(sizeof(ikChain));
+
+                if (I == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                ikChains[iksIndex] = I;
+                I->index = iksIndex;
+
+                I->Name = malloc(STRLEN * sizeof(char));
+
+                if (I->Name == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                fgets(buff, BUF_SIZE, fp);
+
+                p = strchr(buff, '\n');
+                *p = '\0';
+
+                sprintf(I->Name, "%s", buff);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&I->address);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&I->Deformer);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &I->bonescount);
+
+                I->Bones = malloc(I->bonescount * sizeof(bone*));
+
+                for (b = 0; b < I->bonescount; b ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&I->Bones[b]);
+                }
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f", &I->sum_length);
+
+                I->vectors = malloc(I->bonescount * sizeof(vec3));
+                I->vectors_bone = malloc(I->bonescount * sizeof(vec3));
+                I->positions_A = malloc(I->bonescount * sizeof(vec3));
+                I->positions_B = malloc(I->bonescount * sizeof(vec3));
+                I->bones_Rot = malloc(I->bonescount * sizeof(vec3));
+
+                for (b = 0; b < I->bonescount; b ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &I->vectors[b].vec[0], &I->vectors[b].vec[1], &I->vectors[b].vec[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &I->vectors_bone[b].vec[0], &I->vectors_bone[b].vec[1], &I->vectors_bone[b].vec[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &I->positions_A[b].vec[0], &I->positions_A[b].vec[1], &I->positions_A[b].vec[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &I->positions_B[b].vec[0], &I->positions_B[b].vec[1], &I->positions_B[b].vec[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &I->bones_Rot[b].vec[0], &I->bones_Rot[b].vec[1], &I->bones_Rot[b].vec[2]);
+                }
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&I->A);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&I->B);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f %f %f %f %f %f %f",
+                        &I->rotVec_0[0][0], &I->rotVec_0[0][1], &I->rotVec_0[0][2],
+                        &I->rotVec_0[1][0], &I->rotVec_0[1][1], &I->rotVec_0[1][2],
+                        &I->rotVec_0[2][0], &I->rotVec_0[2][1], &I->rotVec_0[2][2]);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f %f %f %f %f %f %f",
+                        &I->rotVec_1[0][0], &I->rotVec_1[0][1], &I->rotVec_1[0][2],
+                        &I->rotVec_1[1][0], &I->rotVec_1[1][1], &I->rotVec_1[1][2],
+                        &I->rotVec_1[2][0], &I->rotVec_1[2][1], &I->rotVec_1[2][2]);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f", &I->poleRot, &I->P.distance);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &I->P.vec[0], &I->P.vec[1], &I->P.vec[2]);
+
+                iksIndex ++;
+            }
+        }
+    }
+    else
+    {
+        fclose(fp);
+        return 0;
+    }
 
     fclose(fp);
     return 1;
@@ -399,6 +543,9 @@ int read_Bones_file(Bones_In * BONES_IN, char * fileName)
 
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%d %f", &B->IK_member, &B->len);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&B->IK);
 
                 bonesIndex ++;
             }
@@ -1882,12 +2029,13 @@ int load_Poses(char * path)
     return p_index;
 }
 
-void null_Loaded_Addresses(int t_index, int obj_count, int b_index)
+void null_Loaded_Addresses(int t_index, int obj_count, int b_index, int i_index)
 {
-    int b, s, o, t;
+    int b, s, o, t, i;
 
     bone * B;
     object * O;
+    ikChain * I;
     vert_selection * S;
     transformer * T;
 
@@ -1911,6 +2059,12 @@ void null_Loaded_Addresses(int t_index, int obj_count, int b_index)
         B = bones[b];
         B->address = 0;
     }
+
+    for (i = iksIndex - i_index; i < iksIndex; i ++)
+    {
+        I = ikChains[i];
+        I->address = 0;
+    }
 }
 
 void load_Hierarchys(char * path, int obj_count, int defr_count)
@@ -1919,12 +2073,13 @@ void load_Hierarchys(char * path, int obj_count, int defr_count)
     DIR * dir;
     struct dirent * ent;
 
-    int result, b_index, t_index;
+    int result, b_index, t_index, i_index;
     unsigned w_address;
 
     w_address = 0;
     t_index = 0;
     b_index = 0;
+    i_index = 0;
 
     if ((dir = opendir(path)) != NULL)
     {
@@ -1995,6 +2150,19 @@ void load_Hierarchys(char * path, int obj_count, int defr_count)
                         b_index = BONES_IN->bonesIndex;
                     }
                     free(BONES_IN);
+                }
+                else if (strcmp(ent->d_name, "ikChains.txt") == 0)
+                {
+                    result = 0;
+                    printf("IKCHAINS\n");
+                    ikChains_In * IKCHAINS_IN = calloc(1, sizeof(ikChains_In));
+                    result = read_ikChains_file(IKCHAINS_IN, Path);
+                    if (result)
+                    {
+                        printf("%u\n", IKCHAINS_IN->chainsIndex);
+                        i_index = IKCHAINS_IN->chainsIndex;
+                    }
+                    free(IKCHAINS_IN);
                 }
             }
         }
@@ -2144,13 +2312,112 @@ void load_Hierarchys(char * path, int obj_count, int defr_count)
         }
     }
 
+    if (w_address && t_index && b_index && i_index)
+    {
+        int t, i, p, b;
+
+        ikChain * I;
+        bone * B;
+        transformer * T;
+
+        /*
+        int index;
+        unsigned address; // assigned after loading
+        char * Name;
+        int selected;
+        deformer * Deformer;
+        int bonescount;
+        bone ** Bones;
+        float sum_length; // sum of bone lengths
+        vec3 * vectors; // transition into stretched pose
+        vec3 * vectors_bone; // in between bone vectors
+        vec3 * positions_A; // A points in the chain
+        vec3 * positions_B; // B points in the chain
+        vec3 * bones_Rot; // Bones rotational axis
+        transformer * A;
+        transformer * B;
+        float rotVec_0[3][3]; // intermediate matrix
+        float rotVec_1[3][3]; // final pose matrix
+        float poleRot;
+        direction_Pack P;
+        */
+
+        int condition;
+
+        for (i = iksIndex - i_index; i < iksIndex; i ++)
+        {
+            I = ikChains[i];
+            for (p = 0; p < I->bonescount; p ++)
+            {
+                condition = 1;
+                for (b = bonesIndex - b_index; b < bonesIndex; b ++)
+                {
+                    B = bones[b];
+                    if (B->address == (unsigned)I->Bones[p])
+                    {
+                        condition = 0;
+                        I->Bones[p] = B;
+                        break;
+                    }
+                }
+                if (condition)
+                {
+                    I->Bones[p] = NULL;
+                }
+            }
+
+            condition = 0;
+
+            for (t = transformerIndex - t_index; t < transformerIndex; t ++)
+            {
+                //T = Locators[t];
+                T = transformers[t];
+                if (T->address == (unsigned)I->A)
+                {
+                    I->A = T;
+                    condition ++;
+                }
+                else if (T->address == (unsigned)I->B)
+                {
+                    I->B = T;
+                    condition ++;
+                }
+                if (condition >= 2)
+                {
+                    break;
+                }
+            }
+        }
+
+        for (b = bonesIndex - b_index; b < bonesIndex; b ++)
+        {
+            B = bones[b];
+            condition = 1;
+            for (i = iksIndex - i_index; i < iksIndex; i ++)
+            {
+                I = ikChains[i];
+                if (I->address == (unsigned)B->IK)
+                {
+                    condition = 0;
+                    B->IK = I;
+                    break;
+                }
+            }
+            if (condition)
+            {
+                B->IK = NULL;
+            }
+        }
+    }
+
     if (defr_count)
     {
-        int b, s, o, t, i, d;
+        int b, s, o, t, i, d, k;
 
         bone * B;
         object * O;
         deformer * D;
+        ikChain * I;
         transformer * T;
         vert_selection * S, * S0;
 
@@ -2236,6 +2503,19 @@ void load_Hierarchys(char * path, int obj_count, int defr_count)
                     }
                 }
             }
+            for (i = 0; i < D->IKchains_Count; i ++)
+            {
+                for (k = iksIndex - i_index; k < iksIndex; k ++)
+                {
+                    I = ikChains[k];
+                    if (I->address == (unsigned)D->IKchains[i])
+                    {
+                        D->IKchains[i] = I;
+                        D->IKchains[i]->Deformer = D;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -2262,7 +2542,7 @@ void load_Hierarchys(char * path, int obj_count, int defr_count)
         }
     }
 
-    null_Loaded_Addresses(t_index, obj_count, b_index);
+    null_Loaded_Addresses(t_index, obj_count, b_index, i_index);
 }
 
 void assign_Poses(int pose_count, int defr_count)
