@@ -43,5 +43,6 @@ IK folder has IK development in it.
 To test out IK, select A and B transformers in bone chain. It may have lots of bones and more complicated shape.
 Press Alt+A. Gray line appears. You must be in Bind Mode. Exit Bind Mode and select point B, press Shift+G to move
 around, right-click to cancel movement.
-No saving and loading with IK chains. IK dialog must be done. No poses for IK chains. No playback for them.
-All must be done. Other problems with scaling and rotation. Maybe needs hierarchical chains system. Submitted into Trips Code folder Scenes IK 2 to serve as testfile. This file opens only in IK project, but chains need to be made manually there.
+IK dialog must be done. No poses for IK chains. No playback for them.
+All must be done. Other problems with scaling and rotation. Maybe needs hierarchical chains system. Submitted into Trips Code folder Scenes IK 3 to serve as testfile. This file opens only in IK project.
+Scenes IK 2 is obsolete.
