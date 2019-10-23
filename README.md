@@ -45,4 +45,3 @@ Press Alt+A. Gray line appears. You must be in Bind Mode. Exit Bind Mode and sel
 around, right-click to cancel movement.
 IK dialog must be done. No poses for IK chains. No playback for them.
 All must be done. Other problems with scaling and rotation. Maybe needs hierarchical chains system. Submitted into Trips Code folder Scenes IK 3 to serve as testfile. This file opens only in IK project.
-Scenes IK 2 is obsolete.
