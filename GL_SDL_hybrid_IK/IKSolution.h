@@ -76,6 +76,10 @@ struct ikChain
     float rotVec_1[3][3]; // final pose matrix
     float poleRot;
     direction_Pack P;
+
+    float rotVec_B[3][3]; // bind pose matrix
+    float rotVec_F[3][3]; // final pose matrix
+    float rotVec_I[3][3]; // bind pose inverse
 }
 ;
 
@@ -196,6 +200,7 @@ int init_ikChain(deformer * Deformer)
 
     I->poleRot = 0;
     I->P = length_AB(I->A->pos, I->B->pos);
+
     iksIndex ++;
     return 1;
 }
@@ -236,6 +241,23 @@ int add_ikChain(deformer * Deformer, transformer * A, transformer * B)
         return 0;
     }
     return 0;
+}
+
+void make_Spine(float rotVec_[3][3], float P_vec[3])
+{
+    float angle;
+
+    rotVec_[2][0] = P_vec[0];
+    rotVec_[2][1] = P_vec[1];
+    rotVec_[2][2] = P_vec[2];
+
+    angle = atan2(rotVec_[2][1], rotVec_[2][0]);
+    angle += pi_2;
+    rotVec_[0][0] = cos(angle);
+    rotVec_[0][1] = sin(angle);
+    rotVec_[0][2] = 0;
+
+    cross_Product(rotVec_[2], rotVec_[0], rotVec_[1]);
 }
 
 void update_IKchains()
@@ -311,25 +333,40 @@ void update_IKchains()
                 memcpy(I->Bones[b]->B->rotVec, I->Bones[b]->A->rotVec_, sizeof(float[3][3]));
 
             }
+
+            make_Spine(I->rotVec_B, I->P.vec);
+
+            invert_Rotation_1(I->rotVec_I, I->rotVec_B);
+
         }
     }
 }
 
-void solve_IK_Chain(ikChain * I)
+void solve_IK_Chain(ikChain * I, int update_childs, int L)
 {
-    int b;
+    int b, c;
     bone * B;
+    transformer * C;
 
     float mag, angle;
 
     float Transition_Amount;
+    float median_Point_Offset;
+    float adjust_Proportional;
 
     direction_Pack P;
     P = length_AB(I->A->pos, I->B->pos);
 
     Transition_Amount = (P.distance - I->P.distance) / (I->sum_length - I->P.distance);
 
-    if (P.distance > I->sum_length)
+    median_Point_Offset = abs(I->sum_length / 2 - I->P.distance) / I->sum_length;
+
+    if (Transition_Amount > 0)
+    {
+        Transition_Amount -= median_Point_Offset * Transition_Amount;
+    }
+
+    if (Transition_Amount > 1)
     {
         Transition_Amount = 1;
     }
@@ -403,11 +440,15 @@ void solve_IK_Chain(ikChain * I)
 
     float len = length_(I->positions_B[I->bonescount - 1].vec);
 
+    adjust_Proportional = 1;
+
     if (len > 0)
     {
         I->rotVec_0[2][0] = I->positions_B[I->bonescount - 1].vec[0] / len;
         I->rotVec_0[2][1] = I->positions_B[I->bonescount - 1].vec[1] / len;
         I->rotVec_0[2][2] = I->positions_B[I->bonescount - 1].vec[2] / len;
+
+        adjust_Proportional = P.distance / len;
     }
 
     I->rotVec_1[2][0] = P.vec[0];
@@ -484,6 +525,10 @@ void solve_IK_Chain(ikChain * I)
     cross_Product(I->rotVec_0[1], I->rotVec_0[2], I->rotVec_0[0]);
     cross_Product(I->rotVec_1[1], I->rotVec_1[2], I->rotVec_1[0]);
 
+    I->rotVec_1[2][0] *= adjust_Proportional;
+    I->rotVec_1[2][1] *= adjust_Proportional;
+    I->rotVec_1[2][2] *= adjust_Proportional;
+
     // construct intermediate reverse
 
     invert_Rotation_1(rotVec_I, I->rotVec_0);
@@ -553,6 +598,30 @@ void solve_IK_Chain(ikChain * I)
     {
         memcpy(I->Bones[b]->A->pos, I->positions_A[b].vec, sizeof(float[3]));
         memcpy(I->Bones[b]->B->pos, I->positions_B[b].vec, sizeof(float[3]));
+    }
+
+    if (update_childs)
+    {
+        make_Spine(I->rotVec_F, P.vec);
+
+        for (c = 0; c < I->B->childcount; c ++)
+        {
+            C = I->B->childs[c];
+            rotate_matrix_I(C->rotVec_, I->rotVec_F, I->rotVec_I);
+            memcpy(C->rotVec, C->rotVec_, sizeof(float[3][3]));
+        }
+
+        rotate_(I->B);
+
+        float Delta[3];
+
+        if (I->B->childcount > 0)
+        {
+            Delta[0] = I->B->pos[0] - I->B->childs[0]->pos[0];
+            Delta[1] = I->B->pos[1] - I->B->childs[0]->pos[1];
+            Delta[2] = I->B->pos[2] - I->B->childs[0]->pos[2];
+            move_IK_(I->B, Delta, L);
+        }
     }
 }
 
