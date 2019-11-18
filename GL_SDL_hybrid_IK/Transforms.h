@@ -329,6 +329,11 @@ void rotate_vertex_groups_collect_Objects(transformer * T)
     object * O;
     vert_selection * S;
 
+    if (T->Bone != NULL && T == T->Bone->B)
+    {
+        T = T->Bone->A;
+    }
+
     for (s = 0; s < T->Selections_Count; s ++)
     {
         S = T->Selections[s];

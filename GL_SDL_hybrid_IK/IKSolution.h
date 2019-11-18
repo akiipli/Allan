@@ -371,9 +371,9 @@ void solve_IK_Chain(ikChain * I, int update_childs, int L)
         Transition_Amount = 1;
     }
 
-    I->positions_A[0].vec[0] = I->A->pos[0];
-    I->positions_A[0].vec[1] = I->A->pos[1];
-    I->positions_A[0].vec[2] = I->A->pos[2];
+    I->positions_A[0].vec[0] = I->A->pos_bind[0];
+    I->positions_A[0].vec[1] = I->A->pos_bind[1];
+    I->positions_A[0].vec[2] = I->A->pos_bind[2];
 
     for (b = 0; b < I->bonescount; b ++)
     {
