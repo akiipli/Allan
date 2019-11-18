@@ -9923,7 +9923,7 @@ int main(int argc, char * args[])
                             Update_Objects_Count = 0;
                             if (T->Bone != NULL && T->Bone->IK_member == 2 && T->Bone->IK != NULL)
                             {
-                                solve_IK_Chain(T->Bone->IK, 1, subdLevel);
+                                solve_IK_Chain(T->Bone->IK, 0, subdLevel);
                             }
                             if (T->Deformer != NULL)
                             {
@@ -13299,6 +13299,8 @@ int main(int argc, char * args[])
                         {
                             T = O->T;
                         }
+                        bake_position(T);
+                        bake_position_Children(T);
                         if (mod & KMOD_SHIFT)
                         {
                             ROTATION = 1;
