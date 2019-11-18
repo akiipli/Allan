@@ -8243,16 +8243,16 @@ void make_Movement()
                 T->pos[0] = T->Pos_[0] + Delta[0];
                 T->pos[1] = T->Pos_[1] + Delta[1];
                 T->pos[2] = T->Pos_[2] + Delta[2];
-                solve_IK_Chain(T->Bone->IK);
-                Delta[0] = T->pos[0] - T->Pos_[0];
-                Delta[1] = T->pos[1] - T->Pos_[1];
-                Delta[2] = T->pos[2] - T->Pos_[2];
-                T->pos[0] = T->Pos_[0];
-                T->pos[1] = T->Pos_[1];
-                T->pos[2] = T->Pos_[2];
+
+                solve_IK_Chain(T->Bone->IK, 0, subdLevel);
+
+                move_Deformer_IK(T, Delta);
             }
         }
-        move_(T, Delta, subdLevel);
+        else
+        {
+            move_(T, Delta, subdLevel);
+        }
     }
 }
 
@@ -9923,7 +9923,7 @@ int main(int argc, char * args[])
                             Update_Objects_Count = 0;
                             if (T->Bone != NULL && T->Bone->IK_member == 2 && T->Bone->IK != NULL)
                             {
-                                solve_IK_Chain(T->Bone->IK);
+                                solve_IK_Chain(T->Bone->IK, 0, subdLevel);
                             }
                             if (T->Deformer != NULL)
                             {
@@ -11114,6 +11114,7 @@ int main(int argc, char * args[])
                         assert_Locators_Selection();
                     }
                     assert_Element_Selection_(O);
+
                     message = -11;
                 }
             }
@@ -12519,8 +12520,10 @@ int main(int argc, char * args[])
             for (o = 0; o < objectIndex; o ++)
             {
                 O0 = objects[o];
-
-                rotate_verts_(O0, *O0->T, subdLevel);
+                if (BIND_POSE || !O0->binding)
+                    rotate_verts_(O0, *O0->T, subdLevel);
+                else
+                    tune_subdivide_post_transformed(O0, subdLevel);
                 update_tangents_Object(O0, subdLevel);
             }
 
@@ -13298,6 +13301,8 @@ int main(int argc, char * args[])
                         {
                             T = O->T;
                         }
+                        bake_position(T);
+                        bake_position_Children(T);
                         if (mod & KMOD_SHIFT)
                         {
                             ROTATION = 1;
@@ -13458,6 +13463,10 @@ int main(int argc, char * args[])
             {
                 Draw_Bottom_Message("set Bind Pose For Branch\n");
                 set_Bind_Pose_For_Branch(T);
+            }
+            else if (!BIND_POSE && mod & KMOD_SHIFT)
+            {
+                rotate_Deformer_IK(T, subdLevel);
             }
             else if (DRAW_LOCATORS && !BONES_MODE && BIND_POSE && !Camera_screen_lock && !dialog_lock)
             {

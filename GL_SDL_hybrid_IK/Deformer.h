@@ -1039,4 +1039,16 @@ void remove_ikChain_From_ikChains_(ikChain * I)
         }
     }
 }
+
+void solve_IK_Chains(deformer * D, int update_childs, int L)
+{
+    int i;
+    ikChain * I;
+
+    for (i = 0; i < D->IKchains_Count; i ++)
+    {
+        I = D->IKchains[i];
+        solve_IK_Chain(I, update_childs, L);
+    }
+}
 #endif // DEFORMER_H_INCLUDED
