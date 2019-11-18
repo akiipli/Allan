@@ -13195,6 +13195,8 @@ int main(int argc, char * args[])
                         {
                             T = O->T;
                         }
+                        bake_position(T);
+                        bake_position_Children(T);
                         if (mod & KMOD_SHIFT)
                         {
                             ROTATION = 1;
