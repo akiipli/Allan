@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1574206818 source:c:\gl_sdl_hybrid\main.c
+1574207652 source:c:\gl_sdl_hybrid\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
