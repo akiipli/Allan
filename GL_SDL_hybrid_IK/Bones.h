@@ -8,7 +8,6 @@ Copyright <2018> <Allan Kiipli>
 #define BONES_H_INCLUDED
 
 #define BIG_DIST 1000000
-#define bone_end 1
 
 float  sharpness = 2.0;
 float  sharpness2 = 4.0;

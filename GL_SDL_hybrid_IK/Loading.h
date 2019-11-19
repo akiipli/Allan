@@ -982,11 +982,12 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                         &T->Selections_Count);
 
                 fgets(buff, BUF_SIZE, fp);
-                sscanf(buff, "%u %u %u %u",
+                sscanf(buff, "%u %u %u %u %u",
                         (unsigned*)&T->parent,
                         (unsigned*)&T->Object,
                         (unsigned*)&T->Deformer,
-                        (unsigned*)&T->Bone);
+                        (unsigned*)&T->Bone,
+                        (unsigned*)&T->IK);
 
                 if (T->Object == 0)
                     Locators[locatorIndex ++] = T;
@@ -2408,6 +2409,26 @@ void load_Hierarchys(char * path, int obj_count, int defr_count)
                 B->IK = NULL;
             }
         }
+
+        for (t = transformerIndex - t_index; t < transformerIndex; t ++)
+        {
+            T = transformers[t];
+            condition = 1;
+            for (i = iksIndex - i_index; i < iksIndex; i ++)
+            {
+                I = ikChains[i];
+                if (I->address == (unsigned)T->IK)
+                {
+                    condition = 0;
+                    T->IK = I;
+                    break;
+                }
+            }
+            if (condition)
+            {
+                T->IK = NULL;
+            }
+        }
     }
 
     if (defr_count)
@@ -2437,6 +2458,21 @@ void load_Hierarchys(char * path, int obj_count, int defr_count)
         pose ** Poses;
         int Poses_Count;
         */
+
+        for (t = transformerIndex - t_index; t < transformerIndex; t ++)
+        {
+            T = transformers[t];
+
+            for (d = deformerIndex - defr_count; d < deformerIndex; d ++)
+            {
+                D = deformers[d];
+                if (D->address == (unsigned)T->Deformer)
+                {
+                    T->Deformer = D;
+                    break;
+                }
+            }
+        }
 
         for (d = deformerIndex - defr_count; d < deformerIndex; d ++)
         {

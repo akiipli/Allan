@@ -40,6 +40,10 @@ matrix. Before pole rotation is applied to this matrix.
 
 #define STRLEN 256
 
+#define bone_end 1
+#define ik_start 2
+#define ik_goal 3
+
 int ALIGN_IS_ON = 1;
 
 typedef struct
@@ -166,6 +170,10 @@ float boneLength(bone * B)
 
 int init_ikChain(deformer * Deformer)
 {
+    if (transformerIndex >= TRANSFORMERS - 1)
+    {
+        return 0;
+    }
     ikChain * I = malloc(sizeof(ikChain));
     if (I == NULL)
         return 0;
@@ -195,8 +203,44 @@ int init_ikChain(deformer * Deformer)
     I->positions_A = calloc(bones_Count, sizeof(vec3));
     I->positions_B = calloc(bones_Count, sizeof(vec3));
     I->bones_Rot = calloc(bones_Count, sizeof(vec3));
-    I->A = I->Bones[0]->A;
-    I->B = I->Bones[bones_Count - 1]->B;
+
+    // make new A and B transformers
+
+    I->A = calloc(1, sizeof(transformer));
+
+    Locators[locatorIndex ++] = I->A;
+
+    init_transformer(I->A, I->Bones[0]->A->parent, "IK A");
+
+    memcpy(I->A->pos, I->Bones[0]->A->pos, sizeof(I->A->pos));
+
+    I->A->IK = I;
+    I->A->style = ik_start;
+    I->A->Deformer = Deformer;
+
+    remove_Child(I->Bones[0]->A, I->Bones[0]->A->parent, I->A);
+
+    I->B = calloc(1, sizeof(transformer));
+
+    Locators[locatorIndex ++] = I->B;
+
+    init_transformer(I->B, I->A, "IK B");
+
+    bone * B = I->Bones[bones_Count - 1];
+
+    memcpy(I->B->pos, B->B->pos, sizeof(I->B->pos));
+
+    I->B->IK = I;
+    I->B->style = ik_goal;
+    I->B->Deformer = Deformer;
+
+    transformer * C;
+
+    for (c = 0; c < B->B->childcount; c ++)
+    {
+        C = B->B->childs[c];
+        remove_Child(C, B->B, I->B);
+    }
 
     I->poleRot = 0;
     I->P = length_AB(I->A->pos, I->B->pos);
@@ -273,6 +317,7 @@ void update_IKchains()
     for (i = 0; i < iksIndex; i ++)
     {
         I = ikChains[i];
+        I->P = length_AB(I->A->pos, I->B->pos);
         I->sum_length = 0;
         for (b = 0; b < I->bonescount; b ++)
         {
@@ -336,17 +381,25 @@ void update_IKchains()
 
             make_Spine(I->rotVec_B, I->P.vec);
 
+            memcpy(I->A->rotVec, I->rotVec_B, sizeof(float[3][3]));
+            memcpy(I->A->rotVec_, I->rotVec_B, sizeof(float[3][3]));
+
+            memcpy(I->B->rotVec, I->rotVec_B, sizeof(float[3][3]));
+            memcpy(I->B->rotVec_, I->rotVec_B, sizeof(float[3][3]));
+
+            memcpy(I->A->rotVec_I, I->rotVec_B, sizeof(float[3][3]));
+            memcpy(I->B->rotVec_I, I->rotVec_B, sizeof(float[3][3]));
+
             invert_Rotation_1(I->rotVec_I, I->rotVec_B);
 
         }
     }
 }
 
-void solve_IK_Chain(ikChain * I, int update_childs, int L)
+void solve_IK_Chain(ikChain * I)
 {
-    int b, c;
+    int b;
     bone * B;
-    transformer * C;
 
     float mag, angle;
 
@@ -529,6 +582,19 @@ void solve_IK_Chain(ikChain * I, int update_childs, int L)
     I->rotVec_1[2][1] *= adjust_Proportional;
     I->rotVec_1[2][2] *= adjust_Proportional;
 
+    if (P.distance > I->P.distance)
+    {
+        float adjust_Proportional1 = 1 - (adjust_Proportional - 1) / 4;
+
+        I->rotVec_1[1][0] *= adjust_Proportional1;
+        I->rotVec_1[1][1] *= adjust_Proportional1;
+        I->rotVec_1[1][2] *= adjust_Proportional1;
+
+        I->rotVec_1[0][0] *= adjust_Proportional1;
+        I->rotVec_1[0][1] *= adjust_Proportional1;
+        I->rotVec_1[0][2] *= adjust_Proportional1;
+    }
+
     // construct intermediate reverse
 
     invert_Rotation_1(rotVec_I, I->rotVec_0);
@@ -600,29 +666,13 @@ void solve_IK_Chain(ikChain * I, int update_childs, int L)
         memcpy(I->Bones[b]->B->pos, I->positions_B[b].vec, sizeof(float[3]));
     }
 
-    if (update_childs)
-    {
-        make_Spine(I->rotVec_F, P.vec);
+    make_Spine(I->rotVec_F, P.vec);
 
-        for (c = 0; c < I->B->childcount; c ++)
-        {
-            C = I->B->childs[c];
-            rotate_matrix_I(C->rotVec_, I->rotVec_F, I->rotVec_I);
-            memcpy(C->rotVec, C->rotVec_, sizeof(float[3][3]));
-        }
+    memcpy(I->A->rotVec, I->rotVec_F, sizeof(float[3][3]));
+    memcpy(I->A->rotVec_, I->rotVec_F, sizeof(float[3][3]));
 
-        rotate_(I->B);
-
-        float Delta[3];
-
-        if (I->B->childcount > 0)
-        {
-            Delta[0] = I->B->pos[0] - I->B->childs[0]->pos[0];
-            Delta[1] = I->B->pos[1] - I->B->childs[0]->pos[1];
-            Delta[2] = I->B->pos[2] - I->B->childs[0]->pos[2];
-            move_IK_(I->B, Delta, L);
-        }
-    }
+    memcpy(I->B->rotVec, I->rotVec_F, sizeof(float[3][3]));
+    memcpy(I->B->rotVec_, I->rotVec_F, sizeof(float[3][3]));
 }
 
 #endif // IKSOLUTION_H_INCLUDED

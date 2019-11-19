@@ -143,6 +143,7 @@ struct transformer
     float pos_deform[3];
     float target[3];
     float * aim;  //rotVec_[aim_vector]
+    ikChain * IK;
 };
 
 transformer * child_collection[TRANSFORMERS];
@@ -246,6 +247,7 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         memcpy(&T->pos_bind, (float[3]) {0.0, 0.0, 0.0}, sizeof T->pos_bind);
         memcpy(&T->target, (float[3]) {0.0, 0.0, 0.0}, sizeof T->target);
         T->aim = T->rotVec_[2];
+        T->IK = NULL;
     }
 }
 
@@ -266,41 +268,6 @@ void scale_rotVec(float rotVec_R[3][3], float rotVec_T[3][3], float scl_vec[3])
     rotVec_R[2][0] = rotVec_T[2][0] * scl_vec[2];
     rotVec_R[2][1] = rotVec_T[2][1] * scl_vec[2];
     rotVec_R[2][2] = rotVec_T[2][2] * scl_vec[2];
-}
-
-void invert_Rotation_scale2(transformer * T, float RotVec_T[3][3])
-{
-    if (T->scl[0] == 0) T->scl[0] = MIN_SCALE;
-    if (T->scl[1] == 0) T->scl[1] = MIN_SCALE;
-    if (T->scl[2] == 0) T->scl[2] = MIN_SCALE;
-    RotVec_T[0][0] = T->rotVec_[0][0] * (1 / T->scl[0]);
-    RotVec_T[0][1] = T->rotVec_[1][0] * (1 / T->scl[1]);
-    RotVec_T[0][2] = T->rotVec_[2][0] * (1 / T->scl[2]);
-    RotVec_T[1][0] = T->rotVec_[0][1] * (1 / T->scl[0]);
-    RotVec_T[1][1] = T->rotVec_[1][1] * (1 / T->scl[1]);
-    RotVec_T[1][2] = T->rotVec_[2][1] * (1 / T->scl[2]);
-    RotVec_T[2][0] = T->rotVec_[0][2] * (1 / T->scl[0]);
-    RotVec_T[2][1] = T->rotVec_[1][2] * (1 / T->scl[1]);
-    RotVec_T[2][2] = T->rotVec_[2][2] * (1 / T->scl[2]);
-}
-
-void invert_Rotation_scale1(transformer * T, float RotVec_T[3][3])
-{
-    float x_factor = length1(T->rotVec[0]);
-    float y_factor = length1(T->rotVec[1]);
-    float z_factor = length1(T->rotVec[2]);
-    if (x_factor == 0) x_factor = MIN_SCALE;
-    if (y_factor == 0) y_factor = MIN_SCALE;
-    if (z_factor == 0) z_factor = MIN_SCALE;
-    RotVec_T[0][0] = T->rotVec_[0][0] * (1 / x_factor);
-    RotVec_T[0][1] = T->rotVec_[1][0] * (1 / y_factor);
-    RotVec_T[0][2] = T->rotVec_[2][0] * (1 / z_factor);
-    RotVec_T[1][0] = T->rotVec_[0][1] * (1 / x_factor);
-    RotVec_T[1][1] = T->rotVec_[1][1] * (1 / y_factor);
-    RotVec_T[1][2] = T->rotVec_[2][1] * (1 / z_factor);
-    RotVec_T[2][0] = T->rotVec_[0][2] * (1 / x_factor);
-    RotVec_T[2][1] = T->rotVec_[1][2] * (1 / y_factor);
-    RotVec_T[2][2] = T->rotVec_[2][2] * (1 / z_factor);
 }
 
 void invert_Rotation_scale(transformer * T, float RotVec_T[3][3])
@@ -396,20 +363,6 @@ void bake_scale(transformer * T)
 {
     float rotVec_I[3][3];
     invert_Rotation_scale(T, rotVec_I);
-    bake_coordinates_children(T, T->pos, rotVec_I);
-}
-
-void bake_scale1(transformer * T)
-{
-    float rotVec_I[3][3];
-    invert_Rotation_scale1(T, rotVec_I);
-    bake_coordinates_children(T, T->pos, rotVec_I);
-}
-
-void bake_scale2(transformer * T)
-{
-    float rotVec_I[3][3];
-    invert_Rotation_scale2(T, rotVec_I);
     bake_coordinates_children(T, T->pos, rotVec_I);
 }
 
@@ -790,6 +743,10 @@ void rotate_T(transformer * T)
     {
 
     }
+    else if (T->IK != NULL)
+    {
+
+    }
     else
     {
         if (T->Bone != NULL && T->parent != NULL)
@@ -856,6 +813,10 @@ void rotate_children_(transformer * T, float pos[3], float rotVec_[3][3])
         {
 
         }
+        else if (C->IK != NULL)
+        {
+
+        }
         else
         {
 
@@ -904,6 +865,10 @@ void rotate_children(transformer * T, float pos[3], float rotVec_[3][3])
     {
         C = T->childs[c];
         if (C->Bone != NULL && C->Bone->IK_member > 0)
+        {
+
+        }
+        else if (C->IK != NULL)
         {
 
         }
@@ -996,6 +961,10 @@ void rotate_(transformer * T)
     {
 
     }
+    else if (T->IK != NULL)
+    {
+
+    }
     else
     {
         if (T->Bone != NULL && T->parent != NULL)
@@ -1042,6 +1011,10 @@ void rotate_(transformer * T)
 void rotate(transformer * T)
 {
     if (T->Bone != NULL && T->Bone->IK_member > 0)
+    {
+
+    }
+    else if (T->IK != NULL)
     {
 
     }
@@ -1116,10 +1089,10 @@ void collect_Children(transformer * T)
 }
 
 void rotate_vertex_groups_D_Init();
-void solve_IK_Chains(deformer * D, int update_childs, int L);
+void solve_IK_Chains(deformer * D);
 void rotate_Deformer_verts(deformer * D);
 
-void rotate_Deformer_IK(transformer * T, int L)
+void rotate_Deformer_IK(transformer * T)
 {
     transformer * P = T->parent;
 
@@ -1128,13 +1101,13 @@ void rotate_Deformer_IK(transformer * T, int L)
         P = P->parent;
     }
 
-    rotate_collect(P);
+    //rotate_collect(P);
     rotate_vertex_groups_D_Init();
 
     rotate_hierarchy_T(P, T);
 
     rotate_(T);
-    solve_IK_Chains(T->Deformer, 1, L);
+    solve_IK_Chains(T->Deformer);
     rotate_Deformer_verts(T->Deformer);
 }
 
@@ -1147,7 +1120,7 @@ void rotate_Deformer(transformer * T)
         P = P->parent;
     }
 
-    rotate_collect(P);
+    //rotate_collect(P);
     rotate_vertex_groups_D_Init();
 
     rotate_hierarchy_T(P, T);
@@ -1445,20 +1418,37 @@ void move_Pose_T(transformer * T, float Delta[3])
     }
 }
 
-void move_Deformer_IK(transformer * T, float Delta[3])
+void move_Deformer_IK(transformer * T)
 {
     transformer * P = T->parent;
 
-    while (P != NULL && P->Deformer == T->Deformer)
+    if (T->Deformer != NULL)
     {
-        P = P->parent;
+        while (P != NULL && P->Deformer == T->Deformer)
+        {
+            P = P->parent;
+        }
     }
 
     //rotate_collect(P);
     rotate_vertex_groups_D_Init();
     rotate_hierarchy_T(P, T);
-    move_Children(T, Delta);
-    rotate_Deformer_verts(T->Deformer);
+
+    rotate_(T);
+    float Delta[3];
+
+    if (T->childcount > 0)
+    {
+        Delta[0] = T->pos[0] - T->childs[0]->pos[0];
+        Delta[1] = T->pos[1] - T->childs[0]->pos[1];
+        Delta[2] = T->pos[2] - T->childs[0]->pos[2];
+
+    }
+    move_Children_IK(T, Delta);
+    if (T->Deformer != NULL)
+    {
+        rotate_Deformer_verts(T->Deformer);
+    }
 }
 
 void move_Deformer(transformer * T, float Delta[3])
@@ -1470,7 +1460,7 @@ void move_Deformer(transformer * T, float Delta[3])
         P = P->parent;
     }
 
-    rotate_collect(P);
+    //rotate_collect(P);
     rotate_vertex_groups_D_Init();
     rotate_hierarchy_T(P, T);
     move(T, Delta);
@@ -1479,20 +1469,6 @@ void move_Deformer(transformer * T, float Delta[3])
 }
 
 void update_rotate_bounding_box(int);
-
-void move_IK_(transformer * T, float Delta[3], int L)
-{
-    if (T->Deformer != NULL)
-    {
-        move_Deformer_IK(T, Delta);
-    }
-    else
-    {
-        rotate_vertex_groups_D_Init();
-        move_Children_IK(T, Delta);
-    }
-    update_rotate_bounding_box(L);
-}
 
 void move_(transformer * T, float Delta[3], int L)
 {

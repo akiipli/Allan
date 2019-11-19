@@ -469,11 +469,12 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
                 T->rot_Order,
                 T->bind_set,
                 T->Selections_Count);
-        fprintf(F, "%u %u %u %u\n",
+        fprintf(F, "%u %u %u %u %u\n",
                 (unsigned)T->parent,
                 (unsigned)T->Object,
                 (unsigned)T->Deformer,
-                (unsigned)T->Bone);
+                (unsigned)T->Bone,
+                (unsigned)T->IK);
 
         fprintf(F, "%f %f %f\n", T->scl[0], T->scl[1], T->scl[2]);
         fprintf(F, "%f %f %f\n", T->scl_vec[0], T->scl_vec[1], T->scl_vec[2]);

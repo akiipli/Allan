@@ -331,33 +331,35 @@ void rotate_vertex_groups_collect_Objects(transformer * T)
 
     if (T->Bone != NULL && T == T->Bone->B)
     {
-        T = T->Bone->A;
+
     }
-
-    for (s = 0; s < T->Selections_Count; s ++)
+    else
     {
-        S = T->Selections[s];
-
-        //printf("S->Name %s\n", S->Name);
-
-        //if (S->Name == NULL) continue;
-
-        O = S->Object;
-
-        if (O->deforms)
+        for (s = 0; s < T->Selections_Count; s ++)
         {
-            condition = 1;
-            for (o = 0; o < Update_Objects_Count; o ++)
+            S = T->Selections[s];
+
+            //printf("S->Name %s\n", S->Name);
+
+            //if (S->Name == NULL) continue;
+
+            O = S->Object;
+
+            if (O->deforms)
             {
-                if (Update_Objects[o] == O)
+                condition = 1;
+                for (o = 0; o < Update_Objects_Count; o ++)
                 {
-                    condition = 0;
-                    break;
+                    if (Update_Objects[o] == O)
+                    {
+                        condition = 0;
+                        break;
+                    }
                 }
-            }
-            if (condition)
-            {
-                Update_Objects[Update_Objects_Count ++] = O;
+                if (condition)
+                {
+                    Update_Objects[Update_Objects_Count ++] = O;
+                }
             }
         }
     }

@@ -8176,6 +8176,7 @@ void start_Movement()
 
         Update_Objects_Count = 0;
         rotate_collect(T);
+        printf("Update Objects Count %d\n", Update_Objects_Count);
         collect_Children(T);
 
         bake_position(T);
@@ -8232,22 +8233,15 @@ void make_Movement()
     }
     else
     {
-        if (T->Bone != NULL && T->Bone->IK != NULL)
+        if (T->IK != NULL && T->style == ik_goal)
         {
-            if (T->Bone->IK_member == IK_END)
-            {
-                /*
-                manipulate Delta for IK spine length
-                */
+            T->pos[0] = T->Pos_[0] + Delta[0];
+            T->pos[1] = T->Pos_[1] + Delta[1];
+            T->pos[2] = T->Pos_[2] + Delta[2];
 
-                T->pos[0] = T->Pos_[0] + Delta[0];
-                T->pos[1] = T->Pos_[1] + Delta[1];
-                T->pos[2] = T->Pos_[2] + Delta[2];
+            solve_IK_Chain(T->IK);
 
-                solve_IK_Chain(T->Bone->IK, 0, subdLevel);
-
-                move_Deformer_IK(T, Delta);
-            }
+            move_Deformer_IK(T);
         }
         else
         {
@@ -8303,6 +8297,7 @@ void transform_Objects_And_Render()
                     Update_Objects_Count = 0;
                     if (T->Deformer != NULL)
                     {
+                        rotate_collect(T);
                         rotate_Deformer(T);
                     }
                     else
@@ -9921,12 +9916,13 @@ int main(int argc, char * args[])
                         else
                         {
                             Update_Objects_Count = 0;
-                            if (T->Bone != NULL && T->Bone->IK_member == 2 && T->Bone->IK != NULL)
+                            if (T->IK != NULL && T->style == ik_goal)
                             {
-                                solve_IK_Chain(T->Bone->IK, 0, subdLevel);
+                                solve_IK_Chain(T->IK);
                             }
                             if (T->Deformer != NULL)
                             {
+                                rotate_collect(T);
                                 rotate_Deformer(T);
                             }
                             else
@@ -13153,13 +13149,28 @@ int main(int argc, char * args[])
             {
                 if (mod & KMOD_ALT)
                 {
-                    printf("%s\n", deformers[currentDeformer]->Name);
-                    printf("%s\n", transformers[selected_transformers[0]]->Name);
-                    printf("%s\n", transformers[currentLocator]->Name);
-//                    printf("%s\n", transformers[selected_transformers[0]]->Bone->Name);
-//                    printf("%s\n", transformers[currentLocator]->Bone->Name);
-                    int r = add_ikChain(deformers[currentDeformer], transformers[selected_transformers[0]], transformers[currentLocator]);
+                    T = transformers[selected_transformers[0]];
+                    if (T->Bone != NULL && T == T->Bone->B)
+                    {
+                        if (T->childcount > 0)
+                        {
+                            T = T->childs[0];
+                        }
+                    }
+
+                    if (deformerIndex > 0 && currentDeformer < deformerIndex)
+                    {
+                        D = deformers[currentDeformer];
+                    }
+                    else
+                    {
+                        D = NULL;
+                    }
+
+                    int r = add_ikChain(D, T, transformers[currentLocator]);
                     printf("Adding IK chain result %d\n", r);
+                    if (r)
+                        currentLocator += 2;
                 }
                 else
                 {
@@ -13306,7 +13317,7 @@ int main(int argc, char * args[])
                         if (mod & KMOD_SHIFT)
                         {
                             ROTATION = 1;
-                            bake(T);
+                            bake_scale(T);
                             object_hook = 3;
                         }
                         else
@@ -13466,7 +13477,7 @@ int main(int argc, char * args[])
             }
             else if (!BIND_POSE && mod & KMOD_SHIFT)
             {
-                rotate_Deformer_IK(T, subdLevel);
+                rotate_Deformer_IK(T);
             }
             else if (DRAW_LOCATORS && !BONES_MODE && BIND_POSE && !Camera_screen_lock && !dialog_lock)
             {
