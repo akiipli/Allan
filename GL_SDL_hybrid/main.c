@@ -13200,7 +13200,7 @@ int main(int argc, char * args[])
                         if (mod & KMOD_SHIFT)
                         {
                             ROTATION = 1;
-                            bake(T);
+                            bake_scale(T);
                             object_hook = 3;
                         }
                         else
