@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1548248127 source:c:\gl_sdl_hybrid\main.c
+1570537333 source:c:\gl_sdl_hybrid\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -59,37 +59,37 @@
 1540493296 c:\gl_sdl_hybrid\cursors.h
 	"SDL/SDL.h"
 
-1540493296 c:\gl_sdl_hybrid\transformer.h
+1570435834 c:\gl_sdl_hybrid\transformer.h
 
 1541517952 c:\gl_sdl_hybrid\object.h
 
 1541078686 c:\gl_sdl_hybrid\curves.h
 
-1548115683 c:\gl_sdl_hybrid\userinterface.h
+1558724725 c:\gl_sdl_hybrid\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
 	<errno.h>
 
-1540493296 c:\gl_sdl_hybrid\deformer.h
+1563127869 c:\gl_sdl_hybrid\deformer.h
 
 1540493296 c:\gl_sdl_hybrid\poses.h
 
-1540493296 c:\gl_sdl_hybrid\bones.h
+1570445556 c:\gl_sdl_hybrid\bones.h
 
-1548248209 c:\gl_sdl_hybrid\shaders.h
+1558617711 c:\gl_sdl_hybrid\shaders.h
 
 1540493296 c:\gl_sdl_hybrid\file_io.h
 
-1548115655 c:\gl_sdl_hybrid\imageload.h
+1557341288 c:\gl_sdl_hybrid\imageload.h
 
 1540493296 c:\gl_sdl_hybrid\mathfunctions.h
 
-1540493296 c:\gl_sdl_hybrid\cameras.h
+1557343737 c:\gl_sdl_hybrid\cameras.h
 
 1541586510 c:\gl_sdl_hybrid\saving.h
 
-1540493296 c:\gl_sdl_hybrid\initializingfunctions.h
+1557343745 c:\gl_sdl_hybrid\initializingfunctions.h
 
 1540493296 c:\gl_sdl_hybrid\extensionfunctions.h
 
@@ -110,19 +110,19 @@
 
 1540493296 c:\gl_sdl_hybrid\transforms.h
 
-1544630008 c:\gl_sdl_hybrid\arrays.h
+1558890338 c:\gl_sdl_hybrid\arrays.h
 
 1542184611 c:\gl_sdl_hybrid\lights.h
 
-1544630008 c:\gl_sdl_hybrid\rendering.h
+1562510659 c:\gl_sdl_hybrid\rendering.h
 
-1540493296 c:\gl_sdl_hybrid\selections.h
+1563130401 c:\gl_sdl_hybrid\selections.h
 
-1540493296 c:\gl_sdl_hybrid\hierarchys.h
+1557343083 c:\gl_sdl_hybrid\hierarchys.h
 
 1540493296 c:\gl_sdl_hybrid\validators.h
 
-1541586510 c:\gl_sdl_hybrid\loading.h
+1557343753 c:\gl_sdl_hybrid\loading.h
 
 1540493296 c:\gl_sdl_hybrid\modeling.h
 
