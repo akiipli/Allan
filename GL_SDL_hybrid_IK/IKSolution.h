@@ -95,6 +95,9 @@ int bones_Count;
 bone * bone_Collection[BONES];
 int ikValidates;
 
+int ik_Collection_Count;
+ikChain * ik_Chains_Collection[IKCHAINS];
+
 void collect_Chain_Bones(bone * A, bone * B)
 {
     printf("bone: %s\n", B->Name);
@@ -255,8 +258,6 @@ int init_ikChain(deformer * Deformer)
         add_Transformer_To_Deformer(I->B, I->Deformer);
     }
 
-    I->Bones[0]->A->collapsed = 1;
-
     iksIndex ++;
     return 1;
 }
@@ -403,6 +404,8 @@ void update_IKchains()
             memcpy(I->B->rotVec_I, I->rotVec_B, sizeof(float[3][3]));
 
             invert_Rotation_1(I->rotVec_I, I->rotVec_B);
+
+            I->Bones[0]->A->collapsed = 1;
 
         }
     }

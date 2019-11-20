@@ -6445,7 +6445,7 @@ void add_Branch()
 {
     printf("add Branch\n");
 
-    if (deformerIndex > 0)
+    if (BIND_POSE && deformerIndex > 0)
     {
         set_Defr_H_Button(0);
         D = deformers[currentDeformer_Node];
@@ -6465,6 +6465,7 @@ void add_Branch()
         if (condition && T != &World)
         {
             add_Branch_To_Deformer(T, D);
+            add_Branch_IK_Chains(T, D);
 //            create_Deformers_List(SelsIndex[3], O);
 //            draw_Deformers_List(screen_height, defr_start, 1, currentDeformer);
 //            draw_Deformers_Bottom_Line(DIALOG_WIDTH, screen_height);
@@ -6491,7 +6492,7 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
             if (deformerIndex > 0)
             {
                 D = deformers[currentDeformer_Node];
-                if (D != NULL)
+                if (BIND_POSE && D != NULL)
                     init_Deformer_Objects_Binding(D);
             }
         }
@@ -7717,11 +7718,12 @@ void remove_Branch()
 {
     printf("remove Branch\n");
     set_Defr_H_Button(1);
-    if (deformerIndex > 0)
+    if (BIND_POSE && deformerIndex > 0)
     {
         deformer * D = deformers[currentDeformer_Node];
         transformer * T = transformers[currentLocator];
         remove_Branch_From_Deformer(T, D);
+        remove_IK_Chains_From_Deformer(T, D);
         create_Deformers_List(SelsIndex[3], O);
         draw_Deformers_List(screen_height, defr_start, 1, currentDeformer);
         draw_Deformers_Bottom_Line(DIALOG_WIDTH, screen_height);

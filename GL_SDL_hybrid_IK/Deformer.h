@@ -851,6 +851,33 @@ void remove_Branch_From_Deformer(transformer * T, deformer * D)
     remove_Children_From_Deformer(T, D);
 }
 
+void collect_IK_Chains(transformer * T)
+{
+    int c;
+    transformer * C;
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        if (C->IK != NULL && C->style == ik_goal)
+        {
+            ik_Chains_Collection[ik_Collection_Count ++] = C->IK;
+        }
+        collect_IK_Chains(C);
+    }
+}
+
+void add_Branch_IK_Chains(transformer * T, deformer * D)
+{
+    ik_Collection_Count = 0;
+    collect_IK_Chains(T);
+
+    int i;
+    for (i = 0; i < ik_Collection_Count; i ++)
+    {
+        add_IkChain_To_Deformer(ik_Chains_Collection[i], D);
+    }
+}
+
 void add_Branch_To_Deformer(transformer * T, deformer * D)
 {
     add_Transformer_To_Deformer(T, D);
@@ -1009,6 +1036,18 @@ void remove_ikChain_From_Deformer(ikChain * I, deformer * D)
             D->IKchains[i] = D->IKchains[i + 1];
         }
         D->IKchains = realloc(D->IKchains, D->IKchains_Count * sizeof(ikChain*));
+    }
+}
+
+void remove_IK_Chains_From_Deformer(transformer * T, deformer * D)
+{
+    ik_Collection_Count = 0;
+    collect_IK_Chains(T);
+
+    int i;
+    for (i = 0; i < ik_Collection_Count; i ++)
+    {
+        remove_ikChain_From_Deformer(ik_Chains_Collection[i], D);
     }
 }
 

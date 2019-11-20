@@ -3,6 +3,12 @@
 Author here is:
 Allan Kiipli
 
+7:43 PM 11/20/2019
+IK development added.
+Still need UI and removing. Alt + A adds IK chain in Bind Mode. With deformer selected, chains are added to
+deformer, else they are independent in bones hierarchy. Such hierarchys need to be bound in Bind Mode and
+chains are added to selected deformer.
+
 1:23 PM 10/7/2019
 Now pressing a in Bind Mode toggles Align Mode. This is useful when drawing bones or
 changing their placement.
