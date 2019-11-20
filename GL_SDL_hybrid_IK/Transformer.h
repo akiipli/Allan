@@ -743,10 +743,10 @@ void rotate_T(transformer * T)
     {
 
     }
-    else if (T->IK != NULL)
-    {
-
-    }
+//    else if (T->IK != NULL)
+//    {
+//
+//    }
     else
     {
         if (T->Bone != NULL && T->parent != NULL)
@@ -813,10 +813,10 @@ void rotate_children_(transformer * T, float pos[3], float rotVec_[3][3])
         {
 
         }
-        else if (C->IK != NULL)
-        {
-
-        }
+//        else if (C->IK != NULL)
+//        {
+//
+//        }
         else
         {
 
@@ -868,10 +868,10 @@ void rotate_children(transformer * T, float pos[3], float rotVec_[3][3])
         {
 
         }
-        else if (C->IK != NULL)
-        {
-
-        }
+//        else if (C->IK != NULL)
+//        {
+//
+//        }
         else
         {
 
@@ -961,10 +961,10 @@ void rotate_(transformer * T)
     {
 
     }
-    else if (T->IK != NULL)
-    {
-
-    }
+//    else if (T->IK != NULL)
+//    {
+//
+//    }
     else
     {
         if (T->Bone != NULL && T->parent != NULL)
@@ -1014,10 +1014,10 @@ void rotate(transformer * T)
     {
 
     }
-    else if (T->IK != NULL)
-    {
-
-    }
+//    else if (T->IK != NULL)
+//    {
+//
+//    }
     else
     {
         if (T->Bone != NULL && T->parent != NULL)
@@ -1089,7 +1089,7 @@ void collect_Children(transformer * T)
 }
 
 void rotate_vertex_groups_D_Init();
-void solve_IK_Chains(deformer * D);
+void solve_IK_Chains(deformer * D, int update);
 void rotate_Deformer_verts(deformer * D);
 
 void rotate_Deformer_IK(transformer * T)
@@ -1107,7 +1107,7 @@ void rotate_Deformer_IK(transformer * T)
     rotate_hierarchy_T(P, T);
 
     rotate_(T);
-    solve_IK_Chains(T->Deformer);
+    solve_IK_Chains(T->Deformer, 0);
     rotate_Deformer_verts(T->Deformer);
 }
 
@@ -1126,7 +1126,7 @@ void rotate_Deformer(transformer * T)
     rotate_hierarchy_T(P, T);
 
     rotate_(T);
-    //solve_IK_Chains(T->Deformer, 0);
+    solve_IK_Chains(T->Deformer, 0); // specify affected IK chains before, collect them
     rotate_Deformer_verts(T->Deformer);
 }
 

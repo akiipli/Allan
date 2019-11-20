@@ -8239,7 +8239,7 @@ void make_Movement()
             T->pos[1] = T->Pos_[1] + Delta[1];
             T->pos[2] = T->Pos_[2] + Delta[2];
 
-            solve_IK_Chain(T->IK);
+            solve_IK_Chain(T->IK, 1);
 
             move_Deformer_IK(T);
         }
@@ -9918,7 +9918,7 @@ int main(int argc, char * args[])
                             Update_Objects_Count = 0;
                             if (T->IK != NULL && T->style == ik_goal)
                             {
-                                solve_IK_Chain(T->IK);
+                                solve_IK_Chain(T->IK, 1);
                             }
                             if (T->Deformer != NULL)
                             {
@@ -13477,7 +13477,7 @@ int main(int argc, char * args[])
             }
             else if (!BIND_POSE && mod & KMOD_SHIFT)
             {
-                rotate_Deformer_IK(T);
+                //rotate_Deformer_IK(T);
             }
             else if (DRAW_LOCATORS && !BONES_MODE && BIND_POSE && !Camera_screen_lock && !dialog_lock)
             {

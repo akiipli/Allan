@@ -168,6 +168,8 @@ float boneLength(bone * B)
     return l;
 }
 
+void add_IkChain_To_Deformer(ikChain * I, deformer * D);
+
 int init_ikChain(deformer * Deformer)
 {
     if (transformerIndex >= TRANSFORMERS - 1)
@@ -183,8 +185,11 @@ int init_ikChain(deformer * Deformer)
     I->Name = malloc(STRLEN * sizeof(char));
     sprintf(I->Name, "%s %d", "ikChain", iksIndex);
     I->selected = 0;
-
-    I->Deformer = Deformer;
+    I->Deformer = NULL;
+    if (Deformer != NULL)
+    {
+        add_IkChain_To_Deformer(I, Deformer);
+    }
     I->bonescount = bones_Count;
     I->Bones = malloc(bones_Count * sizeof(bone *));
     int b;
@@ -396,7 +401,7 @@ void update_IKchains()
     }
 }
 
-void solve_IK_Chain(ikChain * I)
+void solve_IK_Chain(ikChain * I, int update)
 {
     int b;
     bone * B;
@@ -666,13 +671,16 @@ void solve_IK_Chain(ikChain * I)
         memcpy(I->Bones[b]->B->pos, I->positions_B[b].vec, sizeof(float[3]));
     }
 
-    make_Spine(I->rotVec_F, P.vec);
+    if (update)
+    {
+        make_Spine(I->rotVec_F, P.vec);
 
-    memcpy(I->A->rotVec, I->rotVec_F, sizeof(float[3][3]));
-    memcpy(I->A->rotVec_, I->rotVec_F, sizeof(float[3][3]));
+        memcpy(I->A->rotVec, I->rotVec_F, sizeof(float[3][3]));
+        memcpy(I->A->rotVec_, I->rotVec_F, sizeof(float[3][3]));
 
-    memcpy(I->B->rotVec, I->rotVec_F, sizeof(float[3][3]));
-    memcpy(I->B->rotVec_, I->rotVec_F, sizeof(float[3][3]));
+        memcpy(I->B->rotVec, I->rotVec_F, sizeof(float[3][3]));
+        memcpy(I->B->rotVec_, I->rotVec_F, sizeof(float[3][3]));
+    }
 }
 
 #endif // IKSOLUTION_H_INCLUDED

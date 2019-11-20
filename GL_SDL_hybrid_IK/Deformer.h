@@ -781,6 +781,26 @@ void remove_Transformer_From_Deformer(transformer * T)
     }
 }
 
+void add_IkChain_To_Deformer(ikChain * I, deformer * D)
+{
+    int i;
+    int condition = 1;
+    for (i = 0; i < D->IKchains_Count; i ++)
+    {
+        if (I == D->IKchains[i])
+        {
+            condition = 0;
+            break;
+        }
+    }
+    if (condition && I->Deformer == NULL)
+    {
+        D->IKchains = realloc(D->IKchains, (D->IKchains_Count + 1) * sizeof(ikChain *));
+        D->IKchains[D->IKchains_Count ++] = I;
+        I->Deformer = D;
+    }
+}
+
 void add_Transformer_To_Deformer(transformer * T, deformer * D)
 {
     int t;
@@ -1040,7 +1060,7 @@ void remove_ikChain_From_ikChains_(ikChain * I)
     }
 }
 
-void solve_IK_Chains(deformer * D)
+void solve_IK_Chains(deformer * D, int update)
 {
     int i;
     ikChain * I;
@@ -1048,7 +1068,7 @@ void solve_IK_Chains(deformer * D)
     for (i = 0; i < D->IKchains_Count; i ++)
     {
         I = D->IKchains[i];
-        solve_IK_Chain(I);
+        solve_IK_Chain(I, update);
     }
 }
 #endif // DEFORMER_H_INCLUDED
