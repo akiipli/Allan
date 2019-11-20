@@ -997,15 +997,15 @@ void rotate_(transformer * T)
 
     //rotate_vertex_groups(T);
 
-    float rotVec[3][3];
+//    float rotVec[3][3];
+//
+//    scale_rotVec(rotVec, T->rotVec_, T->scl);
+//    rotate_children_(T, T->pos, rotVec);
 
-    scale_rotVec(rotVec, T->rotVec_, T->scl);
-    rotate_children_(T, T->pos, rotVec);
-
-//    if (SCALE)
-//        rotate_children_(T, T->pos, T->rotVec);
-//    else
-//        rotate_children_(T, T->pos, T->rotVec_);
+    if (SCALE)
+        rotate_children_(T, T->pos, T->rotVec);
+    else
+        rotate_children_(T, T->pos, T->rotVec_);
 }
 
 void rotate(transformer * T)
