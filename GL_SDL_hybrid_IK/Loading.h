@@ -2459,21 +2459,6 @@ void load_Hierarchys(char * path, int obj_count, int defr_count)
         int Poses_Count;
         */
 
-        for (t = transformerIndex - t_index; t < transformerIndex; t ++)
-        {
-            T = transformers[t];
-
-            for (d = deformerIndex - defr_count; d < deformerIndex; d ++)
-            {
-                D = deformers[d];
-                if (D->address == (unsigned)T->Deformer)
-                {
-                    T->Deformer = D;
-                    break;
-                }
-            }
-        }
-
         for (d = deformerIndex - defr_count; d < deformerIndex; d ++)
         {
             D = deformers[d];

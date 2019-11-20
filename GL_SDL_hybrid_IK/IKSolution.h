@@ -169,6 +169,7 @@ float boneLength(bone * B)
 }
 
 void add_IkChain_To_Deformer(ikChain * I, deformer * D);
+void add_Transformer_To_Deformer(transformer * T, deformer * D);
 
 int init_ikChain(deformer * Deformer)
 {
@@ -221,7 +222,6 @@ int init_ikChain(deformer * Deformer)
 
     I->A->IK = I;
     I->A->style = ik_start;
-    I->A->Deformer = Deformer;
 
     remove_Child(I->Bones[0]->A, I->Bones[0]->A->parent, I->A);
 
@@ -237,7 +237,6 @@ int init_ikChain(deformer * Deformer)
 
     I->B->IK = I;
     I->B->style = ik_goal;
-    I->B->Deformer = Deformer;
 
     transformer * C;
 
@@ -249,6 +248,14 @@ int init_ikChain(deformer * Deformer)
 
     I->poleRot = 0;
     I->P = length_AB(I->A->pos, I->B->pos);
+
+    if (I->Deformer != NULL)
+    {
+        add_Transformer_To_Deformer(I->A, I->Deformer);
+        add_Transformer_To_Deformer(I->B, I->Deformer);
+    }
+
+    I->Bones[0]->A->collapsed = 1;
 
     iksIndex ++;
     return 1;
