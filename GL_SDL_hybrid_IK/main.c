@@ -9938,6 +9938,14 @@ int main(int argc, char * args[])
                             }
                             if (T->Deformer != NULL)
                             {
+                                if (T->Deformer->Transformers_Count > 0)
+                                {
+                                    rotate_collect(T->Deformer->Transformers[0]);
+                                }
+                                else
+                                {
+                                    rotate_collect(T);
+                                }
                                 rotate_Deformer(T);
                             }
                             else

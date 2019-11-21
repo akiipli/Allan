@@ -413,6 +413,12 @@ void update_IKchains()
 
 void solve_IK_Chain(ikChain * I, int update)
 {
+    /*
+    i match intermediate spine with true length with adjust Proportional
+    this causes bones be not proper length
+    need some way to estimate transition amount to come closer to true length
+    */
+
     int b;
     bone * B;
 
