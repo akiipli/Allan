@@ -6,6 +6,7 @@ Copyright <2018> <Allan Kiipli>
 
 #define TRANSFORMERS 1000
 #define LOCATORS 1000
+
 float MIN_SCALE = 1 / 1000000;
 int SCALE = 0;
 
@@ -1145,25 +1146,6 @@ void rotate_vertex_groups_D_Init();
 void solve_IK_Chains(deformer * D, int update);
 void rotate_Deformer_verts(deformer * D);
 
-void rotate_Deformer_IK(transformer * T)
-{
-    transformer * P = T->parent;
-
-    while (P != NULL && P->Deformer == T->Deformer)
-    {
-        P = P->parent;
-    }
-
-    //rotate_collect(P);
-    rotate_vertex_groups_D_Init();
-
-    rotate_hierarchy_T(P, T);
-
-    rotate_(T);
-    solve_IK_Chains(T->Deformer, 0);
-    rotate_Deformer_verts(T->Deformer);
-}
-
 void rotate_Deformer(transformer * T)
 {
     transformer * P = T->parent;
@@ -1173,7 +1155,7 @@ void rotate_Deformer(transformer * T)
         P = P->parent;
     }
 
-    rotate_collect(P);
+    //rotate_collect(P);
     rotate_vertex_groups_D_Init();
 
     rotate_hierarchy_T(P, T);
@@ -1480,7 +1462,7 @@ void move_Deformer_IK(transformer * T)
         }
     }
 
-    rotate_collect(P);
+    //rotate_collect(P);
     rotate_vertex_groups_D_Init();
     rotate_hierarchy_T(P, T);
 
@@ -1510,7 +1492,7 @@ void move_Deformer(transformer * T, float Delta[3])
         P = P->parent;
     }
 
-    //rotate_collect(P);
+    rotate_collect(P);
     rotate_vertex_groups_D_Init();
     rotate_hierarchy_T(P, T);
     move_T(T, Delta);

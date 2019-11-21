@@ -8306,7 +8306,14 @@ void transform_Objects_And_Render()
                     Update_Objects_Count = 0;
                     if (T->Deformer != NULL)
                     {
-                        //rotate_collect(T);
+                        if (T->Deformer->Transformers_Count > 0)
+                        {
+                            rotate_collect(T->Deformer->Transformers[0]);
+                        }
+                        else
+                        {
+                            rotate_collect(T);
+                        }
                         rotate_Deformer(T);
                     }
                     else
@@ -9931,7 +9938,6 @@ int main(int argc, char * args[])
                             }
                             if (T->Deformer != NULL)
                             {
-                                //rotate_collect(T);
                                 rotate_Deformer(T);
                             }
                             else
