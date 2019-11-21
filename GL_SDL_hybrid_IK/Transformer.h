@@ -1173,7 +1173,7 @@ void rotate_Deformer(transformer * T)
         P = P->parent;
     }
 
-    //rotate_collect(P);
+    rotate_collect(P);
     rotate_vertex_groups_D_Init();
 
     rotate_hierarchy_T(P, T);
@@ -1480,7 +1480,7 @@ void move_Deformer_IK(transformer * T)
         }
     }
 
-    //rotate_collect(P);
+    rotate_collect(P);
     rotate_vertex_groups_D_Init();
     rotate_hierarchy_T(P, T);
 

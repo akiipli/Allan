@@ -243,7 +243,7 @@ int init_ikChain(deformer * Deformer)
 
     transformer * C;
 
-    for (c = 0; c < B->B->childcount; c ++)
+    for (c = B->B->childcount - 1; c >= 0; c --)
     {
         C = B->B->childs[c];
         remove_Child(C, B->B, I->B);
