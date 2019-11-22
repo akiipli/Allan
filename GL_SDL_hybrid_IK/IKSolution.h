@@ -510,9 +510,95 @@ void solve_IK_Chain(ikChain * I, int update)
         }
     }
 
-    // make intermediate spine
+    /*
+    start of spine length adjustment
+    */
 
     float len = length_(I->positions_B[I->bonescount - 1].vec);
+
+    if (Transition_Amount < 0 && P.distance > 0)
+    {
+        adjust_Proportional = len / P.distance;
+        Transition_Amount *= adjust_Proportional;
+
+        if (Transition_Amount < -10)
+        {
+            Transition_Amount = -10;
+        }
+
+        I->positions_A[0].vec[0] = I->A->pos_bind[0];
+        I->positions_A[0].vec[1] = I->A->pos_bind[1];
+        I->positions_A[0].vec[2] = I->A->pos_bind[2];
+
+        for (b = 0; b < I->bonescount; b ++)
+        {
+            B = I->Bones[b];
+
+            I->positions_B[b].vec[0] = I->vectors[b].vec[0] * Transition_Amount + B->B->pos_bind[0];
+            I->positions_B[b].vec[1] = I->vectors[b].vec[1] * Transition_Amount + B->B->pos_bind[1];
+            I->positions_B[b].vec[2] = I->vectors[b].vec[2] * Transition_Amount + B->B->pos_bind[2];
+
+            if (b < I->bonescount - 1)
+            {
+                I->positions_A[b + 1].vec[0] = I->positions_B[b].vec[0];
+                I->positions_A[b + 1].vec[1] = I->positions_B[b].vec[1];
+                I->positions_A[b + 1].vec[2] = I->positions_B[b].vec[2];
+            }
+        }
+
+    //     the final segment is just drawn without check.
+    //
+    //     now construct new segments proper length
+    //     first take vectors in the segments
+
+        for (b = 0; b < I->bonescount; b ++)
+        {
+            I->vectors_bone[b].vec[0] = I->positions_B[b].vec[0] - I->positions_A[b].vec[0];
+            I->vectors_bone[b].vec[1] = I->positions_B[b].vec[1] - I->positions_A[b].vec[1];
+            I->vectors_bone[b].vec[2] = I->positions_B[b].vec[2] - I->positions_A[b].vec[2];
+
+            mag = length_(I->vectors_bone[b].vec);
+
+            if (mag > 0)
+            {
+                I->vectors_bone[b].vec[0] /= mag;
+                I->vectors_bone[b].vec[1] /= mag;
+                I->vectors_bone[b].vec[2] /= mag;
+            }
+        }
+
+        // proper length
+
+        I->positions_A[0].vec[0] = 0;
+        I->positions_A[0].vec[1] = 0;
+        I->positions_A[0].vec[2] = 0;
+
+        I->positions_B[0].vec[0] = I->vectors_bone[0].vec[0] * I->Bones[0]->len;
+        I->positions_B[0].vec[1] = I->vectors_bone[0].vec[1] * I->Bones[0]->len;
+        I->positions_B[0].vec[2] = I->vectors_bone[0].vec[2] * I->Bones[0]->len;
+
+        for (b = 1; b < I->bonescount; b ++)
+        {
+            I->positions_B[b].vec[0] = I->positions_B[b - 1].vec[0] + I->vectors_bone[b].vec[0] * I->Bones[b]->len;
+            I->positions_B[b].vec[1] = I->positions_B[b - 1].vec[1] + I->vectors_bone[b].vec[1] * I->Bones[b]->len;
+            I->positions_B[b].vec[2] = I->positions_B[b - 1].vec[2] + I->vectors_bone[b].vec[2] * I->Bones[b]->len;
+
+            if (b < I->bonescount - 1)
+            {
+                I->positions_A[b + 1].vec[0] = I->positions_B[b].vec[0];
+                I->positions_A[b + 1].vec[1] = I->positions_B[b].vec[1];
+                I->positions_A[b + 1].vec[2] = I->positions_B[b].vec[2];
+            }
+        }
+    }
+
+    /*
+    end of spine length adjustment
+    */
+
+    // make intermediate spine
+
+    len = length_(I->positions_B[I->bonescount - 1].vec);
 
     adjust_Proportional = 1;
 
