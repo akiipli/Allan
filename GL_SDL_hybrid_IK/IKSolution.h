@@ -38,8 +38,6 @@ matrix. Before pole rotation is applied to this matrix.
 #define IK_START 1
 #define IK_END 2
 
-#define STRLEN 256
-
 #define bone_end 1
 #define ik_start 2
 #define ik_goal 3
@@ -88,6 +86,13 @@ struct ikChain
 ;
 
 int ikChains_c = 0;
+char IK_Names[IKCHAINS][STRLEN];
+int IKIndex;
+int ikch_start;
+
+int IK_List[IKCHAINS];
+int currentIK = 0;
+
 ikChain * ikChains[IKCHAINS];
 int iksIndex = 0;
 
@@ -783,6 +788,43 @@ void solve_IK_Chain(ikChain * I, int update)
         memcpy(I->B->rotVec, I->rotVec_F, sizeof(float[3][3]));
         memcpy(I->B->rotVec_, I->rotVec_F, sizeof(float[3][3]));
     }
+}
+
+void create_Ik_List(int IKIndex)
+{
+    int i;
+    ikChain * I;
+    ikChains_c = 0;
+
+    for (i = 0; i < iksIndex; i ++)
+    {
+        I = ikChains[i];
+
+        memcpy(IK_Names[ikChains_c], I->Name, strlen(I->Name));
+        IK_Names[ikChains_c][strlen(I->Name)] = '\0';
+        IK_List[ikChains_c] = ikChains_c;
+        ikChains_c ++;
+        if (ikChains_c >= IKCHAINS - 1)
+            break;
+    }
+}
+
+void replace_IK_Name(char * EditString)
+{
+    ikChain * I = ikChains[IK_List[IKIndex]];
+    memcpy(I->Name, EditString, strlen(EditString));
+    I->Name[strlen(EditString)] = '\0';
+}
+
+void set_IK_H_Button(int index)
+{
+    int i;
+    for (i = 0; i < H_IKCH_NUM; i ++)
+    {
+        Button_h_ikch[i].color = UI_GRAYB;
+    }
+    if (index > -1)
+        Button_h_ikch[index].color = UI_GRAYD;
 }
 
 #endif // IKSOLUTION_H_INCLUDED

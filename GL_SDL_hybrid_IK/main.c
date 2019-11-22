@@ -45,13 +45,13 @@ look for CUBECOMMENT
 #define SCREEN_BPP 32
 
 #include "Transformer.h"
-#include "IKSolution.h"
 #include "Object.h"
 #include "Curves.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include "UserInterface.h"
+#include "IKSolution.h"
 #include "Deformer.h"
 #include "Poses.h"
 #include "Bones.h"
@@ -94,10 +94,11 @@ look for CUBECOMMENT
 #define DEFR_DIALOG 5
 #define POSE_DIALOG 6
 #define BONE_DIALOG 7
-#define OBJ_DIALOG 8
-#define IMG_DIALOG 9
-#define SAVES_DIALOG 10
-#define LOADING_DIALOG 11
+#define IK_DIALOG 8
+#define OBJ_DIALOG 9
+#define IMG_DIALOG 10
+#define SAVES_DIALOG 11
+#define LOADING_DIALOG 12
 
 #define obj_EXTENSION 0
 #define OBJ_EXTENSION 1
@@ -3877,6 +3878,20 @@ int list_materials(char ** material_list, int start, int n)
     return material;
 }
 
+int list_ik(char ** ikch_list, int start, int n)
+{
+    int i = start;
+    int chain = 0;
+    for (chain = 0; chain < n; chain ++)
+    {
+        if (chain >= ikChains_c - start)
+            break;
+        sprintf(ikch_list[chain], "%s", IK_Names[i]);
+        i ++;
+    }
+    return chain;
+}
+
 int list_bones(char ** bones_list, int start, int n)
 {
     int b = start;
@@ -4056,6 +4071,51 @@ void open_Selections_List()
         draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
     }
     blit_ViewPort();
+    glDrawBuffer(GL_BACK);
+    SDL_GL_SwapBuffers();
+    message = 0;
+}
+
+void black_out_IkList()
+{
+    int i;
+
+    for (i = 0; i < ikChains_c; i ++)
+    {
+        IkchList[i].color = UI_BLACK;
+    }
+    if (IKIndex - ikch_start >= 0)
+        IkchList[IKIndex - ikch_start].color = UI_BACKL;
+}
+
+void open_IK_List()
+{
+    create_Ik_List(IKIndex);
+
+    if (Bottom_Message)
+    {
+        Draw_Bottom_Message("IK List\n");
+    }
+    Bottom_Message = 0;
+
+    black_out_IkList();
+
+    //DRAW_LOCATORS = 1;
+    //LOCAT_ID_RENDER = 1;
+
+    SDL_SetCursor(Arrow);
+    dialog_lock = 1;
+    dialog_type = IK_DIALOG;
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    UPDATE_COLORS = 1;
+    if (dialog_lock)
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    else
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+    UPDATE_COLORS = 0;
+
+    draw_IK_Dialog("IK List", screen_height, ikch_start, 1, IKIndex - ikch_start);
+
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
     message = 0;
@@ -4758,6 +4818,30 @@ void update_Saves_List(int update, int blit)
     glDrawBuffer(GL_BACK);
 }
 
+void update_IK_List(int update, int blit)
+{
+    if (IKIndex - ikch_start >= 0)
+        IkchList[IKIndex - ikch_start].color = UI_BACKL;
+
+    if (blit)
+    {
+        blit_ViewPort();
+    }
+
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    if (UPDATE_BACKGROUND || update)
+    {
+        draw_IK_Dialog("IK List", screen_height, ikch_start, 1, IKIndex - ikch_start);
+    }
+    else
+    {
+        draw_IK_List(screen_height, ikch_start, 0, IKIndex - ikch_start);
+        draw_IK_Bottom_Line(DIALOG_WIDTH, screen_height);
+    }
+    SDL_GL_SwapBuffers();
+    glDrawBuffer(GL_BACK);
+}
+
 void update_Bones_List(int update, int blit)
 {
     if (BoneIndex - bone_start >= 0)
@@ -5169,6 +5253,44 @@ void deformer_Player()
     DRAW_UI = 1;
 }
 
+void select_IK_Goal(ikChain * I)
+{
+    currentLocator = I->B->index;
+    T->selected = 0;
+    T = transformers[currentLocator];
+    T->selected = 1;
+}
+
+void handle_UP_IK(int scrollbar)
+{
+    if (scrollbar)
+    {
+        if (IKIndex - ikch_start >= 0)
+            IkchList[IKIndex - ikch_start].color = UI_BLACK;
+        ikch_start --;
+        if (ikch_start < 0) ikch_start = 0;
+        if (IKIndex - ikch_start >= 0)
+            IkchList[IKIndex - ikch_start].color = UI_BACKL;
+    }
+    else
+    {
+        if (IKIndex - ikch_start >= 0)
+            IkchList[IKIndex - ikch_start].color = UI_BLACK;
+        IKIndex --;
+        if (IKIndex < 0) IKIndex ++;
+        if (IKIndex - ikch_start >= 0)
+            IkchList[IKIndex - ikch_start].color = UI_BACKL;
+        currentIK = IK_List[IKIndex];
+    }
+    if (currentIK >= 0 && currentIK < iksIndex)
+        select_IK_Goal(ikChains[currentIK]);
+
+    DRAW_UI = 0;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    DRAW_UI = 1;
+    update_IK_List(1, 0);
+}
+
 void handle_UP_Bone(int scrollbar)
 {
     if (scrollbar)
@@ -5526,6 +5648,10 @@ void handle_UP(int scrollbar)
         {
             handle_UP_Bone(scrollbar);
         }
+        else if (dialog_type == IK_DIALOG)
+        {
+            handle_UP_IK(scrollbar);
+        }
         else if (dialog_type == POSE_DIALOG)
         {
             handle_UP_Pose(scrollbar);
@@ -5655,6 +5781,37 @@ void handle_UP(int scrollbar)
             handle_UP_Loading(scrollbar);
         }
     }
+}
+
+void handle_DOWN_IK(int scrollbar)
+{
+    if (scrollbar)
+    {
+        if (IKIndex - ikch_start >= 0)
+            IkchList[IKIndex - ikch_start].color = UI_BLACK;
+        ikch_start ++;
+        if (ikch_start > ikChains_c - LISTLENGTH) ikch_start --;
+        if (IKIndex - ikch_start >= 0)
+            IkchList[IKIndex - ikch_start].color = UI_BACKL;
+    }
+    else
+    {
+        if (IKIndex - ikch_start >= 0)
+            IkchList[IKIndex - ikch_start].color = UI_BLACK;
+        IKIndex ++;
+        if (IKIndex > ikChains_c - 1)
+            IKIndex --;
+        if (IKIndex - ikch_start >= 0)
+            IkchList[IKIndex - ikch_start].color = UI_BACKL;
+        currentIK = IK_List[IKIndex];
+    }
+    if (currentIK >= 0 && currentIK < iksIndex)
+        select_IK_Goal(ikChains[currentIK]);
+
+    DRAW_UI = 0;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    DRAW_UI = 1;
+    update_IK_List(1, 0);
 }
 
 void handle_DOWN_Bone(int scrollbar)
@@ -5943,6 +6100,10 @@ void handle_DOWN(int scrollbar)
         {
             handle_DOWN_Bone(scrollbar);
         }
+        else if (dialog_type == IK_DIALOG)
+        {
+            handle_DOWN_IK(scrollbar);
+        }
         else if (dialog_type == POSE_DIALOG)
         {
             handle_DOWN_Pose(scrollbar);
@@ -6171,6 +6332,27 @@ void delete_Bone(bone * B)
     }
 }
 
+void remove_IK()
+{
+    set_IK_H_Button(0);
+    printf("remove IK\n");
+    if (currentIK >= 0 && currentIK < iksIndex)
+    {
+        if (BIND_POSE)
+        {
+            /* remove here */
+            ikChain * I = ikChains[currentIK];
+            remove_ikChain_From_ikChains_(I, 0);
+            currentIK --;
+            if (currentIK < 0)
+                currentIK = 0;
+        }
+
+        if (dialog_lock)
+            draw_Dialog();
+    }
+}
+
 void remove_Bone()
 {
     set_Bone_H_Button(0);
@@ -6182,6 +6364,9 @@ void remove_Bone()
             bone * B = bones[currentBone];
             remove_Bone_From_Deformer(B);
             remove_Bone_From_Bones(B);
+            currentBone --;
+            if (currentBone < 0)
+                currentBone = 0;
         }
 
         if (dialog_lock)
@@ -6207,6 +6392,22 @@ void rename_Scene_dir()
                 update_Saves_List(0, 0);
             else if (dialog_type == LOADING_DIALOG)
                 update_Loading_List(0, 0);
+        }
+    }
+}
+
+void rename_IK()
+{
+    set_IK_H_Button(1);
+    printf("rename IK\n");
+    if (dialog_lock)
+    {
+        if (!Edit_Lock && ikChains_c > 0)
+        {
+            sprintf(Name_Remember, "%s", IK_Names[IKIndex]);
+            sprintf(IK_Names[IKIndex], "%s", "");
+            Edit_Lock = 1;
+            update_IK_List(0, 0);
         }
     }
 }
@@ -6579,6 +6780,63 @@ void handle_Scene_Dialog(char letter, SDLMod mod)
     }
 }
 
+void handle_IK_Dialog(char letter, SDLMod mod)
+{
+    if (Edit_Lock)
+    {
+        //int update = 0;
+        if (letter == '-')
+        {
+            if (mod & KMOD_SHIFT)
+            {
+                letter = '_';
+            }
+        }
+        else if (isalnum(letter) && (mod & KMOD_SHIFT))
+        {
+            letter -= 32;
+        }
+        if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+        {
+            if (EditCursor < STRLEN - 1)
+            {
+                EditString[EditCursor] = letter;
+                EditCursor ++;
+                EditString[EditCursor] = '\0';
+            }
+        }
+        else if (letter == 13 || letter == 10) // return, enter
+        {
+            if (strlen(EditString) > 1)
+            {
+                sprintf(IK_Names[IKIndex], "%s", EditString);
+                replace_IK_Name(EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(IK_Names[IKIndex], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_IK_H_Button(-1);
+            //update = 1;
+        }
+        else if (letter == 8) // backspace
+        {
+            EditCursor --;
+            if (EditCursor < 0)
+                EditCursor = 0;
+            EditString[EditCursor] = '\0';
+        }
+        sprintf(IK_Names[IKIndex], "%s", EditString);
+        update_IK_List(0, 0);
+        //printf("%c%s", 13, EditString);
+        message = 0;
+    }
+}
+
 void handle_Bone_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
@@ -6872,6 +7130,14 @@ void handle_dialog(char letter, SDLMod mod)
             rename_Bone();
         }
     }
+    else if (dialog_type == IK_DIALOG)
+    {
+        handle_IK_Dialog(letter, mod);
+        if (!Edit_Lock && letter == '`')
+        {
+            rename_IK();
+        }
+    }
     else if (dialog_type == POSE_DIALOG)
     {
         handle_Pose_Dialog(letter, mod);
@@ -7121,6 +7387,10 @@ void draw_Dialog()
     else if (dialog_type == BONE_DIALOG)
     {
         open_Bones_List();
+    }
+    else if (dialog_type == IK_DIALOG)
+    {
+        open_IK_List();
     }
     else if (dialog_type == POSE_DIALOG)
     {
@@ -7512,6 +7782,51 @@ void delete_Bone_Transformer(transformer * T0)
         currentLocator = 0;
 
     T = transformers[currentLocator];
+}
+
+void delete_IK_Transformers(ikChain * I)
+{
+    int c;
+
+    for (c = I->B->childcount - 1; c >= 0; c --)
+    {
+        if (BIND_POSE)
+        {
+            remove_Child(I->B->childs[c], I->B, I->Bones[I->bonescount - 1]->B);
+        }
+        else
+        {
+            normalize_rotation_unparent(I->B->childs[c]);
+            remove_Child(I->B->childs[c], I->B, I->Bones[I->bonescount - 1]->B);
+            normalize_rotation_parent(I->B->childs[c]);
+        }
+    }
+    remove_Child(I->Bones[0]->A, I->A, I->A->parent);
+    I->Bones[0]->A->collapsed = 0;
+    remove_Child(I->B, I->B->parent, NULL);
+    remove_Child(I->A, I->A->parent, NULL);
+
+    if (I->B->Deformer != NULL)
+    {
+        remove_Transformer_From_Deformer(I->B);
+    }
+
+    if (I->A->Deformer != NULL)
+    {
+        remove_Transformer_From_Deformer(I->A);
+    }
+
+    free_Transformer(I->B);
+    free(I->B);
+    free_Transformer(I->A);
+    free(I->A);
+
+    create_Hierarchys_List();
+
+    if (currentLocator >= transformerIndex - 1)
+        currentLocator = transformerIndex - 1;
+    if (currentLocator < 0)
+        currentLocator = 0;
 }
 
 void delete_Transformer(transformer * T0)
@@ -8450,7 +8765,7 @@ void clear_Deformers()
     }
 }
 
-void clear_ikChains()
+void clear_ikChains(int no_delete)
 {
     if (!dialog_lock)
     {
@@ -8462,7 +8777,7 @@ void clear_ikChains()
         {
             I = ikChains[i];
 
-            remove_ikChain_From_ikChains_(I);
+            remove_ikChain_From_ikChains_(I, no_delete);
         }
     }
 }
@@ -8615,7 +8930,7 @@ void clear_All()
 {
     if (!dialog_lock)
     {
-        clear_ikChains();
+        clear_ikChains(1);
         clear_Deformers();
 
         //clear_Objects();
@@ -8664,6 +8979,7 @@ void clear_All()
         defr_start = 0;
         hier_start = 0;
         bone_start = 0;
+        ikch_start = 0;
         memcpy(sels_start, (int[4]){0, 0, 0, 0}, sizeof(sels_start));
         currentLocator = 5;
         currentPose = 0;
@@ -9232,6 +9548,21 @@ void save_load_Scene()
     Button_h_scen[0].color = UI_GRAYB;
 }
 
+void select_currentIK()
+{
+    printf("select currentIK %d\n", currentIK);
+
+    if (currentIK >= 0 && currentIK < iksIndex)
+    {
+
+    }
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
+}
+
 void select_currentBone()
 {
     printf("select currentBone %d\n", currentBone);
@@ -9260,6 +9591,16 @@ void select_currentBone()
     if (dialog_lock)
     {
         draw_Dialog();
+    }
+}
+
+void select_Transformer_IK(transformer * T)
+{
+    if (T->IK != NULL)
+    {
+        currentIK = T->IK->index;
+        IKIndex = currentIK;
+        ikch_start = ikChains[currentIK]->index;
     }
 }
 
@@ -9407,17 +9748,18 @@ int main(int argc, char * args[])
     SideBar[6] = &open_Deformers_List;
     SideBar[7] = &open_Poses_List;
     SideBar[8] = &open_Bones_List;
-    SideBar[9] = &collapse_Files;
-    SideBar[10] = &open_OBJ_List;
-    SideBar[11] = &open_Text_List;
-    SideBar[12] = &open_Norm_List;
-    SideBar[13] = &open_Bump_List;
-    SideBar[14] = &open_Saves_List;
-    SideBar[15] = &export_OBJ_Format;
-    SideBar[16] = &open_Loading_List;
-    SideBar[17] = &collapse_Clear;
-    SideBar[18] = &clear_All;
-    SideBar[19] = &Exit;
+    SideBar[9] = &open_IK_List;
+    SideBar[10] = &collapse_Files;
+    SideBar[11] = &open_OBJ_List;
+    SideBar[12] = &open_Text_List;
+    SideBar[13] = &open_Norm_List;
+    SideBar[14] = &open_Bump_List;
+    SideBar[15] = &open_Saves_List;
+    SideBar[16] = &export_OBJ_Format;
+    SideBar[17] = &open_Loading_List;
+    SideBar[18] = &collapse_Clear;
+    SideBar[19] = &clear_All;
+    SideBar[20] = &Exit;
 
     Button_Mode[0].func = &set_Object_Mode;
     Button_Mode[1].func = &set_Polygon_Mode;
@@ -9481,6 +9823,9 @@ int main(int argc, char * args[])
 
     Button_h_bone[0].func = &remove_Bone;
     Button_h_bone[1].func = &rename_Bone;
+
+    Button_h_ikch[0].func = &remove_IK;
+    Button_h_ikch[1].func = &rename_IK;
 
     Button_h_scen[0].func = &save_load_Scene;
 
@@ -10138,6 +10483,32 @@ int main(int argc, char * args[])
                                     DRAW_UI = 1;
                                 }
                             }
+                            else if (dialog_type == IK_DIALOG)
+                            {
+                                if (index + ikch_start < ikChains_c)
+                                {
+                                    if (IKIndex - ikch_start >= 0)
+                                        IkchList[IKIndex - ikch_start].color = UI_BLACK;
+                                    IKIndex = index + ikch_start;
+                                    if (IKIndex - ikch_start >= 0)
+                                        IkchList[IKIndex - ikch_start].color = UI_BACKL;
+
+                                    currentIK = IK_List[IKIndex];
+
+                                    select_currentIK();
+
+                                    create_Ik_List(IKIndex);
+
+                                    DRAW_UI = 0;
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                    draw_IK_Dialog("IK List", screen_height,
+                                                ikch_start, 1, IKIndex - ikch_start);
+                                    SDL_GL_SwapBuffers();
+                                    glDrawBuffer(GL_BACK);
+                                    DRAW_UI = 1;
+                                }
+                            }
                             else if (dialog_type == POSE_DIALOG)
                             {
                                 if (index + pose_start < Poses_c)
@@ -10525,6 +10896,10 @@ int main(int argc, char * args[])
                             {
 
                             }
+                            else if (dialog_type == IK_DIALOG)
+                            {
+
+                            }
                             else if (dialog_type == HIER_DIALOG)
                             {
 
@@ -10648,6 +11023,14 @@ int main(int argc, char * args[])
                                 if (h_index < H_BONE_NUM)
                                 {
                                     (*Button_h_bone[h_index].func)();
+                                }
+                            }
+                            else if (dialog_type == IK_DIALOG && !Edit_Lock)
+                            {
+                                h_index = (mouse_x - SIDEBAR * 2) / BUTTON_WIDTH_SHORT;
+                                if (h_index < H_IKCH_NUM)
+                                {
+                                    (*Button_h_ikch[h_index].func)();
                                 }
                             }
                             else if (dialog_type == POSE_DIALOG && !Edit_Lock)
@@ -10863,6 +11246,7 @@ int main(int argc, char * args[])
                                     T->selected = 1;
                                     currentLocator = o;
                                     select_Transformer_Bone(T);
+                                    select_Transformer_IK(T);
                                 }
                                 else
                                 {
@@ -12036,6 +12420,7 @@ int main(int argc, char * args[])
                                 T->selected = 1;
                                 currentLocator = o;
                                 select_Transformer_Bone(T);
+                                select_Transformer_IK(T);
                             }
                             else
                             {
@@ -13008,6 +13393,7 @@ int main(int argc, char * args[])
                     T = transformers[currentLocator];
                     T->selected = 1;
                     select_Transformer_Bone(T);
+                    select_Transformer_IK(T);
                 }
                 else
                 {
@@ -13396,6 +13782,12 @@ int main(int argc, char * args[])
                         sprintf(Bone_Names[BoneIndex], "%s", Name_Remember);
                         set_Bone_H_Button(-1);
                         update_Bones_List(1, 0);
+                    }
+                    else if (dialog_type == IK_DIALOG)
+                    {
+                        sprintf(IK_Names[IKIndex], "%s", Name_Remember);
+                        set_IK_H_Button(-1);
+                        update_IK_List(1, 0);
                     }
                     else if (dialog_type == POSE_DIALOG)
                     {

@@ -1051,7 +1051,9 @@ void remove_IK_Chains_From_Deformer(transformer * T, deformer * D)
     }
 }
 
-void remove_ikChain_From_ikChains_(ikChain * I)
+void delete_IK_Transformers(ikChain * I);
+
+void remove_ikChain_From_ikChains_(ikChain * I, int no_delete)
 {
     int index, i, b;
 
@@ -1082,10 +1084,24 @@ void remove_ikChain_From_ikChains_(ikChain * I)
             B->IK_member = 0;
         }
 
+        I->A->IK = NULL;
+        I->A->style = 0;
+        I->B->IK = NULL;
+        I->B->style = 0;
+
         if(I->Deformer != NULL)
         {
             //printf("DEFORMER %s\n", I->Deformer->Name);
-            //remove_ikChain_From_Deformer(I, I->Deformer);
+            remove_ikChain_From_Deformer(I, I->Deformer);
+        }
+        if (no_delete)
+        {
+
+        }
+        else
+        {
+            delete_IK_Transformers(I);
+
         }
 
         free_ikChain(I);

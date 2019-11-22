@@ -11,6 +11,8 @@ Copyright <2018> <Allan Kiipli>
 #include <unistd.h>
 #include <errno.h>
 
+#define STRLEN 256
+
 #define SCENE_EXT_NUM 6
 
 #define SIDEBAR 100
@@ -33,7 +35,7 @@ int DIALOG_HEIGHT = 270;
 #define UI_BACKL 6
 #define UI_DIMSL 7
 
-#define BUTTONS 20
+#define BUTTONS 21
 #define BUTTONS_MODE 5
 
 #define MAXFILES 1000
@@ -50,6 +52,7 @@ int LISTLENGTH = 12;
 #define H_SCEN_NUM 1
 #define H_POSE_NUM 4
 #define H_BONE_NUM 2
+#define H_IKCH_NUM 2
 #define H_TEXT_NUM 2
 
 #define TYPE_LENGTH 20
@@ -211,6 +214,13 @@ ui_bones;
 
 typedef struct
 {
+    int index;
+    int color;
+}
+ui_ikchn;
+
+typedef struct
+{
     union
     {
         GLfloat color[4];
@@ -251,6 +261,7 @@ ui_button Button_h_hier[H_HIER_NUM];
 ui_button Button_h_defr[H_DEFR_NUM];
 ui_button Button_h_pose[H_POSE_NUM];
 ui_button Button_h_bone[H_BONE_NUM];
+ui_button Button_h_ikch[H_IKCH_NUM];
 ui_button Button_h_scen[H_SCEN_NUM];
 ui_button Button_h_text[H_TEXT_NUM];
 ui_files FileList[MAX_LISTLENGTH];
@@ -262,6 +273,7 @@ ui_hierc HierList[MAX_LISTLENGTH];
 ui_defor DefrList[MAX_LISTLENGTH];
 ui_poses PoseList[MAX_LISTLENGTH];
 ui_bones BoneList[MAX_LISTLENGTH];
+ui_ikchn IkchList[MAX_LISTLENGTH];
 
 void init_ui()
 {
@@ -356,6 +368,12 @@ void init_ui()
         Button_h_bone[b].color = UI_GRAYB;
         Button_h_bone[b].func = NULL;
     }
+    for(b = 0; b < H_IKCH_NUM; b ++)
+    {
+        Button_h_ikch[b].index = b;
+        Button_h_ikch[b].color = UI_GRAYB;
+        Button_h_ikch[b].func = NULL;
+    }
     for(b = 0; b < H_SCEN_NUM; b ++)
     {
         Button_h_scen[b].index = b;
@@ -412,6 +430,11 @@ void init_ui()
     {
         BoneList[b].index = b;
         BoneList[b].color = UI_BLACK;
+    }
+    for(b = 0; b < MAX_LISTLENGTH; b ++)
+    {
+        IkchList[b].index = b;
+        IkchList[b].color = UI_BLACK;
     }
     Button_Mode[0].color = UI_GRAYD;
     Button_ext[0].color = UI_GRAYD;
@@ -502,6 +525,8 @@ int query_files(char * path, const char * ext)
     free(Extension);
     return s;
 }
+
+int list_ik(char **, int, int);
 
 int list_bones(char **, int, int);
 
@@ -870,6 +895,35 @@ void draw_Rectangle(float corner[8], int quads)
         glVertex2f(corner[6], corner[7]);
         glEnd();
     }
+}
+
+void draw_Button_IK_text(const char * text, int width, int height, int index, int colorchange, int frame_it)
+{
+    int font_height = 11;
+
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
+
+	float origin_x = 5;
+	float origin_y = BUTTON_HEIGHT * index + 10;
+
+	if (frame_it)
+    {
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(white);
+
+        draw_Rectangle((float[8]){0, BUTTON_HEIGHT * index,
+            0, BUTTON_HEIGHT * index + BUTTON_HEIGHT,
+            width, BUTTON_HEIGHT * index + BUTTON_HEIGHT,
+            width, BUTTON_HEIGHT * index}, LINE_LOOP);
+    }
+	glEnable(GL_TEXTURE_2D);
+
+    if (colorchange)
+        glColor4fv(buttoncolors[IkchList[index].color].color);
+	else
+        glColor4fv(buttoncolors[UI_BLACK].color);
+
+    draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
 void draw_Button_bone_text(const char * text, int width, int height, int index, int colorchange, int frame_it)
@@ -1506,6 +1560,45 @@ void draw_Button_text_horizontal(const char * text, int index, int colorchange)
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
+void draw_Button_ik_horizontal(const char * text, int index, int colorchange)
+{
+    int h_dim = BUTTON_WIDTH_SHORT * index;
+	/*draw frame*/
+
+	//glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+    if (colorchange)
+        glColor4fv(buttoncolors[Button_h_bone[index].color].color);
+	else
+        glColor4fv(buttoncolors[UI_GRAYB].color);
+
+    draw_Rectangle((float[8]){h_dim, 0,
+        h_dim, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, 0}, QUADS);
+
+	glColor4fv(buttoncolors[UI_WHITE].color);
+
+    draw_Rectangle((float[8]){h_dim, 0,
+        h_dim, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, 0}, LINE_LOOP);
+
+	//glEnable(GL_TEXTURE_2D);
+
+    int font_height = 11;
+
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
+
+	float origin_x = 5 + h_dim;
+	float origin_y = 10;
+
+	glColor4fv(buttoncolors[UI_WHITE].color);
+
+    draw_text(text, origin_x, origin_y, font_height, 0);
+}
+
 void draw_Button_bone_horizontal(const char * text, int index, int colorchange)
 {
     int h_dim = BUTTON_WIDTH_SHORT * index;
@@ -1813,6 +1906,65 @@ void draw_Button_horizontal(const char * text, int index, int colorchange)
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
     draw_text(text, origin_x, origin_y, font_height, 0);
+}
+
+void draw_IK_List(int s_height, int start, int clear_background, int current_ik)
+{
+    int d_width = DIALOG_WIDTH - SIDEBAR;
+    int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
+    glScissor(SIDEBAR * 2, s_height - d_height + BOTTOM_LINE, d_width, d_height);
+    if (clear_background)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glViewport(SIDEBAR * 2, s_height - d_height + BOTTOM_LINE, d_width, d_height);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, d_width, d_height, 0, 1, -1);
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glColor4fv(grayb_light);
+
+    draw_Rectangle((float[8]){0, 0,
+        0, d_height,
+        d_width, d_height,
+        d_width, 0}, QUADS);
+
+	glColor4fv(white);
+
+    draw_Rectangle((float[8]){0, 0,
+        0, d_height,
+        d_width, d_height,
+        d_width, 0}, LINE_LOOP);
+
+	char * ikch_list[LISTLENGTH];
+
+    int i;
+	for (i = 0; i < LISTLENGTH; i ++)
+    {
+        ikch_list[i] = malloc(255 * sizeof(char));
+    }
+
+    int s = list_ik(ikch_list, start, LISTLENGTH);
+
+	for (i = 0; i < s; i ++)
+    {
+        draw_Button_IK_text(ikch_list[i], d_width, d_height, i, 1, 0);
+    }
+
+	for (i = 0; i < LISTLENGTH; i ++)
+    {
+        free(ikch_list[i]);
+    }
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
 }
 
 void draw_Bones_List(int s_height, int start, int clear_background, int current_bone)
@@ -2671,6 +2823,29 @@ void draw_Items_Dialog(const char * text, int s_height, char * item, char ** ite
 	glPopMatrix();
 }
 
+void draw_IK_Bottom_Line(int width, int height)
+{
+    glScissor(SIDEBAR * 2, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glViewport(SIDEBAR * 2, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, width, BOTTOM_LINE, 0, 1, -1);
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+    draw_Button_ik_horizontal("Remove", 0, 1);
+    draw_Button_ik_horizontal("Rename", 1, 1);
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+}
+
 void draw_Bones_Bottom_Line(int width, int height)
 {
     glScissor(SIDEBAR * 2, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
@@ -2890,6 +3065,60 @@ void draw_dialog_Box(int s_height, int clear_background, int frame)
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
+}
+
+void draw_IK_Dialog(const char * text, int s_height,
+                           int iks_start,
+                           int clear_background, int current_ikch)
+{
+    int d_width = DIALOG_WIDTH;
+    int d_height = DIALOG_HEIGHT;
+    glScissor(SIDEBAR, s_height - d_height + BOTTOM_LINE, d_width, d_height);
+    if (clear_background)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glViewport(SIDEBAR, s_height - d_height + BOTTOM_LINE, d_width, d_height);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, d_width, d_height, 0, 1, -1);
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glColor4fv(backg);
+
+    draw_Rectangle((float[8]){0, 0,
+        0, d_height,
+        d_width, d_height,
+        d_width, 0}, QUADS);
+
+	glColor4fv(white);
+
+    draw_Rectangle((float[8]){0, 0,
+        0, d_height,
+        d_width, d_height,
+        d_width, 0}, LINE_LOOP);
+
+	glColor4fv(white);
+
+    draw_Rectangle((float[8]){0, BUTTON_HEIGHT,
+        0, d_height,
+        SIDEBAR, d_height,
+        SIDEBAR, BUTTON_HEIGHT}, LINE_LOOP);
+
+	draw_Button(text, SIDEBAR, d_height, 0, 0); // Title bar
+
+    draw_IK_List(s_height, iks_start, clear_background, current_ikch);
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+
+    draw_IK_Bottom_Line(d_width, s_height);
 }
 
 void draw_Bones_Dialog(const char * text, int s_height,
@@ -3568,10 +3797,14 @@ void draw_UI_elements(int width, int height)
         Button_sidebar[Sidebar_Marker].func = SideBar[Func_Marker];
         Func_Marker ++;
         Sidebar_Marker ++;
+        draw_Button("IK List", width, height, Sidebar_Marker, 1);
+        Button_sidebar[Sidebar_Marker].func = SideBar[Func_Marker];
+        Func_Marker ++;
+        Sidebar_Marker ++;
     }
     else
     {
-        Func_Marker += 8;
+        Func_Marker += 9;
     }
     draw_Collapsed("Files", width, UI_FILES, Sidebar_Marker);
     Button_sidebar[Sidebar_Marker].func = SideBar[Func_Marker];
