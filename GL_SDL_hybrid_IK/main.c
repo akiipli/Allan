@@ -8577,10 +8577,12 @@ void make_Movement()
             {
                 memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
                 solve_IK_Chain(T->childs[0]->IK, 1);
+                move_Deformer_IK(T, 0);
+                memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
             }
             else
             {
-                move_Deformer_IK(T);
+                move_Deformer_IK(T, 1);
             }
         }
         else

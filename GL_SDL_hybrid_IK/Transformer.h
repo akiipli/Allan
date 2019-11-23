@@ -1450,7 +1450,7 @@ void move_Pose_T(transformer * T, float Delta[3])
     }
 }
 
-void move_Deformer_IK(transformer * T)
+void move_Deformer_IK(transformer * T, int move_childs)
 {
     transformer * P = T->parent;
 
@@ -1467,16 +1467,21 @@ void move_Deformer_IK(transformer * T)
     rotate_hierarchy_T(P, T);
 
     rotate_(T);
-    float Delta[3];
 
-    if (T->childcount > 0)
+    if (move_childs)
     {
-        Delta[0] = T->pos[0] - T->childs[0]->pos[0];
-        Delta[1] = T->pos[1] - T->childs[0]->pos[1];
-        Delta[2] = T->pos[2] - T->childs[0]->pos[2];
+        float Delta[3];
 
+        if (T->childcount > 0)
+        {
+            Delta[0] = T->pos[0] - T->childs[0]->pos[0];
+            Delta[1] = T->pos[1] - T->childs[0]->pos[1];
+            Delta[2] = T->pos[2] - T->childs[0]->pos[2];
+
+        }
+        move_Children_IK(T, Delta);
     }
-    move_Children_IK(T, Delta);
+
     if (T->Deformer != NULL)
     {
         rotate_Deformer_verts(T->Deformer);
