@@ -44,4 +44,4 @@ To test out IK, select A and B transformers in bone chain. It may have lots of b
 Press Alt+A. Gray line appears. You must be in Bind Mode. Exit Bind Mode and select point B, press Shift+G to move
 around, right-click to cancel movement.
 No poses for IK chains. No playback for them.
-All must be done. Maybe needs hierarchical chains system. Submitted into Trips Code folder Scenes IK a1 to serve as testfile. This file opens only in IK project.
+All must be done. Submitted into Trips Code folder Scenes IK a1 to serve as testfile. This file opens only in IK project.
