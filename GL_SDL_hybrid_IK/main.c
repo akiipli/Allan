@@ -6343,6 +6343,7 @@ void remove_IK()
             /* remove here */
             ikChain * I = ikChains[currentIK];
             remove_ikChain_From_ikChains_(I, 0);
+            IKIndex --;
             currentIK --;
             if (currentIK < 0)
                 currentIK = 0;
@@ -6356,7 +6357,6 @@ void remove_IK()
                 currentLocator = 0;
             }
         }
-
         if (dialog_lock)
             draw_Dialog();
     }
@@ -6373,11 +6373,11 @@ void remove_Bone()
             bone * B = bones[currentBone];
             remove_Bone_From_Deformer(B);
             remove_Bone_From_Bones(B);
+            BoneIndex --;
             currentBone --;
             if (currentBone < 0)
                 currentBone = 0;
         }
-
         if (dialog_lock)
             draw_Dialog();
     }
@@ -8577,7 +8577,8 @@ void make_Movement()
             if (T->childcount > 0 && T->childs[0]->IK != NULL)
             {
                 memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
-                solve_IK_Chains(T->Deformer, 1);
+                if (T->Deformer != NULL)
+                    solve_IK_Chains(T->Deformer, 1);
                 move_Deformer_IK(T, 0);
 
                 memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
@@ -9622,7 +9623,8 @@ void select_Transformer_IK(transformer * T)
     {
         currentIK = T->IK->index;
         IKIndex = currentIK;
-        ikch_start = ikChains[currentIK]->index;
+        if (ikChains_c > LISTLENGTH)
+            ikch_start = ikChains[currentIK]->index;
     }
 }
 
@@ -9632,7 +9634,8 @@ void select_Transformer_Bone(transformer * T)
     {
         currentBone = T->Bone->index;
         BoneIndex = currentBone;
-        bone_start = bones[currentBone]->index;
+        if (Bones_c > LISTLENGTH)
+            bone_start = bones[currentBone]->index;
     }
 }
 
