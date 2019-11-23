@@ -6353,6 +6353,7 @@ void remove_IK()
             else
             {
                 T = transformers[0];
+                currentLocator = 0;
             }
         }
 
