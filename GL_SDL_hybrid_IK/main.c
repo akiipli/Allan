@@ -8993,6 +8993,7 @@ void clear_All()
 
         currentObject = 0;
         currentMaterial = 0;
+        currentIK = 0;
         materials_start = 0;
         items_start = 0;
         pose_start = 0;
