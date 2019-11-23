@@ -6346,6 +6346,14 @@ void remove_IK()
             currentIK --;
             if (currentIK < 0)
                 currentIK = 0;
+            if (currentLocator >= 0 && currentLocator < transformerIndex)
+            {
+                T = transformers[currentLocator];
+            }
+            else
+            {
+                T = transformers[0];
+            }
         }
 
         if (dialog_lock)
@@ -8565,7 +8573,15 @@ void make_Movement()
 
             solve_IK_Chain(T->IK, 1);
 
-            move_Deformer_IK(T);
+            if (T->childcount > 0 && T->childs[0]->IK != NULL)
+            {
+                memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
+                solve_IK_Chain(T->childs[0]->IK, 1);
+            }
+            else
+            {
+                move_Deformer_IK(T);
+            }
         }
         else
         {
