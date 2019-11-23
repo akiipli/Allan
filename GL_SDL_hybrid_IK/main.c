@@ -9623,8 +9623,10 @@ void select_Transformer_IK(transformer * T)
     {
         currentIK = T->IK->index;
         IKIndex = currentIK;
-        if (ikChains_c > LISTLENGTH)
-            ikch_start = ikChains[currentIK]->index;
+        if (currentIK > LISTLENGTH / 2)
+            ikch_start = ikChains[currentIK]->index - LISTLENGTH / 2;
+        else
+            ikch_start = 0;
     }
 }
 
@@ -9634,8 +9636,10 @@ void select_Transformer_Bone(transformer * T)
     {
         currentBone = T->Bone->index;
         BoneIndex = currentBone;
-        if (Bones_c > LISTLENGTH)
-            bone_start = bones[currentBone]->index;
+        if (currentBone > LISTLENGTH / 2)
+            bone_start = bones[currentBone]->index - LISTLENGTH / 2;
+        else
+            bone_start = 0;
     }
 }
 
