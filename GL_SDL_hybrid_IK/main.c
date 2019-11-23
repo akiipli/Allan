@@ -8571,17 +8571,19 @@ void make_Movement()
             T->pos[1] = T->Pos_[1] + Delta[1];
             T->pos[2] = T->Pos_[2] + Delta[2];
 
-            solve_IK_Chain(T->IK, 1);
+
 
             if (T->childcount > 0 && T->childs[0]->IK != NULL)
             {
                 memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
-                solve_IK_Chain(T->childs[0]->IK, 1);
+                solve_IK_Chains(T->Deformer, 1);
                 move_Deformer_IK(T, 0);
+
                 memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
             }
             else
             {
+                solve_IK_Chain(T->IK, 1);
                 move_Deformer_IK(T, 1);
             }
         }
