@@ -1045,7 +1045,7 @@ void remove_IK_Chains_From_Deformer(transformer * T, deformer * D)
     collect_IK_Chains(T);
 
     int i;
-    for (i = 0; i < ik_Collection_Count; i ++)
+    for (i = ik_Collection_Count - 1; i >= 0; i --)
     {
         remove_ikChain_From_Deformer(ik_Chains_Collection[i], D);
     }
