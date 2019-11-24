@@ -1089,19 +1089,18 @@ void remove_ikChain_From_ikChains_(ikChain * I, int no_delete)
         I->B->IK = NULL;
         I->B->style = 0;
 
-        if(I->Deformer != NULL)
-        {
-            //printf("DEFORMER %s\n", I->Deformer->Name);
-            remove_ikChain_From_Deformer(I, I->Deformer);
-        }
         if (no_delete)
         {
 
         }
         else
         {
+            if(I->Deformer != NULL)
+            {
+                //printf("DEFORMER %s\n", I->Deformer->Name);
+                remove_ikChain_From_Deformer(I, I->Deformer);
+            }
             delete_IK_Transformers(I);
-
         }
 
         free_ikChain(I);
