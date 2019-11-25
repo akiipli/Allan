@@ -8588,6 +8588,7 @@ void make_Movement()
                 solve_IK_Chain(T->IK, 1);
                 move_Deformer_IK(T, 1);
             }
+            update_rotate_bounding_box(subdLevel);
         }
         else
         {
@@ -8715,7 +8716,7 @@ void transform_Objects_And_Render()
             {
                 if (BIND_POSE || !O0->binding)
                     rotate_verts(O0, *O0->T);
-                tune_subdivide_post_transformed(O0, subdLevel);
+                    tune_subdivide_post_transformed(O0, subdLevel);
             }
             else
             {
@@ -8725,6 +8726,7 @@ void transform_Objects_And_Render()
             }
         }
     }
+
     if (fonts_on)
     {
         make_osd(O);
