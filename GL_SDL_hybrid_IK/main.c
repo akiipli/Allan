@@ -8716,7 +8716,7 @@ void transform_Objects_And_Render()
             {
                 if (BIND_POSE || !O0->binding)
                     rotate_verts(O0, *O0->T);
-                    tune_subdivide_post_transformed(O0, subdLevel);
+                tune_subdivide_post_transformed(O0, subdLevel);
             }
             else
             {
