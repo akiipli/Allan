@@ -9679,13 +9679,16 @@ void freeze_Object_Coordinates(object * O)
 void transfer_LocatorSize(float size)
 {
     int t;
-    transformer * T;
+    transformer * T0;
 
     for (t = 0; t < selected_transformer_count; t ++)
     {
-        T = transformers[selected_transformers[t]];
-        T->LocatorSize = size;
+        T0 = transformers[selected_transformers[t]];
+        T0->LocatorSize = size;
     }
+
+    T = transformers[currentLocator];
+    T->LocatorSize = size;
 }
 
 void Exit()
