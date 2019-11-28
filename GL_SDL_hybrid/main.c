@@ -10795,6 +10795,7 @@ int main(int argc, char * args[])
                                 {
                                     T->selected = 1;
                                     currentLocator = o;
+                                    LocatorSize = T->LocatorSize;
                                     select_Transformer_Bone(T);
                                     select_Deformer();
                                 }
@@ -11968,6 +11969,7 @@ int main(int argc, char * args[])
                             {
                                 T->selected = 1;
                                 currentLocator = o;
+                                LocatorSize = T->LocatorSize;
                                 select_Transformer_Bone(T);
                                 select_Deformer();
                             }
@@ -12939,6 +12941,7 @@ int main(int argc, char * args[])
                     }
                     T = transformers[currentLocator];
                     T->selected = 1;
+                    LocatorSize = T->LocatorSize;
                     select_Transformer_Bone(T);
                     select_Deformer();
                 }
