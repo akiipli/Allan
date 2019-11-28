@@ -8272,8 +8272,10 @@ void delete_Deformer()
         set_Defr_H_Button(5);
 
         create_Deformers_List(SelsIndex[3], O);
+
         if (DefrIndex - defr_start >= 0)
             DefrList[DefrIndex - defr_start].color = UI_BLACK;
+        defr_start = 0;
         draw_Deformers_List(screen_height, defr_start, 1, currentDeformer);
 
         draw_Deformers_Bottom_Line(DIALOG_WIDTH, screen_height);

@@ -9,7 +9,6 @@ Copyright <2018> <Allan Kiipli>
 
 #define BIG_DIST 1000000
 #define BONES 200
-#define bone_end 1
 
 int ALIGN_IS_ON = 1;
 

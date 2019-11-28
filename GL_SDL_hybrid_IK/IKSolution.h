@@ -38,10 +38,6 @@ matrix. Before pole rotation is applied to this matrix.
 #define IK_START 1
 #define IK_END 2
 
-#define bone_end 1
-#define ik_start 2
-#define ik_goal 3
-
 int ALIGN_IS_ON = 1;
 
 typedef struct

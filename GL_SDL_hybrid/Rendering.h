@@ -3706,6 +3706,76 @@ void render_poly_Edges_ID(camera * C, object * O)
     glEnable(GL_LIGHTING);
 }
 
+void draw_Rhombic(transformer * T, float rotVec_[3][3])
+{
+    float tip[6][3];
+    float tip1[6][3];
+    float d[3];
+    d[0] = 1;
+    d[1] = sqrt(2);
+    d[2] = 1;
+    tip1[0][0] = -d[0]; tip1[0][1] = 0;     tip1[0][2] =  d[2];
+    tip1[1][0] =  d[0]; tip1[1][1] = 0;     tip1[1][2] =  d[2];
+    tip1[2][0] =  d[0]; tip1[2][1] = 0;     tip1[2][2] = -d[2];
+    tip1[3][0] = -d[0]; tip1[3][1] = 0;     tip1[3][2] = -d[2];
+    tip1[4][0] = 0;     tip1[4][1] =  d[1]; tip1[4][2] = 0;
+    tip1[5][0] = 0;     tip1[5][1] = -d[1]; tip1[5][2] = 0;
+
+    rotate_vector(rotVec_, tip1[0], tip[0]);
+    rotate_vector(rotVec_, tip1[1], tip[1]);
+    rotate_vector(rotVec_, tip1[2], tip[2]);
+    rotate_vector(rotVec_, tip1[3], tip[3]);
+    rotate_vector(rotVec_, tip1[4], tip[4]);
+    rotate_vector(rotVec_, tip1[5], tip[5]);
+
+    tip[0][0] += T->pos[0]; tip[0][1] += T->pos[1]; tip[0][2] += T->pos[2];
+    tip[1][0] += T->pos[0]; tip[1][1] += T->pos[1]; tip[1][2] += T->pos[2];
+    tip[2][0] += T->pos[0]; tip[2][1] += T->pos[1]; tip[2][2] += T->pos[2];
+    tip[3][0] += T->pos[0]; tip[3][1] += T->pos[1]; tip[3][2] += T->pos[2];
+    tip[4][0] += T->pos[0]; tip[4][1] += T->pos[1]; tip[4][2] += T->pos[2];
+    tip[5][0] += T->pos[0]; tip[5][1] += T->pos[1]; tip[5][2] += T->pos[2];
+
+    glVertex3f(tip[0][0], tip[0][1], tip[0][2]);
+    glVertex3f(tip[1][0], tip[1][1], tip[1][2]);
+
+    glVertex3f(tip[1][0], tip[1][1], tip[1][2]);
+    glVertex3f(tip[2][0], tip[2][1], tip[2][2]);
+
+    glVertex3f(tip[2][0], tip[2][1], tip[2][2]);
+    glVertex3f(tip[3][0], tip[3][1], tip[3][2]);
+
+    glVertex3f(tip[3][0], tip[3][1], tip[3][2]);
+    glVertex3f(tip[0][0], tip[0][1], tip[0][2]);
+
+    //
+
+    glVertex3f(tip[0][0], tip[0][1], tip[0][2]);
+    glVertex3f(tip[4][0], tip[4][1], tip[4][2]);
+
+    glVertex3f(tip[1][0], tip[1][1], tip[1][2]);
+    glVertex3f(tip[4][0], tip[4][1], tip[4][2]);
+
+    glVertex3f(tip[2][0], tip[2][1], tip[2][2]);
+    glVertex3f(tip[4][0], tip[4][1], tip[4][2]);
+
+    glVertex3f(tip[3][0], tip[3][1], tip[3][2]);
+    glVertex3f(tip[4][0], tip[4][1], tip[4][2]);
+
+    //
+
+    glVertex3f(tip[0][0], tip[0][1], tip[0][2]);
+    glVertex3f(tip[5][0], tip[5][1], tip[5][2]);
+
+    glVertex3f(tip[1][0], tip[1][1], tip[1][2]);
+    glVertex3f(tip[5][0], tip[5][1], tip[5][2]);
+
+    glVertex3f(tip[2][0], tip[2][1], tip[2][2]);
+    glVertex3f(tip[5][0], tip[5][1], tip[5][2]);
+
+    glVertex3f(tip[3][0], tip[3][1], tip[3][2]);
+    glVertex3f(tip[5][0], tip[5][1], tip[5][2]);
+}
+
 void render_Transformers_ID()
 {
     int t;
@@ -3788,6 +3858,10 @@ void render_Transformers_ID()
 
             glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
             glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
+        }
+        else if (T->style == root_node)
+        {
+            draw_Rhombic(T, rotVec_);
         }
         else
         {
@@ -4006,6 +4080,22 @@ void render_Transformers(int currentLocator)
 
             glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
             glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
+        }
+        else if (T->style == root_node)
+        {
+            if (t == currentLocator)
+            {
+                glColor4ubv(line_yellow);
+            }
+            else if (T->selected)
+            {
+                glColor4ubv(line_white);
+            }
+            else
+            {
+                glColor4ubv(line_gray);
+            }
+            draw_Rhombic(T, rotVec_);
         }
         else
         {

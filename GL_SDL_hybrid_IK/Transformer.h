@@ -7,6 +7,11 @@ Copyright <2018> <Allan Kiipli>
 #define TRANSFORMERS 1000
 #define LOCATORS 1000
 
+#define bone_end 1
+#define ik_start 2
+#define ik_goal 3
+#define root_node 4
+
 float MIN_SCALE = 1 / 1000000;
 int SCALE = 0;
 

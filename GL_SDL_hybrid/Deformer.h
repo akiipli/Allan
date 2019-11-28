@@ -151,6 +151,12 @@ void remove_Deformer(deformer * D)
 {
     int t;
     transformer * T;
+
+    if (D->Transformers_Count > 0)
+    {
+        D->Transformers[0]->style = 0;
+    }
+
     for (t = 0; t < D->Transformers_Count; t ++)
     {
         T = D->Transformers[t];
@@ -738,6 +744,10 @@ void remove_Transformer_From_Deformer_(transformer * T, deformer * D)
             if (T->Bone->A == T)
                 remove_Bone_From_Deformer(B);
         }
+        if (T->style == root_node)
+        {
+            T->style = 0;
+        }
     }
 }
 
@@ -764,6 +774,10 @@ void remove_Transformer_From_Deformer(transformer * T)
             D->Transformers[t] = D->Transformers[t + 1];
         }
         T->Deformer = NULL;
+        if (T->style == root_node)
+        {
+            T->style = 0;
+        }
     }
 }
 
@@ -784,6 +798,10 @@ void add_Transformer_To_Deformer(transformer * T, deformer * D)
         D->Transformers = realloc(D->Transformers, (D->Transformers_Count + 1) * sizeof(transformer *));
         D->Transformers[D->Transformers_Count ++] = T;
         T->Deformer = D;
+        if (D->Transformers_Count == 1)
+        {
+            T->style = root_node;
+        }
     }
 }
 

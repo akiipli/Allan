@@ -6,6 +6,10 @@ Copyright <2018> <Allan Kiipli>
 
 #define TRANSFORMERS 400
 #define LOCATORS 400
+
+#define bone_end 1
+#define root_node 4
+
 float MIN_SCALE = 1 / 1000000;
 int SCALE = 0;
 
@@ -339,6 +343,14 @@ void invert_Rotation(transformer * T, float RotVec_T[3][3])
     RotVec_T[2][0] = T->rotVec_[0][2];
     RotVec_T[2][1] = T->rotVec_[1][2];
     RotVec_T[2][2] = T->rotVec_[2][2];
+}
+
+void rotate_vector(float rotVec_[3][3], float vec[3], float result[3])
+                            // matrix, center, result
+{
+    result[0] = rotVec_[0][0] * vec[0] + rotVec_[1][0] * vec[1] + rotVec_[2][0] * vec[2];
+    result[1] = rotVec_[0][1] * vec[0] + rotVec_[1][1] * vec[1] + rotVec_[2][1] * vec[2];
+    result[2] = rotVec_[0][2] * vec[0] + rotVec_[1][2] * vec[1] + rotVec_[2][2] * vec[2];
 }
 
 void rotate_center(float cen_[3], float rotVec_[3][3], float cen[3], float result[3])
