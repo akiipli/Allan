@@ -5350,7 +5350,6 @@ void swap_Poses_up(pose * P)
 
 void select_Deformer()
 {
-    printf("select Deformer\n");
     T = transformers[currentLocator];
 
     if (T->Deformer != NULL)
@@ -5359,8 +5358,9 @@ void select_Deformer()
         D->selected = 0;
         currentDeformer_Node = T->Deformer->index;
         D = deformers[currentDeformer_Node];
+        if (D->selected == 0)
+            Draw_Bottom_Message(D->Name);
         D->selected = 1;
-        Draw_Bottom_Message(D->Name);
     }
 }
 
@@ -11299,6 +11299,7 @@ int main(int argc, char * args[])
                                     currentLocator = o;
                                     select_Transformer_Bone(T);
                                     select_Transformer_IK(T);
+                                    select_Deformer();
                                 }
                                 else
                                 {
@@ -12473,6 +12474,7 @@ int main(int argc, char * args[])
                                 currentLocator = o;
                                 select_Transformer_Bone(T);
                                 select_Transformer_IK(T);
+                                select_Deformer();
                             }
                             else
                             {
@@ -13446,6 +13448,7 @@ int main(int argc, char * args[])
                     T->selected = 1;
                     select_Transformer_Bone(T);
                     select_Transformer_IK(T);
+                    select_Deformer();
                 }
                 else
                 {
