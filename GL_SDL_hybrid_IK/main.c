@@ -9676,6 +9676,18 @@ void freeze_Object_Coordinates(object * O)
     }
 }
 
+void transfer_LocatorSize(float size)
+{
+    int t;
+    transformer * T;
+
+    for (t = 0; t < selected_transformer_count; t ++)
+    {
+        T = transformers[selected_transformers[t]];
+        T->LocatorSize = size;
+    }
+}
+
 void Exit()
 {
     quit = 1;
@@ -10142,6 +10154,8 @@ int main(int argc, char * args[])
 
                         if (LocatorSize > 10)
                             LocatorSize = 10;
+
+                        transfer_LocatorSize(LocatorSize);
                     }
                     else
                     {
@@ -10218,6 +10232,8 @@ int main(int argc, char * args[])
                         }
                         if (LocatorSize < 0.01)
                             LocatorSize = 0.01;
+
+                        transfer_LocatorSize(LocatorSize);
                     }
                     else
                     {

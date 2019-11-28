@@ -145,6 +145,7 @@ struct transformer
     float target[3];
     float * aim;  //rotVec_[aim_vector]
     ikChain * IK;
+    float LocatorSize;
 };
 
 transformer * child_collection[TRANSFORMERS];
@@ -249,6 +250,7 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         memcpy(&T->target, (float[3]) {0.0, 0.0, 0.0}, sizeof T->target);
         T->aim = T->rotVec_[2];
         T->IK = NULL;
+        T->LocatorSize = LocatorSize;
     }
 }
 

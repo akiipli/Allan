@@ -462,13 +462,14 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
 
         fprintf(F, "%s\n", T->Name);
         fprintf(F, "%u\n", (unsigned)T);
-        fprintf(F, "%d %d %d %d %d %d\n",
+        fprintf(F, "%d %d %d %d %d %d %f\n",
                 T->style,
                 T->childcount,
                 T->collapsed,
                 T->rot_Order,
                 T->bind_set,
-                T->Selections_Count);
+                T->Selections_Count,
+                T->LocatorSize);
         fprintf(F, "%u %u %u %u %u\n",
                 (unsigned)T->parent,
                 (unsigned)T->Object,

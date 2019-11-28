@@ -137,6 +137,7 @@ struct transformer
     float pos_deform[3];
     float target[3];
     float * aim;  //rotVec_[aim_vector]
+    float LocatorSize;
 };
 
 transformer * child_collection[TRANSFORMERS];
@@ -240,6 +241,7 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         memcpy(&T->pos_bind, (float[3]) {0.0, 0.0, 0.0}, sizeof T->pos_bind);
         memcpy(&T->target, (float[3]) {0.0, 0.0, 0.0}, sizeof T->target);
         T->aim = T->rotVec_[2];
+        T->LocatorSize = LocatorSize;
     }
 }
 

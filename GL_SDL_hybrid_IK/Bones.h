@@ -134,7 +134,7 @@ void generate_Bones_In_Deformer(deformer * D)
     D->Bones = realloc(D->Bones, D->Bones_Count * sizeof(bone*));
 }
 
-float distance_To_Point_On_Line(float Normal[3], float parentpos[3], float pos_A[3], float pos_B[3])
+float distance_To_Point_On_Line(float Normal[3], float parentpos[3], float pos_A[3], float pos_B[3], transformer * T)
 {
     float dist = 0;
     float Pos[3];
@@ -212,7 +212,7 @@ float distance_To_Point_On_Line(float Normal[3], float parentpos[3], float pos_A
         }
     }
 
-    dist += LocatorSize * (1 - ndot);
+    dist += T->LocatorSize * (1 - ndot);
 
     return dist;
 }
@@ -956,7 +956,7 @@ void generate_Bones_Distances_In_Deformer(deformer * D)
                 for (b = 0; b < D->Bones_Count; b ++)
                 {
                     B = D->Bones[b];
-                    B->Distances[o][v] = distance_To_Point_On_Line(norm, pos, B->A->pos, B->B->pos);
+                    B->Distances[o][v] = distance_To_Point_On_Line(norm, pos, B->A->pos, B->B->pos, B->A);
                 }
             }
         }

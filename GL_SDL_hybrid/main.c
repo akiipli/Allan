@@ -683,6 +683,25 @@ void assert_Object_Selection()
     }
 }
 
+void assert_Locators_Selection()
+{
+    int t;
+    transformer * T;
+    transformer * current_T;
+    current_T = transformers[currentLocator];
+
+    selected_transformer_count = 0;
+
+    for (t = 0; t < transformerIndex; t ++)
+    {
+        T = transformers[t];
+        if (T->selected && T != current_T)
+        {
+            selected_transformers[selected_transformer_count ++] = t;
+        }
+    }
+}
+
 void assert_Element_Selection()
 {
     int v, e, p, o;
@@ -9211,6 +9230,18 @@ void freeze_Object_Coordinates(object * O)
     }
 }
 
+void transfer_LocatorSize(float size)
+{
+    int t;
+    transformer * T;
+
+    for (t = 0; t < selected_transformer_count; t ++)
+    {
+        T = transformers[selected_transformers[t]];
+        T->LocatorSize = size;
+    }
+}
+
 void Exit()
 {
     quit = 1;
@@ -9673,6 +9704,8 @@ int main(int argc, char * args[])
 
                         if (LocatorSize > 10)
                             LocatorSize = 10;
+
+                        transfer_LocatorSize(LocatorSize);
                     }
                     else
                     {
@@ -9749,6 +9782,8 @@ int main(int argc, char * args[])
                         }
                         if (LocatorSize < 0.01)
                             LocatorSize = 0.01;
+
+                        transfer_LocatorSize(LocatorSize);
                     }
                     else
                     {
@@ -10997,7 +11032,7 @@ int main(int argc, char * args[])
 
                     if (DRAW_LOCATORS)
                     {
-
+                        assert_Locators_Selection();
                     }
                     else if (Object_Mode)
                     {
@@ -11023,6 +11058,10 @@ int main(int argc, char * args[])
                 }
                 else
                 {
+                    if (DRAW_LOCATORS)
+                    {
+                        assert_Locators_Selection();
+                    }
                     assert_Element_Selection_(O);
                     message = -11;
                 }

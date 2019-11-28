@@ -973,13 +973,16 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                 sscanf(buff, "%u", &T->address);
 
                 fgets(buff, BUF_SIZE, fp);
-                sscanf(buff, "%d %d %d %d %d %d",
+                sscanf(buff, "%d %d %d %d %d %d %f",
                         &T->style,
                         &T->childcount,
                         &T->collapsed,
                         &T->rot_Order,
                         &T->bind_set,
-                        &T->Selections_Count);
+                        &T->Selections_Count,
+                        &T->LocatorSize);
+
+                //T->LocatorSize = LocatorSize;
 
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%u %u %u %u %u",

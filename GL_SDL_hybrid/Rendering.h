@@ -3712,6 +3712,7 @@ void render_Transformers_ID()
     transformer * T;
 
     float rotVec_ [3][3];
+    float L_size;
 
     int idx0, idx1, idx2;
 
@@ -3740,17 +3741,26 @@ void render_Transformers_ID()
         if (T->collapsed)
             continue;
 
+        if (T->Bone != NULL && T == T->Bone->B)
+        {
+            L_size = T->Bone->A->LocatorSize / 4;
+        }
+        else
+        {
+            L_size = T->LocatorSize;
+        }
+
         memcpy(rotVec_, T->rotVec, sizeof(rotVec_));
 
-        rotVec_[0][0] *= LocatorSize;
-        rotVec_[0][1] *= LocatorSize;
-        rotVec_[0][2] *= LocatorSize;
-        rotVec_[1][0] *= LocatorSize;
-        rotVec_[1][1] *= LocatorSize;
-        rotVec_[1][2] *= LocatorSize;
-        rotVec_[2][0] *= LocatorSize;
-        rotVec_[2][1] *= LocatorSize;
-        rotVec_[2][2] *= LocatorSize;
+        rotVec_[0][0] *= L_size;
+        rotVec_[0][1] *= L_size;
+        rotVec_[0][2] *= L_size;
+        rotVec_[1][0] *= L_size;
+        rotVec_[1][1] *= L_size;
+        rotVec_[1][2] *= L_size;
+        rotVec_[2][0] *= L_size;
+        rotVec_[2][1] *= L_size;
+        rotVec_[2][2] *= L_size;
 
         R = (float)(t / M0) / (float)255;
         idx0 = t % M0;
@@ -3778,26 +3788,6 @@ void render_Transformers_ID()
 
             glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
             glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
-        }
-        else if (T->style == bone_end)
-        {
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] + rotVec_[0][0] / 4, T->pos[1] + rotVec_[0][1] / 4, T->pos[2] + rotVec_[0][2] / 4);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] + rotVec_[1][0] / 4, T->pos[1] + rotVec_[1][1] / 4, T->pos[2] + rotVec_[1][2] / 4);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] + rotVec_[2][0] / 4, T->pos[1] + rotVec_[2][1] / 4, T->pos[2] + rotVec_[2][2] / 4);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] - rotVec_[0][0] / 4, T->pos[1] - rotVec_[0][1] / 4, T->pos[2] - rotVec_[0][2] / 4);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] - rotVec_[1][0] / 4, T->pos[1] - rotVec_[1][1] / 4, T->pos[2] - rotVec_[1][2] / 4);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] - rotVec_[2][0] / 4, T->pos[1] - rotVec_[2][1] / 4, T->pos[2] - rotVec_[2][2] / 4);
         }
         else
         {
@@ -3945,6 +3935,7 @@ void render_Transformers(int currentLocator)
     transformer * T;
 
     float rotVec_[3][3];
+    float L_size;
 
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
@@ -3965,17 +3956,26 @@ void render_Transformers(int currentLocator)
         if (T->collapsed)
             continue;
 
+        if (T->Bone != NULL && T == T->Bone->B)
+        {
+            L_size = T->Bone->A->LocatorSize / 4;
+        }
+        else
+        {
+            L_size = T->LocatorSize;
+        }
+
         memcpy(rotVec_, T->rotVec, sizeof(rotVec_));
 
-        rotVec_[0][0] *= LocatorSize;
-        rotVec_[0][1] *= LocatorSize;
-        rotVec_[0][2] *= LocatorSize;
-        rotVec_[1][0] *= LocatorSize;
-        rotVec_[1][1] *= LocatorSize;
-        rotVec_[1][2] *= LocatorSize;
-        rotVec_[2][0] *= LocatorSize;
-        rotVec_[2][1] *= LocatorSize;
-        rotVec_[2][2] *= LocatorSize;
+        rotVec_[0][0] *= L_size;
+        rotVec_[0][1] *= L_size;
+        rotVec_[0][2] *= L_size;
+        rotVec_[1][0] *= L_size;
+        rotVec_[1][1] *= L_size;
+        rotVec_[1][2] *= L_size;
+        rotVec_[2][0] *= L_size;
+        rotVec_[2][1] *= L_size;
+        rotVec_[2][2] *= L_size;
 
         if (T->Object != NULL)
         {
@@ -4006,45 +4006,6 @@ void render_Transformers(int currentLocator)
 
             glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
             glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
-        }
-        else if (T->style == bone_end)
-        {
-            glColor4ubv(line_red);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] + rotVec_[0][0] / 4, T->pos[1] + rotVec_[0][1] / 4, T->pos[2] + rotVec_[0][2] / 4);
-
-            glColor4ubv(line_cyan);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] + rotVec_[1][0] / 4, T->pos[1] + rotVec_[1][1] / 4, T->pos[2] + rotVec_[1][2] / 4);
-
-            glColor4ubv(line_blue);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] + rotVec_[2][0] / 4, T->pos[1] + rotVec_[2][1] / 4, T->pos[2] + rotVec_[2][2] / 4);
-
-            if (t == currentLocator)
-            {
-                glColor4ubv(line_yellow);
-            }
-            else if (T->selected)
-            {
-                glColor4ubv(line_white);
-            }
-            else
-            {
-                glColor4ubv(line_gray);
-            }
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] - rotVec_[0][0] / 4, T->pos[1] - rotVec_[0][1] / 4, T->pos[2] - rotVec_[0][2] / 4);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] - rotVec_[1][0] / 4, T->pos[1] - rotVec_[1][1] / 4, T->pos[2] - rotVec_[1][2] / 4);
-
-            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
-            glVertex3f(T->pos[0] - rotVec_[2][0] / 4, T->pos[1] - rotVec_[2][1] / 4, T->pos[2] - rotVec_[2][2] / 4);
         }
         else
         {
