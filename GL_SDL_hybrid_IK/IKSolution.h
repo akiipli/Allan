@@ -301,36 +301,19 @@ int add_ikChain(deformer * Deformer, transformer * A, transformer * B)
     return 0;
 }
 
-void make_Spine(float rotVec_[3][3], float P_vec[3], float rotVec_P[3][3])
+void make_Spine(float rotVec_[3][3], float P_vec[3])
 {
     float angle;
-    float result[3];
-    float rotVec_I[3][3];
-    float rotVec_R[3][3];
-
-    invert_Rotation_1(rotVec_I, rotVec_P);
-
-    rotate_vector(rotVec_I, P_vec, result);
-
-    rotVec_R[2][0] = result[0];
-    rotVec_R[2][1] = result[1];
-    rotVec_R[2][2] = result[2];
-
-    angle = atan2(rotVec_R[2][1], rotVec_R[2][0]);
-    angle += pi_2;
-    rotVec_R[0][0] = cos(angle);
-    rotVec_R[0][1] = sin(angle);
-    rotVec_R[0][2] = 0;
-
-    rotate_vector(rotVec_P, rotVec_R[0], result);
-
-    rotVec_[0][0] = result[0];
-    rotVec_[0][1] = result[1];
-    rotVec_[0][2] = result[2];
 
     rotVec_[2][0] = P_vec[0];
     rotVec_[2][1] = P_vec[1];
     rotVec_[2][2] = P_vec[2];
+
+    angle = atan2(rotVec_[2][1], rotVec_[2][0]);
+    angle += pi_2;
+    rotVec_[0][0] = cos(angle);
+    rotVec_[0][1] = sin(angle);
+    rotVec_[0][2] = 0;
 
     cross_Product(rotVec_[2], rotVec_[0], rotVec_[1]);
 }
@@ -410,7 +393,7 @@ void update_IKchains()
 
             }
 
-            make_Spine(I->rotVec_B, I->P.vec, I->A->parent->rotVec_);
+            make_Spine(I->rotVec_B, I->P.vec);
 
             memcpy(I->A->rotVec, I->rotVec_B, sizeof(float[3][3]));
             memcpy(I->A->rotVec_, I->rotVec_B, sizeof(float[3][3]));
@@ -440,7 +423,7 @@ void solve_IK_Chain(ikChain * I, int update)
     int b;
     bone * B;
 
-    float mag;
+    float mag, angle;
 
     float Transition_Amount;
     float median_Point_Offset;
@@ -629,14 +612,79 @@ void solve_IK_Chain(ikChain * I, int update)
         adjust_Proportional = P.distance / len;
     }
 
+    I->rotVec_1[2][0] = P.vec[0];
+    I->rotVec_1[2][1] = P.vec[1];
+    I->rotVec_1[2][2] = P.vec[2];
+
+    float crossAxis[3];
+
+    cross_Product(I->rotVec_0[2], P.vec, crossAxis);
+
+    mag = length_(crossAxis);
+
+    if (mag > 0)
+    {
+        crossAxis[0] /= mag;
+        crossAxis[1] /= mag;
+        crossAxis[2] /= mag;
+    }
+    else
+    {
+        angle = atan2(P.vec[1], P.vec[0]);
+        angle += pi_2;
+        crossAxis[0] = cos(angle);
+        crossAxis[1] = sin(angle);
+        crossAxis[2] = 0;
+    }
+
+    memcpy(I->rotVec_0[1], crossAxis, sizeof(float[3]));
+    memcpy(I->rotVec_1[1], crossAxis, sizeof(float[3]));
+
     float rotVec_I[3][3];
     float rotVec_[3][3];
+//    float rotVec_1[3][3];
     float result[3];
+//    float result1[3];
 
-    invert_Rotation_1(rotVec_I, I->A->parent->rotVec_B);
+    // rotate to final position and redraw last segment
+    // make final aligned vectors for bones and
+    // do per bone matrix multiplication using bone spines
 
-    make_Spine(I->rotVec_0, I->rotVec_0[2], rotVec_I);
-    make_Spine(I->rotVec_1, P.vec, I->A->parent->rotVec_);
+    // insert parental angle
+
+//    rotate_vector(I->A->parent->rotVec_I, I->rotVec_0[2], result);
+//    rotate_vector(I->A->parent->rotVec_, result, result1);
+//
+//    cross_Product(result1, I->rotVec_1[2], result);
+//
+//    mag = length_(result);
+//
+//    if (mag > 0)
+//    {
+//        result[0] /= mag;
+//        result[1] /= mag;
+//        result[2] /= mag;
+//    }
+//    else
+//    {
+//        angle = atan2(I->rotVec_1[2][1], I->rotVec_1[2][0]);
+//        angle += pi_2;
+//        result[0] = cos(angle);
+//        result[1] = sin(angle);
+//        result[2] = 0;
+//    }
+//
+//    memcpy(rotVec_1[2], result1, sizeof(float[3]));
+//    memcpy(rotVec_1[1], result, sizeof(float[3]));
+//
+//    cross_Product(P.vec, result, rotVec_1[0]);
+//
+//    rotate_vector(I->A->parent->rotVec_I, I->rotVec_0[2], result);
+//    rotate_vector(rotVec_1, result, I->rotVec_1[1]);
+
+    // first construct missing axis for both matrices
+    cross_Product(I->rotVec_0[1], I->rotVec_0[2], I->rotVec_0[0]);
+    cross_Product(I->rotVec_1[1], I->rotVec_1[2], I->rotVec_1[0]);
 
     I->rotVec_1[2][0] *= adjust_Proportional;
     I->rotVec_1[2][1] *= adjust_Proportional;
@@ -728,7 +776,7 @@ void solve_IK_Chain(ikChain * I, int update)
 
     if (update)
     {
-        make_Spine(I->rotVec_F, P.vec, I->A->parent->rotVec_);
+        make_Spine(I->rotVec_F, P.vec);
 
         memcpy(I->A->rotVec, I->rotVec_F, sizeof(float[3][3]));
         memcpy(I->A->rotVec_, I->rotVec_F, sizeof(float[3][3]));
