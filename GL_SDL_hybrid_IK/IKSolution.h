@@ -358,9 +358,9 @@ void make_Spine(float rotVec_[3][3], float P_vec[3], float rotVec_P[3][3], int o
     }
     else
     {
-        y_axis[0] = rotVec_P[1][0];
-        y_axis[1] = rotVec_P[1][1];
-        y_axis[2] = rotVec_P[1][2];
+        y_axis[0] = rotVec_p[1][0];
+        y_axis[1] = rotVec_p[1][1];
+        y_axis[2] = rotVec_p[1][2];
     }
 
     rotVec_[1][0] = y_axis[0];
