@@ -6368,9 +6368,9 @@ void remove_Bone()
     printf("remove Bone\n");
     if (currentBone >= 0 && currentBone < bonesIndex)
     {
-        if (BIND_POSE)
+        bone * B = bones[currentBone];
+        if (BIND_POSE && B->IK == NULL)
         {
-            bone * B = bones[currentBone];
             remove_Bone_From_Deformer(B);
             remove_Bone_From_Bones(B);
             BoneIndex --;
