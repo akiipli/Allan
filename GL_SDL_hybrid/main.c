@@ -1860,13 +1860,16 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
         glViewport(SIDEBAR, BOTTOM_LINE, screen_width, screen_height);
         update_camera(Camera, CamDist);
         render_Objects(Camera, tripsRender, wireframe, draw_uv_view, rendermode, Level);
-        if (DRAW_LOCATORS)
+        if (!draw_uv_view)
         {
-            draw_Locators();
-        }
-        if (Axis_lock)
-        {
-            draw_Axis(Axis_lock, T_pos);
+            if (DRAW_LOCATORS)
+            {
+                draw_Locators();
+            }
+            if (Axis_lock)
+            {
+                draw_Axis(Axis_lock, T_pos);
+            }
         }
         if (Osd && fonts_on)
         {
@@ -9566,7 +9569,17 @@ int main(int argc, char * args[])
                     case SDLK_BACKSLASH: message = 75; if (dialog_lock) handle_dialog('/', mod); break;
                     default: break;
                 }
-                if (dialog_lock && message != 1 && message != 2 && message != 25 && message != 35) message = -1;
+                if (message != 1 && message != 2 && message != 25 && message != 35)
+                {
+                    if (dialog_lock)
+                    {
+                        message = -1;
+                    }
+                    else if ((MOVEMENT || ROTATION || SCALE) && message != 47 && message != 48 && message != 49)
+                    {
+                        message = -1;
+                    }
+                }
             }
             else if (event.type == SDL_VIDEORESIZE)
             {
