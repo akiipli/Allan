@@ -13182,11 +13182,11 @@ int main(int argc, char * args[])
                     rotate_collect(T);
                     rotate_vertex_groups_D_Init();
 
-                    //rotate_Deformer_verts(D);
+                    rotate_Deformer_verts(D);
 
-                    bake(T);
-
-                    rotate(T);
+//                    bake(T);
+//
+//                    rotate(T);
 
                     update_rotate_bounding_box(subdLevel);
 
