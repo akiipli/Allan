@@ -263,6 +263,7 @@ int UPDATE_COLORS = 0;
 int UPDATE_UV = 0;
 int DRAW_UI = 1;
 
+int DRAW_LABELS = 1;
 int DRAW_LOCATORS = 0;
 int BONES_MODE = 0;
 
@@ -623,6 +624,7 @@ int init()
     if (!fonts_on) quit_app(0);
     printf("fonts on %d\n", fonts_on);
     init_ui();
+    init_labels();
     init_cursors();
     init_scene_extensions();
     return 1;
@@ -662,6 +664,7 @@ void cleanup()
         delete_Shaders();
     }
 
+    free_labels();
     free_Curves();
     free_Segments();
     free_Cps();
@@ -1864,13 +1867,20 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
         glViewport(SIDEBAR, BOTTOM_LINE, screen_width, screen_height);
         update_camera(Camera, CamDist);
         render_Objects(Camera, tripsRender, wireframe, draw_uv_view, rendermode, Level);
-        if (DRAW_LOCATORS)
+        if (!draw_uv_view)
         {
-            draw_Locators();
-        }
-        if (Axis_lock)
-        {
-            draw_Axis(Axis_lock, T_pos);
+            if (DRAW_LOCATORS)
+            {
+                draw_Locators();
+            }
+            if (DRAW_LABELS)
+            {
+                render_Labels(screen_width, screen_height);
+            }
+            if (Axis_lock)
+            {
+                draw_Axis(Axis_lock, T_pos);
+            }
         }
         if (Osd && fonts_on)
         {
@@ -8171,8 +8181,8 @@ void set_Bind_Mode()
 
         goto_Bind_Pose_For_Transformers();
 
-        bake(&World);
-        rotate(&World);
+//        bake(&World);
+//        rotate(&World);
 
         paste_Default_Pose();
 
@@ -8568,7 +8578,7 @@ void make_Movement()
     }
     else
     {
-        if (T->IK != NULL && T->style == ik_goal)
+        if (T->IK != NULL && (T->style == ik_goal || T->style == ik_fixed))
         {
             T->pos[0] = T->Pos_[0] + Delta[0];
             T->pos[1] = T->Pos_[1] + Delta[1];
@@ -8580,14 +8590,14 @@ void make_Movement()
             {
                 memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
                 if (T->Deformer != NULL)
-                    solve_IK_Chains(T->Deformer, 1);
+                    solve_IK_Chains(T->Deformer, 0);
                 move_Deformer_IK(T, 0);
 
                 memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
             }
             else
             {
-                solve_IK_Chain(T->IK, 1);
+                solve_IK_Chain(T->IK, 0);
                 move_Deformer_IK(T, 1);
             }
             update_rotate_bounding_box(subdLevel);
@@ -10018,7 +10028,17 @@ int main(int argc, char * args[])
                     case SDLK_BACKSLASH: message = 75; if (dialog_lock) handle_dialog('/', mod); break;
                     default: break;
                 }
-                if (dialog_lock && message != 1 && message != 2 && message != 25 && message != 35) message = -1;
+                if (message != 1 && message != 2 && message != 25 && message != 35)
+                {
+                    if (dialog_lock)
+                    {
+                        message = -1;
+                    }
+                    else if ((MOVEMENT || ROTATION || SCALE) && message != 47 && message != 48 && message != 49)
+                    {
+                        message = -1;
+                    }
+                }
             }
             else if (event.type == SDL_VIDEORESIZE)
             {
@@ -10329,9 +10349,9 @@ int main(int argc, char * args[])
                         else
                         {
                             Update_Objects_Count = 0;
-                            if (T->IK != NULL && T->style == ik_goal)
+                            if (T->IK != NULL && (T->style == ik_goal || T->style == ik_fixed))
                             {
-                                solve_IK_Chain(T->IK, 1);
+                                solve_IK_Chain(T->IK, 0);
                             }
                             if (T->Deformer != NULL)
                             {
@@ -13706,6 +13726,13 @@ int main(int argc, char * args[])
                 if (TURNTABLE)
                 {
                     TURNTABLE = 0;
+                }
+                else if(DRAW_LOCATORS)
+                {
+                    if (T->style == ik_goal)
+                        T->style = ik_fixed;
+                    else if (T->style == ik_fixed)
+                        T->style = ik_goal;
                 }
                 else
                 {

@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+4:34 PM 12/9/2019
+Select ik goal and press f to make ik goal fixed.
+
 7:43 PM 11/20/2019
 IK development added.
 Still need UI and removing. Alt + A adds IK chain in Bind Mode. With deformer selected, chains are added to
