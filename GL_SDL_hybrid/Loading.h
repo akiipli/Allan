@@ -66,6 +66,21 @@ Object_In;
 
 void assign_Texture(object * O);
 
+void scale_xyz(transformer_pose * T)
+{
+    T->rotVec[0][0] = T->rotVec_[0][0] * T->scl_vec[0];
+    T->rotVec[0][1] = T->rotVec_[0][1] * T->scl_vec[0];
+    T->rotVec[0][2] = T->rotVec_[0][2] * T->scl_vec[0];
+
+    T->rotVec[1][0] = T->rotVec_[1][0] * T->scl_vec[1];
+    T->rotVec[1][1] = T->rotVec_[1][1] * T->scl_vec[1];
+    T->rotVec[1][2] = T->rotVec_[1][2] * T->scl_vec[1];
+
+    T->rotVec[2][0] = T->rotVec_[2][0] * T->scl_vec[2];
+    T->rotVec[2][1] = T->rotVec_[2][1] * T->scl_vec[2];
+    T->rotVec[2][2] = T->rotVec_[2][2] * T->scl_vec[2];
+}
+
 int read_Pose_file(Pose_In * POSE_IN, char * fileName)
 {
     FILE * fp;
@@ -154,6 +169,8 @@ int read_Pose_file(Pose_In * POSE_IN, char * fileName)
                     sscanf(buff, "%f %f %f", &T->pos[0], &T->pos[1], &T->pos[2]);
                     fgets(buff, BUF_SIZE, fp);
                     sscanf(buff, "%f %f %f", &T->pos_[0], &T->pos_[1], &T->pos_[2]);
+
+                    scale_xyz(T);
                 }
                 posesIndex ++;
                 posesCount ++;
