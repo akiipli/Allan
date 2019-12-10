@@ -879,4 +879,20 @@ void unfix_ik_goal(transformer * T)
     normalize_rotation_parent(T);
 }
 
+void unfix_ik_goals()
+{
+    int i;
+    ikChain * I;
+
+    for (i = 0; i < iksIndex; i ++)
+    {
+        I = ikChains[i];
+        if (I->B->style == ik_fixed)
+        {
+            I->B->style = ik_goal;
+            unfix_ik_goal(I->B);
+        }
+    }
+}
+
 #endif // IKSOLUTION_H_INCLUDED

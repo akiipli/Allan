@@ -877,7 +877,7 @@ void collect_IK_Chains(transformer * T)
     for (c = 0; c < T->childcount; c ++)
     {
         C = T->childs[c];
-        if (C->IK != NULL && C->style == ik_goal)
+        if (C->IK != NULL && (C->style == ik_goal || C->style == ik_fixed))
         {
             ik_Chains_Collection[ik_Collection_Count ++] = C->IK;
         }
@@ -1142,6 +1142,22 @@ void solve_IK_Chains(deformer * D, int update)
     {
         I = D->IKchains[i];
         solve_IK_Chain(I, update);
+    }
+}
+
+void unfix_deformer_ik_goals(deformer * D)
+{
+    int i;
+    ikChain * I;
+
+    for (i = 0; i < D->IKchains_Count; i ++)
+    {
+        I = D->IKchains[i];
+        if (I->B->style == ik_fixed)
+        {
+            I->B->style = ik_goal;
+            unfix_ik_goal(I->B);
+        }
     }
 }
 #endif // DEFORMER_H_INCLUDED

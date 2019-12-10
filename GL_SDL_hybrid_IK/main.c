@@ -5048,6 +5048,8 @@ void apply_Pose_rotation_(deformer * D, pose * P, int frame, float Delta[3])
 
 void transition_into_Pose(deformer * D, pose * P0, pose * P1)
 {
+    unfix_deformer_ik_goals(D);
+
     Draw_Bottom_Message("transition into Pose\n");
 
     int f;
@@ -6536,6 +6538,8 @@ void apply_Pose_rotation()
             pose * P = poses[currentPose];
             deformer * D = P->D;
 
+            unfix_deformer_ik_goals(D);
+
             float Delta[3];
 
             if (D->Transformers_Count > 0)
@@ -6611,6 +6615,7 @@ void apply_Pose()
             */
             pose * P = poses[currentPose];
             deformer * D = P->D;
+
             paste_Pose_(D, P);
 
             // deformations
@@ -6630,11 +6635,7 @@ void apply_Pose()
                 rotate_collect(T);
                 rotate_vertex_groups_D_Init();
 
-                //rotate_Deformer_verts(D);
-
-                bake(T);
-
-                rotate(T);
+                rotate_Deformer_verts(D);
 
                 update_rotate_bounding_box(subdLevel);
 
@@ -13525,6 +13526,7 @@ int main(int argc, char * args[])
                 SDL_SetCursor(Arrow);
                 if (!BIND_POSE)
                 {
+                    unfix_ik_goals();
                     deformer_Player();
                 }
             }
