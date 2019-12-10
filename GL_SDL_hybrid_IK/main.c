@@ -6616,6 +6616,8 @@ void apply_Pose()
             pose * P = poses[currentPose];
             deformer * D = P->D;
 
+            unfix_deformer_ik_goals(D);
+
             paste_Pose_(D, P);
 
             // deformations
