@@ -11317,7 +11317,7 @@ int main(int argc, char * args[])
                                 {
                                     T->selected = 1;
                                     currentLocator = o;
-                                    LocatorSize = T->LocatorSize;
+                                    //LocatorSize = T->LocatorSize;
                                     select_Transformer_Bone(T);
                                     select_Transformer_IK(T);
                                     select_Deformer();
@@ -12493,7 +12493,7 @@ int main(int argc, char * args[])
                             {
                                 T->selected = 1;
                                 currentLocator = o;
-                                LocatorSize = T->LocatorSize;
+                                //LocatorSize = T->LocatorSize;
                                 select_Transformer_Bone(T);
                                 select_Transformer_IK(T);
                                 select_Deformer();
@@ -13468,7 +13468,7 @@ int main(int argc, char * args[])
                     }
                     T = transformers[currentLocator];
                     T->selected = 1;
-                    LocatorSize = T->LocatorSize;
+                    //LocatorSize = T->LocatorSize;
                     select_Transformer_Bone(T);
                     select_Transformer_IK(T);
                     select_Deformer();
@@ -13730,9 +13730,15 @@ int main(int argc, char * args[])
                 else if(DRAW_LOCATORS)
                 {
                     if (T->style == ik_goal)
+                    {
                         T->style = ik_fixed;
+                        fix_ik_goal(T);
+                    }
                     else if (T->style == ik_fixed)
+                    {
                         T->style = ik_goal;
+                        unfix_ik_goal(T);
+                    }
                 }
                 else
                 {
@@ -13806,19 +13812,26 @@ int main(int argc, char * args[])
                         {
                             T = O->T;
                         }
-                        bake_position(T);
-                        bake_position_Children(T);
-                        if (mod & KMOD_SHIFT)
+                        if (T->IK != NULL && T->style == ik_fixed)
                         {
-                            ROTATION = 1;
-                            bake(T);
-                            object_hook = 3;
+                            Camera_screen_lock = 0;
                         }
                         else
                         {
-                            SCALE = 1;
-                            bake_scale(T);
-                            object_hook = 2;
+                            bake_position(T);
+                            bake_position_Children(T);
+                            if (mod & KMOD_SHIFT)
+                            {
+                                ROTATION = 1;
+                                bake(T);
+                                object_hook = 3;
+                            }
+                            else
+                            {
+                                SCALE = 1;
+                                bake_scale(T);
+                                object_hook = 2;
+                            }
                         }
                     }
                     memcpy(object_Pos, T->pos, sizeof(object_Pos));

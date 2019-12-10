@@ -301,8 +301,14 @@ int add_ikChain(deformer * Deformer, transformer * A, transformer * B)
     return 0;
 }
 
+void make_preferred_Axis()
+{
+
+}
+
 void make_Spine(float rotVec_[3][3], float P_vec[3], float rotVec_P[3][3], int order)
 {
+    float x_axis[3];
     float y_axis[3];
     float rotVec_p[3][3];
 
@@ -346,32 +352,68 @@ void make_Spine(float rotVec_[3][3], float P_vec[3], float rotVec_P[3][3], int o
         memcpy(rotVec_p[0], rotVec_P[2], sizeof(float[3][3]));
     }
 
-    cross_Product(rotVec_p[0], P_vec, y_axis);
+    float Dot_0 = dot_productFF(P_vec, rotVec_p[0]);
+    float Dot_1 = dot_productFF(P_vec, rotVec_p[1]);
 
-    float d = sqrt(y_axis[0] * y_axis[0] + y_axis[1] * y_axis[1] + y_axis[2] * y_axis[2]);
-
-    if (d > 0)
+    if (abs(Dot_0) > abs(Dot_1))
     {
-        y_axis[0] /= d;
-        y_axis[1] /= d;
-        y_axis[2] /= d;
+        cross_Product(rotVec_p[0], P_vec, y_axis);
+
+        float d = sqrt(y_axis[0] * y_axis[0] + y_axis[1] * y_axis[1] + y_axis[2] * y_axis[2]);
+
+        if (d > 0)
+        {
+            y_axis[0] /= d;
+            y_axis[1] /= d;
+            y_axis[2] /= d;
+        }
+        else
+        {
+            y_axis[0] = rotVec_p[1][0];
+            y_axis[1] = rotVec_p[1][1];
+            y_axis[2] = rotVec_p[1][2];
+        }
+
+        rotVec_[1][0] = y_axis[0];
+        rotVec_[1][1] = y_axis[1];
+        rotVec_[1][2] = y_axis[2];
+
+        rotVec_[2][0] = P_vec[0];
+        rotVec_[2][1] = P_vec[1];
+        rotVec_[2][2] = P_vec[2];
+
+        cross_Product(rotVec_[2], rotVec_[1], rotVec_[0]);
     }
     else
     {
-        y_axis[0] = rotVec_p[1][0];
-        y_axis[1] = rotVec_p[1][1];
-        y_axis[2] = rotVec_p[1][2];
+        cross_Product(rotVec_p[1], P_vec, x_axis);
+
+        float d = sqrt(x_axis[0] * x_axis[0] + x_axis[1] * x_axis[1] + x_axis[2] * x_axis[2]);
+
+        if (d > 0)
+        {
+            x_axis[0] /= d;
+            x_axis[1] /= d;
+            x_axis[2] /= d;
+        }
+        else
+        {
+            x_axis[0] = rotVec_p[0][0];
+            x_axis[1] = rotVec_p[0][1];
+            x_axis[2] = rotVec_p[0][2];
+        }
+
+        rotVec_[0][0] = x_axis[0];
+        rotVec_[0][1] = x_axis[1];
+        rotVec_[0][2] = x_axis[2];
+
+        rotVec_[2][0] = P_vec[0];
+        rotVec_[2][1] = P_vec[1];
+        rotVec_[2][2] = P_vec[2];
+
+        cross_Product(rotVec_[2], rotVec_[0], rotVec_[1]);
     }
 
-    rotVec_[1][0] = y_axis[0];
-    rotVec_[1][1] = y_axis[1];
-    rotVec_[1][2] = y_axis[2];
-
-    rotVec_[2][0] = P_vec[0];
-    rotVec_[2][1] = P_vec[1];
-    rotVec_[2][2] = P_vec[2];
-
-    cross_Product(rotVec_[2], rotVec_[1], rotVec_[0]);
 }
 
 void update_IKchains()
@@ -466,6 +508,19 @@ void update_IKchains()
 
         }
     }
+}
+
+void update_Spine(ikChain * I)
+{
+    direction_Pack P;
+    P = length_AB(I->A->pos, I->B->pos);
+    make_Spine(I->rotVec_F, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order);
+
+    memcpy(I->A->rotVec, I->rotVec_F, sizeof(float[3][3]));
+    memcpy(I->A->rotVec_, I->rotVec_F, sizeof(float[3][3]));
+
+    memcpy(I->B->rotVec, I->rotVec_F, sizeof(float[3][3]));
+    memcpy(I->B->rotVec_, I->rotVec_F, sizeof(float[3][3]));
 }
 
 void solve_IK_Chain(ikChain * I, int update)
@@ -812,6 +867,16 @@ void set_IK_H_Button(int index)
     }
     if (index > -1)
         Button_h_ikch[index].color = UI_GRAYD;
+}
+
+void fix_ik_goal(transformer * T)
+{
+    normalize_rotation_unparent(T);
+}
+
+void unfix_ik_goal(transformer * T)
+{
+    normalize_rotation_parent(T);
 }
 
 #endif // IKSOLUTION_H_INCLUDED
