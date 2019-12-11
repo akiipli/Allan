@@ -1160,4 +1160,5 @@ void unfix_deformer_ik_goals(deformer * D)
         }
     }
 }
+
 #endif // DEFORMER_H_INCLUDED

@@ -175,7 +175,8 @@ int read_Pose_file(Pose_In * POSE_IN, char * fileName)
                     sscanf(buff, "%f %f %f", &T->pos[0], &T->pos[1], &T->pos[2]);
                     fgets(buff, BUF_SIZE, fp);
                     sscanf(buff, "%f %f %f", &T->pos_[0], &T->pos_[1], &T->pos_[2]);
-
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &T->style);
                     scale_xyz(T);
                 }
                 posesIndex ++;

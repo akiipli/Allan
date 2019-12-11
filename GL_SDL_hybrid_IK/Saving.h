@@ -744,6 +744,7 @@ void save_Poses(char * poses_files_dir)
                         T->rotVec_B[2][0], T->rotVec_B[2][1], T->rotVec_B[2][2]);
                 fprintf(F, "%f %f %f\n", T->pos[0], T->pos[1], T->pos[2]);
                 fprintf(F, "%f %f %f\n", T->pos_[0], T->pos_[1], T->pos_[2]);
+                fprintf(F, "%d\n", T->style);
             }
         }
 

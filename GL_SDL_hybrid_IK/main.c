@@ -6618,6 +6618,8 @@ void apply_Pose()
 
             paste_Pose_(D, P);
 
+            unfix_pose_ik_goals(D, P);
+
             // deformations
 //            Update_Objects_Count = 0;
 //

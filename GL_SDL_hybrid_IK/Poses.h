@@ -35,6 +35,7 @@ typedef struct
     float rotVec_B[3][3];
     float pos[3];
     float pos_[3];
+    int style;
 }
 transformer_pose;
 
@@ -166,6 +167,7 @@ void update_Deformer_Pose(deformer * D, pose * P)
         memcpy(P->TP[t].rotVec_B, T->rotVec_B, sizeof(float[3][3]));
         memcpy(P->TP[t].pos, T->pos, sizeof(float[3]));
         memcpy(P->TP[t].pos_, T->pos_, sizeof(float[3]));
+        P->TP[t].style = T->style;
     }
 }
 
@@ -190,6 +192,7 @@ void paste_Pose_(deformer * D, pose * P)
         memcpy(T->rotVec_B, P->TP[t].rotVec_B, sizeof(float[3][3]));
         memcpy(T->pos, P->TP[t].pos, sizeof(float[3]));
         memcpy(T->pos_, P->TP[t].pos_, sizeof(float[3]));
+        T->style = P->TP[t].style;
     }
 }
 
@@ -279,6 +282,7 @@ void make_a_pose(deformer * D, pose * P)
         memcpy(P->TP[t].rotVec_B, D->Transformers[t]->rotVec_B, sizeof(float[3][3]));
         memcpy(P->TP[t].pos, D->Transformers[t]->pos, sizeof(float[3]));
         memcpy(P->TP[t].pos_, D->Transformers[t]->pos_, sizeof(float[3]));
+        P->TP[t].style = D->Transformers[t]->style;
     }
 }
 
@@ -321,6 +325,7 @@ void add_Default_Pose_To_Deformer(deformer * D)
         memcpy(P->TP[t].rotVec_B, D->Transformers[t]->rotVec_B, sizeof(float[3][3]));
         memcpy(P->TP[t].pos, D->Transformers[t]->pos, sizeof(float[3]));
         memcpy(P->TP[t].pos_, D->Transformers[t]->pos_, sizeof(float[3]));
+        P->TP[t].style = D->Transformers[t]->style;
     }
 }
 
@@ -370,6 +375,7 @@ void add_Pose_To_Deformer(deformer * D, int relative_pos)
             memcpy(P->TP[t].pos, D->Transformers[t]->pos, sizeof(float[3]));
             memcpy(P->TP[t].pos_, D->Transformers[t]->pos_, sizeof(float[3]));
         }
+        P->TP[t].style = D->Transformers[t]->style;
     }
 
     D->Poses_Count ++;
@@ -501,6 +507,23 @@ void delete_Deformer_Poses(deformer * D)
     {
         P = D->Poses[p];
         remove_Deformer_Pose(P);
+    }
+}
+
+void unfix_pose_ik_goals(deformer * D, pose * P)
+{
+    int t;
+
+    for (t = 0; t < P->transformers_count; t ++)
+    {
+        if (t >= D->Transformers_Count)
+            break;
+
+        if (P->TP[t].style == ik_fixed)
+        {
+            D->Transformers[t]->style = ik_goal;
+            unfix_ik_goal(D->Transformers[t]);
+        }
     }
 }
 
