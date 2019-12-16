@@ -8663,6 +8663,7 @@ void make_Movement()
                     move_Deformer_IK(T, 0);
 
                     memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
+                    update_rotate_bounding_box();
                 }
                 else
                 {
@@ -8673,9 +8674,8 @@ void make_Movement()
             else
             {
                 solve_IK_Chain(T->IK, 0);
-                move_Deformer_IK(T, 1);
+                move_(T, Delta, subdLevel);
             }
-            update_rotate_bounding_box();
         }
         else
         {
