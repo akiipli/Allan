@@ -131,7 +131,7 @@
 
 1540493296 d:\gl_sdl_hybrid_ik\modeling.h
 
-1574933930 source:c:\gl_sdl_hybrid_ik\main.c
+1576501191 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -192,23 +192,23 @@
 1540493296 c:\gl_sdl_hybrid_ik\cursors.h
 	"SDL/SDL.h"
 
-1574934041 c:\gl_sdl_hybrid_ik\transformer.h
+1576500353 c:\gl_sdl_hybrid_ik\transformer.h
 
-1574441353 c:\gl_sdl_hybrid_ik\iksolution.h
+1576493252 c:\gl_sdl_hybrid_ik\iksolution.h
 
 1541517952 c:\gl_sdl_hybrid_ik\object.h
 
 1541078686 c:\gl_sdl_hybrid_ik\curves.h
 
-1574439132 c:\gl_sdl_hybrid_ik\userinterface.h
+1576501372 c:\gl_sdl_hybrid_ik\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
 	<errno.h>
 
-1574619465 c:\gl_sdl_hybrid_ik\deformer.h
+1576078230 c:\gl_sdl_hybrid_ik\deformer.h
 
-1540493296 c:\gl_sdl_hybrid_ik\poses.h
+1576498949 c:\gl_sdl_hybrid_ik\poses.h
 
 1574933441 c:\gl_sdl_hybrid_ik\bones.h
 
@@ -224,9 +224,9 @@
 
 1557343737 c:\gl_sdl_hybrid_ik\cameras.h
 
-1574934991 c:\gl_sdl_hybrid_ik\saving.h
+1576077773 c:\gl_sdl_hybrid_ik\saving.h
 
-1574700981 c:\gl_sdl_hybrid_ik\initializingfunctions.h
+1575652626 c:\gl_sdl_hybrid_ik\initializingfunctions.h
 
 1540493296 c:\gl_sdl_hybrid_ik\extensionfunctions.h
 
@@ -245,13 +245,13 @@
 
 1540550928 c:\gl_sdl_hybrid_ik\cubedata.h
 
-1574346583 c:\gl_sdl_hybrid_ik\transforms.h
+1576500514 c:\gl_sdl_hybrid_ik\transforms.h
 
 1558890338 c:\gl_sdl_hybrid_ik\arrays.h
 
 1542184611 c:\gl_sdl_hybrid_ik\lights.h
 
-1574934660 c:\gl_sdl_hybrid_ik\rendering.h
+1575652751 c:\gl_sdl_hybrid_ik\rendering.h
 
 1563130401 c:\gl_sdl_hybrid_ik\selections.h
 
@@ -259,7 +259,7 @@
 
 1540493296 c:\gl_sdl_hybrid_ik\validators.h
 
-1574935459 c:\gl_sdl_hybrid_ik\loading.h
+1576078958 c:\gl_sdl_hybrid_ik\loading.h
 
 1540493296 c:\gl_sdl_hybrid_ik\modeling.h
 

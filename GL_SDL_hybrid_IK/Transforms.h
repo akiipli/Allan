@@ -101,7 +101,7 @@ void update_tangents(int L)
     }
 }
 
-void update_rotate_bounding_box(int L)
+void update_rotate_bounding_box()
 {
     int o;
     object * O;

@@ -67,8 +67,34 @@ int LISTLENGTH = 12;
 
 #define LINE_LOOP 0
 #define QUADS 1
+#define LABEL_TEXT_LEN 30
+#define LABELS 100
+
+typedef struct
+{
+    char text[LABEL_TEXT_LEN];
+    int x;
+    int y;
+}
+label;
+
+int label_count = 0;
+label * labels[LABELS];
+
+void init_labels()
+{
+    int l;
+    label * L;
+    for (l = 0; l < LABELS; l ++)
+    {
+        L = malloc(sizeof(label));
+        labels[l] = L;
+        strcpy(L->text, "F");
+    }
+}
 
 int SHADERS = 0;
+int HINTS = 1;
 
 void display_font_(const char * text, float origin_x, float origin_y, int font_height, float color[4], int italic);
 
@@ -3891,6 +3917,40 @@ void display_bottom_message(const char * text, int width, int height)
 	glColor4fv(white);
 
     draw_last_message(text, width - left);
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+}
+
+void display_labels(int width, int height)
+{
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, width, height, 0, 1, -1);
+
+	GLfloat white[4] = {1, 1, 1, 1};
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+	glColor4fv(white);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+    int font_height = 11;
+
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
+
+	int l;
+	label * L;
+
+	for (l = 0; l < label_count; l ++)
+    {
+        L = labels[l];
+        draw_text(L->text, L->x, L->y, font_height, 0);
+    }
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

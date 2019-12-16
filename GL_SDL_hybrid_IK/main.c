@@ -1898,7 +1898,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
         Draw_Rectangle();
     }
 
-    if (!drag_rectangle && SHADERS)
+    if (!drag_rectangle && SHADERS && HINTS)
     {
         display_font(Hint, screen_width, screen_height, 0);
     }
@@ -4993,30 +4993,30 @@ void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
-void apply_Pose_rotation_(deformer * D, pose * P, int frame, float Delta[3])
+void apply_Pose_position_(deformer * D, pose * P, int frame, float Delta[3])
 {
     if (!BIND_POSE)
     {
-        paste_Pose_(D, D->Poses[0]); // default pose
+        paste_Pose_position(D, P);
 
-        paste_Pose_rotation(D, P);
+        //paste_Pose_rotation(D, P);
 
         if (D->Transformers_Count > 0)
         {
             transformer * T = D->Transformers[0];
 
-            move_Pose_T(T, Delta);
+            //move_Pose_T(T, Delta);
 
             Update_Objects_Count = 0;
 
             rotate_collect(T);
             rotate_vertex_groups_D_Init();
 
-            rotate_Deformer_pose(T);
+            //rotate_Deformer_pose(T);
 
             rotate_Deformer_verts(D);
 
-            update_rotate_bounding_box(subdLevel);
+            update_rotate_bounding_box();
 
             if (subdLevel > -1)
             {
@@ -5046,10 +5046,125 @@ void apply_Pose_rotation_(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
+void apply_Pose_rotation_(deformer * D, pose * P, int frame, float Delta[3])
+{
+    if (!BIND_POSE)
+    {
+        paste_Pose_(D, D->Poses[0]); // default pose
+
+        paste_Pose_rotation(D, P);
+
+        if (D->Transformers_Count > 0)
+        {
+            transformer * T = D->Transformers[0];
+
+            move_Pose_T(T, Delta);
+
+            Update_Objects_Count = 0;
+
+            rotate_collect(T);
+            rotate_vertex_groups_D_Init();
+
+            rotate_Deformer_pose(T);
+
+            rotate_Deformer_verts(D);
+
+            update_rotate_bounding_box();
+
+            if (subdLevel > -1)
+            {
+                int o;
+                object * O0;
+
+                for (o = 0; o < Update_Objects_Count; o ++)
+                {
+                    O0 = Update_Objects[o];
+                    if (O0->deforms)
+                    {
+                        tune_subdivide_post_transformed(O0, subdLevel);
+                    }
+                }
+            }
+        }
+    }
+    if (dialog_lock)
+    {
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        draw_dialog_Box(screen_height, 0, frame);
+        SDL_GL_SwapBuffers();
+    }
+    else
+    {
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+    }
+}
+
+void apply_Pose()
+{
+    set_Pose_H_Button(3);
+    printf("paste Pose\n");
+    if (!BIND_POSE && currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
+    {
+        if (currentPose >= 0 && currentPose < posesIndex)
+        {
+            /*
+            Poses need to be rig based.
+            New rig system needs to be made.
+            Rig has only positional poses.
+            */
+            pose * P = poses[currentPose];
+            deformer * D = P->D;
+
+            paste_Pose_(D, P);
+
+            unfix_pose_ik_goals(D, P);
+
+            // deformations
+//            Update_Objects_Count = 0;
+//
+//            rotate_collect(transformers[currentLocator]);
+//            rotate_vertex_groups_D_Init();
+//
+//            rotate_Deformer_(D);
+            //
+            if (D->Transformers_Count > 0)
+            {
+                transformer * T = D->Transformers[0];
+
+                Update_Objects_Count = 0;
+
+                rotate_collect(T);
+                rotate_vertex_groups_D_Init();
+
+                rotate_Deformer_verts(D);
+
+                update_rotate_bounding_box();
+
+                if (subdLevel > -1)
+                {
+                    int o;
+                    object * O0;
+
+                    for (o = 0; o < Update_Objects_Count; o ++)
+                    {
+                        O0 = Update_Objects[o];
+                        if (O0->deforms)
+                        {
+                            tune_subdivide_post_transformed(O0, subdLevel);
+                        }
+                    }
+                }
+            }
+
+            message = -1;
+        }
+    }
+    if (dialog_lock)
+        draw_Dialog();
+}
+
 void transition_into_Pose(deformer * D, pose * P0, pose * P1)
 {
-    unfix_deformer_ik_goals(D);
-
     Draw_Bottom_Message("transition into Pose\n");
 
     int f;
@@ -5069,17 +5184,30 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
         Delta[2] = T->pos[2] - D->Poses[0]->TP[0].pos[2];
     }
 
+    int osd = Osd;
+    int hints = HINTS;
+    HINTS = 0;
+    Osd = 0;
+
     for (f = 1; f <= frames_count; f ++)
     {
         w1 = (float)f / frames_count;
         w0 = 1 - w1;
-        P = create_Inbetween_Pose(D, P0, P1, w0, w1);
-        apply_Pose_rotation_(D, P, f, Delta);
+        P = create_Inbetween_Pose_(D, P0, P1, w0, w1);
+
+        apply_Pose_position_(D, P, f, Delta);
+        //apply_Pose_rotation_(D, P, f, Delta);
 
         free(P->TP);
         free(P);
     }
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
+    apply_Pose(D, P1);
+
+    HINTS = hints;
+    Osd = osd;
+
+    //poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
 
     DRAW_UI = 1;
 }
@@ -5221,7 +5349,7 @@ void deformer_Player()
                 }
             }
 
-            update_rotate_bounding_box(subdLevel);
+            update_rotate_bounding_box();
 
             if (subdLevel > -1)
             {
@@ -6575,71 +6703,7 @@ void apply_Pose_rotation()
 
                 rotate_Deformer_verts(D);
 
-                update_rotate_bounding_box(subdLevel);
-
-                if (subdLevel > -1)
-                {
-                    int o;
-                    object * O0;
-
-                    for (o = 0; o < Update_Objects_Count; o ++)
-                    {
-                        O0 = Update_Objects[o];
-                        if (O0->deforms)
-                        {
-                            tune_subdivide_post_transformed(O0, subdLevel);
-                        }
-                    }
-                }
-            }
-
-            message = -1;
-        }
-    }
-    if (dialog_lock)
-        draw_Dialog();
-}
-
-void apply_Pose()
-{
-    set_Pose_H_Button(3);
-    printf("paste Pose\n");
-    if (!BIND_POSE && currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
-    {
-        if (currentPose >= 0 && currentPose < posesIndex)
-        {
-            /*
-            Poses need to be rig based.
-            New rig system needs to be made.
-            Rig has only positional poses.
-            */
-            pose * P = poses[currentPose];
-            deformer * D = P->D;
-
-            paste_Pose_(D, P);
-
-            unfix_pose_ik_goals(D, P);
-
-            // deformations
-//            Update_Objects_Count = 0;
-//
-//            rotate_collect(transformers[currentLocator]);
-//            rotate_vertex_groups_D_Init();
-//
-//            rotate_Deformer_(D);
-            //
-            if (D->Transformers_Count > 0)
-            {
-                transformer * T = D->Transformers[0];
-
-                Update_Objects_Count = 0;
-
-                rotate_collect(T);
-                rotate_vertex_groups_D_Init();
-
-                rotate_Deformer_verts(D);
-
-                update_rotate_bounding_box(subdLevel);
+                update_rotate_bounding_box();
 
                 if (subdLevel > -1)
                 {
@@ -8155,7 +8219,7 @@ void move_Deformers_To_Delta_Position()
         }
     }
 
-    update_rotate_bounding_box(subdLevel);
+    update_rotate_bounding_box();
 }
 
 void set_Bind_Mode()
@@ -8591,19 +8655,27 @@ void make_Movement()
 
             if (T->childcount > 0 && T->childs[0]->IK != NULL)
             {
-                memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
-                if (T->Deformer != NULL)
-                    solve_IK_Chains(T->Deformer, 0);
-                move_Deformer_IK(T, 0);
+                if (T->childs[0]->IK->bonescount > 1)
+                {
+                    memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
+                    if (T->Deformer != NULL)
+                        solve_IK_Chains(T->Deformer, 0);
+                    move_Deformer_IK(T, 0);
 
-                memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
+                    memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
+                }
+                else
+                {
+                    solve_IK_Chain(T->IK, 0);
+                    move_(T, Delta, subdLevel);
+                }
             }
             else
             {
                 solve_IK_Chain(T->IK, 0);
                 move_Deformer_IK(T, 1);
             }
-            update_rotate_bounding_box(subdLevel);
+            update_rotate_bounding_box();
         }
         else
         {
@@ -8675,7 +8747,7 @@ void transform_Objects_And_Render()
                         rotate_vertex_groups_D_Init();
                         rotate(T);
                     }
-                    update_rotate_bounding_box(subdLevel);
+                    update_rotate_bounding_box();
                 }
             }
             else
@@ -10374,7 +10446,7 @@ int main(int argc, char * args[])
                                 rotate_vertex_groups_D_Init();
                                 rotate(T);
                             }
-                            update_rotate_bounding_box(subdLevel);
+                            update_rotate_bounding_box();
                         }
 
                         if (camera_rotate || camera_z_move)
@@ -13191,7 +13263,7 @@ int main(int argc, char * args[])
 //
 //                    rotate(T);
 
-                    update_rotate_bounding_box(subdLevel);
+                    update_rotate_bounding_box();
 
                     if (subdLevel > -1)
                     {

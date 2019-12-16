@@ -1634,7 +1634,7 @@ void move_Deformer(transformer * T, float Delta[3])
     rotate_Deformer_verts(T->Deformer);
 }
 
-void update_rotate_bounding_box(int);
+void update_rotate_bounding_box();
 
 void move_(transformer * T, float Delta[3], int L)
 {
@@ -1648,7 +1648,7 @@ void move_(transformer * T, float Delta[3], int L)
         move_T(T, Delta);
         move_Children(T, Delta);
     }
-    update_rotate_bounding_box(L);
+    update_rotate_bounding_box();
 }
 
 void bake_position(transformer * T)

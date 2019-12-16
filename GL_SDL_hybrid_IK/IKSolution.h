@@ -102,6 +102,11 @@ ikChain * ik_Chains_Collection[IKCHAINS];
 void collect_Chain_Bones(bone * A, bone * B)
 {
     printf("bone: %s\n", B->Name);
+    if (A == B)
+    {
+        ikValidates = 1;
+        return;
+    }
     if (B->parent == NULL)
     {
         return;
@@ -543,18 +548,25 @@ void solve_IK_Chain(ikChain * I, int update)
     direction_Pack P;
     P = length_AB(I->A->pos, I->B->pos);
 
-    Transition_Amount = (P.distance - I->P.distance) / (I->sum_length - I->P.distance);
-
-    median_Point_Offset = abs(I->sum_length / 2 - I->P.distance) / I->sum_length;
-
-    if (Transition_Amount > 0)
-    {
-        Transition_Amount -= median_Point_Offset * Transition_Amount;
-    }
-
-    if (Transition_Amount > 1)
+    if (I->bonescount == 1)
     {
         Transition_Amount = 1;
+    }
+    else
+    {
+        Transition_Amount = (P.distance - I->P.distance) / (I->sum_length - I->P.distance);
+
+        median_Point_Offset = abs(I->sum_length / 2 - I->P.distance) / I->sum_length;
+
+        if (Transition_Amount > 0)
+        {
+            Transition_Amount -= median_Point_Offset * Transition_Amount;
+        }
+
+        if (Transition_Amount > 1)
+        {
+            Transition_Amount = 1;
+        }
     }
 
     I->positions_A[0].vec[0] = I->A->pos_bind[0];
