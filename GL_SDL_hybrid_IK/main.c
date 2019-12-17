@@ -5099,7 +5099,7 @@ void apply_Pose_rotation_(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
-void apply_Pose()
+void apply_Pose(deformer * D, pose * P)
 {
     set_Pose_H_Button(3);
     printf("paste Pose\n");
@@ -5112,8 +5112,8 @@ void apply_Pose()
             New rig system needs to be made.
             Rig has only positional poses.
             */
-            pose * P = poses[currentPose];
-            deformer * D = P->D;
+//            pose * P = poses[currentPose];
+//            deformer * D = P->D;
 
             paste_Pose_(D, P);
 
@@ -7041,7 +7041,9 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
     }
     else if (letter == 'p')
     {
-        apply_Pose();
+        pose * P = poses[currentPose];
+        deformer * D = P->D;
+        apply_Pose(D, P);
     }
 }
 
@@ -13986,7 +13988,7 @@ int main(int argc, char * args[])
                 {
                     dialog_lock = 0;
 
-                    set_Object_Mode();
+//                    set_Object_Mode();
                 }
 
             }

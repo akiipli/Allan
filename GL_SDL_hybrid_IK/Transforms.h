@@ -269,9 +269,9 @@ void rotate_vertex_groups_D_Init()
                 V->Ty = 0;
                 V->Tz = 0;
 
-                V->N.Tx = 0;
-                V->N.Ty = 0;
-                V->N.Tz = 0;
+//                V->N.Tx = 0;
+//                V->N.Ty = 0;
+//                V->N.Tz = 0;
             }
         }
     }
@@ -405,9 +405,9 @@ void rotate_vertex_groups(transformer * T)
                 V->Ty += (rotVec[0][1] * X + rotVec[1][1] * Y + rotVec[2][1] * Z + T->pos[1]) * S->weights[i];
                 V->Tz += (rotVec[0][2] * X + rotVec[1][2] * Y + rotVec[2][2] * Z + T->pos[2]) * S->weights[i];
 
-                V->N.Tx += (rotVec_[0][0] * V->N.x + rotVec_[1][0] * V->N.y + rotVec_[2][0] * V->N.z) * S->weights[i];
-                V->N.Ty += (rotVec_[0][1] * V->N.x + rotVec_[1][1] * V->N.y + rotVec_[2][1] * V->N.z) * S->weights[i];
-                V->N.Tz += (rotVec_[0][2] * V->N.x + rotVec_[1][2] * V->N.y + rotVec_[2][2] * V->N.z) * S->weights[i];
+//                V->N.Tx += (rotVec_[0][0] * V->N.x + rotVec_[1][0] * V->N.y + rotVec_[2][0] * V->N.z) * S->weights[i];
+//                V->N.Ty += (rotVec_[0][1] * V->N.x + rotVec_[1][1] * V->N.y + rotVec_[2][1] * V->N.z) * S->weights[i];
+//                V->N.Tz += (rotVec_[0][2] * V->N.x + rotVec_[1][2] * V->N.y + rotVec_[2][2] * V->N.z) * S->weights[i];
 
             }
         }
