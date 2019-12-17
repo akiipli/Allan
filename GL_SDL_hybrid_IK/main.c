@@ -5099,7 +5099,7 @@ void apply_Pose_rotation_(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
-void apply_Pose(deformer * D, pose * P)
+void apply_Pose(deformer * D, pose * P, int dialog)
 {
     set_Pose_H_Button(3);
     printf("paste Pose\n");
@@ -5159,7 +5159,7 @@ void apply_Pose(deformer * D, pose * P)
             message = -1;
         }
     }
-    if (dialog_lock)
+    if (dialog && dialog_lock)
         draw_Dialog();
 }
 
@@ -5202,7 +5202,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
         free(P);
     }
 
-    apply_Pose(D, P1);
+    apply_Pose(D, P1, 0);
 
     HINTS = hints;
     Osd = osd;
@@ -7043,7 +7043,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
     {
         pose * P = poses[currentPose];
         deformer * D = P->D;
-        apply_Pose(D, P);
+        apply_Pose(D, P, 1);
     }
 }
 
