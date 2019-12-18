@@ -3957,7 +3957,7 @@ void display_labels(int width, int height)
 	glPopMatrix();
 }
 
-void display_osd_font(const char * text, int width, int height)
+void display_osd_font(const char * text, int width, int height, int osd)
 {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -3983,14 +3983,17 @@ void display_osd_font(const char * text, int width, int height)
 
 	//glEnable(GL_TEXTURE_2D);
 
-    int font_height = 11;
+	if (osd)
+    {
+        int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face[0], 0, font_height);
+        FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
-	float origin_x = 10;
-	float origin_y = 20;
+        float origin_x = 10;
+        float origin_y = 20;
 
-    draw_text(text, origin_x, origin_y, font_height, 0);
+        draw_text(text, origin_x, origin_y, font_height, 0);
+    }
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
