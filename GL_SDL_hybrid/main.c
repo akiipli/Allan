@@ -1786,8 +1786,8 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
             draw_Axis(Axis_lock, T_pos);
         }
         glPopMatrix();
-        if (Osd)
-        display_osd_font(Camera_Front.Name, screen_width, screen_height);
+
+        display_osd_font(Camera_Front.Name, screen_width, screen_height, Osd);
 
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
@@ -1805,8 +1805,8 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
             draw_Axis(Axis_lock, T_pos);
         }
         glPopMatrix();
-        if (Osd)
-        display_osd_font(Camera_Left.Name, screen_width, screen_height);
+
+        display_osd_font(Camera_Left.Name, screen_width, screen_height, Osd);
 
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
@@ -1824,8 +1824,8 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
             draw_Axis(Axis_lock, T_pos);
         }
         glPopMatrix();
-        if (Osd)
-        display_osd_font(Camera_Top.Name, screen_width, screen_height);
+
+        display_osd_font(Camera_Top.Name, screen_width, screen_height, Osd);
 
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
@@ -1846,13 +1846,10 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
             }
         }
         glPopMatrix();
-        if (Osd)
-        {
-            if (draw_uv_view)
-                display_osd_font("UVs", screen_width, screen_height);
-            else
-                display_osd_font("Perspective", screen_width, screen_height);
-        }
+        if (draw_uv_view)
+            display_osd_font("UVs", screen_width, screen_height, Osd);
+        else
+            display_osd_font("Perspective", screen_width, screen_height, Osd);
     }
 
     else
@@ -1871,9 +1868,9 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
                 draw_Axis(Axis_lock, T_pos);
             }
         }
-        if (Osd && fonts_on)
+        if (fonts_on)
         {
-            display_osd_font(osd_font, screen_width, screen_height);
+            display_osd_font(osd_font, screen_width, screen_height, Osd);
         }
     }
 
@@ -1887,7 +1884,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
         Draw_Rectangle();
     }
 
-    if (!drag_rectangle && SHADERS)
+    if (!drag_rectangle && SHADERS && HINTS)
     {
         display_font(Hint, screen_width, screen_height, 0);
     }
@@ -3580,7 +3577,10 @@ void open_IMG(char * fileName)
             }
         }
     }
+
     dialog_lock = 0;
+    Osd = 1;
+    HINTS = 1;
 
     if (!Object_Mode)
     {
@@ -3852,6 +3852,8 @@ void open_OBJ(char * fileName)
         }
     }
     dialog_lock = 0;
+    Osd = 1;
+    HINTS = 1;
 
     if (!Object_Mode)
     {
@@ -4003,6 +4005,8 @@ void black_out_SelectionsList()
 
 void open_Selections_List()
 {
+    Osd = 0;
+    HINTS = 0;
 //    int idx = 0;
 //
 //    if (selection_Mode == POLYS)
@@ -4075,6 +4079,9 @@ void black_out_BoneList()
 
 void open_Bones_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     create_Bones_List(BoneIndex);
 
     if (Bottom_Message)
@@ -4148,6 +4155,9 @@ int find_Pose_Index()
 
 void open_Poses_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     PoseIndex = find_Pose_Index();
     create_Poses_List(PoseIndex);
     currentPose = Pose_List[PoseIndex];
@@ -4195,6 +4205,9 @@ void black_out_DefrList()
 
 void open_Deformers_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     //create_Deformers_List(SelsIndex[3], O);
 
     if (Bottom_Message)
@@ -4235,6 +4248,9 @@ void open_Deformers_List()
 
 void open_Hierarchys_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     create_Hierarchys_List();
 
     if (Bottom_Message)
@@ -4285,6 +4301,9 @@ void black_out_TextList()
 
 void open_Textures_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("Textures List\n");
@@ -4349,6 +4368,9 @@ void black_out_MaterialsList()
 
 void open_Materials_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("Materials List\n");
@@ -4389,6 +4411,9 @@ void black_out_ItemsList()
 
 void open_Items_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("Items List\n");
@@ -4421,6 +4446,9 @@ void open_Items_List()
 
 void open_Saves_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("Saves List\n");
@@ -4473,6 +4501,9 @@ void export_OBJ_Format()
 
 void open_Loading_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("Loading List\n");
@@ -4500,6 +4531,9 @@ void open_Loading_List()
 
 void open_OBJ_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("OBJ List\n");
@@ -4539,6 +4573,9 @@ void open_OBJ_List()
 
 void open_Img_List()
 {
+    Osd = 0;
+    HINTS = 0;
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("Img List\n");
@@ -9153,6 +9190,8 @@ void save_load_Scene()
             //poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
 
             dialog_lock = 0;
+            Osd = 1;
+            HINTS = 1;
         }
     }
 
@@ -13018,6 +13057,8 @@ int main(int argc, char * args[])
                 if (dialog_lock)
                 {
                     dialog_lock = 0;
+                    Osd = 1;
+                    HINTS = 1;
 
                     if (!Object_Mode)
                     {
@@ -13340,6 +13381,8 @@ int main(int argc, char * args[])
                 else
                 {
                     dialog_lock = 0;
+                    Osd = 1;
+                    HINTS = 1;
 
                     if (!Object_Mode)
                     {
