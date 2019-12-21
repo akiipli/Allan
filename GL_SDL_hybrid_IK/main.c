@@ -6500,7 +6500,7 @@ void add_Pose()
     set_Pose_H_Button(0);
     printf("add Pose\n");
 
-    int relative = 0;
+    int relative = 1;
 
     if (!BIND_POSE && posesIndex < POSES)
     {
@@ -6509,7 +6509,7 @@ void add_Pose()
             D = deformers[currentDeformer_Node];
 //            if (D->Transformers_Count > 0 && D->Transformers[0]->index != currentLocator)
 //            {
-//                set_Deformers_Delta();
+//                //set_Deformers_Delta();
 //                relative = 1;
 //            }
             paste_Deformer_rotVec(D);

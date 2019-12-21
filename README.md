@@ -48,3 +48,8 @@ Submitted into Trips Code folder Scenes IK a1 to serve as testfile. This file op
 ---
 
 To fix or unfix a IK goal, press f.
+
+---
+
+How to update old files. Backup loader file. Use old specification to load scenes and save with new specification.
+Then replace loader with new loader. And compile again.
