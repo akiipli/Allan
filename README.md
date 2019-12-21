@@ -43,13 +43,8 @@ IK folder has IK development in it.
 To test out IK, select A and B transformers in bone chain. It may have lots of bones and more complicated shape.
 Press Alt+A. Gray line appears. You must be in Bind Mode. Exit Bind Mode and select point B, press Shift+G to move
 around, right-click to cancel movement.
-No poses for IK chains. No playback for them.
-All must be done. Submitted into Trips Code folder Scenes IK a1 to serve as testfile. This file opens only in IK project.
+Submitted into Trips Code folder Scenes IK a1 to serve as testfile. This file opens only in IK project.
 
 ---
 
-Some notes for IK development. I replaced pose transitioning with linear transitioning without rotation. This is because
-IK produces simulated poses. I did not replace poses playback with this approach, because it makes objects flicker for
-some reason. Maybe it is too fast and data is not arriving for graphics card in time. Always such posing needs to conclude
-with apply pose function, where fixed goals in this pose are unfixed. Unfixing places these goals and subsequent hierarchy
-into parents space and users and program can continue to move rotate and scale of them. To fix a IK goal, press f.
+To fix or unfix a IK goal, press f.

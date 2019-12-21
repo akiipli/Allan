@@ -1145,6 +1145,16 @@ void solve_IK_Chains(deformer * D, int update)
     }
 }
 
+void solve_all_IK_Chains()
+{
+    int d;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        solve_IK_Chains(deformers[d], 0);
+    }
+}
+
 void unfix_deformer_ik_goals(deformer * D)
 {
     int i;
@@ -1159,6 +1169,26 @@ void unfix_deformer_ik_goals(deformer * D)
             unfix_ik_goal(I->B);
         }
     }
+}
+
+int find_fixed_goals(deformer * D)
+{
+    int i;
+    ikChain * I;
+
+    int r = 0;
+
+    for (i = 0; i < D->IKchains_Count; i ++)
+    {
+        I = D->IKchains[i];
+        if (I->B->style == ik_fixed)
+        {
+            r = 1;
+            break;
+        }
+    }
+
+    return r;
 }
 
 #endif // DEFORMER_H_INCLUDED

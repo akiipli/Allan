@@ -83,7 +83,7 @@ pose * create_Inbetween_Pose_(deformer * D, pose * P0, pose * P1, float w0, floa
     P->transformers_count = D->Transformers_Count;
     P->TP = calloc(P->transformers_count, sizeof(transformer_pose));
 
-//    float d;
+    float d;
     int t;
 
     for (t = 0; t < P->transformers_count; t ++)
@@ -97,9 +97,9 @@ pose * create_Inbetween_Pose_(deformer * D, pose * P0, pose * P1, float w0, floa
 //        P->TP[t].scl[1] = P0->TP[t].scl[1] * w0 + P1->TP[t].scl[1] * w1;
 //        P->TP[t].scl[2] = P0->TP[t].scl[2] * w0 + P1->TP[t].scl[2] * w1;
 
-//        P->TP[t].scl_vec[0] = P0->TP[t].scl_vec[0] * w0 + P1->TP[t].scl_vec[0] * w1;
-//        P->TP[t].scl_vec[1] = P0->TP[t].scl_vec[1] * w0 + P1->TP[t].scl_vec[1] * w1;
-//        P->TP[t].scl_vec[2] = P0->TP[t].scl_vec[2] * w0 + P1->TP[t].scl_vec[2] * w1;
+        P->TP[t].scl_vec[0] = P0->TP[t].scl_vec[0] * w0 + P1->TP[t].scl_vec[0] * w1;
+        P->TP[t].scl_vec[1] = P0->TP[t].scl_vec[1] * w0 + P1->TP[t].scl_vec[1] * w1;
+        P->TP[t].scl_vec[2] = P0->TP[t].scl_vec[2] * w0 + P1->TP[t].scl_vec[2] * w1;
 
 //        P->TP[t].rot[0] = P0->TP[t].rot[0] * w0 + P1->TP[t].rot[0] * w1;
 //        P->TP[t].rot[1] = P0->TP[t].rot[1] * w0 + P1->TP[t].rot[1] * w1;
@@ -109,68 +109,62 @@ pose * create_Inbetween_Pose_(deformer * D, pose * P0, pose * P1, float w0, floa
         P->TP[t].pos[1] = P0->TP[t].pos[1] * w0 + P1->TP[t].pos[1] * w1;
         P->TP[t].pos[2] = P0->TP[t].pos[2] * w0 + P1->TP[t].pos[2] * w1;
 
-        P->TP[t].rotVec[0][0] = P0->TP[t].rotVec[0][0] * w0 + P1->TP[t].rotVec[0][0] * w1;
-        P->TP[t].rotVec[0][1] = P0->TP[t].rotVec[0][1] * w0 + P1->TP[t].rotVec[0][1] * w1;
-        P->TP[t].rotVec[0][2] = P0->TP[t].rotVec[0][2] * w0 + P1->TP[t].rotVec[0][2] * w1;
+        P->TP[t].rotVec_[0][0] = P0->TP[t].rotVec_[0][0] * w0 + P1->TP[t].rotVec_[0][0] * w1;
+        P->TP[t].rotVec_[0][1] = P0->TP[t].rotVec_[0][1] * w0 + P1->TP[t].rotVec_[0][1] * w1;
+        P->TP[t].rotVec_[0][2] = P0->TP[t].rotVec_[0][2] * w0 + P1->TP[t].rotVec_[0][2] * w1;
 
-//        d = sqrt(P->TP[t].rotVec_[0][0] * P->TP[t].rotVec_[0][0] +
-//                 P->TP[t].rotVec_[0][1] * P->TP[t].rotVec_[0][1] +
-//                 P->TP[t].rotVec_[0][2] * P->TP[t].rotVec_[0][2]);
-//
-//        if (d > 0)
-//        {
-//            P->TP[t].rotVec[0][0] = P->TP[t].rotVec_[0][0] * d * P->TP[t].scl_vec[0];
-//            P->TP[t].rotVec[0][1] = P->TP[t].rotVec_[0][1] * d * P->TP[t].scl_vec[0];
-//            P->TP[t].rotVec[0][2] = P->TP[t].rotVec_[0][2] * d * P->TP[t].scl_vec[0];
-//        }
-//        else
-//        {
-//            P->TP[t].rotVec[0][0] = 1 * P->TP[t].scl_vec[0];
-//            P->TP[t].rotVec[0][1] = 0;
-//            P->TP[t].rotVec[0][2] = 0;
-//        }
+        d = sqrt(P->TP[t].rotVec_[0][0] * P->TP[t].rotVec_[0][0] +
+                 P->TP[t].rotVec_[0][1] * P->TP[t].rotVec_[0][1] +
+                 P->TP[t].rotVec_[0][2] * P->TP[t].rotVec_[0][2]);
 
-        P->TP[t].rotVec[1][0] = P0->TP[t].rotVec[1][0] * w0 + P1->TP[t].rotVec[1][0] * w1;
-        P->TP[t].rotVec[1][1] = P0->TP[t].rotVec[1][1] * w0 + P1->TP[t].rotVec[1][1] * w1;
-        P->TP[t].rotVec[1][2] = P0->TP[t].rotVec[1][2] * w0 + P1->TP[t].rotVec[1][2] * w1;
+        if (d > 0)
+        {
+            P->TP[t].rotVec_[0][0] /= d;
+            P->TP[t].rotVec_[0][1] /= d;
+            P->TP[t].rotVec_[0][2] /= d;
+        }
 
-//        d = sqrt(P->TP[t].rotVec_[1][0] * P->TP[t].rotVec_[1][0] +
-//                 P->TP[t].rotVec_[1][1] * P->TP[t].rotVec_[1][1] +
-//                 P->TP[t].rotVec_[1][2] * P->TP[t].rotVec_[1][2]);
-//
-//        if (d > 0)
-//        {
-//            P->TP[t].rotVec[1][0] = P->TP[t].rotVec_[1][0] * d * P->TP[t].scl_vec[1];
-//            P->TP[t].rotVec[1][1] = P->TP[t].rotVec_[1][1] * d * P->TP[t].scl_vec[1];
-//            P->TP[t].rotVec[1][2] = P->TP[t].rotVec_[1][2] * d * P->TP[t].scl_vec[1];
-//        }
-//        else
-//        {
-//            P->TP[t].rotVec[1][0] = 0;
-//            P->TP[t].rotVec[1][1] = 1 * P->TP[t].scl_vec[1];
-//            P->TP[t].rotVec[1][2] = 0;
-//        }
+        P->TP[t].rotVec[0][0] = P->TP[t].rotVec_[0][0] * P->TP[t].scl_vec[0];
+        P->TP[t].rotVec[0][1] = P->TP[t].rotVec_[0][1] * P->TP[t].scl_vec[0];
+        P->TP[t].rotVec[0][2] = P->TP[t].rotVec_[0][2] * P->TP[t].scl_vec[0];
 
-        P->TP[t].rotVec[2][0] = P0->TP[t].rotVec[2][0] * w0 + P1->TP[t].rotVec[2][0] * w1;
-        P->TP[t].rotVec[2][1] = P0->TP[t].rotVec[2][1] * w0 + P1->TP[t].rotVec[2][1] * w1;
-        P->TP[t].rotVec[2][2] = P0->TP[t].rotVec[2][2] * w0 + P1->TP[t].rotVec[2][2] * w1;
+        P->TP[t].rotVec_[1][0] = P0->TP[t].rotVec_[1][0] * w0 + P1->TP[t].rotVec_[1][0] * w1;
+        P->TP[t].rotVec_[1][1] = P0->TP[t].rotVec_[1][1] * w0 + P1->TP[t].rotVec_[1][1] * w1;
+        P->TP[t].rotVec_[1][2] = P0->TP[t].rotVec_[1][2] * w0 + P1->TP[t].rotVec_[1][2] * w1;
 
-//        d = sqrt(P->TP[t].rotVec_[2][0] * P->TP[t].rotVec_[2][0] +
-//                 P->TP[t].rotVec_[2][1] * P->TP[t].rotVec_[2][1] +
-//                 P->TP[t].rotVec_[2][2] * P->TP[t].rotVec_[2][2]);
-//
-//        if (d > 0)
-//        {
-//            P->TP[t].rotVec[2][0] = P->TP[t].rotVec_[2][0] * d * P->TP[t].scl_vec[2];
-//            P->TP[t].rotVec[2][1] = P->TP[t].rotVec_[2][1] * d * P->TP[t].scl_vec[2];
-//            P->TP[t].rotVec[2][2] = P->TP[t].rotVec_[2][2] * d * P->TP[t].scl_vec[2];
-//        }
-//        else
-//        {
-//            P->TP[t].rotVec[2][0] = 0;
-//            P->TP[t].rotVec[2][1] = 0;
-//            P->TP[t].rotVec[2][2] = 1 * P->TP[t].scl_vec[2];
-//        }
+        d = sqrt(P->TP[t].rotVec_[1][0] * P->TP[t].rotVec_[1][0] +
+                 P->TP[t].rotVec_[1][1] * P->TP[t].rotVec_[1][1] +
+                 P->TP[t].rotVec_[1][2] * P->TP[t].rotVec_[1][2]);
+
+        if (d > 0)
+        {
+            P->TP[t].rotVec_[1][0] /= d;
+            P->TP[t].rotVec_[1][1] /= d;
+            P->TP[t].rotVec_[1][2] /= d;
+        }
+
+        P->TP[t].rotVec[1][0] = P->TP[t].rotVec_[1][0] * P->TP[t].scl_vec[1];
+        P->TP[t].rotVec[1][1] = P->TP[t].rotVec_[1][1] * P->TP[t].scl_vec[1];
+        P->TP[t].rotVec[1][2] = P->TP[t].rotVec_[1][2] * P->TP[t].scl_vec[1];
+
+        P->TP[t].rotVec_[2][0] = P0->TP[t].rotVec_[2][0] * w0 + P1->TP[t].rotVec_[2][0] * w1;
+        P->TP[t].rotVec_[2][1] = P0->TP[t].rotVec_[2][1] * w0 + P1->TP[t].rotVec_[2][1] * w1;
+        P->TP[t].rotVec_[2][2] = P0->TP[t].rotVec_[2][2] * w0 + P1->TP[t].rotVec_[2][2] * w1;
+
+        d = sqrt(P->TP[t].rotVec_[2][0] * P->TP[t].rotVec_[2][0] +
+                 P->TP[t].rotVec_[2][1] * P->TP[t].rotVec_[2][1] +
+                 P->TP[t].rotVec_[2][2] * P->TP[t].rotVec_[2][2]);
+
+        if (d > 0)
+        {
+            P->TP[t].rotVec_[2][0] /= d;
+            P->TP[t].rotVec_[2][1] /= d;
+            P->TP[t].rotVec_[2][2] /= d;
+        }
+
+        P->TP[t].rotVec[2][0] = P->TP[t].rotVec_[2][0] * P->TP[t].scl_vec[2];
+        P->TP[t].rotVec[2][1] = P->TP[t].rotVec_[2][1] * P->TP[t].scl_vec[2];
+        P->TP[t].rotVec[2][2] = P->TP[t].rotVec_[2][2] * P->TP[t].scl_vec[2];
 
 //        memcpy(T->scl, P->TP[t].scl, sizeof(T->scl));
 //        memcpy(T->scl_vec, P->TP[t].scl_vec, sizeof(T->scl_vec));
@@ -302,6 +296,22 @@ void update_Deformer_Pose(deformer * D, pose * P)
         memcpy(P->TP[t].pos, T->pos, sizeof(float[3]));
         memcpy(P->TP[t].pos_, T->pos_, sizeof(float[3]));
         P->TP[t].style = T->style;
+    }
+}
+
+void paste_Pose_pos(deformer * D, pose * P)
+{
+    int t;
+
+    transformer * T;
+
+    for (t = 0; t < P->transformers_count; t ++)
+    {
+        if (t >= D->Transformers_Count)
+            break;
+        T = D->Transformers[t];
+        memcpy(T->pos, P->TP[t].pos, sizeof(float[3]));
+ //       memcpy(T->pos_, P->TP[t].pos_, sizeof(float[3]));
     }
 }
 
@@ -658,6 +668,19 @@ void unfix_pose_ik_goals(deformer * D, pose * P)
             D->Transformers[t]->style = ik_goal;
             unfix_ik_goal(D->Transformers[t]);
         }
+    }
+}
+
+void set_Deformer_Delta(deformer * D)
+{
+    transformer * T;
+
+    if (D->Transformers_Count > 0)
+    {
+        T = D->Transformers[0];
+        D->Delta[0] = T->pos[0] - D->Poses[0]->TP[0].pos[0];
+        D->Delta[1] = T->pos[1] - D->Poses[0]->TP[0].pos[1];
+        D->Delta[2] = T->pos[2] - D->Poses[0]->TP[0].pos[2];
     }
 }
 

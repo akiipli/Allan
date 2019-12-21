@@ -375,10 +375,10 @@ void rotate_vertex_groups(transformer * T)
     float X, Y, Z;
 
     float rotVec[3][3];
-    float rotVec_[3][3];
+//    float rotVec_[3][3];
 
     rotate_matrix_I(rotVec, T->rotVec, T->rotVec_B);
-    rotate_matrix_I(rotVec_, T->rotVec_, T->rotVec_B);
+//    rotate_matrix_I(rotVec_, T->rotVec_, T->rotVec_B);
 
     for (s = 0; s < T->Selections_Count; s ++)
     {

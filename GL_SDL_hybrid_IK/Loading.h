@@ -328,6 +328,9 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
 
             if (fgets(buff, BUF_SIZE, fp))
                 sscanf(buff, "%d", &D->current_pose);
+
+            if (fgets(buff, BUF_SIZE, fp))
+                sscanf(buff, "%f %f %f", &D->Delta[0], &D->Delta[1], &D->Delta[2]);
         }
     }
     else

@@ -215,6 +215,7 @@ float m[4][4];
 
 float Delta[3];
 float Pos[3];
+int fixed_goals = 0;
 
 int mouse_x, mouse_y;
 int ortho_on = 0;
@@ -5012,6 +5013,22 @@ void update_Selections_List(int update, int blit)
     glDrawBuffer(GL_BACK);
 }
 
+void apply_Pose_position_Play(deformer * D, pose * P)
+{
+    if (!BIND_POSE)
+    {
+        paste_Pose_pos(D, D->Poses[0]); // default pose
+
+        if (D->Transformers_Count > 0)
+        {
+            transformer * T = D->Transformers[0];
+
+            rotate_rotVec_pose(T);
+
+        }
+    }
+}
+
 void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
 {
     if (!BIND_POSE)
@@ -5033,11 +5050,14 @@ void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
-void apply_Pose_position_(deformer * D, pose * P, int frame, float Delta[3])
+void apply_Pose_position_(deformer * D, pose * P, float Delta[3], int linear_pose)
 {
     if (!BIND_POSE)
     {
         paste_Pose_position(D, P);
+
+        if (!linear_pose)
+            apply_Pose_position_Play(D, P);
 
         //paste_Pose_rotation(D, P);
 
@@ -5045,44 +5065,18 @@ void apply_Pose_position_(deformer * D, pose * P, int frame, float Delta[3])
         {
             transformer * T = D->Transformers[0];
 
-            //move_Pose_T(T, Delta);
+            float Delta_[3];
 
-            Update_Objects_Count = 0;
+            Delta_[0] = Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
+            Delta_[1] = Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
+            Delta_[2] = Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
 
-            rotate_collect(T);
-            rotate_vertex_groups_D_Init();
+            move_Pose_T(T, Delta_);
 
             //rotate_Deformer_pose(T);
 
             rotate_Deformer_verts(D);
-
-            update_rotate_bounding_box();
-
-            if (subdLevel > -1)
-            {
-                int o;
-                object * O0;
-
-                for (o = 0; o < Update_Objects_Count; o ++)
-                {
-                    O0 = Update_Objects[o];
-                    if (O0->deforms)
-                    {
-                        tune_subdivide_post_transformed(O0, subdLevel);
-                    }
-                }
-            }
         }
-    }
-    if (dialog_lock)
-    {
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        draw_dialog_Box(screen_height, 0, frame);
-        SDL_GL_SwapBuffers();
-    }
-    else
-    {
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
     }
 }
 
@@ -5171,6 +5165,14 @@ void apply_Pose(deformer * D, pose * P, int dialog)
             {
                 transformer * T = D->Transformers[0];
 
+//                float Delta_[3];
+//
+//                Delta_[0] = D->Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
+//                Delta_[1] = D->Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
+//                Delta_[2] = D->Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
+
+                move_Pose_T(T, D->Delta);
+
                 Update_Objects_Count = 0;
 
                 rotate_collect(T);
@@ -5214,15 +5216,19 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
 
     DRAW_UI = 0;
 
-    float Delta[3];
-
+//    float Delta[3];
+//
     if (D->Transformers_Count > 0)
     {
         T = D->Transformers[0];
-        Delta[0] = T->pos[0] - D->Poses[0]->TP[0].pos[0];
-        Delta[1] = T->pos[1] - D->Poses[0]->TP[0].pos[1];
-        Delta[2] = T->pos[2] - D->Poses[0]->TP[0].pos[2];
+//        Delta[0] = T->pos[0] - D->Poses[0]->TP[0].pos[0];
+//        Delta[1] = T->pos[1] - D->Poses[0]->TP[0].pos[1];
+//        Delta[2] = T->pos[2] - D->Poses[0]->TP[0].pos[2];
+        Update_Objects_Count = 0;
+        rotate_collect(T);
     }
+
+    apply_Pose(D, P0, 0);
 
     for (f = 1; f <= frames_count; f ++)
     {
@@ -5230,8 +5236,38 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
         w0 = 1 - w1;
         P = create_Inbetween_Pose_(D, P0, P1, w0, w1);
 
-        apply_Pose_position_(D, P, f, Delta);
+        rotate_vertex_groups_D_Init();
+
+        apply_Pose_position_(D, P, D->Delta, 0);
         //apply_Pose_rotation_(D, P, f, Delta);
+
+        update_rotate_bounding_box();
+
+        if (subdLevel > -1)
+        {
+            int o;
+            object * O0;
+
+            for (o = 0; o < Update_Objects_Count; o ++)
+            {
+                O0 = Update_Objects[o];
+                if (O0->deforms)
+                {
+                    tune_subdivide_post_transformed(O0, subdLevel);
+                }
+            }
+        }
+
+        if (dialog_lock)
+        {
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            draw_dialog_Box(screen_height, 0, f);
+            SDL_GL_SwapBuffers();
+        }
+        else
+        {
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+        }
 
         free(P->TP);
         free(P);
@@ -5250,7 +5286,7 @@ void deformer_Player()
     pose * P;
     object * O, * O0;
     deformer * D;
-    transformer * T;
+//    transformer * T;
 
     int frames = 10;
 
@@ -5279,13 +5315,13 @@ void deformer_Player()
     for (d = 0; d < deformerIndex; d ++)
     {
         D = deformers[d];
-        if (D->Transformers_Count > 0)
-        {
-            T = D->Transformers[0];
-            D->Delta[0] = T->pos[0] - D->Poses[D->current_pose]->TP[0].pos[0];
-            D->Delta[1] = T->pos[1] - D->Poses[D->current_pose]->TP[0].pos[1];
-            D->Delta[2] = T->pos[2] - D->Poses[D->current_pose]->TP[0].pos[2];
-        }
+//        if (D->Transformers_Count > 0)
+//        {
+//            T = D->Transformers[0];
+//            D->Delta[0] = T->pos[0] - D->Poses[D->current_pose]->TP[0].pos[0];
+//            D->Delta[1] = T->pos[1] - D->Poses[D->current_pose]->TP[0].pos[1];
+//            D->Delta[2] = T->pos[2] - D->Poses[D->current_pose]->TP[0].pos[2];
+//        }
         for (o = 0; o < D->Objects_Count; o ++)
         {
             O = D->Objects[o];
@@ -5326,6 +5362,7 @@ void deformer_Player()
                 if (D->Transformers_Count > 0)
                 {
                     D->current_pose = (p + D->current_pose) % D->Poses_Count;
+                    apply_Pose(D, D->Poses[D->current_pose], 0);
                 }
             }
             break;
@@ -5369,11 +5406,12 @@ void deformer_Player()
                 D = deformers[d];
                 if (D->Transformers_Count > 0)
                 {
-                    P = create_Inbetween_Pose(D, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1);
-                    Delta[0] = D->Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
-                    Delta[1] = D->Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
-                    Delta[2] = D->Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
-                    apply_Pose_rotation_Play(D, P, f % frames, Delta);
+                    P = create_Inbetween_Pose_(D, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1);
+//                    Delta[0] = D->Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
+//                    Delta[1] = D->Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
+//                    Delta[2] = D->Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
+                    apply_Pose_position_(D, P, D->Delta, 0);
+                    //apply_Pose_rotation_Play(D, P, f % frames, Delta);
                     free(P->TP);
                     free(P);
                 }
@@ -5412,7 +5450,7 @@ void deformer_Player()
             poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
         }
 
-        if (LIGHTSHOW)
+        if (SHADERS && LIGHTSHOW)
         {
             update_Light(Light_Themes[theme % Themes]);
             theme ++;
@@ -6469,11 +6507,11 @@ void add_Pose()
         if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
         {
             D = deformers[currentDeformer_Node];
-            if (D->Transformers_Count > 0 && D->Transformers[0]->index != currentLocator)
-            {
-                set_Deformers_Delta();
-                relative = 1;
-            }
+//            if (D->Transformers_Count > 0 && D->Transformers[0]->index != currentLocator)
+//            {
+//                set_Deformers_Delta();
+//                relative = 1;
+//            }
             paste_Deformer_rotVec(D);
             add_Pose_To_Deformer(D, relative);
             D->current_pose = D->Poses_Count - 1;
@@ -8303,6 +8341,8 @@ void set_Bind_Mode()
 
         update_IKchains(); // IK theme
 
+        //solve_all_IK_Chains();
+
         set_Bind_Pose_For_Transformers(1);
 
         normalize_rotation_parent_childs(&World);
@@ -8626,6 +8666,17 @@ void start_Movement()
         bake_position(T);
         bake_position_Children(T);
         bake(T);
+
+        if (T->Deformer != NULL)
+        {
+            if (T->Deformer->Transformers_Count > 0)
+            {
+                if (T == T->Deformer->Transformers[0])
+                {
+                    fixed_goals = find_fixed_goals(T->Deformer);
+                }
+            }
+        }
     }
     else if (mod & KMOD_CTRL)
     {
@@ -8712,6 +8763,19 @@ void make_Movement()
         else
         {
             move_(T, Delta, subdLevel);
+        }
+        if (T->Deformer != NULL)
+        {
+            if (T->Deformer->Transformers_Count > 0)
+            {
+                if (T == T->Deformer->Transformers[0])
+                {
+                    if(!fixed_goals)
+                    {
+                        set_Deformer_Delta(T->Deformer);
+                    }
+                }
+            }
         }
     }
 }
@@ -13285,6 +13349,10 @@ int main(int argc, char * args[])
                     Delta[2] = D->Poses[0]->TP[0].pos[2] - T->pos[2];
 
                     move_Pose_T(T, Delta);
+
+                    D->Delta[0] = 0;
+                    D->Delta[1] = 0;
+                    D->Delta[2] = 0;
 
                     Update_Objects_Count = 0;
 

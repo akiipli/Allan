@@ -391,6 +391,7 @@ void save_Deformers(char * deformers_files_dir)
         }
 
         fprintf(F, "%d\n", D->current_pose);
+        fprintf(F, "%f %f %f\n", D->Delta[0], D->Delta[1], D->Delta[2]);
 
         fclose(F);
     }

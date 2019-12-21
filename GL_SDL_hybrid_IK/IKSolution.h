@@ -907,4 +907,62 @@ void unfix_ik_goals()
     }
 }
 
+void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[3])
+{
+    int c;
+    transformer * C;
+
+    ikChain * I;
+
+    if (T->parent->IK != NULL && T->parent->style == ik_goal)
+    {
+        I = T->parent->IK;
+        T->pos[0] = I->Bones[I->bonescount - 1]->B->pos[0];
+        T->pos[1] = I->Bones[I->bonescount - 1]->B->pos[1];
+        T->pos[2] = I->Bones[I->bonescount - 1]->B->pos[2];
+
+        // since stretching is not there
+
+        T->parent->pos[0] = T->pos[0];
+        T->parent->pos[1] = T->pos[1];
+        T->parent->pos[2] = T->pos[2];
+    }
+    else
+    {
+        float X, Y, Z;
+
+        X = T->pos[0] - pos_bind[0];
+        Y = T->pos[1] - pos_bind[1];
+        Z = T->pos[2] - pos_bind[2];
+
+        T->pos[0] = rotVec[0][0] * X + rotVec[1][0] * Y + rotVec[2][0] * Z + pos[0];
+        T->pos[1] = rotVec[0][1] * X + rotVec[1][1] * Y + rotVec[2][1] * Z + pos[1];
+        T->pos[2] = rotVec[0][2] * X + rotVec[1][2] * Y + rotVec[2][2] * Z + pos[2];
+    }
+
+    float rotVec_[3][3];
+    rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        rotate_R(C, rotVec_, T->pos, T->pos_bind);
+    }
+}
+
+void rotate_rotVec_pose(transformer * T)
+{
+    int c;
+    transformer * C;
+
+    float rotVec_[3][3];
+    rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        rotate_R(C, rotVec_, T->pos, T->pos_bind);
+    }
+}
+
 #endif // IKSOLUTION_H_INCLUDED
