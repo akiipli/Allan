@@ -927,6 +927,12 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
         T->parent->pos[1] = T->pos[1];
         T->parent->pos[2] = T->pos[2];
     }
+    else if (T->Bone != NULL && T == T->Bone->A && T->parent->Bone != NULL)
+    {
+        T->pos[0] = T->parent->pos[0];
+        T->pos[1] = T->parent->pos[1];
+        T->pos[2] = T->parent->pos[2];
+    }
     else
     {
         float X, Y, Z;
