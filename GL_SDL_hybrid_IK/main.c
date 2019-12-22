@@ -122,6 +122,7 @@ int BUMP_IMAGE = 0;
 int TURNTABLE = 0;
 int blit_flipped = 0;
 int frames_count = 10;
+int linear_pose = 1;
 
 int Drag_Dialog = 0;
 int Axis_lock = 0;
@@ -418,6 +419,8 @@ void make_osd(object * O)
         p += sprintf(&osd_font[p], "quads\t%d\n", O->quadcount_[subdLevel]);
     else
         p += sprintf(&osd_font[p], "polys\t%d\n", O->polycount);
+
+    p += sprintf(&osd_font[p], "linear\t%d\n", linear_pose);
 
 }
 
@@ -5013,7 +5016,7 @@ void update_Selections_List(int update, int blit)
     glDrawBuffer(GL_BACK);
 }
 
-void apply_Pose_position_Play(deformer * D, pose * P)
+void apply_Pose_position_Play(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
     {
@@ -5024,6 +5027,8 @@ void apply_Pose_position_Play(deformer * D, pose * P)
             transformer * T = D->Transformers[0];
 
             rotate_rotVec_pose(T);
+
+            move_IKs_To_Parent(T);
 
         }
     }
@@ -5050,14 +5055,14 @@ void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
-void apply_Pose_position_(deformer * D, pose * P, float Delta[3], int linear_pose)
+void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
     {
         paste_Pose_position(D, P);
 
         if (!linear_pose)
-            apply_Pose_position_Play(D, P);
+            apply_Pose_position_Play(D, P, Delta);
 
         //paste_Pose_rotation(D, P);
 
@@ -5067,9 +5072,18 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3], int linear_pos
 
             float Delta_[3];
 
-            Delta_[0] = Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
-            Delta_[1] = Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
-            Delta_[2] = Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
+            if (linear_pose)
+            {
+                Delta_[0] = Delta[0];
+                Delta_[1] = Delta[1];
+                Delta_[2] = Delta[2];
+            }
+            else
+            {
+                Delta_[0] = Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
+                Delta_[1] = Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
+                Delta_[2] = Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
+            }
 
             move_Pose_T(T, Delta_);
 
@@ -5238,7 +5252,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
 
         rotate_vertex_groups_D_Init();
 
-        apply_Pose_position_(D, P, D->Delta, 0);
+        apply_Pose_position_(D, P, D->Delta);
         //apply_Pose_rotation_(D, P, f, Delta);
 
         update_rotate_bounding_box();
@@ -5388,13 +5402,22 @@ void deformer_Player()
                 }
                 else if (event.type == SDL_KEYDOWN)
                 {
+                    mod = event.key.keysym.mod;
                     if (event.key.keysym.sym == SDLK_f)
                     {
                         TURNTABLE = !TURNTABLE;
                     }
                     else if (event.key.keysym.sym == SDLK_l)
                     {
-                        LIGHTSHOW = !LIGHTSHOW;
+                        if (mod & KMOD_SHIFT)
+                        {
+                            linear_pose = !linear_pose;
+                            make_osd(O);
+                        }
+                        else
+                        {
+                            LIGHTSHOW = !LIGHTSHOW;
+                        }
                     }
                 }
             }
@@ -5410,7 +5433,7 @@ void deformer_Player()
 //                    Delta[0] = D->Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
 //                    Delta[1] = D->Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
 //                    Delta[2] = D->Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
-                    apply_Pose_position_(D, P, D->Delta, 0);
+                    apply_Pose_position_(D, P, D->Delta);
                     //apply_Pose_rotation_Play(D, P, f % frames, Delta);
                     free(P->TP);
                     free(P);
@@ -8312,7 +8335,7 @@ void set_Bind_Mode()
         DRAW_LOCATORS = 1;
         LOCAT_ID_RENDER = DRAW_LOCATORS;
 
-        set_Deformers_Delta(); // to move Deformers To Delta Position
+        // set_Deformers_Delta(); // to move Deformers To Delta Position
 
         set_Bind_Pose_For_Transformers(0);
 

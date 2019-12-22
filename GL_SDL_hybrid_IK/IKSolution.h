@@ -912,22 +912,15 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
     int c;
     transformer * C;
 
-    ikChain * I;
-
-    if (T->parent->IK != NULL && T->parent->style == ik_goal)
+    if (T->Bone != NULL && T->Bone->IK_member > 0)
     {
-        I = T->parent->IK;
-        T->pos[0] = I->Bones[I->bonescount - 1]->B->pos[0];
-        T->pos[1] = I->Bones[I->bonescount - 1]->B->pos[1];
-        T->pos[2] = I->Bones[I->bonescount - 1]->B->pos[2];
 
-        // since stretching is not there
-
-        T->parent->pos[0] = T->pos[0];
-        T->parent->pos[1] = T->pos[1];
-        T->parent->pos[2] = T->pos[2];
     }
-    else if (T->Bone != NULL && T == T->Bone->A && T->parent->Bone != NULL)
+    else if (T->IK != NULL && (T->style == ik_goal || T->style == ik_start))
+    {
+
+    }
+    else if (T->parent->IK != NULL && T->parent->style == ik_goal)
     {
         T->pos[0] = T->parent->pos[0];
         T->pos[1] = T->parent->pos[1];
@@ -968,6 +961,53 @@ void rotate_rotVec_pose(transformer * T)
     {
         C = T->childs[c];
         rotate_R(C, rotVec_, T->pos, T->pos_bind);
+    }
+}
+
+void move_R(transformer * T, float Delta[3])
+{
+    int c;
+    transformer * C;
+
+    float Delta1[3];
+
+    Delta1[0] = Delta[0];
+    Delta1[1] = Delta[1];
+    Delta1[2] = Delta[2];
+
+    if (T->IK != NULL && T->style == ik_start)
+    {
+        Delta1[0] = T->parent->pos[0] - T->pos[0];
+        Delta1[1] = T->parent->pos[1] - T->pos[1];
+        Delta1[2] = T->parent->pos[2] - T->pos[2];
+    }
+
+    T->pos[0] += Delta1[0];
+    T->pos[1] += Delta1[1];
+    T->pos[2] += Delta1[2];
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        move_R(C, Delta1);
+    }
+}
+
+void move_IKs_To_Parent(transformer * T)
+{
+    int c;
+    transformer * C;
+
+    float Delta[3];
+
+    Delta[0] = 0;
+    Delta[1] = 0;
+    Delta[2] = 0;
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        move_R(C, Delta);
     }
 }
 

@@ -310,7 +310,21 @@ void paste_Pose_pos(deformer * D, pose * P)
         if (t >= D->Transformers_Count)
             break;
         T = D->Transformers[t];
-        memcpy(T->pos, P->TP[t].pos, sizeof(float[3]));
+
+        if (T->Bone != NULL && T->Bone->IK_member > 0)
+        {
+
+        }
+        else if (T->IK != NULL && (T->style == ik_goal || T->style == ik_start))
+        {
+
+        }
+        else
+        {
+            memcpy(T->pos, P->TP[t].pos, sizeof(float[3]));
+        }
+
+
  //       memcpy(T->pos_, P->TP[t].pos_, sizeof(float[3]));
     }
 }

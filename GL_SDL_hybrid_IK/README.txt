@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+5:00 PM 12/22/2019
+Shift + L while playing (ctrl + D). switches linear poses on and off.
+
 4:34 PM 12/9/2019
 Select ik goal and press f to make ik goal fixed.
 
