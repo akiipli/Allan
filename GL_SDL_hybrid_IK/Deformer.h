@@ -1191,4 +1191,27 @@ int find_fixed_goals(deformer * D)
     return r;
 }
 
+void update_Deformers_Poses(int Update_Objects_Count)
+{
+    int d;
+    deformer * D;
+    transformer * T;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+
+        if (D->Transformers_Count > 0)
+        {
+            T = D->Transformers[0];
+
+            bake(T);
+
+            rotate_(T);
+
+            solve_IK_Chains(D, 0); // specify affected IK chains before, collect them
+        }
+    }
+}
+
 #endif // DEFORMER_H_INCLUDED

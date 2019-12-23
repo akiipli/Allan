@@ -14115,6 +14115,11 @@ int main(int argc, char * args[])
                     Osd = 1;
                     HINTS = 1;
 
+                    if (dialog_type == POSE_DIALOG)
+                    {
+                        update_Deformers_Poses(Update_Objects_Count);
+                    }
+
 //                    set_Object_Mode();
                 }
 
