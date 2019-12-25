@@ -4234,6 +4234,7 @@ void open_Poses_List()
 {
     Osd = 0;
     HINTS = 0;
+    ROTATED_POSE = 1;
 
     PoseIndex = find_Pose_Index();
     create_Poses_List(PoseIndex);
@@ -5087,6 +5088,9 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
 
             move_Pose_T(T, Delta_);
 
+            if (ROTATED_POSE)
+                rotate_Pose(D);
+
             //rotate_Deformer_pose(T);
 
             rotate_Deformer_verts(D);
@@ -5187,6 +5191,9 @@ void apply_Pose(deformer * D, pose * P, int dialog)
 
                 move_Pose_T(T, D->Delta);
 
+                if (ROTATED_POSE)
+                    rotate_Pose(D);
+
                 Update_Objects_Count = 0;
 
                 rotate_collect(T);
@@ -5217,6 +5224,23 @@ void apply_Pose(deformer * D, pose * P, int dialog)
     }
     if (dialog && dialog_lock)
         draw_Dialog();
+}
+
+void settle_Deformer_Poses()
+{
+    int d;
+    deformer * D;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+        if (D->Transformers_Count > 0)
+        {
+            //reset_Deformer_rotation(D);
+            ROTATED_POSE = 0;
+            apply_Pose(D, D->Poses[D->current_pose], 0);
+        }
+    }
 }
 
 void transition_into_Pose(deformer * D, pose * P0, pose * P1)
@@ -5302,6 +5326,8 @@ void deformer_Player()
     deformer * D;
 //    transformer * T;
 
+    ROTATED_POSE = 1;
+
     int frames = 10;
 
     Update_Objects_Count = 0;
@@ -5376,6 +5402,8 @@ void deformer_Player()
                 if (D->Transformers_Count > 0)
                 {
                     D->current_pose = (p + D->current_pose) % D->Poses_Count;
+                    //reset_Deformer_rotation(D);
+                    ROTATED_POSE = 0;
                     apply_Pose(D, D->Poses[D->current_pose], 0);
                 }
             }
@@ -5595,32 +5623,30 @@ void select_Deformer()
     }
 }
 
-void set_Deformer_current_pose(int currentPose)
+void set_Deformer_current_pose(pose * P)
 {
-    int idx, index, d;
-
+    int d, p;
+    int Preak = 0;
     deformer * D;
-
-    index = 0;
 
     for (d = 0; d < deformerIndex; d ++)
     {
         D = deformers[d];
 
-        idx = index;
-
-        if (!D->collapsed)
+        for (p = 0; p < D->Poses_Count; p ++)
         {
-            index += D->Poses_Count;
+            if (P == D->Poses[p])
+            {
+                D->current_pose = p;
+                Preak = 1;
+                break;
+            }
         }
-
-        if (index >= currentPose)
+        if (Preak)
         {
-            D->current_pose = currentPose - idx;
             break;
         }
     }
-
 }
 
 void handle_UP_Pose(int scrollbar)
@@ -5645,7 +5671,7 @@ void handle_UP_Pose(int scrollbar)
         if (controlDown)
         {
             swap_Poses_up(poses[currentPose]);
-            set_Deformer_current_pose(currentPose);
+            set_Deformer_current_pose(poses[currentPose]);
         }
         else
         {
@@ -5660,7 +5686,7 @@ void handle_UP_Pose(int scrollbar)
                     if (!BIND_POSE && P0 != NULL && P1 != NULL && P0 != P1 && P0->D == P1->D)
                     {
                         deformer * D = P1->D;
-                        set_Deformer_current_pose(currentPose);
+                        set_Deformer_current_pose(P1);
                         transition_into_Pose(D, P0, P1);
                     }
                 }
@@ -6126,7 +6152,7 @@ void handle_DOWN_Pose(int scrollbar)
         if (controlDown)
         {
             swap_Poses_down(poses[currentPose]);
-            set_Deformer_current_pose(currentPose);
+            set_Deformer_current_pose(poses[currentPose]);
         }
         else
         {
@@ -6140,7 +6166,7 @@ void handle_DOWN_Pose(int scrollbar)
                     if (!BIND_POSE && P0 != NULL && P1 != NULL && P0 != P1 && P0->D == P1->D)
                     {
                         deformer * D = P1->D;
-                        set_Deformer_current_pose(currentPose);
+                        set_Deformer_current_pose(P1);
                         transition_into_Pose(D, P0, P1);
                     }
                 }
@@ -7134,6 +7160,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
     {
         pose * P = poses[currentPose];
         deformer * D = P->D;
+        set_Deformer_current_pose(P);
         apply_Pose(D, P, 1);
     }
 }
@@ -13413,6 +13440,10 @@ int main(int argc, char * args[])
             {
                 parent_Locators();
             }
+            else if (mod & KMOD_SHIFT)
+            {
+                transfer_Deformers_rotVec(T);
+            }
             else
             {
                 add_Pose();
@@ -14117,7 +14148,9 @@ int main(int argc, char * args[])
 
                     if (dialog_type == POSE_DIALOG)
                     {
-                        update_Deformers_Poses(Update_Objects_Count);
+                        //update_Deformers_Poses();
+
+                        settle_Deformer_Poses();
                     }
 
 //                    set_Object_Mode();

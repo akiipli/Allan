@@ -22,6 +22,7 @@ int Pose_X_Offset[POSES];
 int Pose_X_Collapsed[POSES];
 
 int BIND_POSE = 0;
+int ROTATED_POSE = 0;
 
 typedef struct
 {
@@ -695,6 +696,30 @@ void set_Deformer_Delta(deformer * D)
         D->Delta[0] = T->pos[0] - D->Poses[0]->TP[0].pos[0];
         D->Delta[1] = T->pos[1] - D->Poses[0]->TP[0].pos[1];
         D->Delta[2] = T->pos[2] - D->Poses[0]->TP[0].pos[2];
+    }
+}
+
+void rotate_Pose(deformer * D)
+{
+    int t;
+    transformer * T;
+
+    float pos[3];
+    float rotVec[3][3];
+
+    pos[0] = D->Poses[0]->TP->pos[0] + D->Delta[0];
+    pos[1] = D->Poses[0]->TP->pos[1] + D->Delta[1];
+    pos[2] = D->Poses[0]->TP->pos[2] + D->Delta[2];
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        T = D->Transformers[t];
+
+        rotate_center(T->pos, D->rotVec, pos, T->pos);
+              // data, matrix, center, result
+
+        memcpy(rotVec, T->rotVec, sizeof(float[3][3]));
+        rotate_matrix_I(T->rotVec, D->rotVec, rotVec);
     }
 }
 

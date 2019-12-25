@@ -66,6 +66,8 @@ struct deformer
 
     ikChain ** IKchains;
     int IKchains_Count;
+
+    float rotVec[3][3];
 };
 
 void free_Deformer(deformer * D)
@@ -227,6 +229,7 @@ void add_Deformer()
     D->IKchains = malloc(0 * sizeof(ikChain*));
     memcpy(D->Delta, (float[3]){0, 0, 0}, sizeof D->Delta);
     D->current_pose = 0;
+    memcpy(&D->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof D->rotVec);
     deformerIndex ++;
 }
 
@@ -1191,7 +1194,7 @@ int find_fixed_goals(deformer * D)
     return r;
 }
 
-void update_Deformers_Poses(int Update_Objects_Count)
+void update_Deformers_Poses()
 {
     int d;
     deformer * D;
@@ -1212,6 +1215,19 @@ void update_Deformers_Poses(int Update_Objects_Count)
             solve_IK_Chains(D, 0); // specify affected IK chains before, collect them
         }
     }
+}
+
+void transfer_Deformers_rotVec(transformer * T)
+{
+    if (T->Deformer != NULL)
+    {
+        memcpy(T->Deformer->rotVec, T->Deformer->Transformers[0]->rotVec, sizeof(float[3][3]));
+    }
+}
+
+void reset_Deformer_rotation(deformer * D)
+{
+    memcpy(&D->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof D->rotVec);
 }
 
 #endif // DEFORMER_H_INCLUDED
