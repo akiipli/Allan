@@ -8790,13 +8790,9 @@ void make_Movement()
             {
                 if (T->childs[0]->IK->bonescount > 1)
                 {
-                    memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
                     if (T->Deformer != NULL)
                         solve_IK_Chains(T->Deformer, 0);
-                    move_Deformer_IK(T, 0);
-
-                    memcpy(T->childs[0]->pos, T->pos, sizeof(float[3]));
-                    update_rotate_bounding_box();
+                    move_(T, Delta, subdLevel);
                 }
                 else
                 {
