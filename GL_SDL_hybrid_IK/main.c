@@ -5231,13 +5231,15 @@ void settle_Deformer_Poses()
     int d;
     deformer * D;
 
+    ROTATED_POSE = 0;
+
     for (d = 0; d < deformerIndex; d ++)
     {
         D = deformers[d];
         if (D->Transformers_Count > 0)
         {
             //reset_Deformer_rotation(D);
-            ROTATED_POSE = 0;
+
             apply_Pose(D, D->Poses[D->current_pose], 0);
         }
     }
@@ -5396,6 +5398,8 @@ void deformer_Player()
     {
         if (Preak)
         {
+            ROTATED_POSE = 0;
+
             for (d = 0; d < deformerIndex; d ++)
             {
                 D = deformers[d];
@@ -5403,7 +5407,7 @@ void deformer_Player()
                 {
                     D->current_pose = (p + D->current_pose) % D->Poses_Count;
                     //reset_Deformer_rotation(D);
-                    ROTATED_POSE = 0;
+
                     apply_Pose(D, D->Poses[D->current_pose], 0);
                 }
             }

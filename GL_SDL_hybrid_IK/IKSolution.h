@@ -889,6 +889,9 @@ void fix_ik_goal(transformer * T)
 void unfix_ik_goal(transformer * T)
 {
     normalize_rotation_parent(T);
+    T->scl[0] *= (1 / T->parent->scl_vec[0]);
+    T->scl[1] *= (1 / T->parent->scl_vec[1]);
+    T->scl[2] *= (1 / T->parent->scl_vec[2]);
 }
 
 void unfix_ik_goals()
