@@ -337,6 +337,9 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
                         &D->rotVec[0][0], &D->rotVec[0][1], &D->rotVec[0][2],
                         &D->rotVec[1][0], &D->rotVec[1][1], &D->rotVec[1][2],
                         &D->rotVec[2][0], &D->rotVec[2][1], &D->rotVec[2][2]);
+
+            if (fgets(buff, BUF_SIZE, fp))
+                sscanf(buff, "%f %f %f", &D->rot[0], &D->rot[1], &D->rot[2]);
         }
     }
     else

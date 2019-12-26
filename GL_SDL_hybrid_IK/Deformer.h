@@ -68,6 +68,7 @@ struct deformer
     int IKchains_Count;
 
     float rotVec[3][3];
+    float rot[3];
 };
 
 void free_Deformer(deformer * D)
@@ -230,6 +231,7 @@ void add_Deformer()
     memcpy(D->Delta, (float[3]){0, 0, 0}, sizeof D->Delta);
     D->current_pose = 0;
     memcpy(&D->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof D->rotVec);
+    memcpy(D->rot, (float[3]){0, 0, 0}, sizeof D->rot);
     deformerIndex ++;
 }
 
@@ -1217,11 +1219,21 @@ void update_Deformers_Poses()
     }
 }
 
+void transfer_Transformers_rotVec(deformer * D)
+{
+    if (D != NULL && D->Transformers_Count > 0)
+    {
+        memcpy(D->Transformers[0]->rotVec, D->rotVec, sizeof(float[3][3]));
+        memcpy(D->Transformers[0]->rot, D->rot, sizeof(float[3]));
+    }
+}
+
 void transfer_Deformers_rotVec(transformer * T)
 {
     if (T->Deformer != NULL)
     {
         memcpy(T->Deformer->rotVec, T->Deformer->Transformers[0]->rotVec, sizeof(float[3][3]));
+        memcpy(T->Deformer->rot, T->Deformer->Transformers[0]->rot, sizeof(float[3]));
     }
 }
 

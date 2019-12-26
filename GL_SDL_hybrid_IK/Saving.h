@@ -398,6 +398,8 @@ void save_Deformers(char * deformers_files_dir)
                 D->rotVec[1][0], D->rotVec[1][1], D->rotVec[1][2],
                 D->rotVec[2][0], D->rotVec[2][1], D->rotVec[2][2]);
 
+        fprintf(F, "%f %f %f\n", D->rot[0], D->rot[1], D->rot[2]);
+
         fclose(F);
     }
 }
