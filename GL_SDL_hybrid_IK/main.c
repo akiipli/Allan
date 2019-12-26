@@ -5155,6 +5155,7 @@ void apply_Pose(deformer * D, pose * P, int dialog)
 {
     set_Pose_H_Button(3);
     printf("paste Pose\n");
+
     if (!BIND_POSE && currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
     {
         if (currentPose >= 0 && currentPose < posesIndex)
@@ -6565,7 +6566,7 @@ void add_Pose()
 //                //set_Deformers_Delta();
 //                relative = 1;
 //            }
-            paste_Deformer_rotVec(D);
+            //paste_Deformer_rotVec(D);
             add_Pose_To_Deformer(D, relative);
             D->current_pose = D->Poses_Count - 1;
 //            PoseIndex ++;
