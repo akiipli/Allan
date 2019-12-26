@@ -5279,32 +5279,30 @@ void select_Deformer()
     }
 }
 
-void set_Deformer_current_pose(int currentPose)
+void set_Deformer_current_pose(pose * P)
 {
-    int idx, index, d;
-
+    int d, p;
+    int Preak = 0;
     deformer * D;
-
-    index = 0;
 
     for (d = 0; d < deformerIndex; d ++)
     {
         D = deformers[d];
 
-        idx = index;
-
-        if (!D->collapsed)
+        for (p = 0; p < D->Poses_Count; p ++)
         {
-            index += D->Poses_Count;
+            if (P == D->Poses[p])
+            {
+                D->current_pose = p;
+                Preak = 1;
+                break;
+            }
         }
-
-        if (index >= currentPose)
+        if (Preak)
         {
-            D->current_pose = currentPose - idx;
             break;
         }
     }
-
 }
 
 void handle_UP_Pose(int scrollbar)
@@ -5329,7 +5327,7 @@ void handle_UP_Pose(int scrollbar)
         if (controlDown)
         {
             swap_Poses_up(poses[currentPose]);
-            set_Deformer_current_pose(currentPose);
+            set_Deformer_current_pose(poses[currentPose]);
         }
         else
         {
@@ -5344,7 +5342,7 @@ void handle_UP_Pose(int scrollbar)
                     if (!BIND_POSE && P0 != NULL && P1 != NULL && P0 != P1 && P0->D == P1->D)
                     {
                         deformer * D = P1->D;
-                        set_Deformer_current_pose(currentPose);
+                        set_Deformer_current_pose(P1);
                         transition_into_Pose(D, P0, P1);
                     }
                 }
@@ -5775,7 +5773,7 @@ void handle_DOWN_Pose(int scrollbar)
         if (controlDown)
         {
             swap_Poses_down(poses[currentPose]);
-            set_Deformer_current_pose(currentPose);
+            set_Deformer_current_pose(poses[currentPose]);
         }
         else
         {
@@ -5789,7 +5787,7 @@ void handle_DOWN_Pose(int scrollbar)
                     if (!BIND_POSE && P0 != NULL && P1 != NULL && P0 != P1 && P0->D == P1->D)
                     {
                         deformer * D = P1->D;
-                        set_Deformer_current_pose(currentPose);
+                        set_Deformer_current_pose(P1);
                         transition_into_Pose(D, P0, P1);
                     }
                 }
