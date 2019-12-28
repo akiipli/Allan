@@ -12,6 +12,15 @@ Copyright <2018> <Allan Kiipli>
 #ifndef INITIALIZINGFUNCTIONS_H_INCLUDED
 #define INITIALIZINGFUNCTIONS_H_INCLUDED
 
+void free_labels()
+{
+    int l;
+    for (l = 0; l < LABELS; l ++)
+    {
+        free(labels[l]);
+    }
+}
+
 void create_Transformers_List();
 
 void free_ikChain(ikChain * I)
@@ -94,6 +103,7 @@ void free_deformers()
         free(D->Bones);
         free(D->IKchains);
         //free(D->Poses);
+        free(D->P);
     }
 }
 

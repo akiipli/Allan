@@ -69,6 +69,9 @@ struct deformer
 
     float rotVec[3][3];
     float rot[3];
+
+    int play;
+    pose * P;
 };
 
 void free_Deformer(deformer * D)
@@ -98,6 +101,7 @@ void free_Deformer(deformer * D)
     free(D->Bones);
     free(D->IKchains);
     free(D->Poses);
+    free(D->P);
     free(D);
 }
 
@@ -232,6 +236,8 @@ void add_Deformer()
     D->current_pose = 0;
     memcpy(&D->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof D->rotVec);
     memcpy(D->rot, (float[3]){0, 0, 0}, sizeof D->rot);
+    D->play = -1;
+    D->P = NULL;
     deformerIndex ++;
 }
 
