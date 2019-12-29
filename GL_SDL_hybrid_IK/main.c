@@ -13466,11 +13466,18 @@ int main(int argc, char * args[])
                     T = objects[currentObject]->T;
                 }
 
-                bake_scale(T);
+                if (T->IK != NULL && T->style == ik_fixed)
+                {
 
-                T->scl[0] = 1.0;
-                T->scl[1] = 1.0;
-                T->scl[2] = 1.0;
+                }
+                else
+                {
+                    bake_scale(T);
+
+                    T->scl[0] = 1.0;
+                    T->scl[1] = 1.0;
+                    T->scl[2] = 1.0;
+                }
 
                 message = -10;
 
@@ -13490,11 +13497,18 @@ int main(int argc, char * args[])
                     T = objects[currentObject]->T;
                 }
 
-                bake(T);
+                if (T->IK != NULL && T->style == ik_fixed)
+                {
 
-                T->rot[0] = 0.0;
-                T->rot[1] = 0.0;
-                T->rot[2] = 0.0;
+                }
+                else
+                {
+                    bake(T);
+
+                    T->rot[0] = 0.0;
+                    T->rot[1] = 0.0;
+                    T->rot[2] = 0.0;
+                }
 
                 message = -10;
 
