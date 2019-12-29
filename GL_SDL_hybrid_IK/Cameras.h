@@ -19,7 +19,7 @@ Copyright <2018> <Allan Kiipli>
 float CamDist = 10;
 
 float persp_Near = 0.001;
-float persp_Far = 2048;
+float persp_Far = 2048 * 10;
 
 float z_near = 2000.0;
 
