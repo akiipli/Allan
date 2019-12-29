@@ -5269,13 +5269,15 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
         rotate_collect(T);
     }
 
+    D->P = init_Deformer_P(D);
+
     apply_Pose(D, P0, 0);
 
     for (f = 1; f <= frames_count; f ++)
     {
         w1 = (float)f / frames_count;
         w0 = 1 - w1;
-        D->P = create_Inbetween_Pose_(D, P0, P1, w0, w1);
+        create_Inbetween_Pose_(D, D->P, P0, P1, w0, w1);
 
         rotate_vertex_groups_D_Init();
 
@@ -5309,9 +5311,6 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
         {
             poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
         }
-
-//        free(P->TP);
-//        free(P);
     }
 
     apply_Pose(D, P1, 0);
@@ -5371,7 +5370,9 @@ void deformer_Player()
     {
         D = deformers[d];
 
-        D->play = -1; /* to start with current pose */
+        D->P = init_Deformer_P(D);
+
+//        D->play = -1; /* to start with current pose */
 
 //        if (D->Transformers_Count > 0)
 //        {
@@ -5420,6 +5421,7 @@ void deformer_Player()
             for (d = 0; d < deformerIndex; d ++)
             {
                 D = deformers[d];
+
                 if (D->Transformers_Count > 0)
                 {
                     if (D->play < 0)
@@ -5597,7 +5599,7 @@ void deformer_Player()
                 {
                     if (D->play < 0)
                     {
-                        D->P = create_Inbetween_Pose_(D, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1);
+                        create_Inbetween_Pose_(D, D->P, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1);
                     }
 //                    else
 //                    {
@@ -5608,8 +5610,6 @@ void deformer_Player()
 //                    Delta[2] = D->Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
                     apply_Pose_position_(D, D->P, D->Delta);
                     //apply_Pose_rotation_Play(D, P, f % frames, Delta);
-//                    free(P->TP);
-//                    free(P);
                 }
             }
 

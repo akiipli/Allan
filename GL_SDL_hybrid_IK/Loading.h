@@ -342,7 +342,7 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
                 sscanf(buff, "%f %f %f", &D->rot[0], &D->rot[1], &D->rot[2]);
 
             D->play = -1;
-            D->P = init_Deformer_P(D);
+            D->P = NULL;
         }
     }
     else
