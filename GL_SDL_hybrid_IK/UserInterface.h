@@ -50,7 +50,7 @@ int LISTLENGTH = 12;
 #define H_HIER_NUM 5
 #define H_DEFR_NUM 6
 #define H_SCEN_NUM 1
-#define H_POSE_NUM 4
+#define H_POSE_NUM 5
 #define H_BONE_NUM 2
 #define H_IKCH_NUM 2
 #define H_TEXT_NUM 2
@@ -134,6 +134,7 @@ char output_dir[] = "C:/Allan/outfiles/";
 char * files_dir;
 char images_dir[STRLEN];
 char objects_dir[STRLEN];
+char poses_dir[STRLEN];
 
 typedef struct
 {
@@ -306,6 +307,9 @@ void init_ui()
     files_dir = (char *)&resources_dir;
     memcpy(&images_dir, resources_dir, sizeof resources_dir);
     memcpy(&objects_dir, resources_dir, sizeof resources_dir);
+
+    sprintf(poses_dir, "%s", "c:/Trips Code/");
+
     Buttonindex = 0;
     memcpy(&buttoncolors[0], white, sizeof white);
     memcpy(&buttoncolors[1], grayb, sizeof grayb);
@@ -2936,6 +2940,7 @@ void draw_Poses_Bottom_Line(int width, int height)
     draw_Button_pose_horizontal("Remove", 1, 1);
     draw_Button_pose_horizontal("Rename", 2, 1);
     draw_Button_pose_horizontal("Update", 3, 1);
+    draw_Button_pose_horizontal("Import", 4, 1);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

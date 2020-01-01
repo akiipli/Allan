@@ -87,6 +87,121 @@ void scale_xyz(transformer_pose * T)
     T->rotVec[2][2] = T->rotVec_[2][2] * T->scl_vec[2];
 }
 
+Poses_In POSESIN;
+
+Poses_In read_Poses_file(char * fileName)
+{
+    POSESIN.initialized = 0;
+    POSESIN.Poses_c = 0;
+    POSESIN.TP_c = 0;
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return POSESIN;
+    }
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    char * p;
+
+    pose * P;
+    transformer_pose * T;
+
+    int i, t, poses_count = 0;
+
+    posesCount_Import = 0;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Poses\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &poses_count);
+
+            for (i = 0; i < poses_count; i ++)
+            {
+                if (posesCount_Import >= POSES)
+                {
+                    fclose(fp);
+                    POSESIN.Poses_c = i - 1;
+                    return POSESIN;
+                }
+                P = malloc(sizeof(pose));
+                poses_Import[posesCount_Import] = P;
+                P->index = posesCount_Import;
+                P->Name = malloc(STRLEN * sizeof(char));
+
+                fgets(buff, BUF_SIZE, fp);
+
+                p = strchr(buff, '\n');
+                *p = '\0';
+
+                sprintf(P->Name, "%s", buff);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &P->address);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&P->D);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &P->transformers_count);
+
+                P->TP = calloc(P->transformers_count, sizeof(transformer_pose));
+
+                for (t = 0; t < P->transformers_count; t ++)
+                {
+                    T = &P->TP[t];
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &T->rot_Order);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->scl[0], &T->scl[1], &T->scl[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->scl_vec[0], &T->scl_vec[1], &T->scl_vec[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->rot[0], &T->rot[1], &T->rot[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f %f %f %f %f %f %f",
+                            &T->rotVec_[0][0], &T->rotVec_[0][1], &T->rotVec_[0][2],
+                            &T->rotVec_[1][0], &T->rotVec_[1][1], &T->rotVec_[1][2],
+                            &T->rotVec_[2][0], &T->rotVec_[2][1], &T->rotVec_[2][2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f %f %f %f %f %f %f",
+                            &T->rotVec_I[0][0], &T->rotVec_I[0][1], &T->rotVec_I[0][2],
+                            &T->rotVec_I[1][0], &T->rotVec_I[1][1], &T->rotVec_I[1][2],
+                            &T->rotVec_I[2][0], &T->rotVec_I[2][1], &T->rotVec_I[2][2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f %f %f %f %f %f %f",
+                            &T->rotVec_B[0][0], &T->rotVec_B[0][1], &T->rotVec_B[0][2],
+                            &T->rotVec_B[1][0], &T->rotVec_B[1][1], &T->rotVec_B[1][2],
+                            &T->rotVec_B[2][0], &T->rotVec_B[2][1], &T->rotVec_B[2][2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->pos[0], &T->pos[1], &T->pos[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->pos_[0], &T->pos_[1], &T->pos_[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &T->style);
+                    scale_xyz(T);
+                }
+                posesCount_Import ++;
+            }
+        }
+    }
+
+    fclose(fp);
+
+    if (posesCount_Import > 0)
+    {
+        POSESIN.initialized = 1;
+    }
+
+    POSESIN.Poses_c = posesCount_Import;
+
+    return POSESIN;
+}
+
 int read_Pose_file(Pose_In * POSE_IN, char * fileName)
 {
     FILE * fp;

@@ -171,6 +171,7 @@ int items_count = 3;
 int items_start = 0;
 
 char text[TYPE_LENGTH];
+char Text[STRLEN];
 char * texts[TEXT_NUM];
 int texts_count = 3;
 int texts_start = 0;
@@ -235,6 +236,7 @@ HANDLE hEvent;
 HANDLE hFile;
 DWORD dwReturnValue;
 OBJ_In OBJ_File;
+Poses_In Deformer_Poses;
 
 int object_hook = 0;
 int currentObject = 0;
@@ -3800,6 +3802,44 @@ void deselect_Objects()
     selected_objects[0] = currentObject;
 }
 
+void open_Poses_dialog()
+{
+    int result;
+    char * fileName;
+    fileName = open_FileName(gHwnd, poses_dir, "Import deformer poses");
+    int len_f = strlen(fileName);
+    if (len_f > 1)
+    {
+        int end_of_line = len_f;
+        while (fileName[end_of_line] != '/' && fileName[end_of_line] != '\\')
+        {
+            end_of_line--;
+            if (end_of_line <= 0)
+            {
+                break;
+            }
+        }
+        if (end_of_line > 0)
+        {
+            memcpy(poses_dir, fileName, end_of_line + 1);
+            poses_dir[end_of_line + 1] = '\0';
+            files_dir = (char *)&poses_dir;
+        }
+    }
+    Draw_Bottom_Message("poses dir\n");
+
+    Deformer_Poses = read_Poses_file(fileName);
+
+    if (Deformer_Poses.initialized)
+    {
+        result = transfer_Poses_To_Deformer(&Deformer_Poses, D);
+
+        sprintf(Text, "Poses transferred %d %s\n", result, D->Name);
+
+        Draw_Bottom_Message(Text);
+    }
+}
+
 void open_OBJ_dialog()
 {
     int result;
@@ -4248,7 +4288,7 @@ void open_Poses_List()
 
     black_out_PoseList();
 
-    set_Pose_H_Button(-1);
+    //set_Pose_H_Button(-1);
 
     //DRAW_LOCATORS = 1;
     //LOCAT_ID_RENDER = 1;
@@ -5153,7 +5193,7 @@ void apply_Pose_rotation_(deformer * D, pose * P, int frame, float Delta[3])
 
 void apply_Pose(deformer * D, pose * P, int dialog)
 {
-    set_Pose_H_Button(3);
+    //set_Pose_H_Button(3);
     printf("paste Pose\n");
 
     if (!BIND_POSE && currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
@@ -6856,6 +6896,27 @@ void remove_Pose()
     }
 }
 
+void import_Poses()
+{
+    if (deformerIndex > 0)
+    {
+        D = deformers[currentDeformer_Node];
+
+        printf("deformer %s\n", D->Name);
+
+        if (D->Transformers_Count > 0)
+        {
+            set_Pose_H_Button(4);
+            printf("import Poses\n");
+
+            open_Poses_dialog();
+
+            if (dialog_lock)
+                draw_Dialog();
+        }
+    }
+}
+
 void update_Pose()
 {
     if (posesIndex > 0 && currentPose < posesIndex)
@@ -6914,7 +6975,7 @@ void rename_Pose()
 
 void apply_Pose_rotation()
 {
-    set_Pose_H_Button(3);
+    //set_Pose_H_Button(3);
     printf("paste Pose rotation\n");
     if (!BIND_POSE && currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
     {
@@ -7282,7 +7343,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
             Edit_Lock = 0;
             EditCursor = 0;
             printf("Edit finishing!\n");
-            set_Pose_H_Button(-1);
+            //set_Pose_H_Button(-1);
             //update = 1;
         }
         else if (letter == 8) // backspace
@@ -10242,6 +10303,7 @@ int main(int argc, char * args[])
     Button_h_pose[1].func = &remove_Pose;
     Button_h_pose[2].func = &rename_Pose;
     Button_h_pose[3].func = &update_Pose;
+    Button_h_pose[4].func = &import_Poses;
 
     Button_h_bone[0].func = &remove_Bone;
     Button_h_bone[1].func = &rename_Bone;

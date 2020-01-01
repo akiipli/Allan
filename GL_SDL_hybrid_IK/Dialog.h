@@ -44,6 +44,14 @@ typedef struct
 }
 OBJ_In;
 
+typedef struct
+{
+    int initialized;
+    int Poses_c;
+    int TP_c;
+}
+Poses_In;
+
 char szFile[256];
 
 float VertexCoords[IN_ARRAY];

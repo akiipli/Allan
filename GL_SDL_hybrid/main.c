@@ -4170,7 +4170,7 @@ void open_Poses_List()
 
     black_out_PoseList();
 
-    set_Pose_H_Button(-1);
+    //set_Pose_H_Button(-1);
 
     //DRAW_LOCATORS = 1;
     //LOCAT_ID_RENDER = 1;
@@ -6337,7 +6337,7 @@ void rename_Pose()
 
 void apply_Pose_rotation()
 {
-    set_Pose_H_Button(3);
+    //set_Pose_H_Button(3);
     printf("paste Pose rotation\n");
     if (!BIND_POSE && currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
     {
@@ -6413,7 +6413,7 @@ void apply_Pose_rotation()
 
 void apply_Pose()
 {
-    set_Pose_H_Button(3);
+    //set_Pose_H_Button(3);
     printf("paste Pose\n");
     if (!BIND_POSE && currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
     {
@@ -6710,7 +6710,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
             Edit_Lock = 0;
             EditCursor = 0;
             printf("Edit finishing!\n");
-            set_Pose_H_Button(-1);
+            //set_Pose_H_Button(-1);
             //update = 1;
         }
         else if (letter == 8) // backspace

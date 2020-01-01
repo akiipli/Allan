@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef POSES_H_INCLUDED
 #define POSES_H_INCLUDED
 
-#define POSES 100
+#define POSES 300
 
 int Poses_c;
 int Poses_Node_c;
@@ -56,6 +56,9 @@ void free_Pose(pose * P)
     free(P->TP);
     free(P);
 }
+
+pose * poses_Import[POSES];
+int posesCount_Import = 0;
 
 pose * poses[POSES];
 int posesIndex = 0;
@@ -745,6 +748,59 @@ void rotate_Pose(deformer * D)
         memcpy(rotVec, T->rotVec, sizeof(float[3][3]));
         rotate_matrix_I(T->rotVec, D->rotVec, rotVec);
     }
+}
+
+int transfer_Poses_To_Deformer(Poses_In * Deformer_Poses, deformer * D)
+{
+    printf("transfer Poses To Deformer\n");
+
+    int result = 0;
+
+    int p;
+
+    pose * P;
+
+    for (p = 1; p < Deformer_Poses->Poses_c; p ++) // skip default pose
+    {
+
+        if (posesIndex >= POSES)
+        {
+            break;
+        }
+
+        P = poses_Import[p];
+
+        if (P->transformers_count == D->Transformers_Count)
+        {
+            poses[posesIndex] = P;
+            P->index = posesIndex;
+
+            P->D = D;
+
+            D->Poses = realloc(D->Poses, (D->Poses_Count + 1) * sizeof(pose*));
+
+            if (D->Poses == NULL)
+            {
+                break;
+            }
+
+            D->Poses[D->Poses_Count] = P;
+
+            D->Poses_Count ++;
+
+            posesIndex ++;
+            posesCount ++;
+
+            result ++;
+        }
+        else
+        {
+            free(P->TP);
+            free(P);
+        }
+    }
+
+    return result;
 }
 
 #endif // POSES_H_INCLUDED
