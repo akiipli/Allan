@@ -828,7 +828,7 @@ void assert_Current_Object()
 void unhide_Object(int index)
 {
     loaded_objects[index] = 1;
-    objects[index]->selected = 1;
+//    objects[index]->selected = 1;
     assert_Object_Selection();
 }
 
@@ -838,7 +838,7 @@ void hide_Object(int index)
     objects[index]->selected = 0;
 
     assert_Object_Selection();
-    assert_Current_Object();
+//    assert_Current_Object();
 }
 
 void assignToQuads(object * O, quadrant * Q, int L, int surf)
@@ -11292,40 +11292,57 @@ int main(int argc, char * args[])
                                 if (strcmp(item, ITEM_TYPE_OBJECT) == 0)
                                 {
                                     ItemIndex = index + items_start;
-                                    if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)
-                                    {
-                                        ItemList[currentObject - items_start].color = UI_BLACK;
-                                    }
 
-                                    if (ItemIndex < objectIndex && ItemIndex >= 0)
+                                    if (mouse_x > SIDEBAR + (DIALOG_WIDTH - 20) && mouse_x < SIDEBAR + DIALOG_WIDTH)
                                     {
-                                        sels_start[current_sel_type] = 0;
-                                        if (controlDown)
+                                        if (loaded_objects[ItemIndex])
                                         {
-                                            objects[ItemIndex]->selected = 0;
-                                            ItemList[index].color = UI_BLACK;
-                                            assert_Object_Selection();
-                                            if (ItemIndex == currentObject && selected_object_count > 0)
-                                            {
-                                                currentObject = selected_objects[selected_object_count - 1];
-                                                O = objects[currentObject];
-                                            }
-                                            if (currentObject - items_start >= 0)
-                                                ItemList[currentObject - items_start].color = UI_BACKL;
-
-                                            update_Items_List();
-                                            glDrawBuffer(GL_BACK);
+                                            hide_Object(ItemIndex);
                                         }
                                         else
                                         {
-                                            currentObject = ItemIndex;
-                                            O = objects[currentObject];
-                                            O->selected = 1;
-                                            ItemList[index].color = UI_BACKL;
-                                            assert_Object_Selection();
+                                            unhide_Object(ItemIndex);
+                                        }
+                                        find_Camera_Objects();
+                                        update_Items_List();
+                                    }
+                                    else
+                                    {
+                                        if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)
+                                        {
+                                            ItemList[currentObject - items_start].color = UI_BLACK;
+                                        }
 
-                                            update_Items_List();
-                                            ItemList[index].color = UI_BLACK;
+                                        if (ItemIndex < objectIndex && ItemIndex >= 0)
+                                        {
+                                            sels_start[current_sel_type] = 0;
+                                            if (controlDown)
+                                            {
+                                                objects[ItemIndex]->selected = 0;
+                                                ItemList[index].color = UI_BLACK;
+                                                assert_Object_Selection();
+                                                if (ItemIndex == currentObject && selected_object_count > 0)
+                                                {
+                                                    currentObject = selected_objects[selected_object_count - 1];
+                                                    O = objects[currentObject];
+                                                }
+                                                if (currentObject - items_start >= 0)
+                                                    ItemList[currentObject - items_start].color = UI_BACKL;
+
+                                                update_Items_List();
+                                                glDrawBuffer(GL_BACK);
+                                            }
+                                            else
+                                            {
+                                                currentObject = ItemIndex;
+                                                O = objects[currentObject];
+                                                O->selected = 1;
+                                                ItemList[index].color = UI_BACKL;
+                                                assert_Object_Selection();
+
+                                                update_Items_List();
+                                                ItemList[index].color = UI_BLACK;
+                                            }
                                         }
                                     }
                                 }

@@ -572,7 +572,7 @@ int list_selections(char **, int, int, char *);
 
 int list_texts(char **, int, int, const char *);
 
-int list_items(char ** item_list, int start, int n, const char * type, int * selected, int currentObject)
+int list_items(char ** item_list, int start, int n, const char * type, int * selected, int * hidden, int currentObject)
 {
     int s = start;
     int i = 0;
@@ -599,6 +599,10 @@ int list_items(char ** item_list, int start, int n, const char * type, int * sel
                 selected[i] = 1;
             else
                 selected[i] = 0;
+            if (loaded_objects[s] == 0)
+                hidden[i] = 1;
+            else
+                hidden[i] = 0;
             s++;
         }
     }
@@ -1191,7 +1195,7 @@ void draw_Button_material_text(const char * text, int width, int height, int ind
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_item_text(const char * text, int width, int height, int index, int colorchange, int selected)
+void draw_Button_item_text(const char * text, int width, int height, int index, int colorchange, int selected, int hidden)
 {
 	glEnable(GL_TEXTURE_2D);
 
@@ -1210,6 +1214,15 @@ void draw_Button_item_text(const char * text, int width, int height, int index, 
         glColor4fv(buttoncolors[UI_BLACK].color);
 
     draw_text(text, origin_x, origin_y, font_height, 0);
+
+    if (hidden)
+    {
+        draw_text("-", width - 20, origin_y, font_height, 0);
+    }
+    else
+    {
+        draw_text("+", width - 20, origin_y, font_height, 0);
+    }
 }
 
 void draw_Button_text(const char * text, int width, int height, int index, int colorchange)
@@ -2499,12 +2512,13 @@ void draw_Items_List(int s_height, int start, char * type, int clear_background,
     }
 
     int selected_items[LISTLENGTH];
+    int hidden_items[LISTLENGTH];
 
-    int s = list_items(item_list, start, LISTLENGTH, type, selected_items, currentObject);
+    int s = list_items(item_list, start, LISTLENGTH, type, selected_items, hidden_items, currentObject);
 
 	for (i = 0; i < s; i ++)
     {
-        draw_Button_item_text(item_list[i], d_width, d_height, i, 1, selected_items[i]);
+        draw_Button_item_text(item_list[i], d_width, d_height, i, 1, selected_items[i], hidden_items[i]);
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
