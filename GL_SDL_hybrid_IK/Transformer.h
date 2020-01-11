@@ -1518,6 +1518,29 @@ void move_Children_T(transformer * T, float Delta[3])
     }
 }
 
+void move_C_IK(transformer * T, float Delta[3])
+{
+    int c;
+    transformer * C;
+
+    T->pos[0] += Delta[0];
+    T->pos[1] += Delta[1];
+    T->pos[2] += Delta[2];
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        if (C->IK != NULL && C->style == ik_fixed)
+        {
+
+        }
+        else
+        {
+            move_C_IK(C, Delta);
+        }
+    }
+}
+
 void move_Children_IK(transformer * T, float Delta[3])
 {
     int c;

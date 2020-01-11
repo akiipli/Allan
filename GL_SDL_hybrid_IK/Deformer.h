@@ -1248,4 +1248,74 @@ void reset_Deformer_rotation(deformer * D)
     memcpy(&D->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof D->rotVec);
 }
 
+void order_IK_Chains(ikChain ** IKList, int l, ikChain * currentIK, transformer * T)
+{
+    int c;
+    transformer * C;
+
+    if (T->Bone != NULL && T->Bone->IK != NULL && T->Bone->IK != currentIK)
+    {
+        IKList[l++] = T->Bone->IK;
+        currentIK = T->Bone->IK;
+    }
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        order_IK_Chains(IKList, l, currentIK, C);
+    }
+}
+
+void order_deformers_IK_Chains(deformer * D)
+{
+    int c;
+    transformer * T = D->Transformers[0];
+    transformer * C;
+
+    int l = 0;
+    int i;
+
+    ikChain ** IKList = malloc(D->IKchains_Count * sizeof(ikChain*));
+    ikChain * currentIK = NULL;
+
+    if (T->Bone != NULL && T->Bone->IK != NULL)
+    {
+        IKList[l++] = T->Bone->IK;
+        currentIK = T->Bone->IK;
+    }
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        order_IK_Chains(IKList, l, currentIK, C);
+    }
+
+    for (i = 0; i < D->IKchains_Count; i ++)
+    {
+        if (i >= l - 1)
+        {
+            break;
+        }
+        D->IKchains[i] = IKList[i];
+    }
+
+    free(IKList);
+}
+
+void hierarchycal_IK_Chains()
+{
+    int d;
+    deformer * D;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+
+        if (D->IKchains_Count > 0)
+        {
+            order_deformers_IK_Chains(D);
+        }
+    }
+}
+
 #endif // DEFORMER_H_INCLUDED

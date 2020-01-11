@@ -5061,7 +5061,7 @@ void apply_Pose_position_Play(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
     {
-        paste_Pose_pos(D, D->Poses[0]); // default pose
+        //paste_Pose_pos(D, D->Poses[0]); // default pose
 
         if (D->Transformers_Count > 0)
         {
@@ -8597,6 +8597,8 @@ void set_Bind_Mode()
 
         update_IKchains(); // IK theme
 
+        hierarchycal_IK_Chains();
+
         //solve_all_IK_Chains();
 
         set_Bind_Pose_For_Transformers(1);
@@ -8984,38 +8986,38 @@ void make_Movement()
     }
     else
     {
-        if (T->IK != NULL && (T->style == ik_goal || T->style == ik_fixed))
-        {
-            T->pos[0] = T->Pos_[0] + Delta[0];
-            T->pos[1] = T->Pos_[1] + Delta[1];
-            T->pos[2] = T->Pos_[2] + Delta[2];
-
-
-
-            if (T->childcount > 0 && T->childs[0]->IK != NULL)
-            {
-                if (T->childs[0]->IK->bonescount > 1)
-                {
-                    if (T->Deformer != NULL)
-                        solve_IK_Chains(T->Deformer, 0);
-                    move_(T, Delta, subdLevel);
-                }
-                else
-                {
-                    solve_IK_Chain(T->IK, 0);
-                    move_(T, Delta, subdLevel);
-                }
-            }
-            else
-            {
-                solve_IK_Chain(T->IK, 0);
-                move_(T, Delta, subdLevel);
-            }
-        }
-        else
-        {
+//        if (T->IK != NULL && (T->style == ik_goal || T->style == ik_fixed))
+//        {
+//            T->pos[0] = T->Pos_[0] + Delta[0];
+//            T->pos[1] = T->Pos_[1] + Delta[1];
+//            T->pos[2] = T->Pos_[2] + Delta[2];
+//
+//
+//
+//            if (T->childcount > 0 && T->childs[0]->IK != NULL)
+//            {
+//                if (T->childs[0]->IK->bonescount > 1)
+//                {
+//                    //if (T->Deformer != NULL)
+//                        //solve_IK_Chains(T->Deformer, 0);
+//                    move_(T, Delta, subdLevel);
+//                }
+//                else
+//                {
+//                    //solve_IK_Chain(T->IK, 0);
+//                    move_(T, Delta, subdLevel);
+//                }
+//            }
+//            else
+//            {
+//                //solve_IK_Chain(T->IK, 0);
+//                move_(T, Delta, subdLevel);
+//            }
+//        }
+//        else
+//        {
             move_(T, Delta, subdLevel);
-        }
+//        }
         if (T->Deformer != NULL)
         {
             if (T->Deformer->Transformers_Count > 0)
@@ -9742,6 +9744,8 @@ void exit_Bind_Mode()
     set_Bone_len(); // IK theme
 
     update_IKchains(); // IK theme
+
+    hierarchycal_IK_Chains();
 
     set_Bind_Pose_For_Transformers(1);
 
@@ -14195,7 +14199,7 @@ int main(int argc, char * args[])
                 {
                     TURNTABLE = 0;
                 }
-                else if(DRAW_LOCATORS)
+                else if(DRAW_LOCATORS && !BIND_POSE)
                 {
                     if (T->style == ik_goal)
                     {

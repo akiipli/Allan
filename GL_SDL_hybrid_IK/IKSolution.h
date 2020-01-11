@@ -26,6 +26,21 @@ For rotation to happen, cross product is taken and rotation
 matrix is composed. Then all matrices in chain are multiplied
 with IKchain reverse angled matrix and multiplied with new
 matrix. Before pole rotation is applied to this matrix.
+
+<2020>
+
+Next task is to ensure correct behaving of the branches.
+If IK chain has several branches, they need to start from
+solved positions and rotate from solved angles. Also if they
+contain successor IK chains, they need to solve in order.
+To make that happen, ordering of the IK chains in deformer
+must take place. This should happen after update_IKchains
+function. This is called in exiting Bind mode. To order them,
+hierarchy must be scanned and new chains need to be found,
+to come up with ordered list. This list is then replacement
+for not ordered list.
+Also in program recursive move and rotate commands need to be
+implanted into solution.
 */
 
 #ifndef IKSOLUTION_H_INCLUDED
@@ -528,6 +543,70 @@ void update_Spine(ikChain * I)
     memcpy(I->B->rotVec_, I->rotVec_F, sizeof(float[3][3]));
 }
 
+void rotate_B(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[3])
+{
+    int c;
+    transformer * C;
+
+    if (T->Bone != NULL && T->Bone->IK_member > 0)
+    {
+
+    }
+    else if (T->IK != NULL && (T->style == ik_goal || T->style == ik_start || T->style == ik_fixed))
+    {
+
+    }
+    else if (T->parent->IK != NULL && T->parent->style == ik_goal)
+    {
+        T->pos[0] = T->parent->pos[0];
+        T->pos[1] = T->parent->pos[1];
+        T->pos[2] = T->parent->pos[2];
+    }
+    else
+    {
+        float X, Y, Z;
+
+        X = T->pos_bind[0] - pos_bind[0];
+        Y = T->pos_bind[1] - pos_bind[1];
+        Z = T->pos_bind[2] - pos_bind[2];
+
+        T->pos[0] = rotVec[0][0] * X + rotVec[1][0] * Y + rotVec[2][0] * Z + pos[0];
+        T->pos[1] = rotVec[0][1] * X + rotVec[1][1] * Y + rotVec[2][1] * Z + pos[1];
+        T->pos[2] = rotVec[0][2] * X + rotVec[1][2] * Y + rotVec[2][2] * Z + pos[2];
+    }
+
+    float rotVec_[3][3];
+    rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        if (C->IK != NULL && C->style == ik_fixed)
+        {
+
+        }
+        else
+        {
+            rotate_B(C, rotVec_, T->pos, T->pos_bind);
+        }
+    }
+}
+
+void rotate_rotVec_pose_B(transformer * T)
+{
+    int c;
+    transformer * C;
+
+    float rotVec_[3][3];
+    rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        rotate_B(C, rotVec_, T->pos, T->pos_bind);
+    }
+}
+
 void solve_IK_Chain(ikChain * I, int update)
 {
     /*
@@ -832,6 +911,43 @@ void solve_IK_Chain(ikChain * I, int update)
         memcpy(I->Bones[b]->B->pos, I->positions_B[b].vec, sizeof(float[3]));
     }
 
+    /*
+    child movement
+    */
+
+    int c;
+    transformer * T;
+    transformer * C;
+    float Delta[3];
+
+
+    for (b = 0; b < I->bonescount - 1; b ++)
+    {
+        T = I->Bones[b]->B;
+
+        for (c = 0; c < T->childcount; c ++)
+        {
+            C = T->childs[c];
+
+            if (C == I->Bones[b + 1]->A)
+            {
+
+            }
+            else
+            {
+                rotate_rotVec_pose_B(C);
+                Delta[0] = T->pos[0] - C->pos[0];
+                Delta[1] = T->pos[1] - C->pos[1];
+                Delta[2] = T->pos[2] - C->pos[2];
+                move_C_IK(C, Delta);
+            }
+        }
+    }
+
+    /*
+    child movement section end
+    */
+
     if (update)
     {
         make_Spine(I->rotVec_F, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order);
@@ -933,9 +1049,9 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
     {
         float X, Y, Z;
 
-        X = T->pos[0] - pos_bind[0];
-        Y = T->pos[1] - pos_bind[1];
-        Z = T->pos[2] - pos_bind[2];
+        X = T->pos_bind[0] - pos_bind[0];
+        Y = T->pos_bind[1] - pos_bind[1];
+        Z = T->pos_bind[2] - pos_bind[2];
 
         T->pos[0] = rotVec[0][0] * X + rotVec[1][0] * Y + rotVec[2][0] * Z + pos[0];
         T->pos[1] = rotVec[0][1] * X + rotVec[1][1] * Y + rotVec[2][1] * Z + pos[1];

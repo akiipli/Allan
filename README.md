@@ -53,3 +53,8 @@ To fix or unfix a IK goal, press f.
 
 How to update old files. Backup loader file. Use old specification to load scenes and save with new specification.
 Then replace loader with new loader. And compile again.
+
+--- 2020 update
+
+Hierarchical IK chains. Hope that fixed works also there more or less. Submitted also "Scenes IK dc 1" to experiment
+this at home.
