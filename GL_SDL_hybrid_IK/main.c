@@ -8623,6 +8623,8 @@ void set_Bind_Mode()
         Button_Mode[selection_Mode].color = UI_GRAYD;
 
         set_Object_Mode();
+
+        hier_start = 0;
     }
 
     poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
@@ -14108,14 +14110,8 @@ int main(int argc, char * args[])
             {
                 if (mod & KMOD_ALT)
                 {
-                    T = transformers[selected_transformers[0]];
-                    if (T->Bone != NULL && T == T->Bone->B)
-                    {
-                        if (T->childcount > 0)
-                        {
-                            T = T->childs[0];
-                        }
-                    }
+                    int r = 0;
+                    int c;
 
                     if (deformerIndex > 0 && currentDeformer < deformerIndex)
                     {
@@ -14126,7 +14122,36 @@ int main(int argc, char * args[])
                         D = NULL;
                     }
 
-                    int r = add_ikChain(D, T, transformers[currentLocator]);
+                    T = transformers[selected_transformers[0]];
+                    if (T->Bone != NULL && T == T->Bone->B)
+                    {
+                        for (c = 0; c < T->childcount; c ++)
+                        {
+                            T = T->childs[c];
+                            r = add_ikChain(D, T, transformers[currentLocator]);
+                            if (r)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if (!r)
+                    {
+                        for (c = 0; c < selected_transformer_count; c ++)
+                        {
+                            T = transformers[selected_transformers[c]];
+                            r = add_ikChain(D, T, transformers[currentLocator]);
+                            if (r)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if (!r)
+                    {
+                        r = add_ikChain(D, T, transformers[currentLocator]);
+                    }
+
                     printf("Adding IK chain result %d\n", r);
                     if (r)
                         currentLocator += 2;

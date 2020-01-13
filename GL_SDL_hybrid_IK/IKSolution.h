@@ -552,7 +552,13 @@ void rotate_B(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
     {
 
     }
-    else if (T->IK != NULL && (T->style == ik_goal || T->style == ik_start || T->style == ik_fixed))
+    else if (T->IK != NULL && T->style == ik_start)
+    {
+        T->pos[0] = T->parent->pos[0];
+        T->pos[1] = T->parent->pos[1];
+        T->pos[2] = T->parent->pos[2];
+    }
+    else if (T->IK != NULL)// && (T->style == ik_goal || T->style == ik_start || T->style == ik_fixed))
     {
 
     }
