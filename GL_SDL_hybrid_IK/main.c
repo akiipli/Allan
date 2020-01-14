@@ -11133,10 +11133,10 @@ int main(int argc, char * args[])
                                         }
                                         else
                                         {
-                                            int X_Expand = Hier_X_Offset[index + hier_start] * 5;
-                                            if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
+                                            if (controlDown)
                                             {
-                                                transformers[index + hier_start]->collapsed = !transformers[index + hier_start]->collapsed;
+                                                transformers[index + hier_start]->selected = !transformers[index + hier_start]->selected;
+                                                assert_Locators_Selection();
                                                 create_Hierarchys_List();
                                             }
                                             else
@@ -11147,10 +11147,17 @@ int main(int argc, char * args[])
                                                 if (HierIndex - hier_start >= 0)
                                                     HierList[HierIndex - hier_start].color = UI_BACKL;
                                                 currentLocator = HierIndex;
-                                            }
 
-                                            select_Transformer();
+                                                int X_Expand = Hier_X_Offset[index + hier_start] * 5;
+
+                                                if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
+                                                {
+                                                    transformers[index + hier_start]->collapsed = !transformers[index + hier_start]->collapsed;
+                                                    create_Hierarchys_List();
+                                                }
+                                            }
                                         }
+                                        select_Transformer();
                                         UPDATE_BACKGROUND = 0;
                                         update_Hierarcys_List(0, 1);
                                     }
@@ -11206,10 +11213,10 @@ int main(int argc, char * args[])
                                     }
                                     else
                                     {
-                                        int X_Expand = Hier_X_Offset[index + hier_start] * 5;
-                                        if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
+                                        if (controlDown)
                                         {
-                                            transformers[index + hier_start]->collapsed = !transformers[index + hier_start]->collapsed;
+                                            transformers[index + hier_start]->selected = !transformers[index + hier_start]->selected;
+                                            assert_Locators_Selection();
                                             create_Hierarchys_List();
                                         }
                                         else
@@ -11220,10 +11227,17 @@ int main(int argc, char * args[])
                                             if (HierIndex - hier_start >= 0)
                                                 HierList[HierIndex - hier_start].color = UI_BACKL;
                                             currentLocator = HierIndex;
-                                        }
 
-                                        select_Transformer();
+                                            int X_Expand = Hier_X_Offset[index + hier_start] * 5;
+
+                                            if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
+                                            {
+                                                transformers[index + hier_start]->collapsed = !transformers[index + hier_start]->collapsed;
+                                                create_Hierarchys_List();
+                                            }
+                                        }
                                     }
+                                    select_Transformer();
                                     UPDATE_BACKGROUND = 1;
                                     update_Hierarcys_List(0, 1);
                                 }

@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+7:57 PM 1/14/2020
+Ctrl click in hierarchys List toggles selected state for locators.
+Toggling collapsing selects item as current.
+
 5:00 PM 12/22/2019
 Shift + L while playing (ctrl + D). switches linear poses on and off.
 
