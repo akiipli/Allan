@@ -4381,6 +4381,11 @@ void open_Hierarchys_List()
 
     HierIndex = currentLocator;
 
+    if (currentLocator < Hierarchys_c && (HierIndex - hier_start < 0))
+    {
+        hier_start = HierIndex;
+    }
+
     black_out_HierarchyList();
 
     DRAW_LOCATORS = 1;
