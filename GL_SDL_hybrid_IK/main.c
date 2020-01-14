@@ -4381,7 +4381,7 @@ void open_Hierarchys_List()
 
     HierIndex = currentLocator;
 
-    if (currentLocator < Hierarchys_c && (HierIndex - hier_start < 0))
+    if (currentLocator < Hierarchys_c && (HierIndex - hier_start < 0 || HierIndex >= hier_start + LISTLENGTH))
     {
         hier_start = HierIndex;
     }

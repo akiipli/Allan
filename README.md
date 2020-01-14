@@ -58,3 +58,8 @@ Then replace loader with new loader. And compile again.
 
 Hierarchical IK chains. Hope that fixed works also there more or less. Submitted also "Scenes IK dc 1" to experiment
 this at home.
+
+--- Notes in hierarchycal IK. It is recommended to add IK chains after skeleton is complete.
+One can experiment adding more chains in Bind mode, but the additional bones need start from existing goals, if they
+continue the goal. Then adding IK chain on top of it makes proper hierarchy continuing from goal, else also reparenting
+these new goals works.

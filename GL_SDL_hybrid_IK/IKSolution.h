@@ -471,6 +471,7 @@ void update_IKchains()
             // assume bone z axis be in direction of the bone
             // y axis the axis of rotation
             // x axis perpendicular to them
+
             for (b = 0; b < I->bonescount; b ++)
             {
                 B = I->Bones[b];
@@ -524,7 +525,19 @@ void update_IKchains()
 
             invert_Rotation_1(I->rotVec_I, I->rotVec_B);
 
-            I->Bones[0]->A->collapsed = 1;
+            int collapse = 1;
+
+            for (b = 0; b < I->bonescount - 1; b ++)
+            {
+                B = I->Bones[b];
+                if (B->B->childcount > 1)
+                {
+                    collapse = 0;
+                    break;
+                }
+            }
+
+            I->Bones[0]->A->collapsed = collapse;
 
         }
     }
