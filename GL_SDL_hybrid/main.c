@@ -3409,6 +3409,7 @@ void set_Button_defr(int idx)
 
     if (current_defr_type == 0)
     {
+        create_Transformers_List();
         create_Deformers_List(SelsIndex[3], O);
         set_Button_sels(3);
     }
@@ -3416,6 +3417,12 @@ void set_Button_defr(int idx)
     {
         create_Hierarchys_List();
         HierIndex = currentLocator;
+
+        if (currentLocator < Hierarchys_c && (HierIndex - hier_start < 0 || HierIndex >= hier_start + LISTLENGTH))
+        {
+            hier_start = HierIndex;
+        }
+
         black_out_HierarchyList();
         set_Button_sels(0);
     }
@@ -4201,6 +4208,8 @@ void black_out_DefrList()
     {
         DefrList[d].color = UI_BLACK;
     }
+    if (DefrIndex - defr_start >= 0)
+        DefrList[DefrIndex - defr_start].color = UI_BACKL;
 }
 
 void open_Deformers_List()
@@ -4262,6 +4271,11 @@ void open_Hierarchys_List()
     //printf("Transformers num %d\n", Hierarchys_c);
 
     HierIndex = currentLocator;
+
+    if (currentLocator < Hierarchys_c && (HierIndex - hier_start < 0 || HierIndex >= hier_start + LISTLENGTH))
+    {
+        hier_start = HierIndex;
+    }
 
     black_out_HierarchyList();
 
@@ -8134,8 +8148,8 @@ void select_Locator_Selections(int currentLocator)
             }
         }
     }
-//    if (S != NULL)
-//        set_Vert_Selection(S);
+    if (S != NULL)
+        set_Vert_Selection(S);
 }
 
 void start_Movement()
@@ -10210,7 +10224,7 @@ int main(int argc, char * args[])
                                         draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                                                             defr_start, 1, DefrIndex - defr_start,
                                                             hier_start, HierIndex - hier_start,
-                                                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+                                                            sels_start[3], SelsIndex[3] - sels_start[3]);
                                         SDL_GL_SwapBuffers();
                                         glDrawBuffer(GL_BACK);
                                         UPDATE_COLORS = 0;
