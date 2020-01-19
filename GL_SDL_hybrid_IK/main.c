@@ -3435,6 +3435,12 @@ void set_Button_defr(int idx)
     {
         create_Hierarchys_List();
         HierIndex = currentLocator;
+
+        if (currentLocator < Hierarchys_c && (HierIndex - hier_start < 0 || HierIndex >= hier_start + LISTLENGTH))
+        {
+            hier_start = HierIndex;
+        }
+
         black_out_HierarchyList();
         set_Button_sels(0);
     }
@@ -4360,7 +4366,7 @@ void open_Deformers_List()
     draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                           defr_start, 1, DefrIndex - defr_start,
                           hier_start, HierIndex - hier_start,
-                          sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+                          sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -4879,7 +4885,7 @@ void update_Deformers_List(int blit)
     draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                     defr_start, 1, DefrIndex - defr_start,
                     hier_start, HierIndex - hier_start,
-                    sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+                    sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
 
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
@@ -5932,7 +5938,7 @@ void handle_UP_Hier(int scrollbar)
         if (hier_start < 0) hier_start = 0;
         if (HierIndex - hier_start >= 0)
             HierList[HierIndex - hier_start].color = UI_BACKL;
-        update_Hierarcys_List(0, 1);
+        update_Hierarcys_List(0, 0);
     }
     else
     {
@@ -5984,7 +5990,7 @@ void handle_UP_Sels(int scrollbar)
             SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BACKL;
         if (dialog_type == DEFR_DIALOG)
             UPDATE_BACKGROUND = 0;
-        update_Selections_List(0, 1);
+        update_Selections_List(0, 0);
     }
     else
     {
@@ -6036,7 +6042,7 @@ void handle_UP_Defr(int scrollbar)
         draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                             defr_start, 1, DefrIndex - defr_start,
                             hier_start, HierIndex - hier_start,
-                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
         SDL_GL_SwapBuffers();
         DRAW_UI = 1;
     }
@@ -6108,6 +6114,10 @@ void handle_UP(int scrollbar)
         }
         else if (dialog_type == DEFR_DIALOG)
         {
+            draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
+                                  defr_start, 1, DefrIndex - defr_start,
+                                  hier_start, HierIndex - hier_start,
+                                  sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 1);
             if (current_defr_type == 0)
             {
                 handle_UP_Defr(scrollbar);
@@ -6384,7 +6394,7 @@ void handle_DOWN_Hier(int scrollbar)
         if (hier_start > Hierarchys_c - LISTLENGTH) hier_start --;
         if (HierIndex - hier_start >= 0)
             HierList[HierIndex - hier_start].color = UI_BACKL;
-        update_Hierarcys_List(0, 1);
+        update_Hierarcys_List(0, 0);
     }
     else
     {
@@ -6437,7 +6447,7 @@ void handle_DOWN_Sels(int scrollbar)
             SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BACKL;
         if (dialog_type == DEFR_DIALOG)
             UPDATE_BACKGROUND = 0;
-        update_Selections_List(0, 1);
+        update_Selections_List(0, 0);
     }
     else
     {
@@ -6488,7 +6498,7 @@ void handle_DOWN_Defr(int scrollbar)
         draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                             defr_start, 1, DefrIndex - defr_start,
                             hier_start, HierIndex - hier_start,
-                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
         SDL_GL_SwapBuffers();
         DRAW_UI = 1;
     }
@@ -6560,6 +6570,10 @@ void handle_DOWN(int scrollbar)
         }
         else if (dialog_type == DEFR_DIALOG)
         {
+            draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
+                                  defr_start, 1, DefrIndex - defr_start,
+                                  hier_start, HierIndex - hier_start,
+                                  sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 1);
             if (current_defr_type == 0)
             {
                 handle_DOWN_Defr(scrollbar);
@@ -11080,29 +11094,29 @@ int main(int argc, char * args[])
                                             }
                                             create_Deformers_List(SelsIndex[3], O);
                                         }
+//                                        else
+//                                        {
+                                        if (DefrIndex - defr_start >= 0)
+                                            DefrList[DefrIndex - defr_start].color = UI_BLACK;
+                                        DefrIndex = index + defr_start;
+                                        if (DefrIndex - defr_start >= 0)
+                                            DefrList[DefrIndex - defr_start].color = UI_BACKL;
+                                        currentDeformer = DefrIndex;
+                                        if (Deformer_List[currentDeformer] >= 0)
+                                        {
+                                            currentLocator = Deformer_List[currentDeformer];
+                                            HierIndex = currentLocator;
+                                            select_Locator_Selections(currentLocator);
+                                            frame_object(Camera, 1);
+                                        }
                                         else
                                         {
-                                            if (DefrIndex - defr_start >= 0)
-                                                DefrList[DefrIndex - defr_start].color = UI_BLACK;
-                                            DefrIndex = index + defr_start;
-                                            if (DefrIndex - defr_start >= 0)
-                                                DefrList[DefrIndex - defr_start].color = UI_BACKL;
-                                            currentDeformer = DefrIndex;
-                                            if (Deformer_List[currentDeformer] >= 0)
-                                            {
-                                                currentLocator = Deformer_List[currentDeformer];
-                                                HierIndex = currentLocator;
-                                                select_Locator_Selections(currentLocator);
-                                                frame_object(Camera, 1);
-                                            }
-                                            else
-                                            {
-                                                currentDeformer_Node = -(Deformer_List[index + defr_start] + 1);
-                                                assert_Deformers_Selected();
-                                                select_Deformer_Objects();
-                                            }
-                                            create_Deformers_List(SelsIndex[3], O);
+                                            currentDeformer_Node = -(Deformer_List[index + defr_start] + 1);
+                                            assert_Deformers_Selected();
+                                            select_Deformer_Objects();
                                         }
+                                        create_Deformers_List(SelsIndex[3], O);
+//                                        }
                                         DRAW_UI = 0;
                                         UPDATE_COLORS = 1;
                                         if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
@@ -11110,7 +11124,7 @@ int main(int argc, char * args[])
                                         draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                                                             defr_start, 1, DefrIndex - defr_start,
                                                             hier_start, HierIndex - hier_start,
-                                                            sels_start[3], SelsIndex[3] - sels_start[3]);
+                                                            sels_start[3], SelsIndex[3] - sels_start[3], 0);
                                         SDL_GL_SwapBuffers();
                                         glDrawBuffer(GL_BACK);
                                         UPDATE_COLORS = 0;
@@ -11456,7 +11470,7 @@ int main(int argc, char * args[])
                                     draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
                                                             defr_start, 1, DefrIndex - defr_start,
                                                             hier_start, HierIndex - hier_start,
-                                                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+                                                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
                                 }

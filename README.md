@@ -1,4 +1,11 @@
 # Allan
+---
+Note: I have suspended GL_SDL_hybrid,
+i do not update it in future.
+It is only for historical comparison.
+Please use GL_SDL_hybrid_IK, 2020 01.
+---
+
 Place GL_SDL_hybrid to c drive.
 Place Allan to your windows c drive.
 Place SDL-1.2.15 to your c drive too (developing).

@@ -3278,7 +3278,7 @@ void draw_Deformers_Dialog(const char * text, int s_height,
                            char * defr_type, char ** defr_types, int defr_type_count, int deformers_start,
                            int clear_background, int current_deformer,
                            int transformers_start, int current_trans,
-                           int selections_start, int current_sel)
+                           int selections_start, int current_sel, int side_only)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3330,23 +3330,26 @@ void draw_Deformers_Dialog(const char * text, int s_height,
         draw_Button_deform(defr_types[s], SIDEBAR, d_height, s, 1);
     }
 
-    if (strcmp(defr_type, "deformers") == 0)
-        draw_Deformers_List(s_height, deformers_start, clear_background, current_deformer);
-    else if (strcmp(defr_type, "hierarchys") == 0)
-        draw_Hierarchys_List(s_height, transformers_start, clear_background, current_trans);
-    else if (strcmp(defr_type, "selections") == 0)
-        draw_Selections_List(s_height, selections_start, "vertex", clear_background, 1, current_sel);
+    if (!side_only)
+    {
+        if (strcmp(defr_type, "deformers") == 0)
+            draw_Deformers_List(s_height, deformers_start, clear_background, current_deformer);
+        else if (strcmp(defr_type, "hierarchys") == 0)
+            draw_Hierarchys_List(s_height, transformers_start, clear_background, current_trans);
+        else if (strcmp(defr_type, "selections") == 0)
+            draw_Selections_List(s_height, selections_start, "vertex", clear_background, 1, current_sel);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
-	glPopMatrix();
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_LIGHTING);
+        glPopMatrix();
 
-    if (strcmp(defr_type, "deformers") == 0)
-        draw_Deformers_Bottom_Line(d_width, s_height);
-    else if (strcmp(defr_type, "hierarchys") == 0)
-        draw_Hierarchys_Bottom_Line(d_width, s_height);
-    else if (strcmp(defr_type, "selections") == 0)
-        draw_Selections_Bottom_Line(d_width, s_height);
+        if (strcmp(defr_type, "deformers") == 0)
+            draw_Deformers_Bottom_Line(d_width, s_height);
+        else if (strcmp(defr_type, "hierarchys") == 0)
+            draw_Hierarchys_Bottom_Line(d_width, s_height);
+        else if (strcmp(defr_type, "selections") == 0)
+            draw_Selections_Bottom_Line(d_width, s_height);
+    }
 }
 
 void draw_Hierarchys_Dialog(const char * text, int s_height, int transformers_start, int clear_background, int current_trans)
