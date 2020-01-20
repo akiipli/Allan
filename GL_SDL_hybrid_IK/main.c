@@ -11084,6 +11084,7 @@ int main(int argc, char * args[])
                                 {
                                     if (index + defr_start < Deformers_c)
                                     {
+                                        int sel = 1;
                                         int X_Expand = Defr_X_Offset[index + defr_start] * 5;
                                         if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
                                         {
@@ -11091,32 +11092,34 @@ int main(int argc, char * args[])
                                             {
                                                 deformers[-(Deformer_List[index + defr_start] + 1)]->collapsed =
                                                 !deformers[-(Deformer_List[index + defr_start] + 1)]->collapsed;
+                                                if (deformers[-(Deformer_List[index + defr_start] + 1)]->collapsed)
+                                                    sel = 0;
                                             }
                                             create_Deformers_List(SelsIndex[3], O);
                                         }
-//                                        else
-//                                        {
-                                        if (DefrIndex - defr_start >= 0)
-                                            DefrList[DefrIndex - defr_start].color = UI_BLACK;
-                                        DefrIndex = index + defr_start;
-                                        if (DefrIndex - defr_start >= 0)
-                                            DefrList[DefrIndex - defr_start].color = UI_BACKL;
-                                        currentDeformer = DefrIndex;
-                                        if (Deformer_List[currentDeformer] >= 0)
+                                        if (sel)
                                         {
-                                            currentLocator = Deformer_List[currentDeformer];
-                                            HierIndex = currentLocator;
-                                            select_Locator_Selections(currentLocator);
-                                            frame_object(Camera, 1);
+                                            if (DefrIndex - defr_start >= 0)
+                                                DefrList[DefrIndex - defr_start].color = UI_BLACK;
+                                            DefrIndex = index + defr_start;
+                                            if (DefrIndex - defr_start >= 0)
+                                                DefrList[DefrIndex - defr_start].color = UI_BACKL;
+                                            currentDeformer = DefrIndex;
+                                            if (Deformer_List[currentDeformer] >= 0)
+                                            {
+                                                currentLocator = Deformer_List[currentDeformer];
+                                                HierIndex = currentLocator;
+                                                select_Locator_Selections(currentLocator);
+                                                frame_object(Camera, 1);
+                                            }
+                                            else
+                                            {
+                                                currentDeformer_Node = -(Deformer_List[index + defr_start] + 1);
+                                                assert_Deformers_Selected();
+                                                select_Deformer_Objects();
+                                            }
+                                            create_Deformers_List(SelsIndex[3], O);
                                         }
-                                        else
-                                        {
-                                            currentDeformer_Node = -(Deformer_List[index + defr_start] + 1);
-                                            assert_Deformers_Selected();
-                                            select_Deformer_Objects();
-                                        }
-                                        create_Deformers_List(SelsIndex[3], O);
-//                                        }
                                         DRAW_UI = 0;
                                         UPDATE_COLORS = 1;
                                         if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
