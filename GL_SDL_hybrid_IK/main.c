@@ -18,6 +18,7 @@ look for CUBECOMMENT
 /*CORRECT IT*/
 
 
+
 #define DEBUG_WITHOUT_IL 0 //  change this to 1
 
 #include <Windows.h> // dialog
@@ -14104,7 +14105,8 @@ int main(int argc, char * args[])
             }
             else if (DRAW_LOCATORS)
             {
-                unparent_Locator();
+                if (BIND_POSE)
+                    unparent_Locator();
             }
             else
             {
