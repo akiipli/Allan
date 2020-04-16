@@ -70,3 +70,6 @@ this at home.
 One can experiment adding more chains in Bind mode, but the additional bones need start from existing goals, if they
 continue the goal. Then adding IK chain on top of it makes proper hierarchy continuing from goal, else also reparenting
 these new goals works.
+
+--- Added GL_SDL_hybrid_IK_T. T means threading. Threading affects subdivided animation. After set up character, press
+Page Up and Ctrl+D to subdivide and play. It uses pthreads, so when linking add -lpthread.
