@@ -1391,6 +1391,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
     int END = O->edgecount;
 
     N_ITEMS = O->edgecount / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->edgecount;
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -1423,6 +1424,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
     END = O->vertcount;
 
     N_ITEMS = O->vertcount / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->vertcount;
 
     for (t = 0; t < N_THREADS; t ++)
     {

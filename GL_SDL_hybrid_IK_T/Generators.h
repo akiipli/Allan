@@ -516,6 +516,7 @@ void update_bounding_box_for_transformed_Trips(object * O, unsigned char radius)
     int END = O->tripcount;
 
     N_ITEMS = O->tripcount / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->tripcount;
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -592,6 +593,7 @@ void update_bounding_box_for_transformed_Trips_(object * O, int L, unsigned char
     int END = O->tripcount_[L];
 
     N_ITEMS = O->tripcount_[L] / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->tripcount_[L];
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -699,6 +701,7 @@ void update_bounding_box_for_transformed_Edges_(object * O, int L, unsigned char
     int END = O->edgecount_[L];
 
     N_ITEMS = O->edgecount_[L] / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->edgecount_[L];
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -757,6 +760,7 @@ void update_bounding_box_for_transformed_Edges(object * O, unsigned char radius)
     int END = O->edgecount;
 
     N_ITEMS = O->edgecount / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->edgecount;
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -1060,6 +1064,7 @@ void update_bounding_box_for_transformed_Quads(object * O, int L, unsigned char 
     int END = O->quadcount_[L];
 
     N_ITEMS = O->quadcount_[L] / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->quadcount_[L];
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -1176,6 +1181,7 @@ void update_bounding_box_for_transformed_Polys(object * O, unsigned char radius)
     int END = O->polycount;
 
     N_ITEMS = O->polycount / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->polycount;
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -1278,6 +1284,7 @@ void generate_vertexNormals_transformed_(object * O, int L)
     int END = O->vertcount_[L];
 
     N_ITEMS = O->vertcount_[L] / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->vertcount_[L];
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -1430,6 +1437,7 @@ void generate_transformed_edgeNormals(object * O)
     int END = O->edgecount;
 
     N_ITEMS = O->edgecount / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->edgecount;
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -1548,6 +1556,7 @@ void generate_transformed_edgeNormals_(object * O, int L)
     int END = O->edgecount_[L];
 
     N_ITEMS = O->edgecount_[L] / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->edgecount_[L];
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -1737,6 +1746,7 @@ void generate_transformed_polyNormals(object * O)
     int END = O->polycount;
 
     N_ITEMS = O->polycount / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->polycount;
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -1833,6 +1843,7 @@ void update_transformed_Triangles(object * O)
     int END = O->tripcount;
 
     N_ITEMS = O->tripcount / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->tripcount;
 
     for (t = 0; t < N_THREADS; t ++)
     {
@@ -1931,6 +1942,7 @@ void update_transformed_Triangles_level_(object * O, int L)
     int END = O->quadcount_[L];
 
     N_ITEMS = O->quadcount_[L] / N_THREADS;
+    if (N_ITEMS == 0) N_ITEMS = O->quadcount_[L];
 
     for (t = 0; t < N_THREADS; t ++)
     {
