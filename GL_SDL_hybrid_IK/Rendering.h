@@ -3935,7 +3935,7 @@ void render_Transformers_ID()
             glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
             glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
         }
-        else if (T->style == ik_goal)
+        else if (T->style == ik_goal || T->style == ik_fixed)
         {
             draw_Box(T, rotVec_);
         }
@@ -4123,6 +4123,50 @@ void draw_Axis(int Axis_lock, float object_Pos[3])
     glEnable(GL_BLEND);
 }
 
+void render_Labels(int width, int height)
+{
+    int t;
+    transformer * T;
+    label * L;
+
+    label_count = 0;
+
+    GLdouble point[3];
+    GLdouble coords[3];
+
+    int result;
+
+    for (t = 5; t < transformerIndex; t ++)
+    {
+        if (t >= TRANSFORMERS - 1)
+            break;
+
+        T = transformers[t];
+
+        if (T->collapsed)
+            continue;
+
+        if (T->style == ik_fixed)
+        {
+            point[0] = T->pos[0];
+            point[1] = T->pos[1];
+            point[2] = T->pos[2];
+
+            result = point_on_screen_GLU(point, coords);
+
+            if (result)
+            {
+                L = labels[label_count ++];
+                //strcpy(L->text, "F");
+                L->x = coords[0] - 120;
+                L->y = height - (coords[1] + 10);
+            }
+        }
+    }
+
+    display_labels(width, height);
+}
+
 void render_Transformers(int currentLocator)
 {
     int t;
@@ -4201,7 +4245,7 @@ void render_Transformers(int currentLocator)
             glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
             glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
         }
-        else if (T->style == ik_goal)
+        else if (T->style == ik_goal || T->style == ik_fixed)
         {
             if (t == currentLocator)
             {

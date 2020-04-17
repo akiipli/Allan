@@ -5384,8 +5384,8 @@ void deformer_Player()
 
 //    pose * P;
     object * O, * O0;
-    deformer * D = NULL;
-    deformer * D0 = NULL;
+    deformer * D;
+    deformer * D0;
 //    transformer * T;
 
     ROTATED_POSE = 1;
@@ -5636,14 +5636,11 @@ void deformer_Player()
                 }
             }
 
-            if (D0 != NULL)
-            {
-                D0->Delta[0] += delta[0];
-                D0->Delta[2] += delta[2];
+            D0->Delta[0] += delta[0];
+            D0->Delta[2] += delta[2];
 
-                D0->rot[0] = rot[0]; /* since we are not submitting rotVec_ matrix */
-                D0->rot[1] = rot[1]; /* else it should increment */
-            }
+            D0->rot[0] = rot[0]; /* since we are not submitting rotVec_ matrix */
+            D0->rot[1] = rot[1]; /* else it should increment */
 
             w1 = (float)f / frames;
             w0 = 1 - w1;
@@ -14042,7 +14039,7 @@ int main(int argc, char * args[])
                 controlDown = 0;
                 add_selection_mode = 1;
                 SDL_SetCursor(Arrow);
-                if (!BIND_POSE)
+                if (!BIND_POSE && deformerIndex > 0)
                 {
                     unfix_ik_goals();
                     deformer_Player();

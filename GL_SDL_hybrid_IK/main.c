@@ -14034,7 +14034,7 @@ int main(int argc, char * args[])
                 controlDown = 0;
                 add_selection_mode = 1;
                 SDL_SetCursor(Arrow);
-                if (!BIND_POSE)
+                if (!BIND_POSE && deformerIndex > 0)
                 {
                     unfix_ik_goals();
                     deformer_Player();
