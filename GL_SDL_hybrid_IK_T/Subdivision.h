@@ -2782,9 +2782,9 @@ void generate_cage_for_Subdivision_transformed(object * O, int L)
         V0->Ty = V->Ty;
         V0->Tz = V->Tz;
 
-//        V0->N.Tx = V->N.Tx;
-//        V0->N.Ty = V->N.Ty;
-//        V0->N.Tz = V->N.Tz;
+        V0->N.Tx = V->N.Tx;
+        V0->N.Ty = V->N.Ty;
+        V0->N.Tz = V->N.Tz;
     }
 
     for (e = 0; e < O->edgecount; e ++)
@@ -2799,9 +2799,9 @@ void generate_cage_for_Subdivision_transformed(object * O, int L)
         V->Ty = E->B.Ty;
         V->Tz = E->B.Tz;
 
-//        V->N.Tx = E->N.Tx;
-//        V->N.Ty = E->N.Ty;
-//        V->N.Tz = E->N.Tz;
+        V->N.Tx = E->N.Tx;
+        V->N.Ty = E->N.Ty;
+        V->N.Tz = E->N.Tz;
     }
 
     vert_c = O->vertcount + O->edgecount;
@@ -2815,9 +2815,9 @@ void generate_cage_for_Subdivision_transformed(object * O, int L)
         V->Ty = P->B.Ty;
         V->Tz = P->B.Tz;
 
-//        V->N.Tx = P->N.Tx;
-//        V->N.Ty = P->N.Ty;
-//        V->N.Tz = P->N.Tz;
+        V->N.Tx = P->N.Tx;
+        V->N.Ty = P->N.Ty;
+        V->N.Tz = P->N.Tz;
 
         vert_c ++;
     }
@@ -2842,9 +2842,9 @@ void generate_cage_for_Subdivision(object * O, int L)
         V0->y = V->y;
         V0->z = V->z;
 
-//        V0->N.x = V->N.x;
-//        V0->N.y = V->N.y;
-//        V0->N.z = V->N.z;
+        V0->N.x = V->N.x;
+        V0->N.y = V->N.y;
+        V0->N.z = V->N.z;
     }
 
     for (t = 0; t < O->textcount; t ++)
@@ -2880,9 +2880,9 @@ void generate_cage_for_Subdivision(object * O, int L)
         V->y = E->B.y;
         V->z = E->B.z;
 
-//        V->N.x = E->N.x;
-//        V->N.y = E->N.y;
-//        V->N.z = E->N.z;
+        V->N.x = E->N.x;
+        V->N.y = E->N.y;
+        V->N.z = E->N.z;
     }
 
     vert_c = O->vertcount + O->edgecount;
@@ -2896,9 +2896,9 @@ void generate_cage_for_Subdivision(object * O, int L)
         V->y = P->B.y;
         V->z = P->B.z;
 
-//        V->N.x = P->N.x;
-//        V->N.y = P->N.y;
-//        V->N.z = P->N.z;
+        V->N.x = P->N.x;
+        V->N.y = P->N.y;
+        V->N.z = P->N.z;
 
         vert_c ++;
     }
@@ -2935,9 +2935,9 @@ void generate_cage_for_Subdivision_Quads_transformed(object * O, int L)
         V0->Ty = V->Ty;
         V0->Tz = V->Tz;
 
-//        V0->N.Tx = V->N.Tx;
-//        V0->N.Ty = V->N.Ty;
-//        V0->N.Tz = V->N.Tz;
+        V0->N.Tx = V->N.Tx;
+        V0->N.Ty = V->N.Ty;
+        V0->N.Tz = V->N.Tz;
     }
 
     for (e = 0; e < O->edgecount_[L1]; e ++) // edge vertexes
@@ -2952,9 +2952,9 @@ void generate_cage_for_Subdivision_Quads_transformed(object * O, int L)
         V->Ty = E->B.Ty;
         V->Tz = E->B.Tz;
 
-//        V->N.Tx = E->N.Tx;
-//        V->N.Ty = E->N.Ty;
-//        V->N.Tz = E->N.Tz;
+        V->N.Tx = E->N.Tx;
+        V->N.Ty = E->N.Ty;
+        V->N.Tz = E->N.Tz;
     }
 
     vert_c = O->vertcount_[L1] + O->edgecount_[L1];
@@ -2968,9 +2968,9 @@ void generate_cage_for_Subdivision_Quads_transformed(object * O, int L)
         V->Ty = Q->B.Ty;
         V->Tz = Q->B.Tz;
 
-//        V->N.Tx = Q->N.Tx;
-//        V->N.Ty = Q->N.Ty;
-//        V->N.Tz = Q->N.Tz;
+        V->N.Tx = Q->N.Tx;
+        V->N.Ty = Q->N.Ty;
+        V->N.Tz = Q->N.Tz;
 
         vert_c ++;
     }
@@ -2996,9 +2996,9 @@ void generate_cage_for_Subdivision_Quads(object * O, int L)
         V0->y = V->y;
         V0->z = V->z;
 
-//        V0->N.x = V->N.x;
-//        V0->N.y = V->N.y;
-//        V0->N.z = V->N.z;
+        V0->N.x = V->N.x;
+        V0->N.y = V->N.y;
+        V0->N.z = V->N.z;
     }
 
     for (t = 0; t < O->textcount_[L1]; t ++) // text cage
@@ -3034,9 +3034,9 @@ void generate_cage_for_Subdivision_Quads(object * O, int L)
         V->y = E->B.y;
         V->z = E->B.z;
 
-//        V->N.x = E->N.x;
-//        V->N.y = E->N.y;
-//        V->N.z = E->N.z;
+        V->N.x = E->N.x;
+        V->N.y = E->N.y;
+        V->N.z = E->N.z;
     }
 
     vert_c = O->vertcount_[L1] + O->edgecount_[L1];
@@ -3050,9 +3050,9 @@ void generate_cage_for_Subdivision_Quads(object * O, int L)
         V->y = Q->B.y;
         V->z = Q->B.z;
 
-//        V->N.x = Q->N.x;
-//        V->N.y = Q->N.y;
-//        V->N.z = Q->N.z;
+        V->N.x = Q->N.x;
+        V->N.y = Q->N.y;
+        V->N.z = Q->N.z;
 
         vert_c ++;
     }

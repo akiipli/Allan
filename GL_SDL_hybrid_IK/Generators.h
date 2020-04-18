@@ -926,6 +926,43 @@ void update_bounding_box_for_Polys(object * O, unsigned char radius)
     }
 }
 
+void generate_transformed_vertexNormals(object * O)
+{
+    int v, e, idx, E_count;
+    float x, y, z;
+    float d;
+    edge * E;
+    vertex * V;
+    normal * N;
+    for (v = 0; v < O->vertcount; v++)
+    {
+        V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+        N = &V->N;
+
+        x = y = z = 0.0;
+
+        E_count = V->edgecount;
+        for(e = 0; e < V->edgecount; e ++)
+        {
+            idx = V->edges[e];
+            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            x += E->N.Tx;
+            y += E->N.Ty;
+            z += E->N.Tz;
+        }
+        x /= E_count;
+        y /= E_count;
+        z /= E_count;
+        d = sqrt(x * x + y * y + z * z);
+        x /= d;
+        y /= d;
+        z /= d;
+        N->Tx = x;
+        N->Ty = y;
+        N->Tz = z;
+    }
+}
+
 void generate_vertexNormals_transformed_(object * O, int L)
 {
     int v, e, idx, E_count;

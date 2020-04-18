@@ -13494,10 +13494,8 @@ int main(int argc, char * args[])
             for (o = 0; o < objectIndex; o ++)
             {
                 O0 = objects[o];
-                if (BIND_POSE || !O0->binding)
-                    rotate_verts_(O0, *O0->T, subdLevel);
-                else
-                    tune_subdivide_post_transformed(O0, subdLevel);
+
+                rotate_verts_(O0, *O0->T, subdLevel);
                 update_tangents_Object(O0, subdLevel);
             }
 
@@ -13517,6 +13515,7 @@ int main(int argc, char * args[])
             {
                 printf("level quads %d %d\n", subdLevel, O->quadcount_[subdLevel]);
             }
+
             UPDATE_COLORS = 1;
             message = -10;
         }

@@ -1,0 +1,234 @@
+# depslib dependency file v1.0
+1527698295 source:c:\gl_sdl\main.c
+	<Windows.h>
+	"Dialog.h"
+	<dirent.h>
+	"Cursors.h"
+	"SDL/SDL_image.h"
+	"SDL/SDL_syswm.h"
+	"SDL/SDL_mouse.h"
+	"SDL/glew.h"
+	<GL/gl.h>
+	<GL/glu.h>
+	<IL/il.h>
+	<IL/ilu.h>
+	<IL/ilut.h>
+	<ft2build.h>
+	"Fonts.h"
+	"Shaders.h"
+	"Cameras.h"
+	"InitializingFunctions.h"
+	"ExtensionFunctions.h"
+	"Subdivision.h"
+	"Validators.h"
+	"Generators.h"
+	"File_IO.h"
+	"Creators.h"
+	"Transforms.h"
+	"Arrays.h"
+	"Rendering.h"
+	"Selections.h"
+	"Hierarchys.h"
+	<windows.h>
+	<io.h>
+	<fcntl.h>
+
+1525804099 c:\gl_sdl\dialog.h
+	<ctype.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<malloc.h>
+	<math.h>
+	<time.h>
+	<libgen.h>
+
+1525804099 c:\gl_sdl\cursors.h
+	"SDL/SDL.h"
+
+1526286408 c:\gl_sdl\fonts.h
+	<sys/types.h>
+	<sys/stat.h>
+	<unistd.h>
+	<errno.h>
+	"Object.h"
+
+1525804100 c:\gl_sdl\object.h
+	"Transformer.h"
+
+1527698922 c:\gl_sdl\transformer.h
+
+1525804100 c:\gl_sdl\shaders.h
+
+1525810483 c:\gl_sdl\cameras.h
+	"Bones.h"
+	"MathFunctions.h"
+
+1525804100 c:\gl_sdl\mathfunctions.h
+	"Object.h"
+
+1525804100 c:\gl_sdl\initializingfunctions.h
+
+1525804100 c:\gl_sdl\extensionfunctions.h
+	"Object.h"
+
+1525887637 c:\gl_sdl\subdivision.h
+	"Object.h"
+	"ExtensionFunctions.h"
+
+1525804101 c:\gl_sdl\validators.h
+
+1525804100 c:\gl_sdl\generators.h
+
+1525804100 c:\gl_sdl\file_io.h
+
+1525804099 c:\gl_sdl\creators.h
+	"ZData.h"
+	"ZPlane.h"
+	"CubeData.h"
+	"wchar.h"
+
+1525804101 c:\gl_sdl\zdata.h
+
+1525804101 c:\gl_sdl\zplane.h
+
+1525804099 c:\gl_sdl\cubedata.h
+
+1526965885 c:\gl_sdl\transforms.h
+
+1525804099 c:\gl_sdl\arrays.h
+
+1525804100 c:\gl_sdl\rendering.h
+	"Object.h"
+	"ImageLoad.h"
+
+1525804100 c:\gl_sdl\imageload.h
+
+1526213355 c:\gl_sdl\selections.h
+
+1526213466 c:\gl_sdl\hierarchys.h
+
+1527698173 c:\gl_sdl\deformer.h
+	"Object.h"
+
+1525119027 source:f:\gl_sdl\main.c
+	<Windows.h>
+	"Dialog.h"
+	<dirent.h>
+	"Cursors.h"
+	"SDL/SDL_image.h"
+	"SDL/SDL_syswm.h"
+	"SDL/SDL_mouse.h"
+	"SDL/glew.h"
+	<GL/gl.h>
+	<GL/glu.h>
+	<IL/il.h>
+	<IL/ilu.h>
+	<IL/ilut.h>
+	<ft2build.h>
+	"Fonts.h"
+	"Shaders.h"
+	"Cameras.h"
+	"InitializingFunctions.h"
+	"ExtensionFunctions.h"
+	"Subdivision.h"
+	"Validators.h"
+	"Generators.h"
+	"File_IO.h"
+	"Creators.h"
+	"Transforms.h"
+	"Arrays.h"
+	"Rendering.h"
+	"Selections.h"
+	"Hierarchys.h"
+	<windows.h>
+	<io.h>
+	<fcntl.h>
+
+1524494460 f:\gl_sdl\dialog.h
+	<ctype.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<malloc.h>
+	<math.h>
+	<time.h>
+	<libgen.h>
+
+1524494460 f:\gl_sdl\cursors.h
+	"SDL/SDL.h"
+
+1524939300 f:\gl_sdl\fonts.h
+	<sys/types.h>
+	<sys/stat.h>
+	<unistd.h>
+	<errno.h>
+	"Object.h"
+
+1525102040 f:\gl_sdl\object.h
+	"Transformer.h"
+
+1524829020 f:\gl_sdl\transformer.h
+
+1524494460 f:\gl_sdl\shaders.h
+
+1525118155 f:\gl_sdl\cameras.h
+	"Bones.h"
+	"MathFunctions.h"
+
+1524948960 f:\gl_sdl\deformer.h
+	"Object.h"
+
+1524494460 f:\gl_sdl\mathfunctions.h
+	"Object.h"
+
+1524846300 f:\gl_sdl\initializingfunctions.h
+
+1524580500 f:\gl_sdl\extensionfunctions.h
+	"Object.h"
+
+1524494460 f:\gl_sdl\subdivision.h
+	"Object.h"
+	"ExtensionFunctions.h"
+
+1524494460 f:\gl_sdl\validators.h
+
+1524560040 f:\gl_sdl\generators.h
+
+1524494460 f:\gl_sdl\file_io.h
+
+1524494460 f:\gl_sdl\creators.h
+	"ZData.h"
+	"ZPlane.h"
+	"CubeData.h"
+	"wchar.h"
+
+1524494460 f:\gl_sdl\zdata.h
+
+1524494460 f:\gl_sdl\zplane.h
+
+1524494460 f:\gl_sdl\cubedata.h
+
+1524660720 f:\gl_sdl\transforms.h
+
+1524494460 f:\gl_sdl\arrays.h
+
+1525111927 f:\gl_sdl\rendering.h
+	"Object.h"
+	"ImageLoad.h"
+
+1524494460 f:\gl_sdl\imageload.h
+
+1524751440 f:\gl_sdl\selections.h
+
+1524494460 f:\gl_sdl\hierarchys.h
+
+1526198020 c:\gl_sdl\bones.h
+	"Poses.h"
+
+1525020600 f:\gl_sdl\bones.h
+	"Deformer.h"
+
+1527688574 c:\gl_sdl\poses.h
+	"Deformer.h"
+

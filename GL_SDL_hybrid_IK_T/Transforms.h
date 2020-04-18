@@ -115,6 +115,7 @@ void update_rotate_bounding_box()
         update_transformed_Triangles(O);
         generate_transformed_polyNormals(O);
         generate_transformed_edgeNormals(O);
+        generate_transformed_vertexNormals(O);
     }
 }
 

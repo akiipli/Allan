@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1574938049 source:c:\gl_sdl_hybrid\main.c
+1579456098 source:c:\gl_sdl_hybrid\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -46,7 +46,7 @@
 	<io.h>
 	<fcntl.h>
 
-1540493296 c:\gl_sdl_hybrid\dialog.h
+1540496896 c:\gl_sdl_hybrid\dialog.h
 	<ctype.h>
 	<stdio.h>
 	<stdlib.h>
@@ -56,75 +56,75 @@
 	<time.h>
 	<libgen.h>
 
-1540493296 c:\gl_sdl_hybrid\cursors.h
+1540496896 c:\gl_sdl_hybrid\cursors.h
 	"SDL/SDL.h"
 
-1574936395 c:\gl_sdl_hybrid\transformer.h
+1574965222 c:\gl_sdl_hybrid\transformer.h
 
-1541517952 c:\gl_sdl_hybrid\object.h
+1541521552 c:\gl_sdl_hybrid\object.h
 
-1541078686 c:\gl_sdl_hybrid\curves.h
+1541082286 c:\gl_sdl_hybrid\curves.h
 
-1558724725 c:\gl_sdl_hybrid\userinterface.h
+1576687768 c:\gl_sdl_hybrid\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
 	<errno.h>
 
-1563127869 c:\gl_sdl_hybrid\deformer.h
+1574965462 c:\gl_sdl_hybrid\deformer.h
 
-1540493296 c:\gl_sdl_hybrid\poses.h
+1575995864 c:\gl_sdl_hybrid\poses.h
 
-1574936395 c:\gl_sdl_hybrid\bones.h
+1574965170 c:\gl_sdl_hybrid\bones.h
 
-1558617711 c:\gl_sdl_hybrid\shaders.h
+1558621311 c:\gl_sdl_hybrid\shaders.h
 
-1540493296 c:\gl_sdl_hybrid\file_io.h
+1540496896 c:\gl_sdl_hybrid\file_io.h
 
-1557341288 c:\gl_sdl_hybrid\imageload.h
+1544729973 c:\gl_sdl_hybrid\materials.h
 
-1540493296 c:\gl_sdl_hybrid\mathfunctions.h
+1557344888 c:\gl_sdl_hybrid\imageload.h
 
-1557343737 c:\gl_sdl_hybrid\cameras.h
+1540496896 c:\gl_sdl_hybrid\mathfunctions.h
 
-1574936395 c:\gl_sdl_hybrid\saving.h
+1557347337 c:\gl_sdl_hybrid\cameras.h
 
-1557343745 c:\gl_sdl_hybrid\initializingfunctions.h
+1574939995 c:\gl_sdl_hybrid\saving.h
 
-1540493296 c:\gl_sdl_hybrid\extensionfunctions.h
+1557347345 c:\gl_sdl_hybrid\initializingfunctions.h
 
-1540493296 c:\gl_sdl_hybrid\subdivision.h
+1540496896 c:\gl_sdl_hybrid\extensionfunctions.h
 
-1541517992 c:\gl_sdl_hybrid\generators.h
+1540496896 c:\gl_sdl_hybrid\subdivision.h
 
-1540493296 c:\gl_sdl_hybrid\creators.h
+1541521592 c:\gl_sdl_hybrid\generators.h
+
+1540496896 c:\gl_sdl_hybrid\creators.h
 	"ZData.h"
 	"ZPlane.h"
 	"CubeData.h"
 
-1540493296 c:\gl_sdl_hybrid\zdata.h
+1540496896 c:\gl_sdl_hybrid\zdata.h
 
-1540493296 c:\gl_sdl_hybrid\zplane.h
+1540496896 c:\gl_sdl_hybrid\zplane.h
 
-1540550928 c:\gl_sdl_hybrid\cubedata.h
+1540554528 c:\gl_sdl_hybrid\cubedata.h
 
-1540493296 c:\gl_sdl_hybrid\transforms.h
+1587212926 c:\gl_sdl_hybrid\transforms.h
 
-1558890338 c:\gl_sdl_hybrid\arrays.h
+1558893938 c:\gl_sdl_hybrid\arrays.h
 
-1542184611 c:\gl_sdl_hybrid\lights.h
+1542188211 c:\gl_sdl_hybrid\lights.h
 
-1574936116 c:\gl_sdl_hybrid\rendering.h
+1574965170 c:\gl_sdl_hybrid\rendering.h
 
-1563130401 c:\gl_sdl_hybrid\selections.h
+1563134001 c:\gl_sdl_hybrid\selections.h
 
-1557343083 c:\gl_sdl_hybrid\hierarchys.h
+1557346683 c:\gl_sdl_hybrid\hierarchys.h
 
-1540493296 c:\gl_sdl_hybrid\validators.h
+1540496896 c:\gl_sdl_hybrid\validators.h
 
-1574939078 c:\gl_sdl_hybrid\loading.h
+1579455382 c:\gl_sdl_hybrid\loading.h
 
-1540493296 c:\gl_sdl_hybrid\modeling.h
-
-1544726373 c:\gl_sdl_hybrid\materials.h
+1540496896 c:\gl_sdl_hybrid\modeling.h
 
