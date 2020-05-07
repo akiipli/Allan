@@ -167,6 +167,7 @@ c: in object mode read camera pose set earlier
 alt-b: not in bind pose set Bind Pose For Branch
 ctrl-e: clear selected edges weights for selected objects
 alt-f: cycle selected objects by framing them in camera view, esc to escape it.
+ctrl-a: toggle objects deformer on/off.
 
 in deformers window: b binds to current deformer selected objects in one go.
 As result vertex groups are generated or updated.
