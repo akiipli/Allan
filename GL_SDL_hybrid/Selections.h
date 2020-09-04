@@ -1138,6 +1138,7 @@ void unassign_Selection_L()
                 }
 
                 int * final_elements = malloc(O->vertex_selection[index]->indices_count * sizeof(int));
+                float * final_weights = malloc(O->vertex_selection[index]->indices_count * sizeof(float));
                 int final_elements_count = 0;
 
                 for (i_c = 0; i_c < O->vertex_selection[index]->indices_count; i_c ++)
@@ -1154,6 +1155,7 @@ void unassign_Selection_L()
 
                     if (Condition)
                     {
+                        final_weights[final_elements_count] = O->vertex_selection[index]->weights[i_c];
                         final_elements[final_elements_count ++] = O->vertex_selection[index]->indices[i_c];
                     }
                 }
@@ -1165,6 +1167,7 @@ void unassign_Selection_L()
                 for (i = 0; i < final_elements_count; i ++)
                 {
                     O->vertex_selection[index]->indices[i] = final_elements[i];
+                    O->vertex_selection[index]->weights[i] = final_weights[i];
                 }
                 if (O->vertex_selection[index]->Transformer != NULL)
                 {
@@ -1172,6 +1175,7 @@ void unassign_Selection_L()
                 }
                 free(selected_elements);
                 free(final_elements);
+                free(final_weights);
             }
         }
     }
