@@ -1,4 +1,0 @@
-. 
-.. 
-Deformer 0_0.txt
-Deformer 0_1.txt

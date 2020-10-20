@@ -4041,6 +4041,46 @@ void render_IK_Chains()
     glDisable(GL_LINE_STIPPLE);
 }
 
+void render_HighLighted_Bones()
+{
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+
+    glLineWidth(1);
+    glLineStipple(1, 0xEEEE);
+    glBegin(GL_LINES);
+
+    glColor4ubv(line_white);
+
+    int b;
+
+    bone * B;
+    transformer * T0, * T1;
+
+    for(b = 0; b < bonesIndex; b ++)
+    {
+        B = bones[b];
+
+        if (B->selected)
+        {
+            T0 = B->A;
+            T1 = B->B;
+
+            glVertex3f(T0->pos[0], T0->pos[1], T0->pos[2]);
+            glVertex3f(T1->pos[0], T1->pos[1], T1->pos[2]);
+        }
+    }
+
+    glEnd();
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+}
+
 void render_Parent_Lines()
 {
     glDisable(GL_LIGHTING);

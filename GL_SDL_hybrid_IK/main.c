@@ -432,6 +432,12 @@ static void setup_opengl(int width, int height)
     const GLubyte * glversion = glGetString(GL_VERSION);
     printf("OpenGL %s\n", glversion);
 
+    const GLubyte *renderer = glGetString(GL_RENDERER);
+    printf("GL Renderer: %s\n", renderer);
+
+    const GLubyte *glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+    printf("glsl version %s\n", glslVersion);
+
     const GLubyte * glvendor = glGetString(GL_VENDOR);
 
     NVIDIA = find_card(glvendor);
@@ -1724,6 +1730,7 @@ void draw_Locators()
 {
     render_Transformers(currentLocator);
     render_Parent_Lines();
+    render_HighLighted_Bones();
     render_IK_Chains();
 }
 
@@ -5769,8 +5776,13 @@ void handle_UP_Bone(int scrollbar)
         if (BoneIndex < 0) BoneIndex ++;
         if (BoneIndex - bone_start >= 0)
             BoneList[BoneIndex - bone_start].color = UI_BACKL;
+        bones[currentBone]->selected = 0;
         currentBone = Bone_List[BoneIndex];
+        bones[currentBone]->selected = 1;
     }
+    DRAW_UI = 0;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    DRAW_UI = 1;
     update_Bones_List(1, 0);
 }
 
@@ -6295,8 +6307,13 @@ void handle_DOWN_Bone(int scrollbar)
             BoneIndex --;
         if (BoneIndex - bone_start >= 0)
             BoneList[BoneIndex - bone_start].color = UI_BACKL;
+        bones[currentBone]->selected = 0;
         currentBone = Bone_List[BoneIndex];
+        bones[currentBone]->selected = 1;
     }
+    DRAW_UI = 0;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    DRAW_UI = 1;
     update_Bones_List(1, 0);
 }
 
@@ -10076,6 +10093,7 @@ void select_currentBone()
             T = bones[currentBone]->A;
             T->selected = 1;
             currentLocator = T->index;
+            bones[currentBone]->selected = 1;
         }
     }
 
@@ -10994,6 +11012,7 @@ int main(int argc, char * args[])
                                     if (BoneIndex - bone_start >= 0)
                                         BoneList[BoneIndex - bone_start].color = UI_BACKL;
 
+                                    bones[currentBone]->selected = 0;
                                     currentBone = Bone_List[BoneIndex];
 
                                     select_currentBone();
@@ -14466,6 +14485,11 @@ int main(int argc, char * args[])
                 {
                     T = transformers[t];
                     T->selected = 0;
+                }
+                int b;
+                for (b = 0; b < bonesIndex; b ++)
+                {
+                    bones[b]->selected = 0;
                 }
             }
             else if (Object_Mode)
