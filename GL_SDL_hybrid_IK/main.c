@@ -189,6 +189,7 @@ int Object_Mode = 1;
 int Polygon_Mode = 0;
 int Edge_Mode = 0;
 int Vertex_Mode = 0;
+int Bone_Mode = 0;
 int selection_Mode = 0;
 
 int mouse_button_down = 0;
@@ -213,6 +214,7 @@ int POLYS_ID_RENDER = 0;
 int EDGES_ID_RENDER = 0;
 int VERTS_ID_RENDER = 0;
 int LOCAT_ID_RENDER = 0;
+int BONES_ID_RENDER = 0;
 
 float m[4][4];
 
@@ -1293,6 +1295,10 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
 //        {
 //            render_poly_ID(C, O); // because draw_Fan_Arrays_Shader_ID requires polygon based approach
 //        }
+        else if (BONES_ID_RENDER)
+        {
+            render_Bones_ID();
+        }
         else if (LOCAT_ID_RENDER && rendermode == ID_RENDER && !POLYS_ID_RENDER)
         {
             render_Transformers_ID();
@@ -1336,6 +1342,10 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
 //        {
 //            render_Quads_ID(C, O, level); // because draw_Arrays_Shader_ID requires quad based approach
 //        }
+        else if (BONES_ID_RENDER)
+        {
+            render_Bones_ID();
+        }
         else if (LOCAT_ID_RENDER && rendermode == ID_RENDER && !POLYS_ID_RENDER)
         {
             render_Transformers_ID();
@@ -1728,10 +1738,15 @@ void Draw_Rectangle()
 
 void draw_Locators()
 {
-    render_Transformers(currentLocator);
-    render_Parent_Lines();
-    render_HighLighted_Bones();
-    render_IK_Chains();
+    if (!Bone_Mode)
+        render_Transformers(currentLocator);
+    if (!BONES_ID_RENDER)
+    {
+        render_Parent_Lines();
+        render_HighLighted_Bones();
+    }
+    if (!Bone_Mode)
+        render_IK_Chains();
 }
 
 void Draw_Ui()
@@ -2186,11 +2201,13 @@ void set_Object_Mode()
     Polygon_Mode = 0;
     Edge_Mode = 0;
     Vertex_Mode = 0;
+    Bone_Mode = 0;
     vertdraw = 0;
     Button_Mode[0].color = UI_GRAYD;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYB;
+    Button_Mode[4].color = UI_GRAYB;
     SDL_SetCursor(Arrow);
 }
 
@@ -2202,11 +2219,13 @@ void set_Polygon_Mode()
     Polygon_Mode = 1;
     Edge_Mode = 0;
     Vertex_Mode = 0;
+    Bone_Mode = 0;
     vertdraw = 0;
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYD;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYB;
+    Button_Mode[4].color = UI_GRAYB;
     if (add_selection_mode)
         SDL_SetCursor(Arrow_Plus);
     else
@@ -2221,11 +2240,13 @@ void set_Edge_Mode()
     Polygon_Mode = 0;
     Edge_Mode = 1;
     Vertex_Mode = 0;
+    Bone_Mode = 0;
     vertdraw = 0;
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYD;
     Button_Mode[3].color = UI_GRAYB;
+    Button_Mode[4].color = UI_GRAYB;
 
     edgedraw = 1;
 
@@ -2243,11 +2264,35 @@ void set_Vertex_Mode()
     Polygon_Mode = 0;
     Edge_Mode = 0;
     Vertex_Mode = 1;
+    Bone_Mode = 0;
     vertdraw = 1;
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYD;
+    Button_Mode[4].color = UI_GRAYB;
+
+    if (add_selection_mode)
+        SDL_SetCursor(Arrow_Plus);
+    else
+        SDL_SetCursor(Arrow_Minus);
+}
+
+void set_Bone_Mode()
+{
+    printf("Bone Mode\n");
+    selection_Mode = 4;
+    Object_Mode = 0;
+    Polygon_Mode = 0;
+    Edge_Mode = 0;
+    Vertex_Mode = 0;
+    Bone_Mode = 1;
+    vertdraw = 0;
+    Button_Mode[0].color = UI_GRAYB;
+    Button_Mode[1].color = UI_GRAYB;
+    Button_Mode[2].color = UI_GRAYB;
+    Button_Mode[3].color = UI_GRAYB;
+    Button_Mode[4].color = UI_GRAYD;
 
     if (add_selection_mode)
         SDL_SetCursor(Arrow_Plus);
@@ -8596,6 +8641,7 @@ void set_Bind_Mode()
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYB;
+    Button_Mode[4].color = UI_GRAYB;
 
     SDL_SetCursor(Arrow);
 
@@ -8627,7 +8673,7 @@ void set_Bind_Mode()
 
         create_Hierarchys_List(); // because of collapsed locators
 
-        Button_Mode[4].color = UI_GRAYD;
+        Button_Mode[5].color = UI_GRAYD;
     }
     else
     {
@@ -8659,7 +8705,7 @@ void set_Bind_Mode()
 
         paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
 
-        Button_Mode[4].color = UI_GRAYB;
+        Button_Mode[5].color = UI_GRAYB;
         Button_Mode[selection_Mode].color = UI_GRAYD;
 
         set_Object_Mode();
@@ -9807,7 +9853,7 @@ void exit_Bind_Mode()
 
     paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
 
-    Button_Mode[4].color = UI_GRAYB;
+    Button_Mode[5].color = UI_GRAYB;
     Button_Mode[selection_Mode].color = UI_GRAYD;
 
     set_Object_Mode();
@@ -10295,7 +10341,8 @@ int main(int argc, char * args[])
     Button_Mode[1].func = &set_Polygon_Mode;
     Button_Mode[2].func = &set_Edge_Mode;
     Button_Mode[3].func = &set_Vertex_Mode;
-    Button_Mode[4].func = &set_Bind_Mode;
+    Button_Mode[4].func = &set_Bone_Mode;
+    Button_Mode[5].func = &set_Bind_Mode;
 
     Button_ext[0].func = &set_Button_ext;
     Button_ext[1].func = &set_Button_ext;
@@ -11738,6 +11785,11 @@ int main(int argc, char * args[])
                                 Camera->objects[0] = currentObject;
                                 Camera->object_count = 1;
                             }
+                            else if (Bone_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                            }
                         }
                         else
                         {
@@ -11766,6 +11818,11 @@ int main(int argc, char * args[])
                                 Camera->objects[0] = currentObject;
                                 Camera->object_count = 1;
                             }
+                            else if (Bone_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                            }
                         }
                         UPDATE_COLORS = 1;
                         DRAW_UI = 0;
@@ -11785,11 +11842,17 @@ int main(int argc, char * args[])
                             poly_Render(0, 0, splitview, CamDist, 0, level);
                             EDGES_ID_RENDER = 0;
                         }
-                        else
+                        else if (Polygon_Mode)
                         {
                             POLYS_ID_RENDER = 1;
                             poly_Render(0, 0, splitview, CamDist, 0, level);
                             POLYS_ID_RENDER = 0;
+                        }
+                        else if (Bone_Mode)
+                        {
+                            BONES_ID_RENDER = 1;
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                            BONES_ID_RENDER = 0;
                         }
 
                         //SDL_Delay(delay_ms);
@@ -12013,6 +12076,20 @@ int main(int argc, char * args[])
                                         break;
                                     }
                                 }
+                            }
+                            else if (Bone_Mode && o < bonesIndex && o >= 0)
+                            {
+                                bone * B = bones[o];
+                                printf("bone id %d\n", o);
+                                if (add_selection_mode)
+                                {
+                                    B->selected = 1;
+                                }
+                                else
+                                {
+                                    B->selected = 0;
+                                }
+                                break;
                             }
                         }
 
@@ -12923,6 +13000,11 @@ int main(int argc, char * args[])
                             Camera->objects[0] = currentObject;
                             Camera->object_count = 1;
                         }
+                        else if (Bone_Mode)
+                        {
+                            Camera->objects[0] = currentObject;
+                            Camera->object_count = 1;
+                        }
                     }
                     else
                     {
@@ -12951,6 +13033,11 @@ int main(int argc, char * args[])
                             Camera->objects[0] = currentObject;
                             Camera->object_count = 1;
                         }
+                        else if (Bone_Mode)
+                        {
+                            Camera->objects[0] = currentObject;
+                            Camera->object_count = 1;
+                        }
                     }
                     UPDATE_COLORS = 1;
                     DRAW_UI = 0;
@@ -12970,11 +13057,17 @@ int main(int argc, char * args[])
                         poly_Render(0, 0, splitview, CamDist, 0, level);
                         EDGES_ID_RENDER = 0;
                     }
-                    else
+                    else if (Polygon_Mode)
                     {
                         POLYS_ID_RENDER = 1;
                         poly_Render(0, 0, splitview, CamDist, 0, level);
                         POLYS_ID_RENDER = 0;
+                    }
+                    else if (Bone_Mode)
+                    {
+                        BONES_ID_RENDER = 1;
+                        poly_Render(0, 0, splitview, CamDist, 0, level);
+                        BONES_ID_RENDER = 0;
                     }
 
                     //SDL_Delay(delay_ms);
@@ -13184,6 +13277,19 @@ int main(int argc, char * args[])
                                     break;
                                 }
                             }
+                        }
+                        else if (Bone_Mode && o < bonesIndex && o >= 0)
+                        {
+                            bone * B = bones[o];
+                            if (add_selection_mode)
+                            {
+                                B->selected = 1;
+                            }
+                            else
+                            {
+                                B->selected = 0;
+                            }
+                            break;
                         }
                     }
 
@@ -14486,11 +14592,6 @@ int main(int argc, char * args[])
                     T = transformers[t];
                     T->selected = 0;
                 }
-                int b;
-                for (b = 0; b < bonesIndex; b ++)
-                {
-                    bones[b]->selected = 0;
-                }
             }
             else if (Object_Mode)
             {
@@ -14538,6 +14639,14 @@ int main(int argc, char * args[])
                     O = objects[selected_objects[o]];
                     clear_Verts_Selection(O);
                     assert_Element_Selection(O);
+                }
+            }
+            else if (Bone_Mode)
+            {
+                int b;
+                for (b = 0; b < bonesIndex; b ++)
+                {
+                    bones[b]->selected = 0;
                 }
             }
 
@@ -14721,6 +14830,11 @@ int main(int argc, char * args[])
             message = -10;
         }
         else if (message == 51)
+        {
+            set_Bone_Mode();
+            message = -1;
+        }
+        else if (message == 52)
         {
             set_Bind_Mode();
             message = -1;

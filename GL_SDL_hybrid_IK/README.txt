@@ -118,7 +118,8 @@ i: open image
 2: polygons
 3: edges
 4: verts
-5: bind mode
+5: bones
+6: bind mode
 page up: increase subdivision level
 page down: decrease subdivision level
 l: show, hide locators. When deformer player is active, toggle Lightshow

@@ -3852,6 +3852,56 @@ void draw_Box(transformer * T, float rotVec_[3][3])
     glVertex3f(corner[7][0], corner[7][1], corner[7][2]);
 }
 
+void render_Bones_ID()
+{
+    int b, idx0, idx1, idx2;
+    bone * Bone;
+
+    transformer * T0, * T1;
+
+    int M0 = 255 * 255 * 255;
+    int M1 = 255 * 255;
+
+    float R, G, B, A;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DITHER);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_MULTISAMPLE);
+
+    glBegin(GL_LINES);
+
+    for (b = 0; b < bonesIndex; b++)
+    {
+        Bone = bones[b];
+
+        R = (float)(b / M0) / (float)255;
+        idx0 = b % M0;
+        G = (float)(idx0 / M1) / (float)255;
+        idx1 = idx0 % M1;
+        B = (float)(idx1 / 255) / (float)255;
+        idx2 = idx1 % 255;
+        A = (float)(idx2) / (float)255;
+
+        glColor4f(R, G, B, A);
+
+        T0 = Bone->A;
+        T1 = Bone->B;
+
+        glVertex3f(T0->pos[0], T0->pos[1], T0->pos[2]);
+        glVertex3f(T1->pos[0], T1->pos[1], T1->pos[2]);
+    }
+
+    glEnd();
+
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DITHER);
+    glEnable(GL_LIGHTING);
+}
+
 void render_Transformers_ID()
 {
     int t;
