@@ -4445,7 +4445,15 @@ void open_Hierarchys_List()
 
     if (currentLocator < Hierarchys_c && (HierIndex - hier_start < 0 || HierIndex >= hier_start + LISTLENGTH))
     {
-        hier_start = HierIndex;
+        //hier_start = HierIndex;
+        if (HierIndex - LISTLENGTH / 2 >= 0)
+        {
+            hier_start = HierIndex - LISTLENGTH / 2;
+        }
+        else
+        {
+            hier_start = 0;
+        }
     }
 
     black_out_HierarchyList();
@@ -8637,11 +8645,11 @@ void set_Bind_Mode()
 {
     Draw_Bottom_Message("Bind Mode\n");
 
-    Button_Mode[0].color = UI_GRAYB;
-    Button_Mode[1].color = UI_GRAYB;
-    Button_Mode[2].color = UI_GRAYB;
-    Button_Mode[3].color = UI_GRAYB;
-    Button_Mode[4].color = UI_GRAYB;
+//    Button_Mode[0].color = UI_GRAYB;
+//    Button_Mode[1].color = UI_GRAYB;
+//    Button_Mode[2].color = UI_GRAYB;
+//    Button_Mode[3].color = UI_GRAYB;
+//    Button_Mode[4].color = UI_GRAYB;
 
     SDL_SetCursor(Arrow);
 
@@ -8708,7 +8716,7 @@ void set_Bind_Mode()
         Button_Mode[5].color = UI_GRAYB;
         Button_Mode[selection_Mode].color = UI_GRAYD;
 
-        set_Object_Mode();
+        //set_Object_Mode();
 
         hier_start = 0;
     }
@@ -12083,6 +12091,7 @@ int main(int argc, char * args[])
                                 printf("bone id %d\n", o);
                                 if (add_selection_mode)
                                 {
+                                    currentBone = B->index;
                                     B->selected = 1;
                                 }
                                 else
@@ -13283,6 +13292,7 @@ int main(int argc, char * args[])
                             bone * B = bones[o];
                             if (add_selection_mode)
                             {
+                                currentBone = B->index;
                                 B->selected = 1;
                             }
                             else
@@ -13577,7 +13587,14 @@ int main(int argc, char * args[])
                 O->T->pos[2] += 0.5;
             else if (DRAW_LOCATORS)
             {
-                if (T->Bone != NULL)
+                if (Bone_Mode && currentBone < bonesIndex)
+                {
+                    if (bones[currentBone]->selected)
+                    {
+                        delete_Bone(bones[currentBone]);
+                    }
+                }
+                else if (T->Bone != NULL)
                     delete_Bone(T->Bone);
                 else
                     delete_Locator();
