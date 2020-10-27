@@ -56,6 +56,7 @@ look for CUBECOMMENT
 #include "Deformer.h"
 #include "Poses.h"
 #include "Bones.h"
+#include "Subcharacters.h"
 #include "Shaders.h"
 #include "File_IO.h"
 #include "Materials.h"
