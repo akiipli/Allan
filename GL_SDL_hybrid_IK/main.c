@@ -7107,9 +7107,58 @@ void rename_Scene_dir()
     }
 }
 
-void add_Subcharacter(){printf("add Subcharacter\n");}
+void add_Subcharacter()
+{
+    if (subcharacterIndex < SUBCHARACTERS - 1)
+    {
+        printf("add Subcharacter\n");
+        set_Subc_H_Button(0);
+        if (deformerIndex > 0 && currentDeformer >= 0 && currentDeformer < deformerIndex)
+        {
+            D = deformers[currentDeformer_Node];
+            printf("deformer %s, bones %d\n", D->Name, D->Bones_Count);
+            if (D->Bones_Count > 0 && D->Transformers_Count > 0)
+            {
+                create_Hi_Selected_Bones_List(D);
+
+                if (hi_selected_Bones_count)
+                {
+                    init_Subcharacter(D);
+                    currentSubcharacter = subcharacterIndex - 1;
+                }
+
+                free(hi_selected_Bones);
+                free(hi_selected_Transformers);
+            }
+        }
+        if (dialog_lock)
+        {
+            draw_Dialog();
+        }
+    }
+}
+
 void add_Subcharacter_Pose(){printf("add Subcharacter Pose\n");}
-void remove_Subcharacter(){printf("remove Subcharacter\n");}
+
+void remove_Subcharacter()
+{
+    set_Subc_H_Button(2);
+    printf("remove Subcharacter\n");
+    if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
+    {
+        subcharacter * S = subcharacters[currentSubcharacter];
+
+        delete_Subcharacter(S);
+        SubcharacterIndex --;
+        currentSubcharacter --;
+        if (currentSubcharacter < 0)
+            currentSubcharacter = 0;
+
+        if (dialog_lock)
+            draw_Dialog();
+    }
+}
+
 void remove_Subcharacter_Pose(){printf("remove Subcharacter Pose\n");}
 void rename_Subcharacter(){printf("rename Subcharacter\n");}
 void rename_Subcharacter_Pose(){printf("rename Subcharacter Pose\n");}
@@ -11291,6 +11340,32 @@ int main(int argc, char * args[])
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_IK_Dialog("IK List", screen_height,
                                                 ikch_start, 1, IKIndex - ikch_start);
+                                    SDL_GL_SwapBuffers();
+                                    glDrawBuffer(GL_BACK);
+                                    DRAW_UI = 1;
+                                }
+                            }
+                            else if (dialog_type == SUBC_DIALOG)
+                            {
+                                if (index + subcharacter_start < Subcharacters_c)
+                                {
+                                    if (SubcharacterIndex - subcharacter_start >= 0)
+                                        SubcList[SubcharacterIndex - subcharacter_start].color = UI_BLACK;
+                                    SubcharacterIndex = index + subcharacter_start;
+                                    if (SubcharacterIndex - subcharacter_start >= 0)
+                                        SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+
+                                    currentSubcharacter = Subcharacter_List[SubcharacterIndex];
+
+                                    //select_currentSubcharacter();
+
+                                    create_Subcharacters_List(SubcharacterIndex);
+
+                                    DRAW_UI = 0;
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                    draw_Subcharacters_Dialog("Subcharacters", screen_height,
+                                                subcharacter_start, 1, SubcharacterIndex - subcharacter_start);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
                                     DRAW_UI = 1;

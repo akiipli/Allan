@@ -976,7 +976,7 @@ void draw_Button_Subcharacter_text(const char * text, int width, int height, int
 	glEnable(GL_TEXTURE_2D);
 
     if (colorchange)
-        glColor4fv(buttoncolors[IkchList[index].color].color);
+        glColor4fv(buttoncolors[SubcList[index].color].color);
 	else
         glColor4fv(buttoncolors[UI_BLACK].color);
 

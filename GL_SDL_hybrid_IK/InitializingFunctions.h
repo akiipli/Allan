@@ -46,6 +46,16 @@ void free_ikChains()
     }
 }
 
+void free_subcharacter(subcharacter * S)
+{
+    free(S->Name);
+    free(S->Transformers);
+    free(S->Bones);
+    free(S->Poses);
+    free(S->Subcharacters);
+    free(S);
+}
+
 void free_bone(bone * B)
 {
     int d;
