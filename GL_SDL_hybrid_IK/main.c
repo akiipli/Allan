@@ -97,10 +97,11 @@ look for CUBECOMMENT
 #define POSE_DIALOG 6
 #define BONE_DIALOG 7
 #define IK_DIALOG 8
-#define OBJ_DIALOG 9
-#define IMG_DIALOG 10
-#define SAVES_DIALOG 11
-#define LOADING_DIALOG 12
+#define SUBC_DIALOG 9
+#define OBJ_DIALOG 10
+#define IMG_DIALOG 11
+#define SAVES_DIALOG 12
+#define LOADING_DIALOG 13
 
 #define obj_EXTENSION 0
 #define OBJ_EXTENSION 1
@@ -3995,6 +3996,20 @@ int list_materials(char ** material_list, int start, int n)
     return material;
 }
 
+int list_subcharacters(char ** subch_list, int start, int n)
+{
+    int s = start;
+    int character = 0;
+    for (character = 0; character < n; character ++)
+    {
+        if (character >= Subcharacters_c - start)
+            break;
+        sprintf(subch_list[character], "%s", Subcharacter_Names[s]);
+        s ++;
+    }
+    return character;
+}
+
 int list_ik(char ** ikch_list, int start, int n)
 {
     int i = start;
@@ -4190,6 +4205,54 @@ void open_Selections_List()
         draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
     }
     blit_ViewPort();
+    glDrawBuffer(GL_BACK);
+    SDL_GL_SwapBuffers();
+    message = 0;
+}
+
+void black_out_SubcharacterList()
+{
+    int i;
+
+    for (i = 0; i < Subcharacters_c; i ++)
+    {
+        SubcList[i].color = UI_BLACK;
+    }
+    if (SubcharacterIndex - subcharacter_start >= 0)
+        SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+}
+
+void open_Subcharacters_List()
+{
+    Osd = 0;
+    HINTS = 0;
+
+    create_Subcharacters_List(SubcharacterIndex);
+
+    if (Bottom_Message)
+    {
+        Draw_Bottom_Message("Subcharacters List\n");
+    }
+    Bottom_Message = 0;
+
+    black_out_SubcharacterList();
+
+    //DRAW_LOCATORS = 1;
+    //LOCAT_ID_RENDER = 1;
+
+    SDL_SetCursor(Arrow);
+    dialog_lock = 1;
+    dialog_type = SUBC_DIALOG;
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    UPDATE_COLORS = 1;
+    if (dialog_lock)
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    else
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+    UPDATE_COLORS = 0;
+
+    draw_Subcharacters_Dialog("Subcharacters", screen_height, subcharacter_start, 1, SubcharacterIndex - subcharacter_start);
+
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
     message = 0;
@@ -5013,6 +5076,30 @@ void update_IK_List(int update, int blit)
     glDrawBuffer(GL_BACK);
 }
 
+void update_Subcharacters_List(int update, int blit)
+{
+    if (SubcharacterIndex - subcharacter_start >= 0)
+        SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+
+    if (blit)
+    {
+        blit_ViewPort();
+    }
+
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    if (UPDATE_BACKGROUND || update)
+    {
+        draw_Subcharacters_Dialog("Subcharacters", screen_height, subcharacter_start, 1, SubcharacterIndex - subcharacter_start);
+    }
+    else
+    {
+        draw_Subchar_List(screen_height, subcharacter_start, 0, SubcharacterIndex - subcharacter_start);
+        draw_Subchar_Bottom_Line(DIALOG_WIDTH, screen_height);
+    }
+    SDL_GL_SwapBuffers();
+    glDrawBuffer(GL_BACK);
+}
+
 void update_Bones_List(int update, int blit)
 {
     if (BoneIndex - bone_start >= 0)
@@ -5811,6 +5898,38 @@ void handle_UP_IK(int scrollbar)
     update_IK_List(1, 0);
 }
 
+void handle_UP_Subcharacter(int scrollbar)
+{
+    if (scrollbar)
+    {
+        if (SubcharacterIndex - subcharacter_start >= 0)
+            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BLACK;
+        subcharacter_start --;
+        if (subcharacter_start < 0) subcharacter_start = 0;
+        if (SubcharacterIndex - subcharacter_start >= 0)
+            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+    }
+    else
+    {
+        if (SubcharacterIndex - subcharacter_start >= 0)
+            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BLACK;
+        SubcharacterIndex --;
+        if (SubcharacterIndex < 0) SubcharacterIndex ++;
+        if (SubcharacterIndex - subcharacter_start >= 0)
+            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+        if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
+        {
+            subcharacters[currentSubcharacter]->selected = 0;
+            currentSubcharacter = Subcharacter_List[SubcharacterIndex];
+            subcharacters[currentSubcharacter]->selected = 1;
+        }
+    }
+    DRAW_UI = 0;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    DRAW_UI = 1;
+    update_Subcharacters_List(1, 0);
+}
+
 void handle_UP_Bone(int scrollbar)
 {
     if (scrollbar)
@@ -5830,9 +5949,12 @@ void handle_UP_Bone(int scrollbar)
         if (BoneIndex < 0) BoneIndex ++;
         if (BoneIndex - bone_start >= 0)
             BoneList[BoneIndex - bone_start].color = UI_BACKL;
-        bones[currentBone]->selected = 0;
-        currentBone = Bone_List[BoneIndex];
-        bones[currentBone]->selected = 1;
+        if (currentBone >= 0 && currentBone < bonesIndex)
+        {
+            bones[currentBone]->selected = 0;
+            currentBone = Bone_List[BoneIndex];
+            bones[currentBone]->selected = 1;
+        }
     }
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -6175,6 +6297,10 @@ void handle_UP(int scrollbar)
         {
             handle_UP_IK(scrollbar);
         }
+        else if (dialog_type == SUBC_DIALOG)
+        {
+            handle_UP_Subcharacter(scrollbar);
+        }
         else if (dialog_type == POSE_DIALOG)
         {
             handle_UP_Pose(scrollbar);
@@ -6341,6 +6467,39 @@ void handle_DOWN_IK(int scrollbar)
     update_IK_List(1, 0);
 }
 
+void handle_DOWN_Subcharacter(int scrollbar)
+{
+    if (scrollbar)
+    {
+        if (SubcharacterIndex - subcharacter_start >= 0)
+            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BLACK;
+        subcharacter_start ++;
+        if (subcharacter_start > Subcharacters_c - LISTLENGTH) subcharacter_start --;
+        if (SubcharacterIndex - subcharacter_start >= 0)
+            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+    }
+    else
+    {
+        if (SubcharacterIndex - subcharacter_start >= 0)
+            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BLACK;
+        SubcharacterIndex ++;
+        if (SubcharacterIndex > Subcharacters_c - 1)
+            SubcharacterIndex --;
+        if (SubcharacterIndex - subcharacter_start >= 0)
+            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+        if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
+        {
+            subcharacters[currentSubcharacter]->selected = 0;
+            currentSubcharacter = Subcharacter_List[SubcharacterIndex];
+            subcharacters[currentSubcharacter]->selected = 1;
+        }
+    }
+    DRAW_UI = 0;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    DRAW_UI = 1;
+    update_Subcharacters_List(1, 0);
+}
+
 void handle_DOWN_Bone(int scrollbar)
 {
     if (scrollbar)
@@ -6361,9 +6520,12 @@ void handle_DOWN_Bone(int scrollbar)
             BoneIndex --;
         if (BoneIndex - bone_start >= 0)
             BoneList[BoneIndex - bone_start].color = UI_BACKL;
-        bones[currentBone]->selected = 0;
-        currentBone = Bone_List[BoneIndex];
-        bones[currentBone]->selected = 1;
+        if (currentBone >= 0 && currentBone < bonesIndex)
+        {
+            bones[currentBone]->selected = 0;
+            currentBone = Bone_List[BoneIndex];
+            bones[currentBone]->selected = 1;
+        }
     }
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -6635,6 +6797,10 @@ void handle_DOWN(int scrollbar)
         else if (dialog_type == IK_DIALOG)
         {
             handle_DOWN_IK(scrollbar);
+        }
+        else if (dialog_type == SUBC_DIALOG)
+        {
+            handle_DOWN_Subcharacter(scrollbar);
         }
         else if (dialog_type == POSE_DIALOG)
         {
@@ -6940,6 +7106,13 @@ void rename_Scene_dir()
         }
     }
 }
+
+void add_Subcharacter(){printf("add Subcharacter\n");}
+void add_Subcharacter_Pose(){printf("add Subcharacter Pose\n");}
+void remove_Subcharacter(){printf("remove Subcharacter\n");}
+void remove_Subcharacter_Pose(){printf("remove Subcharacter Pose\n");}
+void rename_Subcharacter(){printf("rename Subcharacter\n");}
+void rename_Subcharacter_Pose(){printf("rename Subcharacter Pose\n");}
 
 void rename_IK()
 {
@@ -7897,6 +8070,10 @@ void draw_Dialog()
     else if (dialog_type == IK_DIALOG)
     {
         open_IK_List();
+    }
+    else if (dialog_type == SUBC_DIALOG)
+    {
+        open_Subcharacters_List();
     }
     else if (dialog_type == POSE_DIALOG)
     {
@@ -10334,17 +10511,18 @@ int main(int argc, char * args[])
     SideBar[7] = &open_Poses_List;
     SideBar[8] = &open_Bones_List;
     SideBar[9] = &open_IK_List;
-    SideBar[10] = &collapse_Files;
-    SideBar[11] = &open_OBJ_List;
-    SideBar[12] = &open_Text_List;
-    SideBar[13] = &open_Norm_List;
-    SideBar[14] = &open_Bump_List;
-    SideBar[15] = &open_Saves_List;
-    SideBar[16] = &export_OBJ_Format;
-    SideBar[17] = &open_Loading_List;
-    SideBar[18] = &collapse_Clear;
-    SideBar[19] = &clear_All;
-    SideBar[20] = &Exit;
+    SideBar[10] = &open_Subcharacters_List;
+    SideBar[11] = &collapse_Files;
+    SideBar[12] = &open_OBJ_List;
+    SideBar[13] = &open_Text_List;
+    SideBar[14] = &open_Norm_List;
+    SideBar[15] = &open_Bump_List;
+    SideBar[16] = &open_Saves_List;
+    SideBar[17] = &export_OBJ_Format;
+    SideBar[18] = &open_Loading_List;
+    SideBar[19] = &collapse_Clear;
+    SideBar[20] = &clear_All;
+    SideBar[21] = &Exit;
 
     Button_Mode[0].func = &set_Object_Mode;
     Button_Mode[1].func = &set_Polygon_Mode;
@@ -10413,6 +10591,13 @@ int main(int argc, char * args[])
 
     Button_h_ikch[0].func = &remove_IK;
     Button_h_ikch[1].func = &rename_IK;
+
+    Button_h_subc[0].func = &add_Subcharacter;
+    Button_h_subc[1].func = &add_Subcharacter_Pose;
+    Button_h_subc[2].func = &remove_Subcharacter;
+    Button_h_subc[3].func = &remove_Subcharacter_Pose;
+    Button_h_subc[4].func = &rename_Subcharacter;
+    Button_h_subc[5].func = &rename_Subcharacter_Pose;
 
     Button_h_scen[0].func = &save_load_Scene;
 
@@ -11536,6 +11721,10 @@ int main(int argc, char * args[])
                             {
 
                             }
+                            else if (dialog_type == SUBC_DIALOG)
+                            {
+
+                            }
                             else if (dialog_type == HIER_DIALOG)
                             {
 
@@ -11667,6 +11856,14 @@ int main(int argc, char * args[])
                                 if (h_index < H_IKCH_NUM)
                                 {
                                     (*Button_h_ikch[h_index].func)();
+                                }
+                            }
+                            else if (dialog_type == SUBC_DIALOG && !Edit_Lock)
+                            {
+                                h_index = (mouse_x - SIDEBAR * 2) / BUTTON_WIDTH_SHORT;
+                                if (h_index < H_SUBC_NUM)
+                                {
+                                    (*Button_h_subc[h_index].func)();
                                 }
                             }
                             else if (dialog_type == POSE_DIALOG && !Edit_Lock)
