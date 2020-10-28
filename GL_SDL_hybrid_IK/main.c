@@ -7125,6 +7125,7 @@ void add_Subcharacter()
                 {
                     init_Subcharacter(D);
                     currentSubcharacter = subcharacterIndex - 1;
+                    SubcharacterIndex = (subcharacterIndex - 1) - subcharacter_start;
                 }
 
                 free(hi_selected_Bones);
@@ -10153,6 +10154,10 @@ void save_load_Scene()
 
             Path[0] = '\0';
             strcat(Path, scene_files_dir);
+            save_version(Path);
+
+            Path[0] = '\0';
+            strcat(Path, scene_files_dir);
             strcat(Path, "/");
             strcat(Path, "Objects");
             save_Objects(Path);
@@ -10233,6 +10238,10 @@ void save_load_Scene()
                     printf("%s exists!\n", Path);
                 }
             }
+
+            Path[0] = '\0';
+            strcat(Path, scene_files_dir);
+            loading_version = load_version(Path);
 
             Path[0] = '\0';
             strcat(Path, scene_files_dir);
@@ -10344,6 +10353,35 @@ void select_currentIK()
     if (currentIK >= 0 && currentIK < iksIndex)
     {
 
+    }
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
+}
+
+void select_currentSubcharacter()
+{
+    printf("select currentSubcharacter %d\n", currentSubcharacter);
+
+    if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
+    {
+        int b;
+        bone * B;
+        subcharacter * S = subcharacters[currentSubcharacter];
+
+        for (b = 0; b < bonesIndex; b ++)
+        {
+            B = bones[b];
+            B->selected = 0;
+        }
+
+        for (b = 0; b < S->Bones_Count; b ++)
+        {
+            B = S->Bones[b];
+            B->selected = 1;
+        }
     }
 
     if (dialog_lock)
@@ -11357,7 +11395,7 @@ int main(int argc, char * args[])
 
                                     currentSubcharacter = Subcharacter_List[SubcharacterIndex];
 
-                                    //select_currentSubcharacter();
+                                    select_currentSubcharacter();
 
                                     create_Subcharacters_List(SubcharacterIndex);
 

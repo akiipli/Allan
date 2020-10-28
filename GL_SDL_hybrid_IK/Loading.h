@@ -7,6 +7,8 @@ Copyright <2018> <Allan Kiipli>
 #ifndef LOADING_H_INCLUDED
 #define LOADING_H_INCLUDED
 
+int loading_version = 0;
+
 typedef struct
 {
     unsigned address;
@@ -371,6 +373,12 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
                     &D->Bones_Count,
                     &D->Poses_Count,
                     &D->IKchains_Count);
+
+            if (loading_version <= 1000)
+            {
+                D->Subcharacters_Count = 0;
+                D->Subcharacters = malloc(D->Subcharacters_Count * sizeof(subcharacter*));
+            }
 
             D->Transformers = malloc(D->Transformers_Count * sizeof(transformer*));
             if (D->Transformers == NULL)
@@ -1998,6 +2006,31 @@ int load_Surfaces(char * path, int obj_count)
     }
 
     return 1;
+}
+
+int load_version(char * path)
+{
+    char Path[STRLEN];
+    Path[0] = '\0';
+    strcat(Path, path);
+    strcat(Path, "/");
+    strcat(Path, "version.txt");
+    FILE * fp;
+    fp = fopen(Path, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    fgets(buff, BUF_SIZE, fp);
+    sscanf(buff, "%d", &loading_version);
+
+    fclose(fp);
+    printf("version %d\n", loading_version);
+    return loading_version;
 }
 
 int load_Objects(char * path, int VBO)

@@ -14,6 +14,7 @@ Copyright <2018> <Allan Kiipli>
 #define POLYS 1
 #define EDGES 2
 #define VERTS 3
+#define BONEZ 4
 
 // to do: migrate pixels to GL
 // make ray traced rendering progressive
@@ -1268,7 +1269,36 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
     }
     else
     {
-        if (sel_type == OBJES)
+        if (sel_type == BONEZ)
+        {
+            if (draw_locators)
+            {
+                int b;
+                bone * B;
+                for (b = 0; b < bonesIndex; b ++)
+                {
+                    B = bones[b];
+                    point[0] = (B->A->pos[0] + B->B->pos[0]) / 2.0;
+                    point[1] = (B->A->pos[1] + B->B->pos[1]) / 2.0;
+                    point[2] = (B->A->pos[2] + B->B->pos[2]) / 2.0;
+                    result = point_on_screen_GLU(point, coords);
+                    if (result)
+                    {
+                        if (coords[0] > R->x
+                            && coords[0] < R->x + R->w
+                            && coords[1] > R->y
+                            && coords[1] < R->y + R->h)
+                        {
+                            if (sel_add)
+                                B->selected = 1;
+                            else
+                                B->selected = 0;
+                        }
+                    }
+                }
+            }
+        }
+        else if (sel_type == OBJES)
         {
             if (draw_locators)
             {

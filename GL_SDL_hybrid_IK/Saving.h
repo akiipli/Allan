@@ -7,6 +7,8 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
+int saving_version = 1000;
+
 int NIGHT = 0;
 int SHADOWS = 0;
 float Reflect = 1;
@@ -103,6 +105,27 @@ int save_Surfaces(char * surfaces_files_dir)
     fprintf(F, "\n");
     fclose(F);
     return 1;
+}
+
+void save_version(char * scene_folder)
+{
+    char dirfile[STRLEN];
+
+    dirfile[0] = '\0';
+    strcat(dirfile, scene_folder);
+    strcat(dirfile, "/");
+    strcat(dirfile, "version");
+    strcat(dirfile, ".txt");
+
+    FILE * F;
+    F = fopen(dirfile, "w");
+
+    if (F != NULL)
+    {
+        fprintf(F, "%d", saving_version);
+        fprintf(F, "\n");
+        fclose(F);
+    }
 }
 
 void save_Objects(char * object_files_dir)
