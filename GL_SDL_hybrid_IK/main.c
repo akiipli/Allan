@@ -2300,6 +2300,8 @@ void set_Bone_Mode()
         SDL_SetCursor(Arrow_Plus);
     else
         SDL_SetCursor(Arrow_Minus);
+
+    DRAW_LOCATORS = 1;
 }
 
 void select_Transformer()
@@ -4322,6 +4324,8 @@ void open_Bones_List()
 {
     Osd = 0;
     HINTS = 0;
+
+    set_Bone_Mode();
 
     create_Bones_List(BoneIndex);
 
