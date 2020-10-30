@@ -17,6 +17,8 @@ char Bone_Names[BONES][STRLEN];
 int BoneIndex;
 int bone_start;
 
+int Bone_Italic[BONES];
+
 int Bone_List[BONES];
 int currentBone = 0;
 
@@ -1011,6 +1013,7 @@ int add_Bone(transformer * T0, transformer * T1)
     B->Distances_Count = 0;
     B->IK_member = 0;
     B->IK = NULL;
+    B->selected = 0;
     bonesIndex ++;
     return B->index;
 }
@@ -1498,6 +1501,7 @@ void create_Bones_List(int BoneIndex)
 
         memcpy(Bone_Names[Bones_c], B->Name, strlen(B->Name));
         Bone_Names[Bones_c][strlen(B->Name)] = '\0';
+        Bone_Italic[Bones_c] = B->selected;
         Bone_List[Bones_c] = Bones_c;
         Bones_c ++;
         if (Bones_c >= BONES - 1)

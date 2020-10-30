@@ -676,6 +676,8 @@ int read_Bones_file(Bones_In * BONES_IN, char * fileName)
 
                 sprintf(B->Name, "%s", buff);
 
+                B->selected = 0;
+
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%u", (unsigned*)&B->address);
 

@@ -581,7 +581,7 @@ int list_subcharacters(char **, int, int);
 
 int list_ik(char **, int, int);
 
-int list_bones(char **, int, int);
+int list_bones(char **, int, int, int *);
 
 int list_materials(char **, int, int);
 
@@ -1012,11 +1012,11 @@ void draw_Button_IK_text(const char * text, int width, int height, int index, in
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_bone_text(const char * text, int width, int height, int index, int colorchange, int frame_it)
+void draw_Button_bone_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int italic)
 {
     int font_height = 11;
 
-	FT_Set_Pixel_Sizes(face[0], 0, font_height);
+	FT_Set_Pixel_Sizes(face[italic], 0, font_height);
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
@@ -1038,7 +1038,7 @@ void draw_Button_bone_text(const char * text, int width, int height, int index, 
 	else
         glColor4fv(buttoncolors[UI_BLACK].color);
 
-    draw_text(text, origin_x, origin_y, font_height, 0);
+    draw_text(text, origin_x, origin_y, font_height, italic);
 }
 
 void draw_Button_pose_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed)
@@ -2195,6 +2195,7 @@ void draw_Bones_List(int s_height, int start, int clear_background, int current_
         d_width, 0}, LINE_LOOP);
 
 	char * bones_list[LISTLENGTH];
+	int bones_italic[LISTLENGTH];
 
     int i;
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -2202,11 +2203,11 @@ void draw_Bones_List(int s_height, int start, int clear_background, int current_
         bones_list[i] = malloc(255 * sizeof(char));
     }
 
-    int s = list_bones(bones_list, start, LISTLENGTH);
+    int s = list_bones(bones_list, start, LISTLENGTH, bones_italic);
 
 	for (i = 0; i < s; i ++)
     {
-        draw_Button_bone_text(bones_list[i], d_width, d_height, i, 1, 0);
+        draw_Button_bone_text(bones_list[i], d_width, d_height, i, 1, 0, bones_italic[i]);
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)

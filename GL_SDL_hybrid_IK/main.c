@@ -1398,13 +1398,14 @@ void flip_Cameras(camera * C)
 
 void frame_object(camera * C, int all_Views)
 {
-    int c, t, o, e, v, p;
+    int c, t, o, e, v, p, b;
 
     object * O;
     vertex * V;
     edge * E;
     polygon * P;
     transformer * T;
+    bone * B;
 
     float X = 0;
     float Y = 0;
@@ -1420,7 +1421,55 @@ void frame_object(camera * C, int all_Views)
 
     int elements_count = 0;
 
-    if (DRAW_LOCATORS && Object_Mode)
+
+    if (DRAW_LOCATORS && Bone_Mode)
+    {
+        for (b = 0; b < bonesIndex; b ++)
+        {
+            B = bones[b];
+            if (B->selected)
+            {
+                T = B->A;
+
+                elements_count ++;
+
+                X += T->pos[0];
+                Y += T->pos[1];
+                Z += T->pos[2];
+
+                if (T->pos[0] < min_X) min_X = T->pos[0];
+                if (T->pos[1] < min_Y) min_Y = T->pos[1];
+                if (T->pos[2] < min_Z) min_Z = T->pos[2];
+
+                if (T->pos[0] > max_X) max_X = T->pos[0];
+                if (T->pos[1] > max_Y) max_Y = T->pos[1];
+                if (T->pos[2] > max_Z) max_Z = T->pos[2];
+
+                T = B->B;
+
+                elements_count ++;
+
+                X += T->pos[0];
+                Y += T->pos[1];
+                Z += T->pos[2];
+
+                if (T->pos[0] < min_X) min_X = T->pos[0];
+                if (T->pos[1] < min_Y) min_Y = T->pos[1];
+                if (T->pos[2] < min_Z) min_Z = T->pos[2];
+
+                if (T->pos[0] > max_X) max_X = T->pos[0];
+                if (T->pos[1] > max_Y) max_Y = T->pos[1];
+                if (T->pos[2] > max_Z) max_Z = T->pos[2];
+            }
+        }
+        if (elements_count > 0)
+        {
+            X /= elements_count;
+            Y /= elements_count;
+            Z /= elements_count;
+        }
+    }
+    else if (DRAW_LOCATORS && Object_Mode)
     {
         for (t = 5; t < transformerIndex; t ++) // skip world and cameras
         {
@@ -4026,7 +4075,7 @@ int list_ik(char ** ikch_list, int start, int n)
     return chain;
 }
 
-int list_bones(char ** bones_list, int start, int n)
+int list_bones(char ** bones_list, int start, int n, int * bone_italic)
 {
     int b = start;
     int bone = 0;
@@ -4035,6 +4084,7 @@ int list_bones(char ** bones_list, int start, int n)
         if (bone >= Bones_c - start)
             break;
         sprintf(bones_list[bone], "%s", Bone_Names[b]);
+        bone_italic[bone] = Bone_Italic[b];
         b ++;
     }
     return bone;
