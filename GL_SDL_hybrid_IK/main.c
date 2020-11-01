@@ -2014,6 +2014,7 @@ void update_Resize_Event()
         if (Edit_Lock)
         {
             Edit_Lock = 0;
+            selection_rectangle = 0;
             EditCursor = 0;
             EditString[EditCursor] = '\0';
             printf("Edit finishing!\n");
@@ -4401,7 +4402,7 @@ void open_Bones_List()
         poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
     UPDATE_COLORS = 0;
 
-    draw_Bones_Dialog("Bones List", screen_height, bone_start, 1, BoneIndex - bone_start);
+    draw_Bones_Dialog("Bones List", screen_height, bone_start, 1, BoneIndex - bone_start, selection_rectangle);
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -5167,11 +5168,11 @@ void update_Bones_List(int update, int blit)
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
-        draw_Bones_Dialog("Bones List", screen_height, bone_start, 1, BoneIndex - bone_start);
+        draw_Bones_Dialog("Bones List", screen_height, bone_start, 1, BoneIndex - bone_start, selection_rectangle);
     }
     else
     {
-        draw_Bones_List(screen_height, bone_start, 0, BoneIndex - bone_start);
+        draw_Bones_List(screen_height, bone_start, 0, BoneIndex - bone_start, selection_rectangle);
         draw_Bones_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
     SDL_GL_SwapBuffers();
@@ -5202,7 +5203,7 @@ void update_Poses_List(int update, int blit)
     glDrawBuffer(GL_BACK);
 }
 
-void update_Texts_List()
+void update_Textures_List()
 {
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     DRAW_UI = 0;
@@ -5948,6 +5949,12 @@ void handle_UP_IK(int scrollbar)
 
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    if (!scrollbar)
+    {
+        glDrawBuffer(GL_FRONT);
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        glDrawBuffer(GL_BACK);
+    }
     DRAW_UI = 1;
     update_IK_List(1, 0);
 }
@@ -6012,6 +6019,12 @@ void handle_UP_Bone(int scrollbar)
     }
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    if (!scrollbar)
+    {
+        glDrawBuffer(GL_FRONT);
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        glDrawBuffer(GL_BACK);
+    }
     DRAW_UI = 1;
     update_Bones_List(1, 0);
 }
@@ -6143,7 +6156,7 @@ void handle_UP_Pose(int scrollbar)
     update_Poses_List(1, 0);
 }
 
-void update_Hierarcys_List(int update, int blit)
+void update_Hierarchys_List(int update, int blit)
 {
     if (HierIndex - hier_start >= 0)
         HierList[HierIndex - hier_start].color = UI_BACKL;
@@ -6181,7 +6194,7 @@ void handle_UP_Hier(int scrollbar)
         if (hier_start < 0) hier_start = 0;
         if (HierIndex - hier_start >= 0)
             HierList[HierIndex - hier_start].color = UI_BACKL;
-        update_Hierarcys_List(0, 0);
+        update_Hierarchys_List(0, 0);
     }
     else
     {
@@ -6517,6 +6530,12 @@ void handle_DOWN_IK(int scrollbar)
 
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    if (!scrollbar)
+    {
+        glDrawBuffer(GL_FRONT);
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        glDrawBuffer(GL_BACK);
+    }
     DRAW_UI = 1;
     update_IK_List(1, 0);
 }
@@ -6583,6 +6602,12 @@ void handle_DOWN_Bone(int scrollbar)
     }
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    if (!scrollbar)
+    {
+        glDrawBuffer(GL_FRONT);
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        glDrawBuffer(GL_BACK);
+    }
     DRAW_UI = 1;
     update_Bones_List(1, 0);
 }
@@ -6682,7 +6707,7 @@ void handle_DOWN_Hier(int scrollbar)
         if (hier_start > Hierarchys_c - LISTLENGTH) hier_start --;
         if (HierIndex - hier_start >= 0)
             HierList[HierIndex - hier_start].color = UI_BACKL;
-        update_Hierarcys_List(0, 0);
+        update_Hierarchys_List(0, 0);
     }
     else
     {
@@ -7152,6 +7177,7 @@ void rename_Scene_dir()
             sprintf(EditString, "%s", scene_files_dir);
             //sprintf(scene_files_dir, "%s", "");
             Edit_Lock = 1;
+            init_Selection_Rectangle();
             EditCursor = strlen(scene_files_dir);
             if (dialog_type == SAVES_DIALOG)
                 update_Saves_List(0, 0);
@@ -7229,6 +7255,7 @@ void rename_IK()
             sprintf(Name_Remember, "%s", IK_Names[IKIndex]);
             sprintf(IK_Names[IKIndex], "%s", "");
             Edit_Lock = 1;
+            init_Selection_Rectangle();
             update_IK_List(0, 0);
         }
     }
@@ -7244,7 +7271,10 @@ void rename_Bone()
         {
             sprintf(Name_Remember, "%s", Bone_Names[BoneIndex]);
             sprintf(Bone_Names[BoneIndex], "%s", "");
+            Pos_start = 0;
+            Pos_end = 0;
             Edit_Lock = 1;
+            init_Selection_Rectangle();
             update_Bones_List(0, 0);
         }
     }
@@ -7339,6 +7369,7 @@ void rename_Pose()
             sprintf(Name_Remember, "%s", Pose_Names[PoseIndex]);
             sprintf(Pose_Names[PoseIndex], "%s", "");
             Edit_Lock = 1;
+            init_Selection_Rectangle();
             update_Poses_List(0, 0);
         }
     }
@@ -7535,6 +7566,7 @@ void handle_Scene_Dialog(char letter, SDLMod mod)
                 sprintf(scene_files_dir, "%s", Name_Remember);
             }
             Edit_Lock = 0;
+            selection_rectangle = 0;
             EditCursor = 0;
             printf("Edit finishing!\n");
 //            files_dir = (char *)&scene_files_dir;
@@ -7598,6 +7630,7 @@ void handle_IK_Dialog(char letter, SDLMod mod)
                 sprintf(IK_Names[IKIndex], "%s", Name_Remember);
             }
             Edit_Lock = 0;
+            selection_rectangle = 0;
             EditCursor = 0;
             printf("Edit finishing!\n");
             set_IK_H_Button(-1);
@@ -7621,54 +7654,74 @@ void handle_Bone_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        //int update = 0;
-        if (letter == '-')
+        if (controlDown)
         {
-            if (mod & KMOD_SHIFT)
+            if (letter == 'c')
             {
-                letter = '_';
+                Copy_Buffer_length = Pos_end - Pos_start + 1;
+                memcpy(Copy_Buffer, &EditString[Pos_start], Copy_Buffer_length);
+            }
+            else if (letter == 'v')
+            {
+                memcpy(Paste_Buffer, &Copy_Buffer, Copy_Buffer_length);
+                Paste_Buffer[Copy_Buffer_length] = '\0';
+                EditString[EditCursor] = '\0';
+                strcat(EditString, Paste_Buffer);
+                EditCursor += Copy_Buffer_length;
             }
         }
-        else if (isalnum(letter) && (mod & KMOD_SHIFT))
+        else
         {
-            letter -= 32;
-        }
-        if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-        {
-            if (EditCursor < STRLEN - 1)
+            //int update = 0;
+            if (letter == '-')
             {
-                EditString[EditCursor] = letter;
-                EditCursor ++;
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
+            }
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
+            {
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlen(EditString) > 1)
+                {
+                    sprintf(Bone_Names[BoneIndex], "%s", EditString);
+                    replace_Bone_Name(EditString);
+                    sprintf(Name_Remember, "%s", EditString);
+                }
+                else
+                {
+                    sprintf(Bone_Names[BoneIndex], "%s", Name_Remember);
+                }
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                set_Bone_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
                 EditString[EditCursor] = '\0';
             }
         }
-        else if (letter == 13 || letter == 10) // return, enter
-        {
-            if (strlen(EditString) > 1)
-            {
-                sprintf(Bone_Names[BoneIndex], "%s", EditString);
-                replace_Bone_Name(EditString);
-                sprintf(Name_Remember, "%s", EditString);
-            }
-            else
-            {
-                sprintf(Bone_Names[BoneIndex], "%s", Name_Remember);
-            }
-            Edit_Lock = 0;
-            EditCursor = 0;
-            printf("Edit finishing!\n");
-            set_Bone_H_Button(-1);
-            //update = 1;
-        }
-        else if (letter == 8) // backspace
-        {
-            EditCursor --;
-            if (EditCursor < 0)
-                EditCursor = 0;
-            EditString[EditCursor] = '\0';
-        }
         sprintf(Bone_Names[BoneIndex], "%s", EditString);
-        update_Bones_List(0, 0);
+        update_Bones_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
     }
@@ -7678,52 +7731,72 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        //int update = 0;
-        if (letter == '-')
+        if (controlDown)
         {
-            if (mod & KMOD_SHIFT)
+            if (letter == 'c')
             {
-                letter = '_';
+                Copy_Buffer_length = Pos_end - Pos_start + 1;
+                memcpy(Copy_Buffer, &EditString[Pos_start], Copy_Buffer_length);
+            }
+            else if (letter == 'v')
+            {
+                memcpy(Paste_Buffer, &Copy_Buffer, Copy_Buffer_length);
+                Paste_Buffer[Copy_Buffer_length] = '\0';
+                EditString[EditCursor] = '\0';
+                strcat(EditString, Paste_Buffer);
+                EditCursor += Copy_Buffer_length;
             }
         }
-        else if (isalnum(letter) && (mod & KMOD_SHIFT))
+        else
         {
-            letter -= 32;
-        }
-        if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-        {
-            if (EditCursor < STRLEN - 1)
+            if (letter == '-')
             {
-                EditString[EditCursor] = letter;
-                EditCursor ++;
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
+            }
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
+            {
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlen(EditString) > 1)
+                {
+                    sprintf(Pose_Names[PoseIndex], "%s", EditString);
+                    replace_Pose_Name(EditString);
+                    sprintf(Name_Remember, "%s", EditString);
+                }
+                else
+                {
+                    sprintf(Pose_Names[PoseIndex], "%s", Name_Remember);
+                }
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                //set_Pose_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
                 EditString[EditCursor] = '\0';
             }
         }
-        else if (letter == 13 || letter == 10) // return, enter
-        {
-            if (strlen(EditString) > 1)
-            {
-                sprintf(Pose_Names[PoseIndex], "%s", EditString);
-                replace_Pose_Name(EditString);
-                sprintf(Name_Remember, "%s", EditString);
-            }
-            else
-            {
-                sprintf(Pose_Names[PoseIndex], "%s", Name_Remember);
-            }
-            Edit_Lock = 0;
-            EditCursor = 0;
-            printf("Edit finishing!\n");
-            //set_Pose_H_Button(-1);
-            //update = 1;
-        }
-        else if (letter == 8) // backspace
-        {
-            EditCursor --;
-            if (EditCursor < 0)
-                EditCursor = 0;
-            EditString[EditCursor] = '\0';
-        }
+        //int update = 0;
         sprintf(Pose_Names[PoseIndex], "%s", EditString);
         update_Poses_List(0, 0);
         //printf("%c%s", 13, EditString);
@@ -7784,6 +7857,7 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
                 sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", Name_Remember);
             }
             Edit_Lock = 0;
+            selection_rectangle = 0;
             EditCursor = 0;
             printf("Edit finishing!\n");
             set_Sels_H_Button(-1);
@@ -7858,6 +7932,7 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
                 sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
             }
             Edit_Lock = 0;
+            selection_rectangle = 0;
             EditCursor = 0;
             printf("Edit finishing!\n");
             set_Hier_H_Button(-1);
@@ -7871,7 +7946,7 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             EditString[EditCursor] = '\0';
         }
         sprintf(Hier_Names[HierIndex], "%s", EditString);
-        update_Hierarcys_List(0, 0);
+        update_Hierarchys_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
     }
@@ -7889,6 +7964,7 @@ void handle_dialog(char letter, SDLMod mod)
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
         DRAW_UI = 1;
     }
+
     if (dialog_type == SAVES_DIALOG)
     {
         handle_Scene_Dialog(letter, mod);
@@ -7941,7 +8017,7 @@ void handle_dialog(char letter, SDLMod mod)
             if (!Edit_Lock && letter == '`')
             {
                 edit_Hierarchy();
-                update_Hierarcys_List(0, 1);
+                update_Hierarchys_List(0, 1);
             }
         }
         else if (current_defr_type == 2)
@@ -7961,7 +8037,7 @@ void handle_dialog(char letter, SDLMod mod)
         if (!Edit_Lock && letter == '`')
         {
             edit_Hierarchy();
-            update_Hierarcys_List(1, 0);
+            update_Hierarchys_List(1, 0);
         }
     }
     else if (dialog_type == SELS_DIALOG)
@@ -8223,26 +8299,29 @@ void draw_Dialog()
 
 void handle_ControlDown()
 {
-    if (controlDown)
+    if (!Edit_Lock)
     {
-        add_selection_mode = 0;
-        if (!Object_Mode)
+        if (controlDown)
         {
-            if (cull_Selection)
-                SDL_SetCursor(Arrow_Minus_Cull);
-            else
-                SDL_SetCursor(Arrow_Minus);
+            add_selection_mode = 0;
+            if (!Object_Mode)
+            {
+                if (cull_Selection)
+                    SDL_SetCursor(Arrow_Minus_Cull);
+                else
+                    SDL_SetCursor(Arrow_Minus);
+            }
         }
-    }
-    else
-    {
-        add_selection_mode = 1;
-        if (!Object_Mode)
+        else
         {
-            if (cull_Selection)
-                SDL_SetCursor(Arrow_Plus_Cull);
-            else
-                SDL_SetCursor(Arrow_Plus);
+            add_selection_mode = 1;
+            if (!Object_Mode)
+            {
+                if (cull_Selection)
+                    SDL_SetCursor(Arrow_Plus_Cull);
+                else
+                    SDL_SetCursor(Arrow_Plus);
+            }
         }
     }
 }
@@ -8467,7 +8546,7 @@ void new_Locator()
     {
         set_Hier_H_Button(3);
         UPDATE_BACKGROUND = 0;
-        update_Hierarcys_List(0, 0);
+        update_Hierarchys_List(0, 0);
     }
 }
 
@@ -8666,7 +8745,7 @@ void delete_Transformer(transformer * T0)
     {
         set_Hier_H_Button(4);
         UPDATE_BACKGROUND = 0;
-        update_Hierarcys_List(0, 0);
+        update_Hierarchys_List(0, 0);
     }
 }
 
@@ -8762,7 +8841,7 @@ void delete_Locator()
     {
         set_Hier_H_Button(4);
         UPDATE_BACKGROUND = 0;
-        update_Hierarcys_List(0, 0);
+        update_Hierarchys_List(0, 0);
     }
 }
 
@@ -10406,7 +10485,7 @@ void select_currentIK()
 
     if (currentIK >= 0 && currentIK < iksIndex)
     {
-
+        select_IK_Goal(ikChains[currentIK]);
     }
 
     if (dialog_lock)
@@ -10546,6 +10625,118 @@ void transfer_LocatorSize(float size)
 
     T = transformers[currentLocator];
     T->LocatorSize = size;
+}
+
+void update_Lists()
+{
+    if (dialog_type == SAVES_DIALOG)
+    {
+        update_Saves_List(0, 0);
+    }
+    else if (dialog_type == LOADING_DIALOG)
+    {
+        update_Loading_List(0, 0);
+    }
+    else if (dialog_type == BONE_DIALOG)
+    {
+        update_Bones_List(0, 1);
+    }
+    else if (dialog_type == IK_DIALOG)
+    {
+        update_IK_List(0, 0);
+    }
+    else if (dialog_type == SUBC_DIALOG)
+    {
+        update_Subcharacters_List(0, 0);
+    }
+    else if (dialog_type == POSE_DIALOG)
+    {
+        update_Poses_List(0, 0);
+    }
+    else if (dialog_type == DEFR_DIALOG)
+    {
+        update_Deformers_List(0);
+    }
+    else if (dialog_type == HIER_DIALOG)
+    {
+        update_Hierarchys_List(0, 0);
+    }
+    else if (dialog_type == SELS_DIALOG)
+    {
+        update_Selections_List(0, 0);
+    }
+    else if (dialog_type == TEXT_DIALOG)
+    {
+        update_Textures_List(0, 0);
+    }
+    else if (dialog_type == ITEM_DIALOG)
+    {
+        update_Items_List(0, 0);
+    }
+    else if (dialog_type == MATERIAL_DIALOG)
+    {
+        update_Materials_List(0, 0);
+    }
+    else
+    {
+        if (dialog_type == OBJ_DIALOG)
+        {
+
+        }
+        else if (dialog_type == IMG_DIALOG)
+        {
+
+        }
+    }
+}
+
+void handle_LEFT(SDLMod mod)
+{
+    if (mod & KMOD_SHIFT)
+    {
+        Pos_start --;
+        if (Pos_start < 0)
+            Pos_start = 0;
+    }
+    else
+    {
+        Pos_start --;
+        if (Pos_start < 0)
+            Pos_start = 0;
+        Pos_end = Pos_start;
+    }
+
+    printf("handle LEFT %d\n", Pos_start);
+
+    if(dialog_lock)
+    {
+        update_Lists();
+    }
+}
+
+void handle_RIGHT(SDLMod mod)
+{
+    if (mod & KMOD_SHIFT)
+    {
+        Pos_end ++;
+        if (Pos_end >= Pos_coords_c)
+            Pos_end --;
+    }
+    else
+    {
+        Pos_start = Pos_end;
+        Pos_start ++;
+        if (Pos_start >= Pos_coords_c)
+            Pos_start --;
+        Pos_end = Pos_start;
+    }
+
+    printf("handle RIGHT %d\n", Pos_end);
+
+    if(dialog_lock)
+    {
+        update_Lists();
+    }
 }
 
 void Exit()
@@ -10883,7 +11074,7 @@ int main(int argc, char * args[])
                     case SDLK_BACKSLASH: message = 75; if (dialog_lock) handle_dialog('/', mod); break;
                     default: break;
                 }
-                if (message != 1 && message != 2 && message != 25 && message != 35)
+                if (message != 1 && message != 2 && message != 3 && message != 4 && message != 25 && message != 35)
                 {
                     if (dialog_lock)
                     {
@@ -10906,6 +11097,7 @@ int main(int argc, char * args[])
                     glDisable(GL_SCISSOR_TEST);
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                     glEnable(GL_SCISSOR_TEST);
+
                     if (dialog_lock)
                     {
                         Bottom_Message = 0;
@@ -10924,6 +11116,7 @@ int main(int argc, char * args[])
                     glDisable(GL_SCISSOR_TEST);
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                     glEnable(GL_SCISSOR_TEST);
+
                     if (dialog_lock)
                     {
                         Bottom_Message = 0;
@@ -11402,12 +11595,15 @@ int main(int argc, char * args[])
                                     create_Bones_List(BoneIndex);
 
                                     DRAW_UI = 0;
-                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                    glDrawBuffer(GL_BACK);
+                                    draw_Bones_Dialog("Bones List", screen_height,
+                                                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
+                                    SDL_GL_SwapBuffers();
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_Bones_Dialog("Bones List", screen_height,
-                                                bone_start, 1, BoneIndex - bone_start);
+                                                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
                                     SDL_GL_SwapBuffers();
-                                    glDrawBuffer(GL_BACK);
                                     DRAW_UI = 1;
                                 }
                             }
@@ -11429,6 +11625,10 @@ int main(int argc, char * args[])
 
                                     DRAW_UI = 0;
                                     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                    draw_IK_Dialog("IK List", screen_height,
+                                                ikch_start, 1, IKIndex - ikch_start);
+                                    SDL_GL_SwapBuffers();
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_IK_Dialog("IK List", screen_height,
                                                 ikch_start, 1, IKIndex - ikch_start);
@@ -11569,6 +11769,7 @@ int main(int argc, char * args[])
                                         if (Edit_Lock)
                                         {
                                             Edit_Lock = 0;
+                                            selection_rectangle = 0;
                                             if (strlen(EditString) > 0)
                                             {
                                                 sprintf(Hier_Names[HierIndex], "%s", EditString);
@@ -11607,7 +11808,7 @@ int main(int argc, char * args[])
                                         }
                                         select_Transformer();
                                         UPDATE_BACKGROUND = 0;
-                                        update_Hierarcys_List(0, 1);
+                                        update_Hierarchys_List(0, 1);
                                     }
                                 }
                                 else if (current_defr_type == 2) // sels
@@ -11617,6 +11818,7 @@ int main(int argc, char * args[])
                                         if (Edit_Lock)
                                         {
                                             Edit_Lock = 0;
+                                            selection_rectangle = 0;
                                             if (strlen(EditString) > 0)
                                             {
                                                 sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
@@ -11649,6 +11851,7 @@ int main(int argc, char * args[])
                                     if (Edit_Lock)
                                     {
                                         Edit_Lock = 0;
+                                        selection_rectangle = 0;
                                         if (strlen(EditString) > 0)
                                         {
                                             sprintf(Hier_Names[HierIndex], "%s", EditString);
@@ -11687,7 +11890,7 @@ int main(int argc, char * args[])
                                     }
                                     select_Transformer();
                                     UPDATE_BACKGROUND = 1;
-                                    update_Hierarcys_List(0, 1);
+                                    update_Hierarchys_List(0, 1);
                                 }
                             }
                             else if (dialog_type == SELS_DIALOG)
@@ -11697,6 +11900,7 @@ int main(int argc, char * args[])
                                     if (Edit_Lock)
                                     {
                                         Edit_Lock = 0;
+                                        selection_rectangle = 0;
                                         if (strlen(EditString) > 0)
                                         {
                                             sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
@@ -11731,7 +11935,7 @@ int main(int argc, char * args[])
                                         Materials[O->surface].Texture_idx = TextIndex;
                                         Materials[O->surface].texture = TextIndex;
                                         TextList[index].color = UI_BACKL;
-                                        update_Texts_List();
+                                        update_Textures_List();
                                         TextList[index].color = UI_BLACK;
                                     }
                                 }
@@ -11743,7 +11947,7 @@ int main(int argc, char * args[])
                                         Materials[O->surface].Normal_idx = TextIndex;
                                         Materials[O->surface].normal = TextIndex;
                                         TextList[index].color = UI_BACKL;
-                                        update_Texts_List();
+                                        update_Textures_List();
                                         TextList[index].color = UI_BLACK;
                                     }
                                 }
@@ -11755,7 +11959,7 @@ int main(int argc, char * args[])
                                         Materials[O->surface].Bump_idx = TextIndex;
                                         Materials[O->surface].bump = TextIndex;
                                         TextList[index].color = UI_BACKL;
-                                        update_Texts_List();
+                                        update_Textures_List();
                                         TextList[index].color = UI_BLACK;
                                     }
                                 }
@@ -12058,7 +12262,7 @@ int main(int argc, char * args[])
                                     {
                                         (*Button_h_hier[h_index].func)();
                                         UPDATE_BACKGROUND = 0;
-                                        update_Hierarcys_List(0, 1);
+                                        update_Hierarchys_List(0, 1);
                                     }
                                 }
                                 else if (current_defr_type == 2)
@@ -12079,7 +12283,7 @@ int main(int argc, char * args[])
                                 {
                                     (*Button_h_hier[h_index].func)();
                                     UPDATE_BACKGROUND = 1;
-                                    update_Hierarcys_List(0, 1);
+                                    update_Hierarchys_List(0, 1);
                                 }
                             }
                             else if (dialog_type == SELS_DIALOG && !Edit_Lock)
@@ -13916,7 +14120,11 @@ int main(int argc, char * args[])
         }
         else if (message == 3)
         {
-            if (mod & KMOD_CTRL)
+            if (Edit_Lock)
+            {
+                handle_LEFT(mod);
+            }
+            else if (mod & KMOD_CTRL)
                 Camera->T->rot[1] += pi30;
             else if (mod & KMOD_SHIFT)
                 O->T->pos[0] -= 0.5;
@@ -13926,7 +14134,11 @@ int main(int argc, char * args[])
         }
         else if (message == 4)
         {
-            if (mod & KMOD_CTRL)
+            if (Edit_Lock)
+            {
+                handle_RIGHT(mod);
+            }
+            else if (mod & KMOD_CTRL)
                 Camera->T->rot[1] -= pi30;
             else if (mod & KMOD_SHIFT)
                 O->T->pos[0] += 0.5;
@@ -14905,6 +15117,7 @@ int main(int argc, char * args[])
                 if (Edit_Lock)
                 {
                     Edit_Lock = 0;
+                    selection_rectangle = 0;
                     EditCursor = 0;
                     EditString[EditCursor] = '\0';
                     printf("Edit finishing!\n");
@@ -14940,7 +15153,7 @@ int main(int argc, char * args[])
                     {
                         sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
                         set_Hier_H_Button(-1);
-                        update_Hierarcys_List(1, 0);
+                        update_Hierarchys_List(1, 0);
                     }
                     else if (dialog_type == SELS_DIALOG)
                     {

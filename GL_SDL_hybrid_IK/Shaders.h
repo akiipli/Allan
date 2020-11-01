@@ -427,6 +427,50 @@ int init_shaders_()
 	return 1;
 }
 
+char Text[STRLEN];
+
+void make_character_map(const char * text, float x, float y, int italic)
+{
+    Text[0] = '\0';
+    strcat(Text, text);
+    strcat(Text, ".");
+
+	const char * p;
+	FT_GlyphSlot G = face[italic]->glyph;
+
+    Pos_coords_c = 0;
+
+    FT_Load_Char(face[italic], 'j', FT_LOAD_RENDER);
+    int bitmap_top = G->bitmap_top;
+    int bitmap_rows = G->bitmap.rows;
+
+	for(p = Text; * p; p ++)
+    {
+		/* Try to load and render the character */
+		if (FT_Load_Char(face[italic], * p, FT_LOAD_RENDER))
+        {
+            continue;
+        }
+
+		/* Calculate the vertex and texture coordinates */
+		float x0 = x + G->bitmap_left;
+		float w = G->advance.x >> 6; //G->bitmap.width;
+
+		float lower_part = bitmap_rows - bitmap_top;
+
+		memcpy(Pos_coords[Pos_coords_c],(GLfloat[8])
+		{x0,     y + lower_part,
+         x0 + w, y + lower_part,
+         x0 + w, y - bitmap_top,
+         x0,     y - bitmap_top}, sizeof(GLfloat[8]));
+
+		/* Advance the cursor to the start of the next character */
+		x += G->advance.x >> 6;
+        y += G->advance.y >> 6;
+        Pos_coords_c ++;
+	}
+}
+
 void render_text_(const char * text, float x, float y, int font_height, int italic)
 {
 	const char * p;

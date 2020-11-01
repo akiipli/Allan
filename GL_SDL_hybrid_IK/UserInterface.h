@@ -71,6 +71,28 @@ int LISTLENGTH = 12;
 #define LABEL_TEXT_LEN 30
 #define LABELS 100
 
+char Copy_Buffer[STRLEN];
+int Copy_Buffer_length = 0;
+char Paste_Buffer[STRLEN];
+
+GLfloat Pos_coords[STRLEN][8];
+int Pos_coords_c = 0;
+int Pos_start = 0;
+int Pos_end = 0;
+GLfloat Selection_rectangle[8];
+int selection_rectangle = 0;
+int cursor_width = 3;
+
+void init_Selection_Rectangle()
+{
+    selection_rectangle = 1;
+    Pos_coords_c = 0;
+    Pos_start = 0;
+    Pos_end = 0;
+}
+
+void make_character_map(const char * text, float x, float y, int italic);
+
 typedef struct
 {
     char text[LABEL_TEXT_LEN];
@@ -270,6 +292,7 @@ typedef struct
 }
 ui_color;
 
+GLfloat blueb[4] = {0.2, 0.2, 1, 1};
 GLfloat white[4] = {1, 1, 1, 1};
 GLfloat grayb[4] = {0.6, 0.3, 0.1, 1};
 GLfloat grayd[4] = {0.5, 0.5, 0.5, 1};
@@ -918,6 +941,37 @@ void render_text(const char * text, float x, float y, int font_height, int itali
 	}
 }
 
+void draw_selection_Rectangle()
+{
+    Selection_rectangle[0] = Pos_coords[Pos_start][6];
+    Selection_rectangle[1] = Pos_coords[Pos_start][7];
+    Selection_rectangle[2] = Pos_coords[Pos_start][0];
+    Selection_rectangle[3] = Pos_coords[Pos_start][1];
+
+    if (Pos_end - Pos_start == 0)
+    {
+        Selection_rectangle[4] = Pos_coords[Pos_start][0] + cursor_width;
+        Selection_rectangle[5] = Pos_coords[Pos_start][1];
+        Selection_rectangle[6] = Pos_coords[Pos_start][6] + cursor_width;
+        Selection_rectangle[7] = Pos_coords[Pos_start][7];
+    }
+    else
+    {
+        Selection_rectangle[4] = Pos_coords[Pos_end][2];
+        Selection_rectangle[5] = Pos_coords[Pos_end][3];
+        Selection_rectangle[6] = Pos_coords[Pos_end][4];
+        Selection_rectangle[7] = Pos_coords[Pos_end][5];
+    }
+
+    int e;
+    glBegin(GL_QUADS);
+    for (e = 0; e < 8; e += 2)
+    {
+        glVertex2f(Selection_rectangle[e], Selection_rectangle[e + 1]);
+    }
+    glEnd();
+}
+
 void draw_text(const char * text, int origin_x, int origin_y, int font_height, int italic)
 {
     if (SHADERS)
@@ -1012,7 +1066,7 @@ void draw_Button_IK_text(const char * text, int width, int height, int index, in
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_bone_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int italic)
+void draw_Button_bone_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int italic, int frame_selection)
 {
     int font_height = 11;
 
@@ -1021,7 +1075,16 @@ void draw_Button_bone_text(const char * text, int width, int height, int index, 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
 
-	if (frame_it)
+ 	if (frame_selection)
+    {
+        make_character_map(text, origin_x, origin_y, italic);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(blueb);
+
+        draw_selection_Rectangle();
+    }
+	else if (frame_it)
     {
         glDisable(GL_TEXTURE_2D);
         glColor4fv(white);
@@ -1031,6 +1094,7 @@ void draw_Button_bone_text(const char * text, int width, int height, int index, 
             width, BUTTON_HEIGHT * index + BUTTON_HEIGHT,
             width, BUTTON_HEIGHT * index}, LINE_LOOP);
     }
+
 	glEnable(GL_TEXTURE_2D);
 
     if (colorchange)
@@ -2160,7 +2224,7 @@ void draw_IK_List(int s_height, int start, int clear_background, int current_ik)
 	glPopMatrix();
 }
 
-void draw_Bones_List(int s_height, int start, int clear_background, int current_bone)
+void draw_Bones_List(int s_height, int start, int clear_background, int current_bone, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -2207,7 +2271,14 @@ void draw_Bones_List(int s_height, int start, int clear_background, int current_
 
 	for (i = 0; i < s; i ++)
     {
-        draw_Button_bone_text(bones_list[i], d_width, d_height, i, 1, 0, bones_italic[i]);
+        if (selection_rectangle && i == current_bone)
+        {
+            draw_Button_bone_text(bones_list[i], d_width, d_height, i, 1, 0, bones_italic[i], 1);
+        }
+        else
+        {
+            draw_Button_bone_text(bones_list[i], d_width, d_height, i, 1, 0, bones_italic[i], 0);
+        }
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -3400,7 +3471,7 @@ void draw_IK_Dialog(const char * text, int s_height,
 
 void draw_Bones_Dialog(const char * text, int s_height,
                            int bones_start,
-                           int clear_background, int current_bone)
+                           int clear_background, int current_bone, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3443,7 +3514,7 @@ void draw_Bones_Dialog(const char * text, int s_height,
 
 	draw_Button(text, SIDEBAR, d_height, 0, 0); // Title bar
 
-    draw_Bones_List(s_height, bones_start, clear_background, current_bone);
+    draw_Bones_List(s_height, bones_start, clear_background, current_bone, selection_rectangle);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
