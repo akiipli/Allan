@@ -429,6 +429,12 @@ int init_shaders_()
 
 char Text[STRLEN];
 
+void init_G_advance(int italic)
+{
+    Plus_Sign_Advance[italic] = 7;
+    Vbar_Sign_Advance[italic] = 7;
+}
+
 void make_character_map(const char * text, float x, float y, int italic)
 {
     Text[0] = '\0';
@@ -457,6 +463,11 @@ void make_character_map(const char * text, float x, float y, int italic)
 		float w = G->advance.x >> 6; //G->bitmap.width;
 
 		float lower_part = bitmap_rows - bitmap_top;
+
+        if (Pos_coords_c >= STRLEN)
+        {
+            break;
+        }
 
 		memcpy(Pos_coords[Pos_coords_c],(GLfloat[8])
 		{x0,     y + lower_part,

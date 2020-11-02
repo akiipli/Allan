@@ -71,6 +71,9 @@ int LISTLENGTH = 12;
 #define LABEL_TEXT_LEN 30
 #define LABELS 100
 
+int Plus_Sign_Advance[2];
+int Vbar_Sign_Advance[2];
+
 char Copy_Buffer[STRLEN];
 int Copy_Buffer_length = 0;
 char Paste_Buffer[STRLEN];
@@ -335,6 +338,8 @@ ui_bones BoneList[MAX_LISTLENGTH];
 ui_ikchn IkchList[MAX_LISTLENGTH];
 ui_subch SubcList[MAX_LISTLENGTH];
 
+void init_G_advance(int italic);
+
 void init_ui()
 {
     files_dir = (char *)&resources_dir;
@@ -516,6 +521,9 @@ void init_ui()
     Button_item[0].color = UI_GRAYD;
     Button_text[0].color = UI_GRAYD;
     Button_sels[0].color = UI_GRAYD;
+
+    init_G_advance(0);
+    init_G_advance(1);
 }
 
 typedef struct
@@ -1105,8 +1113,9 @@ void draw_Button_bone_text(const char * text, int width, int height, int index, 
     draw_text(text, origin_x, origin_y, font_height, italic);
 }
 
-void draw_Button_pose_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed)
+void draw_Button_pose_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed, int frame_selection)
 {
+    int advance;
     int font_height = 11;
 
 	FT_Set_Pixel_Sizes(face[0], 0, font_height);
@@ -1114,7 +1123,25 @@ void draw_Button_pose_text(const char * text, int width, int height, int index, 
 	float origin_x = 5 * x_offset;
 	float origin_y = BUTTON_HEIGHT * index + 10;
 
-	if (frame_it)
+ 	if (frame_selection)
+    {
+        if (x_collapsed)
+        {
+            advance = Plus_Sign_Advance[0];
+        }
+        else
+        {
+            advance = Vbar_Sign_Advance[0];
+        }
+
+        make_character_map(text, origin_x + advance, origin_y, 0);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(blueb);
+
+        draw_selection_Rectangle();
+    }
+	else if (frame_it)
     {
         glDisable(GL_TEXTURE_2D);
         glColor4fv(white);
@@ -1191,8 +1218,9 @@ void draw_Button_defr_text(const char * text, int width, int height, int index, 
     draw_text(Text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_hier_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed, int italic)
+void draw_Button_hier_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed, int italic, int frame_selection)
 {
+    int advance;
     int font_height = 11;
 
 	FT_Set_Pixel_Sizes(face[italic], 0, font_height);
@@ -1200,7 +1228,25 @@ void draw_Button_hier_text(const char * text, int width, int height, int index, 
 	float origin_x = 5 * x_offset;
 	float origin_y = BUTTON_HEIGHT * index + 10;
 
-	if (frame_it)
+ 	if (frame_selection)
+    {
+        if (x_collapsed)
+        {
+            advance = Plus_Sign_Advance[italic];
+        }
+        else
+        {
+            advance = Vbar_Sign_Advance[italic];
+        }
+
+        make_character_map(text, origin_x + advance, origin_y, italic);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(blueb);
+
+        draw_selection_Rectangle();
+    }
+	else if (frame_it)
     {
         glDisable(GL_TEXTURE_2D);
         glColor4fv(white);
@@ -2291,7 +2337,7 @@ void draw_Bones_List(int s_height, int start, int clear_background, int current_
 	glPopMatrix();
 }
 
-void draw_Poses_List(int s_height, int start, int clear_background, int current_pose)
+void draw_Poses_List(int s_height, int start, int clear_background, int current_pose, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -2339,10 +2385,20 @@ void draw_Poses_List(int s_height, int start, int clear_background, int current_
 
 	for (i = 0; i < s; i ++)
     {
-        if (i == selected_deformer_node - start)
-            draw_Button_pose_text(poses_list[i], d_width, d_height, i, 1, 1, pose_x_offset[i], pose_x_collapsed[i]);
+        if (i == current_pose && selection_rectangle)
+        {
+            if (i == selected_deformer_node - start)
+                draw_Button_pose_text(poses_list[i], d_width, d_height, i, 1, 1, pose_x_offset[i], pose_x_collapsed[i], 1);
+            else
+                draw_Button_pose_text(poses_list[i], d_width, d_height, i, 1, 0, pose_x_offset[i], pose_x_collapsed[i], 1);
+        }
         else
-            draw_Button_pose_text(poses_list[i], d_width, d_height, i, 1, 0, pose_x_offset[i], pose_x_collapsed[i]);
+        {
+            if (i == selected_deformer_node - start)
+                draw_Button_pose_text(poses_list[i], d_width, d_height, i, 1, 1, pose_x_offset[i], pose_x_collapsed[i], 0);
+            else
+                draw_Button_pose_text(poses_list[i], d_width, d_height, i, 1, 0, pose_x_offset[i], pose_x_collapsed[i], 0);
+        }
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -2424,7 +2480,7 @@ void draw_Deformers_List(int s_height, int start, int clear_background, int curr
 	glPopMatrix();
 }
 
-void draw_Hierarchys_List(int s_height, int start, int clear_background, int current_trans)
+void draw_Hierarchys_List(int s_height, int start, int clear_background, int current_trans, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -2478,7 +2534,14 @@ void draw_Hierarchys_List(int s_height, int start, int clear_background, int cur
 
 	for (i = 0; i < s; i ++)
     {
-        draw_Button_hier_text(hierarchys_list[i], d_width, d_height, i, 1, 0, hier_x_offset[i], hier_x_collapsed[i], hier_italic[i]);
+        if (selection_rectangle && i == current_trans)
+        {
+            draw_Button_hier_text(hierarchys_list[i], d_width, d_height, i, 1, 0, hier_x_offset[i], hier_x_collapsed[i], hier_italic[i], 1);
+        }
+        else
+        {
+            draw_Button_hier_text(hierarchys_list[i], d_width, d_height, i, 1, 0, hier_x_offset[i], hier_x_collapsed[i], hier_italic[i], 0);
+        }
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -3525,7 +3588,7 @@ void draw_Bones_Dialog(const char * text, int s_height,
 
 void draw_Poses_Dialog(const char * text, int s_height,
                            int poses_start,
-                           int clear_background, int current_pose)
+                           int clear_background, int current_pose, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3568,7 +3631,7 @@ void draw_Poses_Dialog(const char * text, int s_height,
 
 	draw_Button(text, SIDEBAR, d_height, 0, 0); // Title bar
 
-    draw_Poses_List(s_height, poses_start, clear_background, current_pose);
+    draw_Poses_List(s_height, poses_start, clear_background, current_pose, selection_rectangle);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
@@ -3638,7 +3701,7 @@ void draw_Deformers_Dialog(const char * text, int s_height,
         if (strcmp(defr_type, "deformers") == 0)
             draw_Deformers_List(s_height, deformers_start, clear_background, current_deformer);
         else if (strcmp(defr_type, "hierarchys") == 0)
-            draw_Hierarchys_List(s_height, transformers_start, clear_background, current_trans);
+            draw_Hierarchys_List(s_height, transformers_start, clear_background, current_trans, selection_rectangle);
         else if (strcmp(defr_type, "selections") == 0)
             draw_Selections_List(s_height, selections_start, "vertex", clear_background, 1, current_sel);
 
@@ -3655,7 +3718,7 @@ void draw_Deformers_Dialog(const char * text, int s_height,
     }
 }
 
-void draw_Hierarchys_Dialog(const char * text, int s_height, int transformers_start, int clear_background, int current_trans)
+void draw_Hierarchys_Dialog(const char * text, int s_height, int transformers_start, int clear_background, int current_trans, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3701,7 +3764,7 @@ void draw_Hierarchys_Dialog(const char * text, int s_height, int transformers_st
 
 	draw_Button(text, SIDEBAR, d_height, 0, 0); // Title bar
 
-	draw_Hierarchys_List(s_height, transformers_start, clear_background, current_trans);
+	draw_Hierarchys_List(s_height, transformers_start, clear_background, current_trans, selection_rectangle);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

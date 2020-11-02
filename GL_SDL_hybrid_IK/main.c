@@ -276,6 +276,26 @@ int DRAW_LABELS = 1;
 int DRAW_LOCATORS = 0;
 int BONES_MODE = 0;
 
+void copy_and_paste(char letter)
+{
+    if (letter == 'c')
+    {
+        Copy_Buffer_length = Pos_end - Pos_start + 1;
+        memcpy(Copy_Buffer, &EditString[Pos_start], Copy_Buffer_length);
+    }
+    else if (letter == 'v')
+    {
+        memcpy(Paste_Buffer, &Copy_Buffer, Copy_Buffer_length);
+        Paste_Buffer[Copy_Buffer_length] = '\0';
+        EditString[EditCursor] = '\0';
+        if(EditCursor + Copy_Buffer_length < STRLEN)
+        {
+            strcat(EditString, Paste_Buffer);
+            EditCursor += Copy_Buffer_length;
+        }
+    }
+}
+
 GLubyte pattern[] = {
 51, 51, 51, 51,
 51, 51, 51, 51,
@@ -411,10 +431,18 @@ void make_osd(object * O)
 
     if (DRAW_LOCATORS && T != NULL)
     {
-        if (T->Bone != NULL)
-            p += sprintf(&osd_font[p], "%s\n", T->Bone->Name);
+        if (Bone_Mode)
+        {
+            if (currentBone >= 0 && currentBone < bonesIndex)
+                p += sprintf(&osd_font[p], "%s\n", bones[currentBone]->Name);
+        }
         else
-            p += sprintf(&osd_font[p], "%s\n", T->Name);
+        {
+            if (T->Bone != NULL)
+                p += sprintf(&osd_font[p], "%s\n", T->Bone->Name);
+            else
+                p += sprintf(&osd_font[p], "%s\n", T->Name);
+        }
     }
 
     if (BIND_POSE)
@@ -4483,7 +4511,7 @@ void open_Poses_List()
         poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
     UPDATE_COLORS = 0;
 
-    draw_Poses_Dialog("Poses List", screen_height, pose_start, 1, PoseIndex - pose_start);
+    draw_Poses_Dialog("Poses List", screen_height, pose_start, 1, PoseIndex - pose_start, selection_rectangle);
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -4594,7 +4622,7 @@ void open_Hierarchys_List()
         poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
     UPDATE_COLORS = 0;
 
-    draw_Hierarchys_Dialog("Hierarchys L.", screen_height, hier_start, 1, HierIndex - hier_start);
+    draw_Hierarchys_Dialog("Hierarchys L.", screen_height, hier_start, 1, HierIndex - hier_start, selection_rectangle);
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -5192,11 +5220,11 @@ void update_Poses_List(int update, int blit)
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
-        draw_Poses_Dialog("Poses List", screen_height, pose_start, 1, PoseIndex - pose_start);
+        draw_Poses_Dialog("Poses List", screen_height, pose_start, 1, PoseIndex - pose_start, selection_rectangle);
     }
     else
     {
-        draw_Poses_List(screen_height, pose_start, 0, PoseIndex - pose_start);
+        draw_Poses_List(screen_height, pose_start, 0, PoseIndex - pose_start, selection_rectangle);
         draw_Poses_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
     SDL_GL_SwapBuffers();
@@ -6169,11 +6197,11 @@ void update_Hierarchys_List(int update, int blit)
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
-        draw_Hierarchys_Dialog("Hierarchys L.", screen_height, hier_start, 1, HierIndex - hier_start);
+        draw_Hierarchys_Dialog("Hierarchys L.", screen_height, hier_start, 1, HierIndex - hier_start, selection_rectangle);
     }
     else
     {
-        draw_Hierarchys_List(screen_height, hier_start, 1, HierIndex - hier_start);
+        draw_Hierarchys_List(screen_height, hier_start, 1, HierIndex - hier_start, selection_rectangle);
         draw_Hierarchys_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
 
@@ -7656,19 +7684,7 @@ void handle_Bone_Dialog(char letter, SDLMod mod)
     {
         if (controlDown)
         {
-            if (letter == 'c')
-            {
-                Copy_Buffer_length = Pos_end - Pos_start + 1;
-                memcpy(Copy_Buffer, &EditString[Pos_start], Copy_Buffer_length);
-            }
-            else if (letter == 'v')
-            {
-                memcpy(Paste_Buffer, &Copy_Buffer, Copy_Buffer_length);
-                Paste_Buffer[Copy_Buffer_length] = '\0';
-                EditString[EditCursor] = '\0';
-                strcat(EditString, Paste_Buffer);
-                EditCursor += Copy_Buffer_length;
-            }
+            copy_and_paste(letter);
         }
         else
         {
@@ -7733,19 +7749,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
     {
         if (controlDown)
         {
-            if (letter == 'c')
-            {
-                Copy_Buffer_length = Pos_end - Pos_start + 1;
-                memcpy(Copy_Buffer, &EditString[Pos_start], Copy_Buffer_length);
-            }
-            else if (letter == 'v')
-            {
-                memcpy(Paste_Buffer, &Copy_Buffer, Copy_Buffer_length);
-                Paste_Buffer[Copy_Buffer_length] = '\0';
-                EditString[EditCursor] = '\0';
-                strcat(EditString, Paste_Buffer);
-                EditCursor += Copy_Buffer_length;
-            }
+            copy_and_paste(letter);
         }
         else
         {
@@ -7899,51 +7903,58 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
     if (Edit_Lock)
     {
         //int update = 0;
-        if (letter == '-')
+        if (controlDown)
         {
-            if (mod & KMOD_SHIFT)
+            copy_and_paste(letter);
+        }
+        else
+        {
+            if (letter == '-')
             {
-                letter = '_';
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
             }
-        }
-        else if (isalnum(letter) && (mod & KMOD_SHIFT))
-        {
-            letter -= 32;
-        }
-        if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-        {
-            if (EditCursor < STRLEN - 1)
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
             {
-                EditString[EditCursor] = letter;
-                EditCursor ++;
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlen(EditString) > 1)
+                {
+                    sprintf(Hier_Names[HierIndex], "%s", EditString);
+                    replace_Hierarchy_Name(Name_Remember, EditString);
+                    sprintf(Name_Remember, "%s", EditString);
+                }
+                else
+                {
+                    sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
+                }
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                set_Hier_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
                 EditString[EditCursor] = '\0';
             }
-        }
-        else if (letter == 13 || letter == 10) // return, enter
-        {
-            if (strlen(EditString) > 1)
-            {
-                sprintf(Hier_Names[HierIndex], "%s", EditString);
-                replace_Hierarchy_Name(Name_Remember, EditString);
-                sprintf(Name_Remember, "%s", EditString);
-            }
-            else
-            {
-                sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
-            }
-            Edit_Lock = 0;
-            selection_rectangle = 0;
-            EditCursor = 0;
-            printf("Edit finishing!\n");
-            set_Hier_H_Button(-1);
-            //update = 1;
-        }
-        else if (letter == 8) // backspace
-        {
-            EditCursor --;
-            if (EditCursor < 0)
-                EditCursor = 0;
-            EditString[EditCursor] = '\0';
         }
         sprintf(Hier_Names[HierIndex], "%s", EditString);
         update_Hierarchys_List(0, 0);
@@ -10719,14 +10730,14 @@ void handle_RIGHT(SDLMod mod)
     if (mod & KMOD_SHIFT)
     {
         Pos_end ++;
-        if (Pos_end >= Pos_coords_c)
+        if (Pos_end >= Pos_coords_c - 1)
             Pos_end --;
     }
     else
     {
         Pos_start = Pos_end;
         Pos_start ++;
-        if (Pos_start >= Pos_coords_c)
+        if (Pos_start >= Pos_coords_c - 1)
             Pos_start --;
         Pos_end = Pos_start;
     }
@@ -11700,7 +11711,7 @@ int main(int argc, char * args[])
                                     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_Poses_Dialog("Poses List", screen_height,
-                                                pose_start, 1, PoseIndex - pose_start);
+                                                pose_start, 1, PoseIndex - pose_start, selection_rectangle);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
                                     DRAW_UI = 1;
