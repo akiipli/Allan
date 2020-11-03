@@ -276,6 +276,23 @@ int DRAW_LABELS = 1;
 int DRAW_LOCATORS = 0;
 int BONES_MODE = 0;
 
+int strlength(char * text)
+{
+    int i;
+    int len = 0;
+
+    for (i = 0; i < STRLEN; i ++)
+    {
+        if (text[i] == '\0')
+        {
+            len = i;
+            break;
+        }
+    }
+
+    return len;
+}
+
 void copy_and_paste(char letter)
 {
     if (letter == 'c')
@@ -296,16 +313,8 @@ void copy_and_paste(char letter)
     }
     else if (letter == 'z')
     {
-        int i;
-        int len = 0;
-        for (i = 0; i < STRLEN; i ++)
-        {
-            if (Name_Remember[i] == '\0')
-            {
-                len = i;
-                break;
-            }
-        }
+        int len = strlength(Name_Remember);
+
         memcpy(EditString, &Name_Remember, len);
         EditString[len] = '\0';
         EditCursor = len;
@@ -7578,6 +7587,7 @@ void handle_Scene_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
+        int update = 1;
         if (letter == '-')
         {
             if (mod & KMOD_SHIFT)
@@ -7600,13 +7610,14 @@ void handle_Scene_Dialog(char letter, SDLMod mod)
         }
         else if (letter == 13 || letter == 10) // return, enter
         {
-            if (strlen(EditString) > 1)
+            if (strlength(EditString) > 1)
             {
                 sprintf(scene_files_dir, "%s", EditString);
                 sprintf(Name_Remember, "%s", EditString);
             }
             else
             {
+                update = 0;
                 sprintf(scene_files_dir, "%s", Name_Remember);
             }
             Edit_Lock = 0;
@@ -7625,7 +7636,8 @@ void handle_Scene_Dialog(char letter, SDLMod mod)
                 EditCursor = 0;
             EditString[EditCursor] = '\0';
         }
-        sprintf(scene_files_dir, "%s", EditString);
+        if (update)
+            sprintf(scene_files_dir, "%s", EditString);
         scene_files_start = 0;
         if (dialog_type == SAVES_DIALOG)
             update_Saves_List(1, 0);
@@ -7640,7 +7652,7 @@ void handle_IK_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        //int update = 0;
+        int update = 1;
         if (letter == '-')
         {
             if (mod & KMOD_SHIFT)
@@ -7663,7 +7675,7 @@ void handle_IK_Dialog(char letter, SDLMod mod)
         }
         else if (letter == 13 || letter == 10) // return, enter
         {
-            if (strlen(EditString) > 1)
+            if (strlength(EditString) > 1)
             {
                 sprintf(IK_Names[IKIndex], "%s", EditString);
                 replace_IK_Name(EditString);
@@ -7671,6 +7683,7 @@ void handle_IK_Dialog(char letter, SDLMod mod)
             }
             else
             {
+                update = 0;
                 sprintf(IK_Names[IKIndex], "%s", Name_Remember);
             }
             Edit_Lock = 0;
@@ -7687,7 +7700,8 @@ void handle_IK_Dialog(char letter, SDLMod mod)
                 EditCursor = 0;
             EditString[EditCursor] = '\0';
         }
-        sprintf(IK_Names[IKIndex], "%s", EditString);
+        if (update)
+            sprintf(IK_Names[IKIndex], "%s", EditString);
         update_IK_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -7698,6 +7712,7 @@ void handle_Bone_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
+        int update = 1;
         if (controlDown)
         {
             copy_and_paste(letter);
@@ -7727,7 +7742,7 @@ void handle_Bone_Dialog(char letter, SDLMod mod)
             }
             else if (letter == 13 || letter == 10) // return, enter
             {
-                if (strlen(EditString) > 1)
+                if (strlength(EditString) > 1)
                 {
                     sprintf(Bone_Names[BoneIndex], "%s", EditString);
                     replace_Bone_Name(EditString);
@@ -7735,6 +7750,7 @@ void handle_Bone_Dialog(char letter, SDLMod mod)
                 }
                 else
                 {
+                    update = 0;
                     sprintf(Bone_Names[BoneIndex], "%s", Name_Remember);
                 }
                 Edit_Lock = 0;
@@ -7752,7 +7768,8 @@ void handle_Bone_Dialog(char letter, SDLMod mod)
                 EditString[EditCursor] = '\0';
             }
         }
-        sprintf(Bone_Names[BoneIndex], "%s", EditString);
+        if (update)
+            sprintf(Bone_Names[BoneIndex], "%s", EditString);
         update_Bones_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -7763,6 +7780,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
+        int update = 1;
         if (controlDown)
         {
             copy_and_paste(letter);
@@ -7791,7 +7809,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
             }
             else if (letter == 13 || letter == 10) // return, enter
             {
-                if (strlen(EditString) > 1)
+                if (strlength(EditString) > 1)
                 {
                     sprintf(Pose_Names[PoseIndex], "%s", EditString);
                     replace_Pose_Name(EditString);
@@ -7799,6 +7817,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
                 }
                 else
                 {
+                    update = 0;
                     sprintf(Pose_Names[PoseIndex], "%s", Name_Remember);
                 }
                 Edit_Lock = 0;
@@ -7816,8 +7835,8 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
                 EditString[EditCursor] = '\0';
             }
         }
-        //int update = 0;
-        sprintf(Pose_Names[PoseIndex], "%s", EditString);
+        if (update)
+            sprintf(Pose_Names[PoseIndex], "%s", EditString);
         update_Poses_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -7839,7 +7858,7 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        //int update = 0;
+        int update = 1;
         if (letter == '-')
         {
             if (mod & KMOD_SHIFT)
@@ -7862,7 +7881,7 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
         }
         else if (letter == 13 || letter == 10) // return, enter
         {
-            if (strlen(EditString) > 1)
+            if (strlength(EditString) > 1)
             {
                 sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
                 // Rename individual selections in current type for selected objects
@@ -7874,6 +7893,7 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
             }
             else
             {
+                update = 0;
                 sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", Name_Remember);
             }
             Edit_Lock = 0;
@@ -7890,7 +7910,8 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
                 EditCursor = 0;
             EditString[EditCursor] = '\0';
         }
-        sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
+        if (update)
+            sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
         update_Selections_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -7918,7 +7939,7 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        //int update = 0;
+        int update = 1;
         if (controlDown)
         {
             copy_and_paste(letter);
@@ -7947,7 +7968,7 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             }
             else if (letter == 13 || letter == 10) // return, enter
             {
-                if (strlen(EditString) > 1)
+                if (strlength(EditString) > 1)
                 {
                     sprintf(Hier_Names[HierIndex], "%s", EditString);
                     replace_Hierarchy_Name(Name_Remember, EditString);
@@ -7955,6 +7976,7 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
                 }
                 else
                 {
+                    update = 0;
                     sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
                 }
                 Edit_Lock = 0;
@@ -7972,7 +7994,8 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
                 EditString[EditCursor] = '\0';
             }
         }
-        sprintf(Hier_Names[HierIndex], "%s", EditString);
+        if (update)
+            sprintf(Hier_Names[HierIndex], "%s", EditString);
         update_Hierarchys_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
