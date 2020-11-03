@@ -5638,6 +5638,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
         }
     }
 
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     apply_Pose(D, P1, 0);
 
     DRAW_UI = 1;
@@ -11688,7 +11689,6 @@ int main(int argc, char * args[])
                                     create_Ik_List(IKIndex);
 
                                     DRAW_UI = 0;
-                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_IK_Dialog("IK List", screen_height,
                                                 ikch_start, 1, IKIndex - ikch_start);
@@ -11697,7 +11697,6 @@ int main(int argc, char * args[])
                                     draw_IK_Dialog("IK List", screen_height,
                                                 ikch_start, 1, IKIndex - ikch_start);
                                     SDL_GL_SwapBuffers();
-                                    glDrawBuffer(GL_BACK);
                                     DRAW_UI = 1;
                                 }
                             }
