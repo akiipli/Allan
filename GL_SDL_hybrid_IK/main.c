@@ -4439,6 +4439,20 @@ void open_Bones_List()
     }
     Bottom_Message = 0;
 
+    BoneIndex = currentBone;
+
+    if (currentBone < Bones_c && (BoneIndex - bone_start < 0 || BoneIndex >= bone_start + LISTLENGTH))
+    {
+        if (BoneIndex - LISTLENGTH / 2 >= 0)
+        {
+            bone_start = BoneIndex - LISTLENGTH / 2;
+        }
+        else
+        {
+            bone_start = 0;
+        }
+    }
+
     black_out_BoneList();
 
     //DRAW_LOCATORS = 1;
