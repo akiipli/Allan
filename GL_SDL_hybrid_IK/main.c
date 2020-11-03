@@ -294,6 +294,22 @@ void copy_and_paste(char letter)
             EditCursor += Copy_Buffer_length;
         }
     }
+    else if (letter == 'z')
+    {
+        int i;
+        int len = 0;
+        for (i = 0; i < STRLEN; i ++)
+        {
+            if (Name_Remember[i] == '\0')
+            {
+                len = i;
+                break;
+            }
+        }
+        memcpy(EditString, &Name_Remember, len);
+        EditString[len] = '\0';
+        EditCursor = len;
+    }
 }
 
 GLubyte pattern[] = {
