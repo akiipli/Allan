@@ -743,7 +743,7 @@ void assign_Selection_L()
                 O->vertex_selection[index]->indices[i] = selected_elements[i];
                 O->vertex_selection[index]->weights[i] = selected_weights[i];
             }
-            if (O->vertex_selection[index]->Transformer != NULL)
+            if (O->vertex_selection[index]->Transformer != NULL && O->vertex_selection[index]->Transformer->Deformer != NULL)
             {
                 normalize_Deformer_Selections(O->vertex_selection[index]->Transformer->Deformer);
             }

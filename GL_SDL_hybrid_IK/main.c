@@ -5575,6 +5575,8 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
 {
     Draw_Bottom_Message("transition into Pose\n");
 
+    glDrawBuffer(GL_BACK);
+
     int f;
     float w0, w1;
 
@@ -6413,7 +6415,7 @@ void handle_UP(int scrollbar)
         if (UPDATE_BACKGROUND)
         {
             DRAW_UI = 0;
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            //poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
             DRAW_UI = 1;
         }
         if (dialog_type == SAVES_DIALOG)
@@ -7904,7 +7906,7 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
                 replace_Selections_Name(selected_objects, selected_object_count, current_sel_type, Name_Remember, EditString);
                 sprintf(Name_Remember, "%s", EditString);
 
-                assign_Selection_L();
+                //assign_Selection_L();
             }
             else
             {
