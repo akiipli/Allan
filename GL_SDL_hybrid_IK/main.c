@@ -3553,7 +3553,7 @@ void set_Button_sels(int idx)
         if (dialog_type == SELS_DIALOG)
         {
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-            draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+            draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type], selection_rectangle);
         }
     }
     draw_Bottom_Line(screen_width, screen_height);
@@ -4193,7 +4193,7 @@ int list_hierarcys(char ** hierarchys_list, int start, int n, int * hier_x_offse
     return hir;
 }
 
-int list_selections(char ** selections_list, int start, int n, char * type)
+int list_selections(char ** selections_list, char ** sels_names, int start, int n, char * type)
 {
     int s = start;
     int sel = 0;
@@ -4202,6 +4202,7 @@ int list_selections(char ** selections_list, int start, int n, char * type)
         if (sel >= Selections_c[current_sel_type])
             break;
         sprintf(selections_list[sel], "%s|%s", Sels_Names[current_sel_type][s], Sels_Counts[current_sel_type][s]);
+        sprintf(sels_names[sel], "%s", Sels_Names[current_sel_type][s]);
         s ++;
     }
     return sel;
@@ -4302,13 +4303,13 @@ void open_Selections_List()
     {
         if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
             SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BACKL;
-        draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+        draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type], selection_rectangle);
         if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
             SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BLACK;
     }
     else
     {
-        draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+        draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type], selection_rectangle);
     }
     blit_ViewPort();
     glDrawBuffer(GL_BACK);
@@ -5331,11 +5332,11 @@ void update_Selections_List(int update, int blit)
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
-        draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+        draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type], selection_rectangle);
     }
     else
     {
-        draw_Selections_List(screen_height, sels_start[current_sel_type], sel_type, 1, 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+        draw_Selections_List(screen_height, sels_start[current_sel_type], sel_type, 1, SelsIndex[current_sel_type] - sels_start[current_sel_type], selection_rectangle);
         draw_Selections_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
     SDL_GL_SwapBuffers();
@@ -7341,8 +7342,6 @@ void rename_Bone()
         {
             sprintf(Name_Remember, "%s", Bone_Names[BoneIndex]);
             sprintf(Bone_Names[BoneIndex], "%s", "");
-            Pos_start = 0;
-            Pos_end = 0;
             Edit_Lock = 1;
             init_Selection_Rectangle();
             update_Bones_List(0, 0);
@@ -7876,57 +7875,64 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
     if (Edit_Lock)
     {
         int update = 1;
-        if (letter == '-')
+        if (controlDown)
         {
-            if (mod & KMOD_SHIFT)
+            copy_and_paste(letter);
+        }
+        else
+        {
+            if (letter == '-')
             {
-                letter = '_';
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
             }
-        }
-        else if (isalnum(letter) && (mod & KMOD_SHIFT))
-        {
-            letter -= 32;
-        }
-        if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-        {
-            if (EditCursor < STRLEN - 1)
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
             {
-                EditString[EditCursor] = letter;
-                EditCursor ++;
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlength(EditString) > 1)
+                {
+                    sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
+                    // Rename individual selections in current type for selected objects
+                    // Find names with Remembered name and replace it with EditString
+                    replace_Selections_Name(selected_objects, selected_object_count, current_sel_type, Name_Remember, EditString);
+                    sprintf(Name_Remember, "%s", EditString);
+
+                    if (letter == 10)
+                        assign_Selection_L();
+                }
+                else
+                {
+                    update = 0;
+                    sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", Name_Remember);
+                }
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                set_Sels_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
                 EditString[EditCursor] = '\0';
             }
-        }
-        else if (letter == 13 || letter == 10) // return, enter
-        {
-            if (strlength(EditString) > 1)
-            {
-                sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
-                // Rename individual selections in current type for selected objects
-                // Find names with Remembered name and replace it with EditString
-                replace_Selections_Name(selected_objects, selected_object_count, current_sel_type, Name_Remember, EditString);
-                sprintf(Name_Remember, "%s", EditString);
-
-                if (letter == 10)
-                    assign_Selection_L();
-            }
-            else
-            {
-                update = 0;
-                sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", Name_Remember);
-            }
-            Edit_Lock = 0;
-            selection_rectangle = 0;
-            EditCursor = 0;
-            printf("Edit finishing!\n");
-            set_Sels_H_Button(-1);
-            //update = 1;
-        }
-        else if (letter == 8) // backspace
-        {
-            EditCursor --;
-            if (EditCursor < 0)
-                EditCursor = 0;
-            EditString[EditCursor] = '\0';
         }
         if (update)
             sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
@@ -12186,7 +12192,8 @@ int main(int argc, char * args[])
                                 {
                                     (*Button_sels[Buttonindex].func)(Buttonindex);
                                     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-                                    draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type]);
+                                    draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1,
+                                                           SelsIndex[current_sel_type] - sels_start[current_sel_type], selection_rectangle);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
                                 }

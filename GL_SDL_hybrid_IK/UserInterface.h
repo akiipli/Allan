@@ -622,7 +622,7 @@ int list_deformers(char **, int, int, int *, int *);
 
 int list_hierarcys(char **, int, int, int *, int *, int *);
 
-int list_selections(char **, int, int, char *);
+int list_selections(char **, char **, int, int, char *);
 
 int list_texts(char **, int, int, const char *);
 
@@ -1280,7 +1280,7 @@ void draw_Button_hier_text(const char * text, int width, int height, int index, 
     draw_text(Text, origin_x, origin_y, font_height, italic);
 }
 
-void draw_Button_sels_text(const char * text, int width, int height, int index, int colorchange, int frame_it)
+void draw_Button_sels_text(const char * text, char * name, int width, int height, int index, int colorchange, int frame_it, int frame_selection)
 {
     int font_height = 11;
 
@@ -1289,7 +1289,16 @@ void draw_Button_sels_text(const char * text, int width, int height, int index, 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
 
-	if (frame_it)
+ 	if (frame_selection)
+    {
+        make_character_map(name, origin_x, origin_y, 0);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(blueb);
+
+        draw_selection_Rectangle();
+    }
+	else if (frame_it)
     {
         glDisable(GL_TEXTURE_2D);
         glColor4fv(white);
@@ -2554,7 +2563,7 @@ void draw_Hierarchys_List(int s_height, int start, int clear_background, int cur
 	glPopMatrix();
 }
 
-void draw_Selections_List(int s_height, int start, char * type, int clear_background, int update_edit, int current_sel)
+void draw_Selections_List(int s_height, int start, char * type, int clear_background, int current_sel, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -2594,26 +2603,29 @@ void draw_Selections_List(int s_height, int start, char * type, int clear_backgr
 	// files list
 
 	char * selections_list[LISTLENGTH];
+	char * sels_names[LISTLENGTH];
 
     int i;
 	for (i = 0; i < LISTLENGTH; i ++)
     {
         selections_list[i] = malloc(255 * sizeof(char));
+        sels_names[i] = malloc(255 * sizeof(char));
     }
 
-    int s = list_selections(selections_list, start, LISTLENGTH, type);
+    int s = list_selections(selections_list, sels_names, start, LISTLENGTH, type);
 
 	for (i = 0; i < s; i ++)
     {
-        if (update_edit && i == current_sel)
-            draw_Button_sels_text(selections_list[i], d_width, d_height, i, 1, 1);
+        if (i == current_sel && selection_rectangle)
+            draw_Button_sels_text(selections_list[i], sels_names[i], d_width, d_height, i, 1, 1, 1);
         else
-            draw_Button_sels_text(selections_list[i], d_width, d_height, i, 1, 0);
+            draw_Button_sels_text(selections_list[i], sels_names[i], d_width, d_height, i, 1, 0, 0);
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
     {
         free(selections_list[i]);
+        free(sels_names[i]);
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -3703,7 +3715,7 @@ void draw_Deformers_Dialog(const char * text, int s_height,
         else if (strcmp(defr_type, "hierarchys") == 0)
             draw_Hierarchys_List(s_height, transformers_start, clear_background, current_trans, selection_rectangle);
         else if (strcmp(defr_type, "selections") == 0)
-            draw_Selections_List(s_height, selections_start, "vertex", clear_background, 1, current_sel);
+            draw_Selections_List(s_height, selections_start, "vertex", clear_background, current_sel, selection_rectangle);
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_LIGHTING);
@@ -3773,7 +3785,8 @@ void draw_Hierarchys_Dialog(const char * text, int s_height, int transformers_st
 	draw_Hierarchys_Bottom_Line(d_width, s_height);
 }
 
-void draw_Selections_Dialog(const char * text, int s_height, char * sel_type, char ** sel_types, int sel_type_count, int selections_start, int clear_background, int current_sel)
+void draw_Selections_Dialog(const char * text, int s_height, char * sel_type, char ** sel_types, int sel_type_count,
+                            int selections_start, int clear_background, int current_sel, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3825,7 +3838,7 @@ void draw_Selections_Dialog(const char * text, int s_height, char * sel_type, ch
         draw_Button_sels(sel_types[s], SIDEBAR, d_height, s, 1);
     }
 
-	draw_Selections_List(s_height, selections_start, sel_type, clear_background, 1, current_sel);
+	draw_Selections_List(s_height, selections_start, sel_type, clear_background, current_sel, selection_rectangle);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
