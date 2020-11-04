@@ -738,14 +738,17 @@ void assign_Selection_L()
             O->vertex_selection[index]->weights = realloc(O->vertex_selection[index]->weights, selected_elements_count * sizeof(int));
             O->vertex_selection[index]->indices_count = selected_elements_count;
             printf("selected elements count %d\n", selected_elements_count);
-            for (i = 0; i < selected_elements_count; i ++)
+            if (selected_elements_count > 0)
             {
-                O->vertex_selection[index]->indices[i] = selected_elements[i];
-                O->vertex_selection[index]->weights[i] = selected_weights[i];
-            }
-            if (O->vertex_selection[index]->Transformer != NULL && O->vertex_selection[index]->Transformer->Deformer != NULL)
-            {
-                normalize_Deformer_Selections(O->vertex_selection[index]->Transformer->Deformer);
+                for (i = 0; i < selected_elements_count; i ++)
+                {
+                    O->vertex_selection[index]->indices[i] = selected_elements[i];
+                    O->vertex_selection[index]->weights[i] = selected_weights[i];
+                }
+                if (O->vertex_selection[index]->Transformer != NULL && O->vertex_selection[index]->Transformer->Deformer != NULL)
+                {
+                    normalize_Deformer_Selections(O->vertex_selection[index]->Transformer->Deformer);
+                }
             }
             free(selected_elements);
             free(selected_weights);

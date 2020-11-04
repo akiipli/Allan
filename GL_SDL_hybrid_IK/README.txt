@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+11:37 AM 11/4/2020
+Enter and return are different now for selection renaming.
+Use enter to assign while renaming.
+
 7:57 PM 1/14/2020
 Ctrl click in hierarchys List toggles selected state for locators.
 Toggling collapsing selects item as current.

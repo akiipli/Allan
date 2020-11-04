@@ -4258,23 +4258,23 @@ void open_Selections_List()
 {
     Osd = 0;
     HINTS = 0;
-//    int idx = 0;
-//
-//    if (selection_Mode == POLYS)
-//    {
-//        idx = 1;
-//    }
-//    else if (selection_Mode == EDGES)
-//    {
-//        idx = 2;
-//    }
-//    else if (selection_Mode == VERTS)
-//    {
-//        idx = 3;
-//    }
+    int idx = 0;
 
-    //set_Button_sels(idx);
-    set_Button_sels(current_sel_type);
+    if (selection_Mode == POLYS)
+    {
+        idx = 1;
+    }
+    else if (selection_Mode == EDGES)
+    {
+        idx = 2;
+    }
+    else if (selection_Mode == VERTS)
+    {
+        idx = 3;
+    }
+
+    set_Button_sels(idx);
+//    set_Button_sels(current_sel_type);
 
     black_out_SelectionsList();
 
@@ -7906,7 +7906,8 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
                 replace_Selections_Name(selected_objects, selected_object_count, current_sel_type, Name_Remember, EditString);
                 sprintf(Name_Remember, "%s", EditString);
 
-                //assign_Selection_L();
+                if (letter == 10)
+                    assign_Selection_L();
             }
             else
             {
