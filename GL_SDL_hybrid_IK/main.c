@@ -10568,14 +10568,6 @@ void save_load_Scene()
 
             find_Camera_Objects();
 
-            if (objectIndex > 1)
-            {
-                currentObject = objectIndex - 1;
-                O = objects[currentObject];
-                O->selected = 1;
-                assert_Object_Selection();
-            }
-
             assert_Deformers_Selected();
 
             //poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
@@ -10913,6 +10905,10 @@ int main(int argc, char * args[])
     subdLevel = create_Objects();
 
     O = objects[currentObject];
+
+    O->selected = 1;
+    selected_object_count = 1;
+    selected_objects[0] = 0;
 
     subdLevel = -1;
 
