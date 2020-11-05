@@ -3963,10 +3963,7 @@ void deselect_Objects()
         O = objects[o];
         O->selected = 0;
     }
-    O = objects[currentObject];
-    O->selected = 1;
-    selected_object_count = 1;
-    selected_objects[0] = currentObject;
+    selected_object_count = 0;
 }
 
 void open_Poses_dialog()
@@ -8378,24 +8375,18 @@ void handle_ControlDown()
         if (controlDown)
         {
             add_selection_mode = 0;
-            if (!Object_Mode)
-            {
-                if (cull_Selection)
-                    SDL_SetCursor(Arrow_Minus_Cull);
-                else
-                    SDL_SetCursor(Arrow_Minus);
-            }
+            if (cull_Selection)
+                SDL_SetCursor(Arrow_Minus_Cull);
+            else
+                SDL_SetCursor(Arrow_Minus);
         }
         else
         {
             add_selection_mode = 1;
-            if (!Object_Mode)
-            {
-                if (cull_Selection)
-                    SDL_SetCursor(Arrow_Plus_Cull);
-                else
-                    SDL_SetCursor(Arrow_Plus);
-            }
+            if (cull_Selection)
+                SDL_SetCursor(Arrow_Plus_Cull);
+            else
+                SDL_SetCursor(Arrow_Plus);
         }
     }
 }
@@ -9791,6 +9782,48 @@ void clear_Bones()
     }
 }
 
+void delete_Object_From_Selections(int index)
+{
+    int idx, i, s;
+    int condition;
+
+    selection * S;
+
+    for (s = 0; s < object_selections; s ++)
+    {
+        condition = 0;
+
+        S = &object_selection[s];
+
+        for (i = 0; i < S->indices_count; i ++)
+        {
+            if (S->indices[i] == index)
+            {
+                condition = 1;
+                idx = i;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            S->indices_count --;
+            for (i = idx; i < S->indices_count; i ++)
+            {
+                S->indices[i] = S->indices[i + 1];
+            }
+        }
+
+        for (i = 0; i < S->indices_count; i ++)
+        {
+            if (S->indices[i] > index)
+            {
+                S->indices[i] --;
+            }
+        }
+    }
+}
+
 void delete_Object(int index, int render)
 {
     if (index > 0 && index < objectIndex && objectIndex > 1) /*CUBECOMMENT*/
@@ -9838,6 +9871,8 @@ void delete_Object(int index, int render)
             free_object(O);
 
             assert_Object_Selection();
+
+            delete_Object_From_Selections(index);
         }
     }
 
@@ -9977,7 +10012,7 @@ void clear_All()
         currentLocator = 5;
         currentPose = 0;
         O = objects[currentObject];
-        O->selected = 1;
+        O->selected = 0;
         T = transformers[currentLocator];
         O->T->Bone = NULL;
         O->T->childcount = 0;
@@ -9986,7 +10021,10 @@ void clear_All()
 
         selected_transformer_count = 0;
         selected_objects[0] = 0;
-        selected_object_count = 1;
+        selected_object_count = 0;
+
+        object_selections = 0;
+        reinit_selections();
     }
 }
 
@@ -10875,11 +10913,6 @@ int main(int argc, char * args[])
     subdLevel = create_Objects();
 
     O = objects[currentObject];
-    O->selected = 1;
-
-    selected_objects[0] = currentObject;
-
-    selected_object_count = 1;
 
     subdLevel = -1;
 
@@ -12476,7 +12509,11 @@ int main(int argc, char * args[])
                         }
                         UPDATE_COLORS = 1;
                         DRAW_UI = 0;
-                        if (LOCAT_ID_RENDER && Object_Mode)
+                        if (Object_Mode)
+                        {
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                        }
+                        else if (LOCAT_ID_RENDER && Object_Mode)
                         {
                             poly_Render(0, 0, splitview, CamDist, 0, level);
                         }
@@ -12553,12 +12590,12 @@ int main(int argc, char * args[])
                             {
                                 sels_start[current_sel_type] = 0;
                                 O = objects[o];
-                                currentObject = o;
                                 printf("%s\n", objects[currentObject]->Name);
                                 if (add_selection_mode)
                                 {
                                     if (!O->selected)
                                     {
+                                        currentObject = o;
                                         O->selected = 1;
                                         selected_objects[selected_object_count ++] = o;
                                     }
@@ -12568,26 +12605,7 @@ int main(int argc, char * args[])
                                     if (O->selected && selected_object_count > 1)
                                     {
                                         O->selected = 0;
-                                        int s_o[OBJECTS];
-                                        int s_o_count = 0;
-                                        int s;
-                                        for (s = 0; s < selected_object_count; s ++)
-                                        {
-                                            if (selected_objects[s] != o)
-                                            {
-                                                s_o[s_o_count ++] = selected_objects[s];
-                                            }
-                                        }
-                                        selected_object_count --;
-                                        for (s = 0; s < selected_object_count; s ++)
-                                        {
-                                            selected_objects[s] = s_o[s];
-                                        }
-                                        if (selected_object_count - 1 >= 0)
-                                        {
-                                            currentObject = selected_objects[selected_object_count - 1];
-                                            O = objects[currentObject];
-                                        }
+                                        assert_Object_Selection();
                                     }
                                 }
                                 break;
@@ -13692,7 +13710,11 @@ int main(int argc, char * args[])
                     }
                     UPDATE_COLORS = 1;
                     DRAW_UI = 0;
-                    if (LOCAT_ID_RENDER && Object_Mode)
+                    if (Object_Mode)
+                    {
+                        poly_Render(0, 0, splitview, CamDist, 0, level);
+                    }
+                    else if (LOCAT_ID_RENDER && Object_Mode)
                     {
                         poly_Render(0, 0, splitview, CamDist, 0, level);
                     }
@@ -13760,11 +13782,11 @@ int main(int argc, char * args[])
                         {
                             sels_start[current_sel_type] = 0;
                             O = objects[o];
-                            currentObject = o;
                             if (add_selection_mode)
                             {
                                 if (!O->selected)
                                 {
+                                    currentObject = o;
                                     O->selected = 1;
                                     selected_objects[selected_object_count ++] = o;
                                 }
@@ -13774,26 +13796,7 @@ int main(int argc, char * args[])
                                 if (O->selected && selected_object_count > 1)
                                 {
                                     O->selected = 0;
-                                    int s_o[OBJECTS];
-                                    int s_o_count = 0;
-                                    int s;
-                                    for (s = 0; s < selected_object_count; s ++)
-                                    {
-                                        if (selected_objects[s] != o)
-                                        {
-                                            s_o[s_o_count ++] = selected_objects[s];
-                                        }
-                                    }
-                                    selected_object_count --;
-                                    for (s = 0; s < selected_object_count; s ++)
-                                    {
-                                        selected_objects[s] = s_o[s];
-                                    }
-                                    if (selected_object_count - 1 >= 0)
-                                    {
-                                        currentObject = selected_objects[selected_object_count - 1];
-                                        O = objects[currentObject];
-                                    }
+                                    assert_Object_Selection();
                                 }
                             }
                             break;

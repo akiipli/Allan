@@ -50,6 +50,19 @@ void init_selections()
     memcpy(&sel_type, sel_types[0], strlen(sel_types[0]));
 }
 
+void reinit_selections()
+{
+    int i;
+    for (i = 0; i < SELS_NUM; i ++)
+    {
+        SelsIndex[i] = 0;
+        sels_start[i] = 0;
+        memcpy(Sels_Names[i][0], "All", 4);
+        memcpy(Sels_Counts[i][0], "0", 2);
+        Selections_c[i] = 0;
+    }
+}
+
 void replace_Selections_Name(int * Objects, int Objects_count, int type, char * Name_Remember, char * EditString)
 {
     object * O;
