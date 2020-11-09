@@ -237,9 +237,11 @@ int create_cube(int index, char * name)
 
     if (result == 0) return 0;
 
-    objects[index]->Name = name;
-
     object * O = objects[index];
+
+    O->Name = malloc(STRLEN);
+
+    sprintf(O->Name, "%s", name);
 
     int s = 0; // start
 

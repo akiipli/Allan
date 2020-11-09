@@ -1516,12 +1516,16 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
     char buff[BUF_SIZE];
     buff[0] = '\0';
 
+    char * p;
+
     if (fgets(buff, BUF_SIZE, fp))
     {
         if (strcmp("Object\n", buff) == 0)
         {
             fgets(buff, BUF_SIZE, fp);
-            sscanf(buff, "%s", OB_IN->Name);
+            p = strchr(buff, '\n');
+            *p = '\0';
+            sprintf(OB_IN->Name, "%s", buff);
             fgets(buff, BUF_SIZE, fp);
             sscanf(buff, "%u", &OB_IN->address);
             fgets(buff, BUF_SIZE, fp);

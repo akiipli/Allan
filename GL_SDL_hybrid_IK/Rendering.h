@@ -29,13 +29,15 @@ Uint8 wire_g = 100;
 Uint8 wire_b = 100;
 Uint8 wire_a = 255;
 
+GLubyte dark_wire_color[4] = {10, 10, 50, 155};
 GLubyte wire_color[4] = {100, 100, 150, 155};
+GLubyte dark_deform_color[4] = {50, 50, 155, 155};
 GLubyte deform_color[4] = {150, 150, 255, 155};
-GLubyte selected_color[4] = {155, 150, 150, 155};
+GLubyte selected_color[4] = {200, 250, 150, 155};
 GLubyte selected_edge_color[4] = {255, 255, 255, 155};
-GLubyte selected_deform_color[4] = {150, 150, 100, 155};
-GLubyte current_color[4] = {155, 55, 50, 155};
-GLubyte current_deform_color[4] = {155, 100, 150, 155};
+GLubyte selected_deform_color[4] = {200, 200, 100, 155};
+GLubyte current_color[4] = {255, 155, 150, 155};
+GLubyte current_deform_color[4] = {255, 200, 250, 155};
 GLubyte vert_color[4] = {0, 0, 0, 255};
 GLubyte selected_vert_color[4] = {255, 255, 255, 255};
 GLubyte * line_color = NULL;
@@ -4665,9 +4667,9 @@ void render_polys_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw
                 glLineStipple(1, 0xFFFF);
                 glLineWidth(1);
                 if (O->deforms)
-                line_color = &deform_color[0];
+                line_color = &dark_deform_color[0];
                 else
-                line_color = &wire_color[0];
+                line_color = &dark_wire_color[0];
             }
             if (Selection_Mode != OBJES)
             {
@@ -4690,18 +4692,18 @@ void render_polys_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw
             }
             else
             {
-                if (C->objects[o] == currentObject || O->selected)
-                {
+                //if (C->objects[o] == currentObject || O->selected)
+                //{
                     render_Outline_polys(O, C);
-                }
-                else
-                {
-                    for (e = 0; e < O->edgecount; e++)
-                    {
-                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-                        draw_Edge(O, E, C, wireframe, E->B.Tradius);
-                    }
-                }
+                //}
+//                else
+//                {
+//                    for (e = 0; e < O->edgecount; e ++)
+//                    {
+//                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+//                        draw_Edge(O, E, C, wireframe, E->B.Tradius);
+//                    }
+//                }
             }
             glEnable(GL_TEXTURE_2D);
             //glEnable(GL_MULTISAMPLE);

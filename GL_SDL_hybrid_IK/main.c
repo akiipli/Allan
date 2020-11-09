@@ -52,6 +52,7 @@ look for CUBECOMMENT
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include "UserInterface.h"
+#include "Items.h"
 #include "IKSolution.h"
 #include "Deformer.h"
 #include "Poses.h"
@@ -167,11 +168,6 @@ int obj_extension_type = 0;
 char * extensions[EXT_NUM];
 int ext_count = 1;
 int dialog_type = 0;
-
-char item[TYPE_LENGTH];
-char * items[ITEM_NUM];
-int items_count = 3;
-int items_start = 0;
 
 char text[TYPE_LENGTH];
 char Text[STRLEN];
@@ -1165,6 +1161,7 @@ int create_Object_OBJ(char * fileName, OBJ_In * OBJ_File)
     if (result)
     {
         object * O = objects[objectIndex];
+        add_Item(TYPE_OBJECT, O->Name, O);
 
         int m = init_Material(Materials_count);
         O->surface = m;
@@ -3630,7 +3627,7 @@ void set_Button_item(int idx)
         Button_item[b].color = UI_GRAYB;
     }
     Button_item[idx].color = UI_GRAYD;
-    memcpy(&item, items[idx], TYPE_LENGTH);
+    memcpy(&item_type, item_types[idx], TYPE_LENGTH);
 }
 
 void set_Button_scene_ext(int idx, int type)
@@ -4349,10 +4346,9 @@ void open_Subcharacters_List()
     dialog_type = SUBC_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
 
     draw_Subcharacters_Dialog("Subcharacters", screen_height, subcharacter_start, 1, SubcharacterIndex - subcharacter_start);
@@ -4397,10 +4393,9 @@ void open_IK_List()
     dialog_type = IK_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
 
     draw_IK_Dialog("IK List", screen_height, ikch_start, 1, IKIndex - ikch_start);
@@ -4461,10 +4456,9 @@ void open_Bones_List()
     dialog_type = BONE_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
 
     draw_Bones_Dialog("Bones List", screen_height, bone_start, 1, BoneIndex - bone_start, selection_rectangle);
@@ -4542,10 +4536,9 @@ void open_Poses_List()
     dialog_type = POSE_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
 
     draw_Poses_Dialog("Poses List", screen_height, pose_start, 1, PoseIndex - pose_start, selection_rectangle);
@@ -4594,10 +4587,9 @@ void open_Deformers_List()
     dialog_type = DEFR_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
 
     draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
@@ -4653,10 +4645,9 @@ void open_Hierarchys_List()
     dialog_type = HIER_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
 
     draw_Hierarchys_Dialog("Hierarchys L.", screen_height, hier_start, 1, HierIndex - hier_start, selection_rectangle);
@@ -4696,10 +4687,9 @@ void open_Textures_List()
         dialog_type = TEXT_DIALOG;
         if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
         UPDATE_COLORS = 1;
-        if (dialog_lock)
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        else
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
         UPDATE_COLORS = 0;
 
         if (strcmp(text, TEXT_TYPE_TEXT) == 0)
@@ -4761,10 +4751,9 @@ void open_Materials_List()
     dialog_type = MATERIAL_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
 
     draw_Materials_Dialog("Materials L.", screen_height, materials_start, 1, currentObject);
@@ -4782,8 +4771,8 @@ void black_out_ItemsList()
     {
         ItemList[i].color = UI_BLACK;
     }
-    if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)
-        ItemList[currentObject - items_start].color = UI_BACKL;
+    if (currentItem - item_start >= 0 && currentItem - item_start < LISTLENGTH)
+        ItemList[currentItem - item_start].color = UI_BACKL;
 }
 
 void open_Items_List()
@@ -4791,34 +4780,41 @@ void open_Items_List()
     Osd = 0;
     HINTS = 0;
 
+    if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
+    {
+        create_Items_List(1);
+        currentItem = currentObject;
+        ItemIndex = currentItem;
+    }
+    else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
+        create_Items_List(2);
+    else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
+        create_Items_List(3);
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("Items List\n");
     }
     Bottom_Message = 0;
 
-    if (objectIndex > 0)
-    {
-        black_out_ItemsList();
+    black_out_ItemsList();
 
-        SDL_SetCursor(Arrow);
-        edgedraw = 1;
-        dialog_lock = 1;
-        dialog_type = ITEM_DIALOG;
-        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-        UPDATE_COLORS = 1;
-        if (dialog_lock)
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        else
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
-        UPDATE_COLORS = 0;
+    SDL_SetCursor(Arrow);
+    edgedraw = 1;
+    dialog_lock = 1;
+    dialog_type = ITEM_DIALOG;
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    UPDATE_COLORS = 1;
 
-        draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
 
-        glDrawBuffer(GL_BACK);
-        SDL_GL_SwapBuffers();
-        message = 0;
-    }
+    UPDATE_COLORS = 0;
+
+    draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, currentItem, selection_rectangle);
+
+    glDrawBuffer(GL_BACK);
+    SDL_GL_SwapBuffers();
+    message = 0;
 }
 
 void open_Saves_List()
@@ -4840,10 +4836,9 @@ void open_Saves_List()
     dialog_type = SAVES_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
     draw_Saves_Dialog(scene_files_dir, "Save scene", screen_height, scene_extension, scene_extensions, scene_ext_count, scene_files_start, 1, 1, Edit_Lock);
     glDrawBuffer(GL_BACK);
@@ -4895,10 +4890,9 @@ void open_Loading_List()
     dialog_type = LOADING_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
     draw_Loading_Dialog(scene_files_dir, "Load scene", screen_height, scene_extension, scene_extensions, scene_ext_count, scene_files_start, 1, 1, Edit_Lock);
     glDrawBuffer(GL_BACK);
@@ -4987,10 +4981,9 @@ void open_Img_List()
     dialog_type = IMG_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     UPDATE_COLORS = 1;
-    if (dialog_lock)
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    else
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
     UPDATE_COLORS = 0;
     draw_Files_Dialog(files_dir, "Open file", screen_height, extension, extensions, ext_count, files_start, 1, 1, Edit_Lock);
     glDrawBuffer(GL_BACK);
@@ -5280,15 +5273,30 @@ void update_Textures_List()
     UPDATE_BACKGROUND = 1;
 }
 
-void update_Items_List()
+void update_Items_List(int update, int blit)
 {
-    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    black_out_ItemsList();
+
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
-    SDL_GL_SwapBuffers();
     DRAW_UI = 1;
-    UPDATE_BACKGROUND = 1;
+
+    if (blit)
+    {
+        blit_ViewPort();
+    }
+
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    if (UPDATE_BACKGROUND || update)
+    {
+        draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, currentItem, selection_rectangle);
+    }
+    else
+    {
+        draw_Items_List(screen_height, item_start, item_type, 0, ItemIndex - item_start, selection_rectangle);
+        draw_Items_Bottom_Line(DIALOG_WIDTH, screen_height);
+    }
+    SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
 
@@ -6059,6 +6067,46 @@ void handle_UP_Subcharacter(int scrollbar)
     update_Subcharacters_List(1, 0);
 }
 
+void handle_UP_Item(int scrollbar)
+{
+    if (scrollbar)
+    {
+//        if (ItemIndex - item_start >= 0)
+//            ItemList[ItemIndex - item_start].color = UI_BLACK;
+        item_start --;
+        if (item_start < 0) item_start = 0;
+//        if (ItemIndex - item_start >= 0)
+//            ItemList[ItemIndex - item_start].color = UI_BACKL;
+    }
+    else
+    {
+//        if (ItemIndex - item_start >= 0)
+//            ItemList[ItemIndex - item_start].color = UI_BLACK;
+        ItemIndex --;
+        if (ItemIndex < 0) ItemIndex ++;
+//        if (ItemIndex - item_start >= 0)
+//            ItemList[ItemIndex - item_start].color = UI_BACKL;
+        if (currentItem >= 0 && currentItem < itemIndex)
+        {
+            currentItem = Item_List[ItemIndex];
+        }
+        if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
+        {
+            currentObject = currentItem;
+        }
+    }
+
+    DRAW_UI = 0;
+    if (!scrollbar)
+    {
+        glDrawBuffer(GL_FRONT);
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        glDrawBuffer(GL_BACK);
+    }
+    DRAW_UI = 1;
+    update_Items_List(1, 0);
+}
+
 void handle_UP_Bone(int scrollbar)
 {
     if (scrollbar)
@@ -6504,21 +6552,7 @@ void handle_UP(int scrollbar)
         }
         else if (dialog_type == ITEM_DIALOG)
         {
-            if (currentObject - items_start >= 0)
-                ItemList[currentObject - items_start].color = UI_BLACK;
-            items_start --;
-            if (items_start < 0) items_start = 0;
-            if (currentObject - items_start >= 0)
-                ItemList[currentObject - items_start].color = UI_BACKL;
-            if (UPDATE_BACKGROUND)
-            {
-                draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
-            }
-            else
-            {
-                draw_Items_List(screen_height, items_start, item, 1, currentObject);
-            }
-            SDL_GL_SwapBuffers();
+            handle_UP_Item(scrollbar);
         }
         else if (dialog_type == MATERIAL_DIALOG)
         {
@@ -6639,6 +6673,47 @@ void handle_DOWN_Subcharacter(int scrollbar)
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     DRAW_UI = 1;
     update_Subcharacters_List(1, 0);
+}
+
+void handle_DOWN_Item(int scrollbar)
+{
+    if (scrollbar)
+    {
+//        if (ItemIndex - item_start >= 0)
+//            ItemList[ItemIndex - item_start].color = UI_BLACK;
+        item_start ++;
+        if (item_start > Items_c - LISTLENGTH) item_start --;
+//        if (ItemIndex - item_start >= 0)
+//            ItemList[ItemIndex - item_start].color = UI_BACKL;
+    }
+    else
+    {
+//        if (ItemIndex - item_start >= 0)
+//            ItemList[ItemIndex - item_start].color = UI_BLACK;
+        ItemIndex ++;
+        if (ItemIndex > Items_c - 1)
+            ItemIndex --;
+//        if (ItemIndex - item_start >= 0)
+//            ItemList[ItemIndex - item_start].color = UI_BACKL;
+        if (currentItem >= 0 && currentItem < itemIndex)
+        {
+            currentItem = Item_List[ItemIndex];
+        }
+        if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
+        {
+            currentObject = currentItem;
+        }
+    }
+
+    DRAW_UI = 0;
+    if (!scrollbar)
+    {
+        glDrawBuffer(GL_FRONT);
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        glDrawBuffer(GL_BACK);
+    }
+    DRAW_UI = 1;
+    update_Items_List(1, 0);
 }
 
 void handle_DOWN_Bone(int scrollbar)
@@ -7018,22 +7093,7 @@ void handle_DOWN(int scrollbar)
         }
         else if (dialog_type == ITEM_DIALOG)
         {
-            if (currentObject - items_start >= 0)
-                ItemList[currentObject - items_start].color = UI_BLACK;
-            items_start ++;
-            if (items_start > objectIndex - LISTLENGTH) items_start --;
-            if (currentObject - items_start >= 0)
-                ItemList[currentObject - items_start].color = UI_BACKL;
-
-            if (UPDATE_BACKGROUND)
-            {
-                draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
-            }
-            else
-            {
-                draw_Items_List(screen_height, items_start, item, 1, currentObject);
-            }
-            SDL_GL_SwapBuffers();
+            handle_DOWN_Item(scrollbar);
         }
         else if (dialog_type == MATERIAL_DIALOG)
         {
@@ -7311,6 +7371,23 @@ void remove_Subcharacter()
 void remove_Subcharacter_Pose(){printf("remove Subcharacter Pose\n");}
 void rename_Subcharacter(){printf("rename Subcharacter\n");}
 void rename_Subcharacter_Pose(){printf("rename Subcharacter Pose\n");}
+
+void rename_Item()
+{
+    set_Item_H_Button(0);
+    printf("rename Item\n");
+    if (dialog_lock)
+    {
+        if (!Edit_Lock && Items_c > 0)
+        {
+            sprintf(Name_Remember, "%s", Item_Names[ItemIndex]);
+            sprintf(Item_Names[ItemIndex], "%s", "");
+            Edit_Lock = 1;
+            init_Selection_Rectangle();
+            update_Items_List(1, 0);
+        }
+    }
+}
 
 void rename_IK()
 {
@@ -7658,6 +7735,154 @@ void handle_Scene_Dialog(char letter, SDLMod mod)
             update_Loading_List(1, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
+    }
+}
+
+void handle_Item_Dialog(char letter, SDLMod mod)
+{
+    if (Edit_Lock)
+    {
+        int update = 1;
+        if (controlDown)
+        {
+            copy_and_paste(letter);
+        }
+        else
+        {
+            if (letter == '-')
+            {
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
+            }
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
+            {
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlength(EditString) > 1)
+                {
+                    sprintf(Item_Names[ItemIndex], "%s", EditString);
+                    replace_Item_Name(EditString);
+                    sprintf(Name_Remember, "%s", EditString);
+
+                    item * I = items[currentItem];
+                    if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
+                    {
+                        O = (object *)I->pointer;
+                        transfer_Item_Name_To_Object(I, O);
+                        O = NULL;
+                    }
+                }
+                else
+                {
+                    update = 0;
+                    sprintf(Item_Names[ItemIndex], "%s", Name_Remember);
+                }
+
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                set_Item_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
+                EditString[EditCursor] = '\0';
+            }
+        }
+        if (update)
+        {
+            sprintf(Item_Names[ItemIndex], "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
+
+        update_Items_List(1, 0);
+        //printf("%c%s", 13, EditString);
+        message = 0;
+    }
+    else
+    {
+        if (letter == 'u')
+        {
+            unhide_Object(currentObject);
+            UPDATE_BACKGROUND = 1;
+        }
+        else if (letter == 8) // backspace
+        {
+            hide_Object(currentObject);
+            UPDATE_BACKGROUND = 1;
+        }
+        else if (letter == 'a')
+        {
+            item_start = 0;
+        }
+//        else
+//        {
+//            letter -= 32;
+//            int start_Big = 0;
+//            int start_Low = 0;
+//            int items_num = query_items(item_type);
+//            printf("items num %d\n", items_num);
+//            int i;
+//            for (i = 0; i < items_num; i ++)
+//            {
+//                if (Item_Names[i][0] == letter)
+//                {
+//                    start_Big = i;
+//                    break;
+//                }
+//            }
+//            letter += 32;
+//            for (i = 0; i < items_num; i ++)
+//            {
+//                if (Item_Names[i][0] == letter)
+//                {
+//                    start_Low = i;
+//                    break;
+//                }
+//            }
+//            if (start_Big)
+//                item_start = start_Big;
+//            else if (start_Low)
+//                item_start = start_Low;
+//            if (item_start > items_num - LISTLENGTH)
+//                item_start = items_num - LISTLENGTH;
+//            if (item_start < 0) item_start = 0;
+//        }
+        if (UPDATE_BACKGROUND)
+        {
+            all_objects_in_frame(Camera);
+            if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+            DRAW_UI = 0;
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            ItemList[currentObject - item_start].color = UI_BACKL;
+            draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, currentObject, selection_rectangle);
+            ItemList[currentObject - item_start].color = UI_BLACK;
+            DRAW_UI = 1;
+            glDrawBuffer(GL_BACK);
+        }
+        else
+        {
+            draw_Items_List(screen_height, item_start, item_type, 1, currentObject, selection_rectangle);
+        }
+        SDL_GL_SwapBuffers();
+        UPDATE_BACKGROUND = 0;
     }
 }
 
@@ -8137,7 +8362,7 @@ void handle_dialog(char letter, SDLMod mod)
 //            int i;
 //            for (i = 0; i < texts_num; i ++)
 //            {
-//                if (Item_List[i][0] == letter)
+//                if (Item_Names[i][0] == letter)
 //                {
 //                    start_Big = i;
 //                    break;
@@ -8146,7 +8371,7 @@ void handle_dialog(char letter, SDLMod mod)
 //            letter += 32;
 //            for (i = 0; i < texts_num; i ++)
 //            {
-//                if (Item_List[i][0] == letter)
+//                if (Item_Names[i][0] == letter)
 //                {
 //                    start_Low = i;
 //                    break;
@@ -8172,71 +8397,11 @@ void handle_dialog(char letter, SDLMod mod)
     }
     else if (dialog_type == ITEM_DIALOG)
     {
-        if (letter == 'u')
+        handle_Item_Dialog(letter, mod);
+        if (!Edit_Lock && letter == '`')
         {
-            unhide_Object(currentObject);
-            UPDATE_BACKGROUND = 1;
+            rename_Item();
         }
-        else if (letter == 8) // backspace
-        {
-            hide_Object(currentObject);
-            UPDATE_BACKGROUND = 1;
-        }
-        else if (letter == 'a')
-        {
-            items_start = 0;
-        }
-        else
-        {
-            letter -= 32;
-            int start_Big = 0;
-            int start_Low = 0;
-            int items_num = query_items(item);
-            printf("items num %d\n", items_num);
-            int i;
-            for (i = 0; i < items_num; i ++)
-            {
-                if (Item_List[i][0] == letter)
-                {
-                    start_Big = i;
-                    break;
-                }
-            }
-            letter += 32;
-            for (i = 0; i < items_num; i ++)
-            {
-                if (Item_List[i][0] == letter)
-                {
-                    start_Low = i;
-                    break;
-                }
-            }
-            if (start_Big)
-                items_start = start_Big;
-            else if (start_Low)
-                items_start = start_Low;
-            if (items_start > items_num - LISTLENGTH)
-                items_start = items_num - LISTLENGTH;
-            if (items_start < 0) items_start = 0;
-        }
-        if (UPDATE_BACKGROUND)
-        {
-            all_objects_in_frame(Camera);
-            if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-            DRAW_UI = 0;
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-            ItemList[currentObject - items_start].color = UI_BACKL;
-            draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
-            ItemList[currentObject - items_start].color = UI_BLACK;
-            DRAW_UI = 1;
-            glDrawBuffer(GL_BACK);
-        }
-        else
-        {
-            draw_Items_List(screen_height, items_start, item, 1, currentObject);
-        }
-        SDL_GL_SwapBuffers();
-        UPDATE_BACKGROUND = 0;
     }
     else if (dialog_type == OBJ_DIALOG || dialog_type == IMG_DIALOG)
     {
@@ -9868,6 +10033,8 @@ void delete_Object(int index, int render)
 
 //            deleted_objects[deleted_objects_count ++] = O;
 
+            remove_Object_From_Items(O);
+
             free_object(O);
 
             assert_Object_Selection();
@@ -10002,7 +10169,7 @@ void clear_All()
         currentMaterial = 0;
         currentIK = 0;
         materials_start = 0;
-        items_start = 0;
+        item_start = 0;
         pose_start = 0;
         defr_start = 0;
         hier_start = 0;
@@ -10025,6 +10192,8 @@ void clear_All()
 
         object_selections = 0;
         reinit_selections();
+
+        clear_Items();
     }
 }
 
@@ -10493,6 +10662,7 @@ void save_load_Scene()
             strcat(Path, "/");
             strcat(Path, "Objects");
             obj_count = load_Objects(Path, VBO);
+            add_objects_as_items(obj_count);
             subdLevel = -1;
 
             Path[0] = '\0';
@@ -10775,7 +10945,7 @@ void update_Lists()
     }
     else if (dialog_type == ITEM_DIALOG)
     {
-        update_Items_List(0, 0);
+        update_Items_List(1, 0);
     }
     else if (dialog_type == MATERIAL_DIALOG)
     {
@@ -10995,6 +11165,8 @@ int main(int argc, char * args[])
     Button_defr[1].func = &set_Button_defr;
     Button_defr[2].func = &set_Button_defr;
 
+    Button_h_item[0].func = &rename_Item;
+
     Button_h_sels[0].func = &add_Selection;
     Button_h_sels[1].func = &edit_Selection;
     Button_h_sels[2].func = &remove_Selection;
@@ -11055,21 +11227,14 @@ int main(int argc, char * args[])
 
     memcpy(&text, texts[0], strlen(texts[0]));
 
-	for (i = 0; i < ITEM_NUM; i ++)
-    {
-        items[i] = malloc(TYPE_LENGTH * sizeof(char));
-    }
-
-    items[0] = ITEM_TYPE_OBJECT;
-    items[1] = ITEM_TYPE_CAMERA;
-    items[2] = ITEM_TYPE_LIGHT;
-
-    memcpy(&item, items[0], strlen(items[0]));
-
+    init_item_types();
+    init_items();
     init_selections();
     init_hierarcys();
     init_deformers();
     init_poses();
+
+    add_Item(TYPE_OBJECT, O->Name, O);
 
 //    dialog_type = LOADING_DIALOG;
 //    save_load_Scene();
@@ -11587,13 +11752,11 @@ int main(int argc, char * args[])
                         edgeWeights = 0;
                     }
 
-                    memcpy(object_Pos, O->T->pos, sizeof(object_Pos));
-                    memcpy(target_Pos, O->T->target, sizeof(target_Pos));
                     if (Drag_Dialog)
                     {
                         Drag_Dialog = 0;
                     }
-                    else if (dialog_lock)
+                    if (dialog_lock)
                     {
                         int index = mouse_y / BUTTON_HEIGHT;
                         if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && index < LISTLENGTH && mouse_y < DIALOG_HEIGHT)
@@ -12067,9 +12230,9 @@ int main(int argc, char * args[])
                             }
                             else if (dialog_type == ITEM_DIALOG)
                             {
-                                if (strcmp(item, ITEM_TYPE_OBJECT) == 0)
+                                if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
                                 {
-                                    ItemIndex = index + items_start;
+                                    ItemIndex = index + item_start;
 
                                     if (mouse_x > SIDEBAR + (DIALOG_WIDTH - 20) && mouse_x < SIDEBAR + DIALOG_WIDTH)
                                     {
@@ -12082,44 +12245,42 @@ int main(int argc, char * args[])
                                             unhide_Object(ItemIndex);
                                         }
                                         find_Camera_Objects();
-                                        update_Items_List();
+                                        update_Items_List(1, 0);
                                     }
                                     else
                                     {
-                                        if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)
-                                        {
-                                            ItemList[currentObject - items_start].color = UI_BLACK;
-                                        }
+//                                        if (currentObject - item_start >= 0 && currentObject - item_start < LISTLENGTH)
+//                                        {
+//                                            ItemList[currentObject - item_start].color = UI_BLACK;
+//                                        }
 
                                         if (ItemIndex < objectIndex && ItemIndex >= 0)
                                         {
-                                            sels_start[current_sel_type] = 0;
                                             if (controlDown)
                                             {
                                                 objects[ItemIndex]->selected = 0;
-                                                ItemList[index].color = UI_BLACK;
+//                                                ItemList[index].color = UI_BLACK;
                                                 assert_Object_Selection();
                                                 if (ItemIndex == currentObject && selected_object_count > 0)
                                                 {
                                                     currentObject = selected_objects[selected_object_count - 1];
                                                     O = objects[currentObject];
                                                 }
-                                                if (currentObject - items_start >= 0)
-                                                    ItemList[currentObject - items_start].color = UI_BACKL;
-
-                                                update_Items_List();
+//                                                if (currentObject - item_start >= 0)
+//                                                    ItemList[currentObject - item_start].color = UI_BACKL;
+                                                update_Items_List(1, 0);
                                                 glDrawBuffer(GL_BACK);
                                             }
                                             else
                                             {
                                                 currentObject = ItemIndex;
+                                                currentItem = ItemIndex;
                                                 O = objects[currentObject];
                                                 O->selected = 1;
-                                                ItemList[index].color = UI_BACKL;
+//                                                ItemList[index].color = UI_BACKL;
                                                 assert_Object_Selection();
-
-                                                update_Items_List();
-                                                ItemList[index].color = UI_BLACK;
+                                                update_Items_List(1, 0);
+//                                                ItemList[index].color = UI_BLACK;
                                             }
                                         }
                                     }
@@ -12239,11 +12400,11 @@ int main(int argc, char * args[])
                             }
                             else if (dialog_type == ITEM_DIALOG)
                             {
-                                if (Buttonindex > -1 && Buttonindex < items_count && Button_item[Buttonindex].func != NULL)
+                                if (Buttonindex > -1 && Buttonindex < item_types_c && Button_item[Buttonindex].func != NULL)
                                 {
                                     (*Button_item[Buttonindex].func)(Buttonindex);
                                     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-                                    draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
+                                    draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, currentObject, selection_rectangle);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
                                 }
@@ -12313,6 +12474,14 @@ int main(int argc, char * args[])
                                     {
                                         rename_Scene_dir();
                                     }
+                                }
+                            }
+                            else if (dialog_type == ITEM_DIALOG && !Edit_Lock)
+                            {
+                                h_index = (mouse_x - SIDEBAR * 2) / BUTTON_WIDTH_SHORT;
+                                if (h_index < H_ITEM_NUM)
+                                {
+                                    (*Button_h_item[h_index].func)();
                                 }
                             }
                             else if (dialog_type == BONE_DIALOG && !Edit_Lock)
@@ -12778,6 +12947,8 @@ int main(int argc, char * args[])
                     }
                     else
                     {
+                        memcpy(object_Pos, O->T->pos, sizeof(object_Pos));
+                        memcpy(target_Pos, O->T->target, sizeof(target_Pos));
                         subdLevel = subdLevel_mem;
                         camera_rotate = 0;
                         camera_z_move = 0;
@@ -14024,41 +14195,6 @@ int main(int argc, char * args[])
                         }
                     }
                 }
-                else if (dialog_type == ITEM_DIALOG)
-                {
-                    if (strcmp(item, ITEM_TYPE_OBJECT) == 0)
-                    {
-                        if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)
-                        {
-                            ItemList[currentObject - items_start].color = UI_BLACK;
-                        }
-                        currentObject --;
-                        if (currentObject < 0)
-                            currentObject = 0;
-                        if (currentObject < objectIndex && currentObject >= 0)
-                        {
-                            O = objects[currentObject];
-                            DRAW_UI = 0;
-
-                            if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-
-                            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                            if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)
-                            {
-                                ItemList[currentObject - items_start].color = UI_BACKL;
-                                draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
-                                ItemList[currentObject - items_start].color = UI_BLACK;
-                            }
-                            else
-                            {
-                                draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
-                            }
-                            SDL_GL_SwapBuffers();
-                            glDrawBuffer(GL_BACK);
-                            DRAW_UI = 1;
-                        }
-                    }
-                }
                 else
                 {
                     handle_UP(0);
@@ -14128,40 +14264,6 @@ int main(int argc, char * args[])
                             Materials[O->surface].bump = TextIndex;
                             DRAW_UI = 0;
                             open_Textures_List();
-                            DRAW_UI = 1;
-                        }
-                    }
-                }
-                else if (dialog_type == ITEM_DIALOG)
-                {
-                    if (strcmp(item, ITEM_TYPE_OBJECT) == 0)
-                    {
-                        if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)
-                        {
-                            ItemList[currentObject - items_start].color = UI_BLACK;
-                        }
-                        currentObject ++;
-                        if (currentObject >= objectIndex) currentObject = objectIndex - 1;
-                        if (currentObject < objectIndex && currentObject >= 0)
-                        {
-                            O = objects[currentObject];
-                            DRAW_UI = 0;
-
-                            if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-
-                            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                            if (currentObject - items_start >= 0 && currentObject - items_start < LISTLENGTH)
-                            {
-                                ItemList[currentObject - items_start].color = UI_BACKL;
-                                draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
-                                ItemList[currentObject - items_start].color = UI_BLACK;
-                            }
-                            else
-                            {
-                                draw_Items_Dialog("Items List", screen_height, item, items, items_count, items_start, 1, currentObject);
-                            }
-                            SDL_GL_SwapBuffers();
-                            glDrawBuffer(GL_BACK);
                             DRAW_UI = 1;
                         }
                     }
@@ -15214,6 +15316,12 @@ int main(int argc, char * args[])
                         sprintf(IK_Names[IKIndex], "%s", Name_Remember);
                         set_IK_H_Button(-1);
                         update_IK_List(1, 0);
+                    }
+                    else if (dialog_type == ITEM_DIALOG)
+                    {
+                        sprintf(Item_Names[ItemIndex], "%s", Name_Remember);
+                        set_Item_H_Button(-1);
+                        update_Items_List(1, 0);
                     }
                     else if (dialog_type == POSE_DIALOG)
                     {

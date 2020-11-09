@@ -52,15 +52,12 @@ int LISTLENGTH = 12;
 #define H_SCEN_NUM 1
 #define H_POSE_NUM 5
 #define H_BONE_NUM 2
+#define H_ITEM_NUM 1
 #define H_IKCH_NUM 2
 #define H_SUBC_NUM 6
 #define H_TEXT_NUM 2
 
 #define TYPE_LENGTH 20
-
-#define ITEM_TYPE_OBJECT "object"
-#define ITEM_TYPE_CAMERA "camera"
-#define ITEM_TYPE_LIGHT  "light"
 
 #define TEXT_TYPE_TEXT "texture"
 #define TEXT_TYPE_NORM "normal"
@@ -322,6 +319,7 @@ ui_button Button_h_hier[H_HIER_NUM];
 ui_button Button_h_defr[H_DEFR_NUM];
 ui_button Button_h_pose[H_POSE_NUM];
 ui_button Button_h_bone[H_BONE_NUM];
+ui_button Button_h_item[H_ITEM_NUM];
 ui_button Button_h_ikch[H_IKCH_NUM];
 ui_button Button_h_subc[H_SUBC_NUM];
 ui_button Button_h_scen[H_SCEN_NUM];
@@ -435,6 +433,12 @@ void init_ui()
         Button_h_bone[b].index = b;
         Button_h_bone[b].color = UI_GRAYB;
         Button_h_bone[b].func = NULL;
+    }
+    for(b = 0; b < H_ITEM_NUM; b ++)
+    {
+        Button_h_item[b].index = b;
+        Button_h_item[b].color = UI_GRAYB;
+        Button_h_item[b].func = NULL;
     }
     for(b = 0; b < H_IKCH_NUM; b ++)
     {
@@ -552,23 +556,7 @@ int isDirectory(const char * path)
 char Out_List[MAXFILES][STRLEN];
 char Out_Dirs[MAXFILES][STRLEN];
 char Out_File[MAXFILES][STRLEN];
-char Item_List[OBJECTS][STRLEN];
-
-int query_items(const char * type)
-{
-    int s = 0;
-    int i;
-    for (i = 0; i < objectIndex; i++)
-    {
-        if (strcmp(type, ITEM_TYPE_OBJECT) == 0)
-        {
-            memcpy(Item_List[s], objects[s]->Name, strlen(objects[s]->Name));
-            Item_List[s][strlen(objects[s]->Name)] = '\0';
-            s++;
-        }
-    }
-    return s;
-}
+//char Item_List[OBJECTS][STRLEN];
 
 int query_files(char * path, const char * ext)
 {
@@ -626,42 +614,7 @@ int list_selections(char **, char **, int, int, char *);
 
 int list_texts(char **, int, int, const char *);
 
-int list_items(char ** item_list, int start, int n, const char * type, int * selected, int * hidden, int currentObject)
-{
-    int s = start;
-    int i = 0;
-    if (strcmp(type, ITEM_TYPE_OBJECT) == 0)
-    {
-        for (i = 0; i < LISTLENGTH; i++)
-        {
-            if (s >= objectIndex)
-                break;
-            if (objects[s]->binding)
-            {
-                sprintf(item_list[i], "%s|%d", objects[s]->Name, objects[s]->binding);
-                memcpy(Item_List[s], objects[s]->Name, strlen(objects[s]->Name) + 2);
-                Item_List[s][strlen(objects[s]->Name) + 2] = '\0';
-            }
-            else
-            {
-                sprintf(item_list[i], "%s", objects[s]->Name);
-                memcpy(Item_List[s], objects[s]->Name, strlen(objects[s]->Name));
-                Item_List[s][strlen(objects[s]->Name)] = '\0';
-            }
-
-            if (objects[s]->selected && s != currentObject)
-                selected[i] = 1;
-            else
-                selected[i] = 0;
-            if (loaded_objects[s] == 0)
-                hidden[i] = 1;
-            else
-                hidden[i] = 0;
-            s++;
-        }
-    }
-    return i;
-}
+int list_items(char **, int, int, const char *, int *, int *, int);
 
 int list_directory(char * path, char ** out_list, int start, int n, const char * ext)
 {
@@ -1366,7 +1319,7 @@ void draw_Button_material_text(const char * text, int width, int height, int ind
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_item_text(const char * text, int width, int height, int index, int colorchange, int selected, int hidden)
+void draw_Button_item_text(const char * text, int width, int height, int index, int colorchange, int selected, int hidden, int frame_selection)
 {
 	glEnable(GL_TEXTURE_2D);
 
@@ -1376,6 +1329,16 @@ void draw_Button_item_text(const char * text, int width, int height, int index, 
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
+
+ 	if (frame_selection)
+    {
+        make_character_map(text, origin_x, origin_y, 0);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(blueb);
+
+        draw_selection_Rectangle();
+    }
 
 	if (selected)
         glColor4fv(buttoncolors[UI_DIMSL].color);
@@ -1823,6 +1786,45 @@ void draw_Button_ik_horizontal(const char * text, int index, int colorchange)
 
     if (colorchange)
         glColor4fv(buttoncolors[Button_h_bone[index].color].color);
+	else
+        glColor4fv(buttoncolors[UI_GRAYB].color);
+
+    draw_Rectangle((float[8]){h_dim, 0,
+        h_dim, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, 0}, QUADS);
+
+	glColor4fv(buttoncolors[UI_WHITE].color);
+
+    draw_Rectangle((float[8]){h_dim, 0,
+        h_dim, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, 0}, LINE_LOOP);
+
+	//glEnable(GL_TEXTURE_2D);
+
+    int font_height = 11;
+
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
+
+	float origin_x = 5 + h_dim;
+	float origin_y = 10;
+
+	glColor4fv(buttoncolors[UI_WHITE].color);
+
+    draw_text(text, origin_x, origin_y, font_height, 0);
+}
+
+void draw_Button_item_horizontal(const char * text, int index, int colorchange)
+{
+    int h_dim = BUTTON_WIDTH_SHORT * index;
+	/*draw frame*/
+
+	//glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+    if (colorchange)
+        glColor4fv(buttoncolors[Button_h_item[index].color].color);
 	else
         glColor4fv(buttoncolors[UI_GRAYB].color);
 
@@ -2761,7 +2763,7 @@ void draw_Materials_List(int s_height, int start, int clear_background, int curr
 	glPopMatrix();
 }
 
-void draw_Items_List(int s_height, int start, char * type, int clear_background, int currentObject)
+void draw_Items_List(int s_height, int start, char * type, int clear_background, int currentObject, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -2815,7 +2817,10 @@ void draw_Items_List(int s_height, int start, char * type, int clear_background,
 
 	for (i = 0; i < s; i ++)
     {
-        draw_Button_item_text(item_list[i], d_width, d_height, i, 1, selected_items[i], hidden_items[i]);
+        if (i == currentObject && selection_rectangle)
+            draw_Button_item_text(item_list[i], d_width, d_height, i, 1, selected_items[i], hidden_items[i], 1);
+        else
+            draw_Button_item_text(item_list[i], d_width, d_height, i, 1, selected_items[i], hidden_items[i], 0);
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -3105,7 +3110,30 @@ void draw_Materials_Dialog(const char * text, int s_height, int materials_start,
 	glPopMatrix();
 }
 
-void draw_Items_Dialog(const char * text, int s_height, char * item, char ** items, int items_count, int items_start, int clear_background, int currentObject)
+void draw_Items_Bottom_Line(int width, int height)
+{
+    glScissor(SIDEBAR * 2, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glViewport(SIDEBAR * 2, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, width, BOTTOM_LINE, 0, 1, -1);
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+    draw_Button_item_horizontal("Rename", 0, 1);
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+}
+
+void draw_Items_Dialog(const char * text, int s_height, char * item_type, char ** item_types, int item_types_c, int item_start, int clear_background,
+                       int currentObject, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3152,16 +3180,18 @@ void draw_Items_Dialog(const char * text, int s_height, char * item, char ** ite
 	draw_Button(text, SIDEBAR, d_height, 0, 0); // Title bar
 
 	int i;
-	for (i = 0; i < items_count; i ++)
+	for (i = 0; i < item_types_c; i ++)
     {
-        draw_Button_item(items[i], SIDEBAR, d_height, i, 1);
+        draw_Button_item(item_types[i], SIDEBAR, d_height, i, 1);
     }
 
-	draw_Items_List(s_height, items_start, item, clear_background, currentObject);
+	draw_Items_List(s_height, item_start, item_type, clear_background, currentObject, selection_rectangle);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
+
+	draw_Items_Bottom_Line(d_width, s_height);
 }
 
 void draw_Subchar_Bottom_Line(int width, int height)
