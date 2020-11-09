@@ -12758,9 +12758,9 @@ int main(int argc, char * args[])
                                 printf("%s\n", objects[currentObject]->Name);
                                 if (add_selection_mode)
                                 {
+                                    currentObject = o;
                                     if (!O->selected)
                                     {
-                                        currentObject = o;
                                         O->selected = 1;
                                         selected_objects[selected_object_count ++] = o;
                                     }
@@ -13951,9 +13951,9 @@ int main(int argc, char * args[])
                             O = objects[o];
                             if (add_selection_mode)
                             {
+                                currentObject = o;
                                 if (!O->selected)
                                 {
-                                    currentObject = o;
                                     O->selected = 1;
                                     selected_objects[selected_object_count ++] = o;
                                 }
