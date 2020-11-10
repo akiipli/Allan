@@ -22,8 +22,6 @@ int subcharacter_start = 0;
 int Subcharacter_List[SUBCHARACTERS];
 int currentSubcharacter = 0;
 
-typedef struct subcharacter subcharacter;
-
 typedef struct subcharacter
 {
     int index;
@@ -68,6 +66,13 @@ void create_Subcharacters_List(int SubcIndex)
         if (Subcharacters_c >= SUBCHARACTERS - 1)
             break;
     }
+}
+
+void replace_Subcharacter_Name(char * EditString)
+{
+    subcharacter * S = subcharacters[Subcharacter_List[SubcharacterIndex]];
+    memcpy(S->Name, EditString, strlen(EditString));
+    S->Name[strlen(EditString)] = '\0';
 }
 
 void create_Hi_Selected_Bones_List(deformer * D)

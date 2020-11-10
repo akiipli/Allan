@@ -83,6 +83,17 @@ GLfloat Selection_rectangle[8];
 int selection_rectangle = 0;
 int cursor_width = 3;
 
+char EditString[STRLEN];
+char Name_Remember[STRLEN];
+int EditCursor = 0;
+int Edit_Lock = 0;
+
+void init_EditString()
+{
+    EditCursor = 0;
+    EditString[EditCursor] = '\0';
+}
+
 void init_Selection_Rectangle()
 {
     selection_rectangle = 1;
@@ -528,6 +539,8 @@ void init_ui()
 
     init_G_advance(0);
     init_G_advance(1);
+
+    init_EditString();
 }
 
 typedef struct
@@ -969,7 +982,7 @@ void draw_Rectangle(float corner[8], int quads)
     }
 }
 
-void draw_Button_Subcharacter_text(const char * text, int width, int height, int index, int colorchange, int frame_it)
+void draw_Button_subcharacter_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int frame_selection)
 {
     int font_height = 11;
 
@@ -978,7 +991,16 @@ void draw_Button_Subcharacter_text(const char * text, int width, int height, int
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
 
-	if (frame_it)
+ 	if (frame_selection)
+    {
+        make_character_map(text, origin_x, origin_y, 0);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(blueb);
+
+        draw_selection_Rectangle();
+    }
+	else if (frame_it)
     {
         glDisable(GL_TEXTURE_2D);
         glColor4fv(white);
@@ -1737,7 +1759,7 @@ void draw_Button_text_horizontal(const char * text, int index, int colorchange)
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_subchar_horizontal(const char * text, int index, int colorchange)
+void draw_Button_subcharacter_horizontal(const char * text, int index, int colorchange)
 {
     int h_dim = BUTTON_WIDTH_SHORT * index;
 	/*draw frame*/
@@ -2163,7 +2185,7 @@ void draw_Button_horizontal(const char * text, int index, int colorchange)
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Subchar_List(int s_height, int start, int clear_background, int current_subch)
+void draw_Subcharacter_List(int s_height, int start, int clear_background, int current_subch, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -2209,7 +2231,14 @@ void draw_Subchar_List(int s_height, int start, int clear_background, int curren
 
 	for (i = 0; i < s; i ++)
     {
-        draw_Button_Subcharacter_text(subch_list[i], d_width, d_height, i, 1, 0);
+        if (selection_rectangle && i == current_subch)
+        {
+            draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 0, 1);
+        }
+        else
+        {
+            draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 0, 0);
+        }
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -3194,7 +3223,7 @@ void draw_Items_Dialog(const char * text, int s_height, char * item_type, char *
 	draw_Items_Bottom_Line(d_width, s_height);
 }
 
-void draw_Subchar_Bottom_Line(int width, int height)
+void draw_Subcharacter_Bottom_Line(int width, int height)
 {
     glScissor(SIDEBAR * 2, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
     //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -3209,12 +3238,12 @@ void draw_Subchar_Bottom_Line(int width, int height)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 
-	draw_Button_subchar_horizontal("Add", 0, 1);
-	draw_Button_subchar_horizontal("Add P.", 1, 1);
-    draw_Button_subchar_horizontal("Remove", 2, 1);
-    draw_Button_subchar_horizontal("Rem P.", 3, 1);
-    draw_Button_subchar_horizontal("Rename", 4, 1);
-    draw_Button_subchar_horizontal("Ren P.", 5, 1);
+	draw_Button_subcharacter_horizontal("Add", 0, 1);
+	draw_Button_subcharacter_horizontal("Add P.", 1, 1);
+    draw_Button_subcharacter_horizontal("Remove", 2, 1);
+    draw_Button_subcharacter_horizontal("Rem P.", 3, 1);
+    draw_Button_subcharacter_horizontal("Rename", 4, 1);
+    draw_Button_subcharacter_horizontal("Ren P.", 5, 1);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
@@ -3468,7 +3497,7 @@ void draw_dialog_Box(int s_height, int clear_background, int frame)
 
 void draw_Subcharacters_Dialog(const char * text, int s_height,
                            int subch_start,
-                           int clear_background, int current_subch)
+                           int clear_background, int current_subch, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3511,13 +3540,13 @@ void draw_Subcharacters_Dialog(const char * text, int s_height,
 
 	draw_Button(text, SIDEBAR, d_height, 0, 0); // Title bar
 
-    draw_Subchar_List(s_height, subch_start, clear_background, current_subch);
+    draw_Subcharacter_List(s_height, subch_start, clear_background, current_subch, selection_rectangle);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
-    draw_Subchar_Bottom_Line(d_width, s_height);
+    draw_Subcharacter_Bottom_Line(d_width, s_height);
 }
 
 void draw_IK_Dialog(const char * text, int s_height,

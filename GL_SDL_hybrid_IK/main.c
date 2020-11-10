@@ -294,7 +294,8 @@ void copy_and_paste(char letter)
     if (letter == 'c')
     {
         Copy_Buffer_length = Pos_end - Pos_start + 1;
-        memcpy(Copy_Buffer, &EditString[Pos_start], Copy_Buffer_length);
+        if (Copy_Buffer_length > 0)
+            memcpy(Copy_Buffer, &EditString[Pos_start], Copy_Buffer_length);
     }
     else if (letter == 'v')
     {
@@ -4351,7 +4352,7 @@ void open_Subcharacters_List()
 
     UPDATE_COLORS = 0;
 
-    draw_Subcharacters_Dialog("Subcharacters", screen_height, subcharacter_start, 1, SubcharacterIndex - subcharacter_start);
+    draw_Subcharacters_Dialog("Subcharacters", screen_height, subcharacter_start, 1, SubcharacterIndex - subcharacter_start, selection_rectangle);
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -5202,12 +5203,12 @@ void update_Subcharacters_List(int update, int blit)
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
-        draw_Subcharacters_Dialog("Subcharacters", screen_height, subcharacter_start, 1, SubcharacterIndex - subcharacter_start);
+        draw_Subcharacters_Dialog("Subcharacters", screen_height, subcharacter_start, 1, SubcharacterIndex - subcharacter_start, selection_rectangle);
     }
     else
     {
-        draw_Subchar_List(screen_height, subcharacter_start, 0, SubcharacterIndex - subcharacter_start);
-        draw_Subchar_Bottom_Line(DIALOG_WIDTH, screen_height);
+        draw_Subcharacter_List(screen_height, subcharacter_start, 0, SubcharacterIndex - subcharacter_start, selection_rectangle);
+        draw_Subcharacter_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
@@ -7369,7 +7370,24 @@ void remove_Subcharacter()
 }
 
 void remove_Subcharacter_Pose(){printf("remove Subcharacter Pose\n");}
-void rename_Subcharacter(){printf("rename Subcharacter\n");}
+
+void rename_Subcharacter()
+{
+    set_Subc_H_Button(4);
+    printf("rename Subcharacter\n");
+    if (dialog_lock)
+    {
+        if (!Edit_Lock && Subcharacters_c > 0)
+        {
+            sprintf(Name_Remember, "%s", Subcharacter_Names[SubcharacterIndex]);
+            sprintf(Subcharacter_Names[SubcharacterIndex], "%s", "");
+            Edit_Lock = 1;
+            init_Selection_Rectangle();
+            update_Subcharacters_List(0, 0);
+        }
+    }
+}
+
 void rename_Subcharacter_Pose(){printf("rename Subcharacter Pose\n");}
 
 void rename_Item()
@@ -7782,7 +7800,6 @@ void handle_Item_Dialog(char letter, SDLMod mod)
                     {
                         O = (object *)I->pointer;
                         transfer_Item_Name_To_Object(I, O);
-                        O = NULL;
                     }
                 }
                 else
@@ -7939,8 +7956,82 @@ void handle_IK_Dialog(char letter, SDLMod mod)
             EditString[EditCursor] = '\0';
         }
         if (update)
+        {
             sprintf(IK_Names[IKIndex], "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
         update_IK_List(0, 0);
+        //printf("%c%s", 13, EditString);
+        message = 0;
+    }
+}
+
+void handle_Subcharacter_Dialog(char letter, SDLMod mod)
+{
+    if (Edit_Lock)
+    {
+        int update = 1;
+        if (controlDown)
+        {
+            copy_and_paste(letter);
+        }
+        else
+        {
+            //int update = 0;
+            if (letter == '-')
+            {
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
+            }
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
+            {
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlength(EditString) > 1)
+                {
+                    sprintf(Subcharacter_Names[SubcharacterIndex], "%s", EditString);
+                    replace_Subcharacter_Name(EditString);
+                    sprintf(Name_Remember, "%s", EditString);
+                }
+                else
+                {
+                    update = 0;
+                    sprintf(Subcharacter_Names[SubcharacterIndex], "%s", Name_Remember);
+                }
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                set_Subc_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
+                EditString[EditCursor] = '\0';
+            }
+        }
+        if (update)
+        {
+            sprintf(Subcharacter_Names[SubcharacterIndex], "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
+        update_Subcharacters_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
     }
@@ -8007,7 +8098,10 @@ void handle_Bone_Dialog(char letter, SDLMod mod)
             }
         }
         if (update)
+        {
             sprintf(Bone_Names[BoneIndex], "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
         update_Bones_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -8074,7 +8168,10 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
             }
         }
         if (update)
+        {
             sprintf(Pose_Names[PoseIndex], "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
         update_Poses_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -8157,7 +8254,10 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
             }
         }
         if (update)
+        {
             sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
         update_Selections_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -8241,7 +8341,10 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             }
         }
         if (update)
+        {
             sprintf(Hier_Names[HierIndex], "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
         update_Hierarchys_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -8283,6 +8386,14 @@ void handle_dialog(char letter, SDLMod mod)
         if (!Edit_Lock && letter == '`')
         {
             rename_Bone();
+        }
+    }
+    else if (dialog_type == SUBC_DIALOG)
+    {
+        handle_Subcharacter_Dialog(letter, mod);
+        if (!Edit_Lock && letter == '`')
+        {
+            rename_Subcharacter();
         }
     }
     else if (dialog_type == IK_DIALOG)
@@ -11756,7 +11867,7 @@ int main(int argc, char * args[])
                     {
                         Drag_Dialog = 0;
                     }
-                    if (dialog_lock)
+                    if (dialog_lock && Edit_Lock)
                     {
                         int index = mouse_y / BUTTON_HEIGHT;
                         if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && index < LISTLENGTH && mouse_y < DIALOG_HEIGHT)
@@ -11785,19 +11896,6 @@ int main(int argc, char * args[])
                                                 EditCursor = strlen(scene_files_dir);
                                                 update_Saves_List(1, 0);
                                             }
-                                        }
-                                        else
-                                        {
-                                            EditCursor --;
-                                            while(EditString[EditCursor] != '/' && EditCursor > 1)
-                                            {
-                                                EditCursor --;
-                                            }
-                                            if (EditString[EditCursor - 1] == ':')
-                                                EditCursor ++;
-                                            EditString[EditCursor] = '\0';
-                                            sprintf(scene_files_dir, "%s", EditString);
-                                            update_Saves_List(1, 0);
                                         }
                                     }
                                 }
@@ -11842,6 +11940,21 @@ int main(int argc, char * args[])
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                    else if (dialog_lock)
+                    {
+                        int index = mouse_y / BUTTON_HEIGHT;
+                        if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && index < LISTLENGTH && mouse_y < DIALOG_HEIGHT)
+                        {
+                            if (dialog_type == SAVES_DIALOG)
+                            {
+
+                            }
+                            else if (dialog_type == LOADING_DIALOG)
+                            {
+
                             }
                             else if (dialog_type == BONE_DIALOG)
                             {
@@ -11921,7 +12034,7 @@ int main(int argc, char * args[])
                                     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_Subcharacters_Dialog("Subcharacters", screen_height,
-                                                subcharacter_start, 1, SubcharacterIndex - subcharacter_start);
+                                                subcharacter_start, 1, SubcharacterIndex - subcharacter_start, selection_rectangle);
                                     SDL_GL_SwapBuffers();
                                     glDrawBuffer(GL_BACK);
                                     DRAW_UI = 1;
@@ -12030,104 +12143,6 @@ int main(int argc, char * args[])
                                 {
                                     if (index + hier_start < Hierarchys_c)
                                     {
-                                        if (Edit_Lock)
-                                        {
-                                            Edit_Lock = 0;
-                                            selection_rectangle = 0;
-                                            if (strlen(EditString) > 0)
-                                            {
-                                                sprintf(Hier_Names[HierIndex], "%s", EditString);
-                                                sprintf(Name_Remember, "%s", EditString);
-                                            }
-                                            EditCursor = 0;
-                                            EditString[EditCursor] = '\0';
-                                            printf("Edit finishing!\n");
-                                            set_Hier_H_Button(-1);
-                                        }
-                                        else
-                                        {
-                                            if (controlDown)
-                                            {
-                                                transformers[index + hier_start]->selected = !transformers[index + hier_start]->selected;
-                                                assert_Locators_Selection();
-                                                create_Hierarchys_List();
-                                            }
-                                            else
-                                            {
-                                                if (HierIndex - hier_start >= 0)
-                                                    HierList[HierIndex - hier_start].color = UI_BLACK;
-                                                HierIndex = index + hier_start;
-                                                if (HierIndex - hier_start >= 0)
-                                                    HierList[HierIndex - hier_start].color = UI_BACKL;
-                                                currentLocator = HierIndex;
-
-                                                int X_Expand = Hier_X_Offset[index + hier_start] * 5;
-
-                                                if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
-                                                {
-                                                    transformers[index + hier_start]->collapsed = !transformers[index + hier_start]->collapsed;
-                                                    create_Hierarchys_List();
-                                                }
-                                            }
-                                        }
-                                        select_Transformer();
-                                        UPDATE_BACKGROUND = 0;
-                                        update_Hierarchys_List(0, 1);
-                                    }
-                                }
-                                else if (current_defr_type == 2) // sels
-                                {
-                                    if (index + sels_start[current_sel_type] < Selections_c[current_sel_type])
-                                    {
-                                        if (Edit_Lock)
-                                        {
-                                            Edit_Lock = 0;
-                                            selection_rectangle = 0;
-                                            if (strlen(EditString) > 0)
-                                            {
-                                                sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
-                                                sprintf(Name_Remember, "%s", EditString);
-                                            }
-                                            EditCursor = 0;
-                                            EditString[EditCursor] = '\0';
-                                            printf("Edit finishing!\n");
-                                            set_Sels_H_Button(-1);
-                                        }
-                                        else
-                                        {
-                                            if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
-                                                SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BLACK;
-                                            SelsIndex[current_sel_type] = index + sels_start[current_sel_type];
-                                            if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
-                                                SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BACKL;
-
-                                            select_Selection();
-                                        }
-                                        UPDATE_BACKGROUND = 0;
-                                        update_Selections_List(0, 1);
-                                    }
-                                }
-                            }
-                            else if (dialog_type == HIER_DIALOG)
-                            {
-                                if (index + hier_start < Hierarchys_c)
-                                {
-                                    if (Edit_Lock)
-                                    {
-                                        Edit_Lock = 0;
-                                        selection_rectangle = 0;
-                                        if (strlen(EditString) > 0)
-                                        {
-                                            sprintf(Hier_Names[HierIndex], "%s", EditString);
-                                            sprintf(Name_Remember, "%s", EditString);
-                                        }
-                                        EditCursor = 0;
-                                        EditString[EditCursor] = '\0';
-                                        printf("Edit finishing!\n");
-                                        set_Hier_H_Button(-1);
-                                    }
-                                    else
-                                    {
                                         if (controlDown)
                                         {
                                             transformers[index + hier_start]->selected = !transformers[index + hier_start]->selected;
@@ -12151,6 +12166,54 @@ int main(int argc, char * args[])
                                                 create_Hierarchys_List();
                                             }
                                         }
+                                        select_Transformer();
+                                        UPDATE_BACKGROUND = 0;
+                                        update_Hierarchys_List(0, 1);
+                                    }
+                                }
+                                else if (current_defr_type == 2) // sels
+                                {
+                                    if (index + sels_start[current_sel_type] < Selections_c[current_sel_type])
+                                    {
+                                        if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
+                                            SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BLACK;
+                                        SelsIndex[current_sel_type] = index + sels_start[current_sel_type];
+                                        if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
+                                            SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BACKL;
+
+                                        select_Selection();
+
+                                        UPDATE_BACKGROUND = 0;
+                                        update_Selections_List(0, 1);
+                                    }
+                                }
+                            }
+                            else if (dialog_type == HIER_DIALOG)
+                            {
+                                if (index + hier_start < Hierarchys_c)
+                                {
+                                    if (controlDown)
+                                    {
+                                        transformers[index + hier_start]->selected = !transformers[index + hier_start]->selected;
+                                        assert_Locators_Selection();
+                                        create_Hierarchys_List();
+                                    }
+                                    else
+                                    {
+                                        if (HierIndex - hier_start >= 0)
+                                            HierList[HierIndex - hier_start].color = UI_BLACK;
+                                        HierIndex = index + hier_start;
+                                        if (HierIndex - hier_start >= 0)
+                                            HierList[HierIndex - hier_start].color = UI_BACKL;
+                                        currentLocator = HierIndex;
+
+                                        int X_Expand = Hier_X_Offset[index + hier_start] * 5;
+
+                                        if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
+                                        {
+                                            transformers[index + hier_start]->collapsed = !transformers[index + hier_start]->collapsed;
+                                            create_Hierarchys_List();
+                                        }
                                     }
                                     select_Transformer();
                                     UPDATE_BACKGROUND = 1;
@@ -12161,28 +12224,12 @@ int main(int argc, char * args[])
                             {
                                 if (index + sels_start[current_sel_type] < Selections_c[current_sel_type])
                                 {
-                                    if (Edit_Lock)
-                                    {
-                                        Edit_Lock = 0;
-                                        selection_rectangle = 0;
-                                        if (strlen(EditString) > 0)
-                                        {
-                                            sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
-                                            sprintf(Name_Remember, "%s", EditString);
-                                        }
-                                        EditCursor = 0;
-                                        EditString[EditCursor] = '\0';
-                                        printf("Edit finishing!\n");
-                                        set_Sels_H_Button(-1);
-                                    }
-                                    else
-                                    {
-                                        if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
-                                            SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BLACK;
-                                        SelsIndex[current_sel_type] = index + sels_start[current_sel_type];
-                                        if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
-                                            SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BACKL;
-                                    }
+                                    if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
+                                        SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BLACK;
+                                    SelsIndex[current_sel_type] = index + sels_start[current_sel_type];
+                                    if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
+                                        SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BACKL;
+
                                     UPDATE_BACKGROUND = 1;
                                     update_Selections_List(0, 1);
                                 }
@@ -12317,7 +12364,7 @@ int main(int argc, char * args[])
                                 }
                             }
                         }
-                        else if (!Edit_Lock && mouse_x > SIDEBAR && mouse_x < SIDEBAR * 2)
+                        else if (mouse_x > SIDEBAR && mouse_x < SIDEBAR * 2)
                         {
                             Buttonindex = index - 1;
                             if (dialog_type == SAVES_DIALOG)
@@ -15340,6 +15387,12 @@ int main(int argc, char * args[])
                         sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", Name_Remember);
                         set_Sels_H_Button(-1);
                         update_Selections_List(1, 0);
+                    }
+                    else if (dialog_type == SUBC_DIALOG)
+                    {
+                        sprintf(Subcharacter_Names[SubcharacterIndex], "%s", Name_Remember);
+                        set_Subc_H_Button(-1);
+                        update_Subcharacters_List(1, 0);
                     }
                 }
                 else

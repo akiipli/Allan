@@ -25,11 +25,6 @@ char sel_type[TYPE_LENGTH];
 
 int current_sel_type = 0;
 
-char EditString[STRLEN];
-char Name_Remember[STRLEN];
-int EditCursor = 0;
-int Edit_Lock = 0;
-
 void init_selections()
 {
     int i;
