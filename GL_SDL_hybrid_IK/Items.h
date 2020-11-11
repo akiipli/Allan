@@ -248,13 +248,13 @@ void clear_Items()
     int i;
     item * I;
 
-    for (i = 0; i < itemIndex; i ++)
+    for (i = 1; i < itemIndex; i ++) /*CUBECOMMENT*/
     {
         I = items[i];
         free(I->Name);
         free(I);
     }
-    itemIndex = 0;
+    itemIndex = 1;
 }
 
 void transfer_Item_Name_To_Object(item * I, object * O)
