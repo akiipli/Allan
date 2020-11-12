@@ -4399,7 +4399,7 @@ void open_IK_List()
 
     UPDATE_COLORS = 0;
 
-    draw_IK_Dialog("IK List", screen_height, ikch_start, 1, IKIndex - ikch_start);
+    draw_IK_Dialog("IK List", screen_height, ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -5179,11 +5179,11 @@ void update_IK_List(int update, int blit)
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
-        draw_IK_Dialog("IK List", screen_height, ikch_start, 1, IKIndex - ikch_start);
+        draw_IK_Dialog("IK List", screen_height, ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
     }
     else
     {
-        draw_IK_List(screen_height, ikch_start, 0, IKIndex - ikch_start);
+        draw_IK_List(screen_height, ikch_start, 0, IKIndex - ikch_start, selection_rectangle);
         draw_IK_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
     SDL_GL_SwapBuffers();
@@ -7419,7 +7419,7 @@ void rename_IK()
             sprintf(IK_Names[IKIndex], "%s", "");
             Edit_Lock = 1;
             init_Selection_Rectangle();
-            update_IK_List(0, 0);
+            update_IK_List(1, 0);
         }
     }
 }
@@ -7908,52 +7908,59 @@ void handle_IK_Dialog(char letter, SDLMod mod)
     if (Edit_Lock)
     {
         int update = 1;
-        if (letter == '-')
+        if (controlDown)
         {
-            if (mod & KMOD_SHIFT)
+            copy_and_paste(letter);
+        }
+        else
+        {
+            if (letter == '-')
             {
-                letter = '_';
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
             }
-        }
-        else if (isalnum(letter) && (mod & KMOD_SHIFT))
-        {
-            letter -= 32;
-        }
-        if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-        {
-            if (EditCursor < STRLEN - 1)
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
             {
-                EditString[EditCursor] = letter;
-                EditCursor ++;
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlength(EditString) > 1)
+                {
+                    sprintf(IK_Names[IKIndex], "%s", EditString);
+                    replace_IK_Name(EditString);
+                    sprintf(Name_Remember, "%s", EditString);
+                }
+                else
+                {
+                    update = 0;
+                    sprintf(IK_Names[IKIndex], "%s", Name_Remember);
+                }
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                set_IK_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
                 EditString[EditCursor] = '\0';
             }
-        }
-        else if (letter == 13 || letter == 10) // return, enter
-        {
-            if (strlength(EditString) > 1)
-            {
-                sprintf(IK_Names[IKIndex], "%s", EditString);
-                replace_IK_Name(EditString);
-                sprintf(Name_Remember, "%s", EditString);
-            }
-            else
-            {
-                update = 0;
-                sprintf(IK_Names[IKIndex], "%s", Name_Remember);
-            }
-            Edit_Lock = 0;
-            selection_rectangle = 0;
-            EditCursor = 0;
-            printf("Edit finishing!\n");
-            set_IK_H_Button(-1);
-            //update = 1;
-        }
-        else if (letter == 8) // backspace
-        {
-            EditCursor --;
-            if (EditCursor < 0)
-                EditCursor = 0;
-            EditString[EditCursor] = '\0';
         }
         if (update)
         {
@@ -12005,11 +12012,11 @@ int main(int argc, char * args[])
                                     DRAW_UI = 0;
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_IK_Dialog("IK List", screen_height,
-                                                ikch_start, 1, IKIndex - ikch_start);
+                                                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
                                     SDL_GL_SwapBuffers();
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_IK_Dialog("IK List", screen_height,
-                                                ikch_start, 1, IKIndex - ikch_start);
+                                                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
                                     SDL_GL_SwapBuffers();
                                     DRAW_UI = 1;
                                 }

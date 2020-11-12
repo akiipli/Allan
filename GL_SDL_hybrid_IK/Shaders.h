@@ -190,6 +190,12 @@ int init_shaders_()
     strcat(dirfile, resources_dir);
     strcat(dirfile, "Shaders/glsl.v4.text");
 	if ((vs[4] = create_shader(dirfile, GL_VERTEX_SHADER)) == 0) return 0;
+/*
+    dirfile[0] = '\0';
+    strcat(dirfile, resources_dir);
+    strcat(dirfile, "Shaders/glsl.g4.text");
+	if ((gs[4] = create_shader(dirfile, GL_GEOMETRY_SHADER)) == 0) return 0;
+*/
     dirfile[0] = '\0';
     strcat(dirfile, resources_dir);
     strcat(dirfile, "Shaders/glsl.f4.text");

@@ -1020,7 +1020,7 @@ void draw_Button_subcharacter_text(const char * text, int width, int height, int
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_IK_text(const char * text, int width, int height, int index, int colorchange, int frame_it)
+void draw_Button_IK_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int frame_selection)
 {
     int font_height = 11;
 
@@ -1029,7 +1029,16 @@ void draw_Button_IK_text(const char * text, int width, int height, int index, in
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
 
-	if (frame_it)
+ 	if (frame_selection)
+    {
+        make_character_map(text, origin_x, origin_y, 0);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(blueb);
+
+        draw_selection_Rectangle();
+    }
+	else if (frame_it)
     {
         glDisable(GL_TEXTURE_2D);
         glColor4fv(white);
@@ -1807,7 +1816,7 @@ void draw_Button_ik_horizontal(const char * text, int index, int colorchange)
 	glBindTexture(GL_TEXTURE_2D, 0);
 
     if (colorchange)
-        glColor4fv(buttoncolors[Button_h_bone[index].color].color);
+        glColor4fv(buttoncolors[Button_h_ikch[index].color].color);
 	else
         glColor4fv(buttoncolors[UI_GRAYB].color);
 
@@ -2251,7 +2260,7 @@ void draw_Subcharacter_List(int s_height, int start, int clear_background, int c
 	glPopMatrix();
 }
 
-void draw_IK_List(int s_height, int start, int clear_background, int current_ik)
+void draw_IK_List(int s_height, int start, int clear_background, int current_ik, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -2297,7 +2306,14 @@ void draw_IK_List(int s_height, int start, int clear_background, int current_ik)
 
 	for (i = 0; i < s; i ++)
     {
-        draw_Button_IK_text(ikch_list[i], d_width, d_height, i, 1, 0);
+        if (selection_rectangle && i == current_ik)
+        {
+            draw_Button_IK_text(ikch_list[i], d_width, d_height, i, 1, 0, 1);
+        }
+        else
+        {
+            draw_Button_IK_text(ikch_list[i], d_width, d_height, i, 1, 0, 0);
+        }
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -3551,7 +3567,7 @@ void draw_Subcharacters_Dialog(const char * text, int s_height,
 
 void draw_IK_Dialog(const char * text, int s_height,
                            int iks_start,
-                           int clear_background, int current_ikch)
+                           int clear_background, int current_ikch, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3594,7 +3610,7 @@ void draw_IK_Dialog(const char * text, int s_height,
 
 	draw_Button(text, SIDEBAR, d_height, 0, 0); // Title bar
 
-    draw_IK_List(s_height, iks_start, clear_background, current_ikch);
+    draw_IK_List(s_height, iks_start, clear_background, current_ikch, selection_rectangle);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
