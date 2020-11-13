@@ -36,6 +36,7 @@ int Defr_X_Collapsed[DEFORMERS];
 
 char DefrName_Remember[STRLEN];
 
+typedef struct subcharacter subcharacter;
 typedef struct pose pose;
 
 struct deformer
@@ -66,6 +67,9 @@ struct deformer
 
     ikChain ** IKchains;
     int IKchains_Count;
+
+    subcharacter ** Subcharacters;
+    int Subcharacters_Count;
 
     float rotVec[3][3];
     float rot[3];
@@ -101,6 +105,7 @@ void free_Deformer(deformer * D)
     free(D->Bones);
     free(D->IKchains);
     free(D->Poses);
+    free(D->Subcharacters);
     free(D->P);
     free(D);
 }
@@ -226,12 +231,14 @@ void add_Deformer()
     D->Bones_Count = 0;
     D->Poses_Count = 0;
     D->IKchains_Count = 0;
+    D->Subcharacters_Count = 0;
     D->Transformers = malloc(0 * sizeof(transformer*));
     D->Selections = malloc(0 * sizeof(vert_selection*));
     D->Objects = malloc(0 * sizeof(object*));
     D->Bones = malloc(0 * sizeof(bone*));
     D->Poses = malloc(0 * sizeof(pose*));
     D->IKchains = malloc(0 * sizeof(ikChain*));
+    D->Subcharacters = malloc(0 * sizeof(subcharacter*));
     memcpy(D->Delta, (float[3]){0, 0, 0}, sizeof D->Delta);
     D->current_pose = 0;
     memcpy(&D->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof D->rotVec);

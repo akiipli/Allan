@@ -991,6 +991,65 @@ void assign_Quad_Color(object * O, quadrant * Q, id_color * I, int L)
     }
 }
 
+void load_m_colors_object(object * O)
+{
+    int l = 0;
+
+    int c;
+    id_color * I;
+    id_color I0;
+
+    I0.R = Materials[O->surface].R / 255;
+    I0.G = Materials[O->surface].G / 255;
+    I0.B = Materials[O->surface].B / 255;
+    I0.A = Materials[O->surface].A / 255;
+
+    I = &I0;
+
+    int f_size = sizeof(GLfloat);
+
+    if (O->vertex_array)
+    {
+        for (c = 0; c < O->cols_array_size[0] / f_size; c += 4)
+        {
+            O->cols_array[0][c]     = I->R;
+            O->cols_array[0][c + 1] = I->G;
+            O->cols_array[0][c + 2] = I->B;
+            O->cols_array[0][c + 3] = I->A;
+        }
+
+        for (c = 0; c < O->cols_array_size[1] / f_size; c += 4)
+        {
+            O->cols_array[1][c]     = I->R;
+            O->cols_array[1][c + 1] = I->G;
+            O->cols_array[1][c + 2] = I->B;
+            O->cols_array[1][c + 3] = I->A;
+        }
+    }
+
+    for(l = 0; l <= O->subdlevel; l ++)
+    {
+        if (O->vertex_arrays[l])
+        {
+            for (c = 0; c < O->cols_array_size_[l][0] / f_size; c += 4)
+            {
+                O->cols_array_[l][0][c]     = I->R;
+                O->cols_array_[l][0][c + 1] = I->G;
+                O->cols_array_[l][0][c + 2] = I->B;
+                O->cols_array_[l][0][c + 3] = I->A;
+            }
+
+            for (c = 0; c < O->cols_array_size_[l][1] / f_size; c += 4)
+            {
+                O->cols_array_[l][1][c]     = I->R;
+                O->cols_array_[l][1][c + 1] = I->G;
+                O->cols_array_[l][1][c + 2] = I->B;
+                O->cols_array_[l][1][c + 3] = I->A;
+            }
+        }
+    }
+}
+
 void load_id_colors_polygon(object * O, polygon * P, int mode)
 {
     int L = 0;

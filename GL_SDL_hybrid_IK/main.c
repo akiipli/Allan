@@ -11131,6 +11131,18 @@ void handle_RIGHT(SDLMod mod)
     }
 }
 
+void assign_Surface_To_Selected_Objects(int m)
+{
+    int o;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        O->surface = m;
+        load_m_colors_object(O);
+    }
+}
+
 void Exit()
 {
     quit = 1;
@@ -12346,9 +12358,14 @@ int main(int argc, char * args[])
                                 {
                                     MatrList[currentMaterial - materials_start].color = UI_BLACK;
                                     currentMaterial = index + materials_start;
+                                    assign_Surface_To_Selected_Objects(currentMaterial);
                                     MatrList[index].color = UI_BACKL;
-                                    draw_Materials_List(screen_height, materials_start, 1, currentObject);
+                                    DRAW_UI = 0;
+                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                    draw_Dialog();
+                                    //draw_Materials_List(screen_height, materials_start, 1, currentObject);
                                     SDL_GL_SwapBuffers();
+                                    DRAW_UI = 1;
                                     MatrList[index].color = UI_BLACK;
                                 }
                             }

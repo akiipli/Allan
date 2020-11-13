@@ -777,9 +777,9 @@ void init_textures(SDL_Surface * screen)
     sprintf(Text_Names[Surf_Text_c], basename(dirfile));
 
     surface_Material Default_Material = {0, 0, "Default", 0, 0, 0, 255, 255, 255, 255, 2, 0, 0, 0};
-    surface_Material Green_Material = {1, 0, "Green", 0, 0, 0, 0, 255, 0, 255, 2, 0, 0, 0};
-    surface_Material Blue_Material = {2, 0, "Blue", 0, 0, 0, 0, 0, 255, 255, 2, 0, 0, 0};
-    surface_Material Yellow_Material = {3, 0, "Yellow", 0, 0, 0, 0, 255, 255, 255, 2, 0, 0, 0};
+    surface_Material Green_Material   = {1, 0, "Green",   0, 0, 0, 0,   255, 0,   255, 2, 0, 0, 0};
+    surface_Material Blue_Material    = {2, 0, "Blue",    0, 0, 0, 0,   0,   250, 255, 2, 0, 0, 0};
+    surface_Material Yellow_Material  = {3, 0, "Yellow",  0, 0, 0, 255, 255, 0,   255, 2, 0, 0, 0};
     memcpy(&Materials[0], &Default_Material, sizeof(surface_Material));
     memcpy(&Materials[1], &Green_Material, sizeof(surface_Material));
     memcpy(&Materials[2], &Blue_Material, sizeof(surface_Material));
