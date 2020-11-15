@@ -241,7 +241,6 @@ Poses_In Deformer_Poses;
 
 int object_hook = 0;
 int currentObject = 0;
-int currentMaterial = 0;
 int currentLocator = 0;
 int currentDeformer = 0;
 int tune = 1;
@@ -2668,17 +2667,6 @@ void select_Selection()
     UPDATE_COLORS = 0;
 }
 
-void select_Material()
-{
-    DRAW_UI = 0;
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    if (currentMaterial - materials_start >= 0)
-        MatrList[currentMaterial - materials_start].color = UI_BACKL;
-    draw_Dialog();
-    DRAW_UI = 1;
-    UPDATE_COLORS = 0;
-}
-
 void grow_Selection()
 {
     if (Polygon_Mode)
@@ -3956,12 +3944,42 @@ void deselect_Objects()
 {
     int o;
     object * O;
+
     for (o = 0; o < objectIndex; o ++)
     {
         O = objects[o];
         O->selected = 0;
     }
     selected_object_count = 0;
+}
+
+void select_Objects_With_Surface(int s)
+{
+    int o;
+    object * O;
+
+    for (o = 0; o < objectIndex; o ++)
+    {
+        O = objects[o];
+        if (O->surface == s)
+        {
+            O->selected = 1;
+        }
+    }
+}
+
+void select_Material()
+{
+    deselect_Objects();
+    select_Objects_With_Surface(currentMaterial);
+    assert_Object_Selection();
+    DRAW_UI = 0;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    if (currentMaterial - materials_start >= 0)
+        MatrList[currentMaterial - materials_start].color = UI_BACKL;
+    draw_Dialog();
+    DRAW_UI = 1;
+    UPDATE_COLORS = 0;
 }
 
 void open_Poses_dialog()
@@ -4757,7 +4775,7 @@ void open_Materials_List()
 
     UPDATE_COLORS = 0;
 
-    draw_Materials_Dialog("Materials L.", screen_height, materials_start, 1, currentObject);
+    draw_Materials_Dialog("Materials L.", screen_height, materials_start, 1, currentMaterial - materials_start, selection_rectangle);
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -5314,11 +5332,11 @@ void update_Materials_List(int update, int blit)
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
-        draw_Materials_Dialog("Materials L.", screen_height, materials_start, 1, currentObject);
+        draw_Materials_Dialog("Materials L.", screen_height, materials_start, 1, currentMaterial - materials_start, selection_rectangle);
     }
     else
     {
-        draw_Materials_List(screen_height, materials_start, 1, currentObject);
+        draw_Materials_List(screen_height, materials_start, 1, currentMaterial - materials_start, selection_rectangle);
         //draw_Selections_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
     SDL_GL_SwapBuffers();
@@ -7424,6 +7442,112 @@ void rename_IK()
     }
 }
 
+void transfer_Object_Surface_To_Geometry(object * O, int s)
+{
+    int p, l, q;
+
+    polygon * P;
+    quadrant * Q;
+
+    for (p = 0; p < O->polycount; p ++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+        P->surface = s;
+    }
+
+    for (l = 0; l <= O->subdlevel; l ++)
+    {
+        if (O->vertex_arrays[l])
+        {
+            for (q = 0; q < O->quadcount_[l]; q++)
+            {
+                Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
+                Q->surface = s;
+            }
+        }
+    }
+}
+
+void replace_Current_With_Default_Material(int index)
+{
+    int o;
+    object * O;
+
+    for(o = 0; o < objectIndex; o ++)
+    {
+        O = objects[o];
+        if (O->surface == index)
+        {
+            O->surface = 0;
+
+            transfer_Object_Surface_To_Geometry(O, O->surface);
+            load_m_colors_object(O);
+        }
+    }
+}
+
+void remove_Material()
+{
+    if (currentMaterial > 3)
+    {
+        set_Material_H_Button(2);
+        printf("remove Material\n");
+        Materials_count --;
+
+        int m;
+        for (m = currentMaterial; m < Materials_count; m ++)
+        {
+            memcpy(&Materials[m], &Materials[m + 1], sizeof(surface_Material));
+        }
+
+        replace_Current_With_Default_Material(currentMaterial);
+
+        if (currentMaterial >= Materials_count)
+        {
+            currentMaterial = Materials_count - 1;
+        }
+        if (currentMaterial < 0)
+            currentMaterial = 0;
+
+        update_Materials_List(0, 0);
+    }
+}
+
+void add_Material()
+{
+    if (Materials_count < MATERIALS_TOTAL)
+    {
+        set_Material_H_Button(1);
+        printf("add Material\n");
+        init_Material(Materials_count);
+        Materials_count ++;
+        if (currentMaterial - materials_start >= 0)
+            MatrList[currentMaterial - materials_start].color = UI_BLACK;
+        currentMaterial = Materials_count - 1;
+        update_Materials_List(0, 0);
+    }
+}
+
+void rename_Material()
+{
+    if (currentMaterial > 3)
+    {
+        set_Material_H_Button(0);
+        printf("rename Material\n");
+        if (dialog_lock)
+        {
+            if (!Edit_Lock && Materials_count > 0)
+            {
+                sprintf(Name_Remember, "%s", Materials[currentMaterial].Name);
+                sprintf(Materials[currentMaterial].Name, "%s", "");
+                Edit_Lock = 1;
+                init_Selection_Rectangle();
+                update_Materials_List(0, 0);
+            }
+        }
+    }
+}
+
 void rename_Bone()
 {
     set_Bone_H_Button(1);
@@ -7751,6 +7875,76 @@ void handle_Scene_Dialog(char letter, SDLMod mod)
             update_Saves_List(1, 0);
         else if (dialog_type == LOADING_DIALOG)
             update_Loading_List(1, 0);
+        //printf("%c%s", 13, EditString);
+        message = 0;
+    }
+}
+
+void handle_Material_Dialog(char letter, SDLMod mod)
+{
+    if (Edit_Lock)
+    {
+        int update = 1;
+        if (controlDown)
+        {
+            copy_and_paste(letter);
+        }
+        else
+        {
+            //int update = 0;
+            if (letter == '-')
+            {
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
+            }
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
+            {
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlength(EditString) > 1)
+                {
+                    sprintf(Materials[currentMaterial].Name, "%s", EditString);
+                    sprintf(Name_Remember, "%s", EditString);
+                }
+                else
+                {
+                    update = 0;
+                    sprintf(Materials[currentMaterial].Name, "%s", Name_Remember);
+                }
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                set_Material_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
+                EditString[EditCursor] = '\0';
+            }
+        }
+        if (update)
+        {
+            sprintf(Materials[currentMaterial].Name, "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
+        update_Materials_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
     }
@@ -8519,6 +8713,14 @@ void handle_dialog(char letter, SDLMod mod)
         if (!Edit_Lock && letter == '`')
         {
             rename_Item();
+        }
+    }
+    else if (dialog_type == MATERIAL_DIALOG)
+    {
+        handle_Material_Dialog(letter, mod);
+        if (!Edit_Lock && letter == '`')
+        {
+            rename_Material();
         }
     }
     else if (dialog_type == OBJ_DIALOG || dialog_type == IMG_DIALOG)
@@ -11327,6 +11529,10 @@ int main(int argc, char * args[])
     Button_h_bone[0].func = &remove_Bone;
     Button_h_bone[1].func = &rename_Bone;
 
+    Button_h_matr[0].func = &rename_Material;
+    Button_h_matr[1].func = &add_Material;
+    Button_h_matr[2].func = &remove_Material;
+
     Button_h_ikch[0].func = &remove_IK;
     Button_h_ikch[1].func = &rename_IK;
 
@@ -12364,7 +12570,6 @@ int main(int argc, char * args[])
                                     DRAW_UI = 0;
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                     draw_Dialog();
-                                    //draw_Materials_List(screen_height, materials_start, 1, currentObject);
                                     SDL_GL_SwapBuffers();
                                     DRAW_UI = 1;
                                     MatrList[index].color = UI_BLACK;
@@ -12431,6 +12636,10 @@ int main(int argc, char * args[])
 
                             }
                             else if (dialog_type == HIER_DIALOG)
+                            {
+
+                            }
+                            else if (dialog_type == MATERIAL_DIALOG)
                             {
 
                             }
@@ -12562,6 +12771,14 @@ int main(int argc, char * args[])
                                 if (h_index < H_BONE_NUM)
                                 {
                                     (*Button_h_bone[h_index].func)();
+                                }
+                            }
+                            else if (dialog_type == MATERIAL_DIALOG && !Edit_Lock)
+                            {
+                                h_index = (mouse_x - SIDEBAR * 2) / BUTTON_WIDTH_SHORT;
+                                if (h_index < H_MATR_NUM)
+                                {
+                                    (*Button_h_matr[h_index].func)();
                                 }
                             }
                             else if (dialog_type == IK_DIALOG && !Edit_Lock)
@@ -15418,6 +15635,12 @@ int main(int argc, char * args[])
                         sprintf(Subcharacter_Names[SubcharacterIndex], "%s", Name_Remember);
                         set_Subc_H_Button(-1);
                         update_Subcharacters_List(1, 0);
+                    }
+                    else if (dialog_type == MATERIAL_DIALOG)
+                    {
+                        sprintf(Materials[currentMaterial].Name, "%s", Name_Remember);
+                        set_Material_H_Button(-1);
+                        update_Materials_List(1, 0);
                     }
                 }
                 else

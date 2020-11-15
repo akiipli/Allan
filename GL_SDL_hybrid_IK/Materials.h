@@ -30,6 +30,8 @@ surface_Material;
 surface_Material Materials[MATERIALS_TOTAL];
 int Materials_count = 0;
 
+int currentMaterial = 0;
+
 int init_Material(int index)
 {
     int i = index % MATERIALS_TOTAL;
@@ -50,6 +52,17 @@ int init_Material(int index)
     M->A = 255;
     M->Shininess = 2;
     return i;
+}
+
+void set_Material_H_Button(int index)
+{
+    int i;
+    for (i = 0; i < H_MATR_NUM; i ++)
+    {
+        Button_h_matr[i].color = UI_GRAYB;
+    }
+    if (index > -1)
+        Button_h_matr[index].color = UI_GRAYD;
 }
 
 #endif // MATERIALS_H_INCLUDED

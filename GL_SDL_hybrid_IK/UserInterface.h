@@ -52,6 +52,7 @@ int LISTLENGTH = 12;
 #define H_SCEN_NUM 1
 #define H_POSE_NUM 5
 #define H_BONE_NUM 2
+#define H_MATR_NUM 3
 #define H_ITEM_NUM 1
 #define H_IKCH_NUM 2
 #define H_SUBC_NUM 6
@@ -330,6 +331,7 @@ ui_button Button_h_hier[H_HIER_NUM];
 ui_button Button_h_defr[H_DEFR_NUM];
 ui_button Button_h_pose[H_POSE_NUM];
 ui_button Button_h_bone[H_BONE_NUM];
+ui_button Button_h_matr[H_MATR_NUM];
 ui_button Button_h_item[H_ITEM_NUM];
 ui_button Button_h_ikch[H_IKCH_NUM];
 ui_button Button_h_subc[H_SUBC_NUM];
@@ -444,6 +446,12 @@ void init_ui()
         Button_h_bone[b].index = b;
         Button_h_bone[b].color = UI_GRAYB;
         Button_h_bone[b].func = NULL;
+    }
+    for(b = 0; b < H_MATR_NUM; b ++)
+    {
+        Button_h_matr[b].index = b;
+        Button_h_matr[b].color = UI_GRAYB;
+        Button_h_matr[b].func = NULL;
     }
     for(b = 0; b < H_ITEM_NUM; b ++)
     {
@@ -1331,7 +1339,7 @@ void draw_Button_text_text(const char * text, int width, int height, int index, 
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_material_text(const char * text, int width, int height, int index, int colorchange)
+void draw_Button_material_text(const char * text, int width, int height, int index, int colorchange, int frame_selection)
 {
 	glEnable(GL_TEXTURE_2D);
 
@@ -1341,6 +1349,16 @@ void draw_Button_material_text(const char * text, int width, int height, int ind
 
 	float origin_x = 5;
 	float origin_y = BUTTON_HEIGHT * index + 10;
+
+ 	if (frame_selection)
+    {
+        make_character_map(text, origin_x, origin_y, 0);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(blueb);
+
+        draw_selection_Rectangle();
+    }
 
 	if (colorchange)
         glColor4fv(buttoncolors[MatrList[index].color].color);
@@ -1856,6 +1874,45 @@ void draw_Button_item_horizontal(const char * text, int index, int colorchange)
 
     if (colorchange)
         glColor4fv(buttoncolors[Button_h_item[index].color].color);
+	else
+        glColor4fv(buttoncolors[UI_GRAYB].color);
+
+    draw_Rectangle((float[8]){h_dim, 0,
+        h_dim, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, 0}, QUADS);
+
+	glColor4fv(buttoncolors[UI_WHITE].color);
+
+    draw_Rectangle((float[8]){h_dim, 0,
+        h_dim, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_SHORT, 0}, LINE_LOOP);
+
+	//glEnable(GL_TEXTURE_2D);
+
+    int font_height = 11;
+
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
+
+	float origin_x = 5 + h_dim;
+	float origin_y = 10;
+
+	glColor4fv(buttoncolors[UI_WHITE].color);
+
+    draw_text(text, origin_x, origin_y, font_height, 0);
+}
+
+void draw_Button_material_horizontal(const char * text, int index, int colorchange)
+{
+    int h_dim = BUTTON_WIDTH_SHORT * index;
+	/*draw frame*/
+
+	//glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+    if (colorchange)
+        glColor4fv(buttoncolors[Button_h_matr[index].color].color);
 	else
         glColor4fv(buttoncolors[UI_GRAYB].color);
 
@@ -2744,7 +2801,7 @@ void draw_Textures_List(int s_height, int start, char * type, int clear_backgrou
 	glPopMatrix();
 }
 
-void draw_Materials_List(int s_height, int start, int clear_background, int currentObject)
+void draw_Materials_List(int s_height, int start, int clear_background, int currentMaterial, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -2795,7 +2852,10 @@ void draw_Materials_List(int s_height, int start, int clear_background, int curr
 
 	for (i = 0; i < s; i ++)
     {
-        draw_Button_material_text(material_list[i], d_width, d_height, i, 1);
+        if (i == currentMaterial && selection_rectangle)
+            draw_Button_material_text(material_list[i], d_width, d_height, i, 1, 1);
+        else
+            draw_Button_material_text(material_list[i], d_width, d_height, i, 1, 0);
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -3102,7 +3162,31 @@ void draw_Textures_Dialog(const char * text, int s_height, char * Text, char ** 
 	draw_Textures_Bottom_Line(d_width, s_height);
 }
 
-void draw_Materials_Dialog(const char * text, int s_height, int materials_start, int clear_background, int currentObject)
+void draw_Materials_Bottom_Line(int width, int height)
+{
+    glScissor(SIDEBAR * 2, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glViewport(SIDEBAR * 2, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, width, BOTTOM_LINE, 0, 1, -1);
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+    draw_Button_material_horizontal("Rename", 0, 1);
+    draw_Button_material_horizontal("Add", 1, 1);
+    draw_Button_material_horizontal("Remove", 2, 1);
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+}
+
+void draw_Materials_Dialog(const char * text, int s_height, int materials_start, int clear_background, int currentMaterial, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3148,11 +3232,13 @@ void draw_Materials_Dialog(const char * text, int s_height, int materials_start,
 
 	draw_Button(text, SIDEBAR, d_height, 0, 0); // Title bar
 
-	draw_Materials_List(s_height, materials_start, clear_background, currentObject);
+	draw_Materials_List(s_height, materials_start, clear_background, currentMaterial, selection_rectangle);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
+
+	draw_Materials_Bottom_Line(d_width, s_height);
 }
 
 void draw_Items_Bottom_Line(int width, int height)
