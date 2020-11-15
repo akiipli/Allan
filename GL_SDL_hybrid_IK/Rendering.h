@@ -991,6 +991,28 @@ void assign_Quad_Color(object * O, quadrant * Q, id_color * I, int L)
     }
 }
 
+void assign_Surface_To_Geometry(object * O, int m)
+{
+    int p, l, q;
+    polygon * P;
+    quadrant * Q;
+
+    for (p = 0; p < O->polycount; p ++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+        P->surface = m;
+    }
+
+    for (l = 0; l <= O->subdlevel; l ++)
+    {
+        for (q = 0; q < O->quadcount_[l]; q ++)
+        {
+            Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
+            Q->surface = m;
+        }
+    }
+}
+
 void load_m_colors_object(object * O)
 {
     int l = 0;
@@ -5191,10 +5213,10 @@ void load_id_colors_No_Surface(camera * C, int l)
                 }
                 else
                 {
-                    R = 1;
-                    G = 1;
-                    B = 1;
-                    A = 1;
+                    R = Materials[Q->surface].R / 255;
+                    G = Materials[Q->surface].G / 255;
+                    B = Materials[Q->surface].B / 255;
+                    A = Materials[Q->surface].R / 255;
                 }
 
 //                if (E)

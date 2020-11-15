@@ -11139,6 +11139,7 @@ void assign_Surface_To_Selected_Objects(int m)
     {
         O = objects[selected_objects[o]];
         O->surface = m;
+        assign_Surface_To_Geometry(O, m);
         load_m_colors_object(O);
     }
 }
@@ -15459,10 +15460,6 @@ int main(int argc, char * args[])
                 ELEMENT_ARRAYS = 1;
                 init_Hint();
 
-                for (l = 0; l < SUBD; l++)
-                    load_id_colors(selected_objects, selected_object_count, l, -1);
-                load_id_colors_Fan(selected_objects, selected_object_count, -1);
-
                 object * O;
                 for (o = 0; o < selected_object_count; o ++)
                 {
@@ -15470,6 +15467,10 @@ int main(int argc, char * args[])
                     assign_Selection(O, 0);
                     assert_Element_Selection(O);
                 }
+
+                for (l = 0; l < SUBD; l++)
+                    load_id_colors(selected_objects, selected_object_count, l, OBJECT_COLORS);
+                load_id_colors_Fan(selected_objects, selected_object_count, OBJECT_COLORS);
             }
             else if (Edge_Mode)
             {
