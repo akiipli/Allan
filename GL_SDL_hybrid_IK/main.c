@@ -7483,6 +7483,13 @@ void replace_Current_With_Default_Material(int index)
             transfer_Object_Surface_To_Geometry(O, O->surface);
             load_m_colors_object(O);
         }
+        else if (O->surface > index)
+        {
+            O->surface --;
+
+            transfer_Object_Surface_To_Geometry(O, O->surface);
+            load_m_colors_object(O);
+        }
     }
 }
 
