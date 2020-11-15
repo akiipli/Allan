@@ -7509,7 +7509,10 @@ void remove_Material()
         if (currentMaterial < 0)
             currentMaterial = 0;
 
-        update_Materials_List(0, 0);
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        DRAW_UI = 1;
+        update_Materials_List(1, 0);
     }
 }
 
