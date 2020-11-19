@@ -13,8 +13,9 @@ Copyright <2018> <Allan Kiipli>
 #define CAMERA_TOP 1
 #define CAMERA_FRONT 2
 #define CAMERA_LEFT 3
+#define CAMERA_THUMB 4
 
-#define CAMERAS 4
+#define CAMERAS 5
 
 float CamDist = 10;
 
@@ -81,7 +82,7 @@ void read_Camera_Pose(camera * C)
     CamDist = C->P->CamDist;
 }
 
-camera Camera_Persp, Camera_Top, Camera_Front, Camera_Left;
+camera Camera_Persp, Camera_Top, Camera_Front, Camera_Left, Camera_Thumb;
 camera * Camera;
 
 camera * cameras[CAMERAS];
@@ -92,6 +93,7 @@ void init_Cameras()
     cameras[1] = &Camera_Top;
     cameras[2] = &Camera_Front;
     cameras[3] = &Camera_Left;
+    cameras[4] = &Camera_Thumb;
 
     int c;
 

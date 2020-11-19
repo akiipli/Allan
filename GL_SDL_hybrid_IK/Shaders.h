@@ -212,11 +212,11 @@ int init_shaders_()
 		return 0;
 	}
 
-	attribute_coord = glGetAttribLocation(T_program[0], "coord");
-	if (attribute_coord == -1) {
-		printf("Could not bind coord attribute \n");
-		return 0;
-	}
+//	attribute_coord = glGetAttribLocation(T_program[0], "coord");
+//	if (attribute_coord == -1) {
+//		printf("Could not bind coord attribute \n");
+//		return 0;
+//	}
 
 	uniform_tex0 = glGetUniformLocation(T_program[0], "tex");
 	if (uniform_tex0 == -1) {

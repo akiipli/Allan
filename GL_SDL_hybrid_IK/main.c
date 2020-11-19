@@ -570,6 +570,9 @@ static void setup_opengl(int width, int height)
     glGenTextures(TEXTURES, Textures);
     glGenTextures(TEXTURES, Normals);
     glGenTextures(TEXTURES, Bumps);
+    glGenTextures(MATERIALS_TOTAL, Material_Textures);
+
+    Materials_c = generate_Material_Thumbnail_Textures(Material_Thumbnail_width, Material_Thumbnail_height);
 
     glViewport(SIDEBAR, 0, width - SIDEBAR, height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -683,8 +686,12 @@ int init()
         //init_materialS();
         init_shadows();
         /* shadow map */
-        setupFBO();
-        setMatrices();
+        SHADOWS = setupFBO();
+        if (SHADOWS)
+            setMatrices();
+
+        THUMBNAILS = setup_Material_Thumbnail_FBO();
+        printf("THUMBNAILS %d\n", THUMBNAILS);
     }
 
     if (!fonts_on) quit_app(0);
@@ -701,11 +708,20 @@ void cleanup()
     int i;
     for (i = 0; i < objectIndex; i++)
         free_object(objects[i]);
-    glDeleteLists(0, Textures_c);
+    glDeleteLists(0, Textures_c + Normals_c + Bumps_c + Materials_c);
     glDeleteTextures(Textures_c, Textures);
+    glDeleteTextures(Normals_c, Normals);
+    glDeleteTextures(Bumps_c, Bumps);
+    glDeleteTextures(Materials_c, Material_Textures);
     int t;
     for (t = 0; t < Surf_Text_c; t++)
         SDL_FreeSurface(Surf_Text[t]);
+    for (t = 0; t < Surf_Norm_c; t++)
+        SDL_FreeSurface(Surf_Norm[t]);
+    for (t = 0; t < Surf_Bump_c; t++)
+        SDL_FreeSurface(Surf_Bump[t]);
+    for (t = 0; t < Materials_c; t++)
+        SDL_FreeSurface(Material_Thumbnail_Surfaces[t]);
     disable_VBO();
     glDeleteTextures(1, &font_tex);
 //    if (fonts_on)
@@ -4740,6 +4756,32 @@ void open_Textures_List()
     }
 }
 
+void render_Thumbnails()
+{
+    O = objects[0];
+
+    subdLevel_mem = subdLevel;
+    subdLevel = 1;
+
+    float Pos[3];
+
+    Pos[0] = O->T->pos[0];
+    Pos[1] = O->T->pos[1];
+    Pos[2] = O->T->pos[2];
+
+    move_verts_(O, 0, 0, 0, subdLevel);
+
+    camera * Ct = cameras[4];
+    Ct->objects[0] = 0;
+    Ct->object_count = 1;
+
+    Materials_Thumbnail_render(Ct, Material_Thumbnail_width, Material_Thumbnail_height, subdLevel, ELEMENT_ARRAYS);
+
+    move_verts_(O, Pos[0], Pos[1], Pos[2], subdLevel);
+
+    subdLevel = subdLevel_mem;
+}
+
 void black_out_MaterialsList()
 {
     int i;
@@ -4754,6 +4796,8 @@ void black_out_MaterialsList()
 
 void open_Materials_List()
 {
+    render_Thumbnails();
+
     Osd = 0;
     HINTS = 0;
 
@@ -7519,7 +7563,7 @@ void remove_Material()
         DRAW_UI = 0;
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
         DRAW_UI = 1;
-        update_Materials_List(1, 0);
+        draw_Dialog();
     }
 }
 
@@ -7534,7 +7578,7 @@ void add_Material()
         if (currentMaterial - materials_start >= 0)
             MatrList[currentMaterial - materials_start].color = UI_BLACK;
         currentMaterial = Materials_count - 1;
-        update_Materials_List(0, 0);
+        draw_Dialog();
     }
 }
 
@@ -11343,8 +11387,11 @@ void handle_RIGHT(SDLMod mod)
     }
 }
 
-void assign_Surface_To_Selected_Objects(int m)
+void assign_Surface_To_Selected_Objects()
 {
+    set_Material_H_Button(3);
+
+    int m = currentMaterial;
     int o;
 
     for (o = 0; o < selected_object_count; o ++)
@@ -11354,6 +11401,14 @@ void assign_Surface_To_Selected_Objects(int m)
         assign_Surface_To_Geometry(O, m);
         load_m_colors_object(O);
     }
+
+    DRAW_UI = 0;
+    UPDATE_COLORS = 1;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    UPDATE_COLORS = 0;
+    update_Materials_List(1, 0);
+    DRAW_UI = 1;
+    SDL_GL_SwapBuffers();
 }
 
 void Exit()
@@ -11395,6 +11450,7 @@ int main(int argc, char * args[])
     init_camera(&Camera_Top, "Top", screen_width, screen_height, CamDist, ortho_on, CAMERA_TOP);
     init_camera(&Camera_Front, "Front", screen_width, screen_height, CamDist, ortho_on, CAMERA_FRONT);
     init_camera(&Camera_Left, "Left", screen_width, screen_height, CamDist, ortho_on, CAMERA_LEFT);
+    init_camera(&Camera_Thumb, "Thumb", Material_Thumbnail_width, Material_Thumbnail_height, CamDist, ortho_on, CAMERA_THUMB);
 
     rotate_Camera(&Camera_Persp, CamDist); // this line is essential
 //    // because it places Camera rotVec_ into initial pose.
@@ -11408,6 +11464,7 @@ int main(int argc, char * args[])
     rotate_Camera(&Camera_Top, CamDist);
     rotate_Camera(&Camera_Front, CamDist);
     rotate_Camera(&Camera_Left, CamDist);
+    rotate_Camera(&Camera_Thumb, CamDist);
 
     set_Camera_Pose(&Camera_Persp, CamDist);
 
@@ -11448,6 +11505,13 @@ int main(int argc, char * args[])
 
     create_Normal_Map();
     create_Bump_Map();
+
+    subdLevel ++;
+    subdivide_after_Creation(objects[0], subdLevel, tune);
+    subdLevel ++;
+    subdivide_after_Creation(objects[0], subdLevel, tune);
+
+//    render_Thumbnails();
 
     SideBar[0] = &collapse_Lists;
     SideBar[1] = &open_Items_List;
@@ -11542,6 +11606,7 @@ int main(int argc, char * args[])
     Button_h_matr[0].func = &rename_Material;
     Button_h_matr[1].func = &add_Material;
     Button_h_matr[2].func = &remove_Material;
+    Button_h_matr[3].func = &assign_Surface_To_Selected_Objects;
 
     Button_h_ikch[0].func = &remove_IK;
     Button_h_ikch[1].func = &rename_IK;
@@ -12575,13 +12640,13 @@ int main(int argc, char * args[])
                                 {
                                     MatrList[currentMaterial - materials_start].color = UI_BLACK;
                                     currentMaterial = index + materials_start;
-                                    assign_Surface_To_Selected_Objects(currentMaterial);
+                                    //select_Material();
                                     MatrList[index].color = UI_BACKL;
                                     DRAW_UI = 0;
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                                    draw_Dialog();
-                                    SDL_GL_SwapBuffers();
+                                    update_Materials_List(1, 1);
                                     DRAW_UI = 1;
+                                    SDL_GL_SwapBuffers();
                                     MatrList[index].color = UI_BLACK;
                                 }
                             }

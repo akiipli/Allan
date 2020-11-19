@@ -52,7 +52,7 @@ int LISTLENGTH = 12;
 #define H_SCEN_NUM 1
 #define H_POSE_NUM 5
 #define H_BONE_NUM 2
-#define H_MATR_NUM 3
+#define H_MATR_NUM 4
 #define H_ITEM_NUM 1
 #define H_IKCH_NUM 2
 #define H_SUBC_NUM 6
@@ -68,6 +68,9 @@ int LISTLENGTH = 12;
 #define QUADS 1
 #define LABEL_TEXT_LEN 30
 #define LABELS 100
+#define MATERIALS_TOTAL 100
+
+GLuint Material_Textures_Lists[MATERIALS_TOTAL];
 
 int Plus_Sign_Advance[2];
 int Vbar_Sign_Advance[2];
@@ -132,6 +135,7 @@ int SHADERS = 0;
 int HINTS = 1;
 
 void display_font_(const char * text, float origin_x, float origin_y, int font_height, float color[4], int italic);
+void display_thumbnail_(float origin_x, float origin_y, int m_index, float color[4]);
 
 int dir_lists = 0;
 int selected_deformer_node = 0;
@@ -1339,7 +1343,9 @@ void draw_Button_text_text(const char * text, int width, int height, int index, 
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_material_text(const char * text, int width, int height, int index, int colorchange, int frame_selection)
+void draw_thumbnail(int origin_x, int origin_y, int m_index);
+
+void draw_Button_material_text(const char * text, int width, int height, int index, int m_index, int colorchange, int frame_selection)
 {
 	glEnable(GL_TEXTURE_2D);
 
@@ -1347,7 +1353,7 @@ void draw_Button_material_text(const char * text, int width, int height, int ind
 
 	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
-	float origin_x = 5;
+	float origin_x = 35;
 	float origin_y = BUTTON_HEIGHT * index + 10;
 
  	if (frame_selection)
@@ -1366,6 +1372,7 @@ void draw_Button_material_text(const char * text, int width, int height, int ind
         glColor4fv(buttoncolors[UI_BLACK].color);
 
     draw_text(text, origin_x, origin_y, font_height, 0);
+    draw_thumbnail(origin_x, origin_y, m_index);
 }
 
 void draw_Button_item_text(const char * text, int width, int height, int index, int colorchange, int selected, int hidden, int frame_selection)
@@ -2853,9 +2860,9 @@ void draw_Materials_List(int s_height, int start, int clear_background, int curr
 	for (i = 0; i < s; i ++)
     {
         if (i == currentMaterial && selection_rectangle)
-            draw_Button_material_text(material_list[i], d_width, d_height, i, 1, 1);
+            draw_Button_material_text(material_list[i], d_width, d_height, i, i + start, 1, 1);
         else
-            draw_Button_material_text(material_list[i], d_width, d_height, i, 1, 0);
+            draw_Button_material_text(material_list[i], d_width, d_height, i, i + start, 1, 0);
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)
@@ -3180,6 +3187,7 @@ void draw_Materials_Bottom_Line(int width, int height)
     draw_Button_material_horizontal("Rename", 0, 1);
     draw_Button_material_horizontal("Add", 1, 1);
     draw_Button_material_horizontal("Remove", 2, 1);
+    draw_Button_material_horizontal("Assign", 3, 1);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

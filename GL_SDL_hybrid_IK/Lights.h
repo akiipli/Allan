@@ -288,7 +288,7 @@ void SceneShadowMap_render(camera * C, int width, int height, int subdLevel, int
     //glDisable(GL_ALPHA_TEST);
 
     glCullFace(GL_BACK);
-    glFlush();
+    //glFlush();
 
     glPopMatrix();
 
@@ -302,8 +302,9 @@ void SceneShadowMap_render(camera * C, int width, int height, int subdLevel, int
 
 GLuint depthTex;
 
-void setupFBO()
+int setupFBO()
 {
+    int r = 0;
     GLfloat border[] = {1.0f, 0.0f,0.0f,0.0f };
     // The depth buffer texture
     glGenTextures(1, &depthTex);
@@ -331,11 +332,119 @@ void setupFBO()
     glDrawBuffers(1, drawBuffers);
 
     GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if( result == GL_FRAMEBUFFER_COMPLETE) {
+
+    if( result == GL_FRAMEBUFFER_COMPLETE)
+    {
         printf("Framebuffer is complete.\n");
-    } else {
+        r = 1;
+    }
+    else
+    {
         printf("Framebuffer is not complete.\n");
+        r = 0;
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER,0);
+
+    return r;
+}
+
+void render_polys_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw, int currentObject, int rendermode, int Selection_Mode, int update_colors, int update_uv, int elem);
+void render_quads_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw, int l, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem);
+void load_m_colors_object(object * O);
+
+void Materials_Thumbnail_render(camera * C, int width, int height, int subdLevel, int elem)
+{
+/*
+    if (SHADERS && SHADOWS)
+    {
+        if (Fan_Arrays_Shader || subdLevel > -1)
+        {
+            SceneShadowMap_render(C, width, height, subdLevel, ELEMENT_ARRAYS);
+        }
+    }
+*/
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+
+    gluPerspective(C->v_view * (180.0 / pi), 1.0, persp_Near, persp_Far);
+
+    gluLookAt(0.0, -0.5, 4.8, 0.0, -0.5, 3.0, C->T->rotVec_[1][0], C->T->rotVec_[1][1], C->T->rotVec_[1][2]);
+
+    glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, materialTexFBO);
+    glDrawBuffer(GL_COLOR_ATTACHMENT1);
+
+    glScissor(0, 0, width, height);
+    glViewport(0, 0, width, height);
+    glClearColor(0.8, 0.5, 0.3, 0.0);
+
+    int s;
+
+    object * O = objects[C->objects[0]];
+
+    //glActiveTexture(GL_TEXTURE0);
+
+    GLuint Texture;
+
+    int r;
+
+    //for (s = 0; s < Materials_count; s ++)
+
+    for (s = Materials_count - 1; s >= 0; s --)
+    {
+        Texture = Material_Textures[s];
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+                               GL_TEXTURE_2D, Texture, 0);
+
+        GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+        if( result == GL_FRAMEBUFFER_COMPLETE)
+        {
+            //printf("Framebuffer is complete.\n");
+            r = 1;
+        }
+        else
+        {
+            //printf("Framebuffer is not complete.\n");
+            r = 0;
+        }
+
+        if (r)
+        {
+            O->surface = s;
+            load_m_colors_object(O);
+
+            if (subdLevel == -1)
+                render_polys_OnScreen(C, 0, 0, 0, 0, POLY_RENDER, 0, 1, 0, elem);
+            else
+                render_quads_OnScreen(C, subdLevel, 0, 0, 1, 0, POLY_RENDER, 0, 1, 0, elem);
+
+            SDL_Surface * surface = Material_Thumbnail_Surfaces[s];
+
+            glBindTexture(GL_TEXTURE_2D, Material_Textures[s]);
+
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, surface->pixels);
+//            SDL_LockSurface(surface);
+//            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
+//            SDL_UnlockSurface(surface);
+        }
+    }
+
+    O->surface = 0;
+
+    glPopMatrix();
+
+    // Pass 2 (render)
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

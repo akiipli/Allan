@@ -846,4 +846,101 @@ int create_Glyph()
     return Textures_c;
 }
 
+void render_thumbnail(float x, float y, int m_index)
+{
+    //glDisable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	SDL_Surface * surface = Material_Thumbnail_Surfaces[m_index];
+	glBindTexture(GL_TEXTURE_2D, Material_Textures[m_index]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
+
+    point box[4] =
+    {{10, y + 5, 0, 1},
+     {25, y + 5, 1, 1},
+     {25, y - 10, 1, 0},
+     {10, y - 10, 0, 0}};
+
+    int e;
+
+    //glColor4ub(0, 0, 255, 255);
+
+    glBegin(GL_QUADS);
+    for (e = 0; e < 4; e ++)
+    {
+        glTexCoord2f(box[e].s, box[e].t);
+        glVertex2f(box[e].x, box[e].y);
+    }
+    glEnd();
+}
+
+void render_thumbnail_(float x, float y, int m_index)
+{
+    glActiveTexture(GL_TEXTURE0);
+    //glCallList(displayLists[Textures_c - 1]);
+	//glCallList(Material_Textures_Lists[m_index]);
+	SDL_Surface * surface = Material_Thumbnail_Surfaces[m_index];
+	glBindTexture(GL_TEXTURE_2D, Material_Textures[m_index]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
+
+	glUniform1i(uniform_tex1, 0);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_tex);
+	//glBufferSubData(GL_ARRAY_BUFFER, 0, 8 * sizeof(GLfloat), tex_coords);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_pos);
+    //glBufferSubData(GL_ARRAY_BUFFER, 0, 8 * sizeof(GLfloat), pos_coords);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+    memcpy(pos_coords,(GLfloat[8])
+    {10,  y + 5,
+     25,  y + 5,
+     25,  y - 10,
+     10,  y - 10}, sizeof pos_coords);
+
+    /* Draw the character on the screen */
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat[8]), pos_coords);
+    glDrawArrays(GL_QUADS, 0, 4);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+}
+
+void display_thumbnail_(float origin_x, float origin_y, int m_index, float color[4])
+{
+    glMatrixMode(GL_PROJECTION);
+
+    glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
+
+	glUseProgram(T_program[0]);
+
+	glUniform1i(uniform_tex0, 0);
+
+	glUniformMatrix4fv(uniform_proj1, 1, GL_FALSE, projectionMatrix);
+
+	glUniform4fv(uniform_color0, 1, color);
+
+	render_thumbnail_(origin_x, origin_y, m_index);
+
+	glUseProgram(0);
+}
+
+void draw_thumbnail(int origin_x, int origin_y, int m_index)
+{
+    if (SHADERS)
+    {
+        float color[4];
+        glGetFloatv(GL_CURRENT_COLOR, color);
+        display_thumbnail_(origin_x, origin_y, m_index, color);
+    }
+    else
+    {
+        render_thumbnail(origin_x, origin_y, m_index);
+    }
+}
+
 #endif // IMAGELOAD_H_INCLUDED
