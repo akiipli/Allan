@@ -5770,6 +5770,78 @@ void fill_in_VertCoords_Fan(camera * C, int E)
     }
 }
 
+void fill_in_VertCoords_quads_Object_Thumb(object * O, int l, int E)
+{
+    int e, q, v, idx, L;
+
+    quadrant * Q;
+    vertex * V;
+    uv * UV;
+
+    if (l > O->subdlevel)
+    {
+        L = O->subdlevel;
+    }
+    else
+    {
+        L = l;
+    }
+    if (O->vertex_arrays[L])
+    {
+        int v_c = 0;
+        int n_c = 0;
+        //int t_a = 0;
+
+        if (E)
+        {
+            for (v = 0; v < O->textcount_[L]; v ++)
+            {
+                UV = &O->uvtex_[L][v / ARRAYSIZE][v % ARRAYSIZE];
+
+                idx = UV->vert;
+                V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                O->vert_array_[L][1][v_c++] = V->x;
+                O->vert_array_[L][1][v_c++] = V->y;
+                O->vert_array_[L][1][v_c++] = V->z;
+                O->norm_array_[L][1][n_c++] = V->N.x;
+                O->norm_array_[L][1][n_c++] = V->N.y;
+                O->norm_array_[L][1][n_c++] = V->N.z;
+//                O->tang_array_[L][1][t_a++] = UV->tangent[0];
+//                O->tang_array_[L][1][t_a++] = UV->tangent[1];
+//                O->tang_array_[L][1][t_a++] = UV->tangent[2];
+//                O->tang_array_[L][1][t_a++] = UV->tangent[3];
+            }
+        }
+        else
+        {
+            for (q = 0; q < O->quadcount_[L]; q++)
+            {
+                Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
+
+                for (e = 0; e < 4; e ++)
+                {
+                    idx = Q->verts[e];
+                    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    idx = Q->texts[e];
+                    UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    O->vert_array_[L][0][v_c++] = V->x;
+                    O->vert_array_[L][0][v_c++] = V->y;
+                    O->vert_array_[L][0][v_c++] = V->z;
+                    O->norm_array_[L][0][n_c++] = V->N.x;
+                    O->norm_array_[L][0][n_c++] = V->N.y;
+                    O->norm_array_[L][0][n_c++] = V->N.z;
+    //                    O->text_array_[L][t_c++] = UV->u;
+    //                    O->text_array_[L][t_c++] = UV->v;
+//                    O->tang_array_[L][0][t_a++] = UV->tangent[0];
+//                    O->tang_array_[L][0][t_a++] = UV->tangent[1];
+//                    O->tang_array_[L][0][t_a++] = UV->tangent[2];
+//                    O->tang_array_[L][0][t_a++] = UV->tangent[3];
+                }
+            }
+        }
+    }
+}
+
 void fill_in_VertCoords_quads_Object(object * O, int l, int E)
 {
     int e, q, v, idx, L;

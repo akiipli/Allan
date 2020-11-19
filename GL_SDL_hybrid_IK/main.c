@@ -4763,15 +4763,15 @@ void render_Thumbnails()
     subdLevel_mem = subdLevel;
     subdLevel = 1;
 
-    float Pos[3];
+//    float Pos[3];
+//
+//    Pos[0] = O->T->pos[0];
+//    Pos[1] = O->T->pos[1];
+//    Pos[2] = O->T->pos[2];
+//
+//    move_verts_(O, 0, 0, 0, subdLevel);
 
-    Pos[0] = O->T->pos[0];
-    Pos[1] = O->T->pos[1];
-    Pos[2] = O->T->pos[2];
-
-    move_verts_(O, 0, 0, 0, subdLevel);
-
-    fill_in_VertCoords_quads_Object(O, subdLevel, ELEMENT_ARRAYS);
+    fill_in_VertCoords_quads_Object_Thumb(O, subdLevel, ELEMENT_ARRAYS);
 
     camera * Ct = cameras[4];
     Ct->objects[0] = 0;
@@ -4779,7 +4779,9 @@ void render_Thumbnails()
 
     Materials_Thumbnail_render(Ct, Material_Thumbnail_width, Material_Thumbnail_height, subdLevel, ELEMENT_ARRAYS);
 
-    move_verts_(O, Pos[0], Pos[1], Pos[2], subdLevel);
+//    move_verts_(O, Pos[0], Pos[1], Pos[2], subdLevel);
+
+    update_camera(Camera, CamDist);
 
     subdLevel = subdLevel_mem;
 }
