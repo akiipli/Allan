@@ -4771,6 +4771,8 @@ void render_Thumbnails()
 
     move_verts_(O, 0, 0, 0, subdLevel);
 
+    fill_in_VertCoords_quads_Object(O, subdLevel, ELEMENT_ARRAYS);
+
     camera * Ct = cameras[4];
     Ct->objects[0] = 0;
     Ct->object_count = 1;

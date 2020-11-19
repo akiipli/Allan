@@ -374,7 +374,7 @@ void Materials_Thumbnail_render(camera * C, int width, int height, int subdLevel
 
     gluPerspective(C->v_view * (180.0 / pi), 1.0, persp_Near, persp_Far);
 
-    gluLookAt(0.0, -0.5, 4.8, 0.0, -0.5, 3.0, C->T->rotVec_[1][0], C->T->rotVec_[1][1], C->T->rotVec_[1][2]);
+    gluLookAt(0.0, 0.0, 1.5, 0.0, 0.0, 0.0, C->T->rotVec_[1][0], C->T->rotVec_[1][1], C->T->rotVec_[1][2]);
 
     glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
 
