@@ -689,10 +689,10 @@ int init()
         SHADOWS = setupFBO();
         if (SHADOWS)
             setMatrices();
-
-        THUMBNAILS = setup_Material_Thumbnail_FBO();
-        printf("THUMBNAILS %d\n", THUMBNAILS);
     }
+
+    THUMBNAILS = setup_Material_Thumbnail_FBO();
+    printf("THUMBNAILS %d\n", THUMBNAILS);
 
     if (!fonts_on) quit_app(0);
     printf("fonts on %d\n", fonts_on);
