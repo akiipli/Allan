@@ -4777,11 +4777,17 @@ void render_Thumbnails()
     Ct->objects[0] = 0;
     Ct->object_count = 1;
 
+    update_Light(Light_Themes[0]);
+    init_lights();
+
     Materials_Thumbnail_render(Ct, Material_Thumbnail_width, Material_Thumbnail_height, subdLevel, ELEMENT_ARRAYS);
 
 //    move_verts_(O, Pos[0], Pos[1], Pos[2], subdLevel);
 
     update_camera(Camera, CamDist);
+
+    update_Light(Light_Themes[currentTheme]);
+    init_lights();
 
     subdLevel = subdLevel_mem;
 }
