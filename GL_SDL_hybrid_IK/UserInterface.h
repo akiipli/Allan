@@ -315,7 +315,9 @@ GLfloat grayd[4] = {0.5, 0.5, 0.5, 1};
 GLfloat yelld[4] = {1, 1, 0.0, 1};
 GLfloat backg[4] = {0.7, 0.4, 0.2, 1};
 GLfloat black[4] = {0.5, 0.2, 0.0, 1};
+GLfloat blacs[4] = {1, 0.7, 0.5, 1};
 GLfloat backl[4] = {1, 0.7, 0.4, 1};
+GLfloat backs[4] = {1, 1, 0.9, 1};
 GLfloat dimsl[4] = {0.7, 0.8, 0.5, 1};
 GLfloat backg_semitransparent[4] = {0.7, 0.4, 0.2, 0.1};
 GLfloat grayb_transparent[4] = {1, 0.5, 0.5, 0.1};
@@ -1372,6 +1374,7 @@ void draw_Button_material_text(const char * text, int width, int height, int ind
         glColor4fv(buttoncolors[UI_BLACK].color);
 
     draw_text(text, origin_x, origin_y, font_height, 0);
+
     draw_thumbnail(origin_x, origin_y, m_index);
 }
 

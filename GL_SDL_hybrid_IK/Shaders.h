@@ -10,7 +10,7 @@ GLint uniform_proj0, uniform_proj1, uniform_proj2, uniform_proj3, uniform_proj4,
 GLuint vs[SHADERS_NUM];
 GLuint fs[SHADERS_NUM];
 
-GLuint vbo_tex, vbo_pos;
+GLuint vbo_tex, vbo_tex_r, vbo_pos;
 GLfloat projectionMatrix[16];
 float pM[4][4];
 
@@ -128,6 +128,7 @@ void delete_Shaders()
 
 GLfloat pos_coords[8] = {0, 1, 1, 1, 1, 0, 0, 0};
 GLfloat tex_coords[8] = {0, 1, 1, 1, 1, 0, 0, 0};
+GLfloat tex_coords_r[8] = {0, 0, 1, 0, 1, 1, 0, 1};
 
 int init_shaders_()
 {
@@ -422,10 +423,14 @@ int init_shaders_()
 
 	// Create the vertex buffer object
 	glGenBuffers(1, &vbo_tex);
+	glGenBuffers(1, &vbo_tex_r);
 	glGenBuffers(1, &vbo_pos);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_tex);
     glBufferData(GL_ARRAY_BUFFER, sizeof tex_coords, tex_coords, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_tex_r);
+    glBufferData(GL_ARRAY_BUFFER, sizeof tex_coords_r, tex_coords_r, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_pos);
     glBufferData(GL_ARRAY_BUFFER, sizeof pos_coords, pos_coords, GL_DYNAMIC_DRAW);

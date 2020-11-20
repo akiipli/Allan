@@ -856,10 +856,10 @@ void render_thumbnail(float x, float y, int m_index)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
 
     point box[4] =
-    {{10, y + 5, 0, 1},
-     {25, y + 5, 1, 1},
-     {25, y - 10, 1, 0},
-     {10, y - 10, 0, 0}};
+    {{10, y + 5,  0, 0},
+     {25, y + 5,  1, 0},
+     {25, y - 10, 1, 1},
+     {10, y - 10, 0, 1}};
 
     int e;
 
@@ -888,7 +888,7 @@ void render_thumbnail_(float x, float y, int m_index)
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_tex);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_tex_r);
 	//glBufferSubData(GL_ARRAY_BUFFER, 0, 8 * sizeof(GLfloat), tex_coords);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 

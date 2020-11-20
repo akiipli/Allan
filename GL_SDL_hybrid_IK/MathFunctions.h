@@ -623,4 +623,11 @@ void mean_Edge_Length(object * O)
     }
 }
 
+float clamp(float v, float min1, float max1)
+{
+    if (v < min1) return min1;
+    if (v > max1) return max1;
+    return v;
+}
+
 #endif // MATHFUNCTIONS_H_INCLUDED
