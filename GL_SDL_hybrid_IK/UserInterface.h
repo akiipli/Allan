@@ -25,6 +25,7 @@ Copyright <2018> <Allan Kiipli>
 #define MIN_DIALOG_HEIGHT 270
 int DIALOG_WIDTH = 460;
 int DIALOG_HEIGHT = 270;
+#define DRAG_CORNER_WIDTH 20
 
 #define UI_WHITE 0
 #define UI_GRAYB 1
@@ -994,6 +995,38 @@ void draw_Rectangle(float corner[8], int quads)
         glVertex2f(corner[6], corner[7]);
         glEnd();
     }
+}
+
+void draw_Corner_Drag_Button(int width, int height)
+{
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+    glScissor(SIDEBAR + DIALOG_WIDTH - width, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glViewport(SIDEBAR + DIALOG_WIDTH - width, height - DIALOG_HEIGHT + BOTTOM_LINE, width, BUTTON_HEIGHT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, width, BOTTOM_LINE, 0, 1, -1);
+
+    glColor4fv(black);
+
+    glEnable(GL_POLYGON_STIPPLE);
+
+    draw_Rectangle((float[8]){1, 1,
+        1, BUTTON_HEIGHT - 1,
+        width - 1, BUTTON_HEIGHT - 1,
+        width - 1, 1}, QUADS);
+
+    glDisable(GL_POLYGON_STIPPLE);
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
 }
 
 void draw_Button_subcharacter_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int frame_selection)
@@ -3170,6 +3203,8 @@ void draw_Textures_Dialog(const char * text, int s_height, char * Text, char ** 
 	glPopMatrix();
 
 	draw_Textures_Bottom_Line(d_width, s_height);
+
+	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Materials_Bottom_Line(int width, int height)
@@ -3250,6 +3285,7 @@ void draw_Materials_Dialog(const char * text, int s_height, int materials_start,
 	glPopMatrix();
 
 	draw_Materials_Bottom_Line(d_width, s_height);
+	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Items_Bottom_Line(int width, int height)
@@ -3334,6 +3370,8 @@ void draw_Items_Dialog(const char * text, int s_height, char * item_type, char *
 	glPopMatrix();
 
 	draw_Items_Bottom_Line(d_width, s_height);
+
+	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Subcharacter_Bottom_Line(int width, int height)
@@ -3660,6 +3698,8 @@ void draw_Subcharacters_Dialog(const char * text, int s_height,
 	glPopMatrix();
 
     draw_Subcharacter_Bottom_Line(d_width, s_height);
+
+    draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_IK_Dialog(const char * text, int s_height,
@@ -3714,6 +3754,8 @@ void draw_IK_Dialog(const char * text, int s_height,
 	glPopMatrix();
 
     draw_IK_Bottom_Line(d_width, s_height);
+
+    draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Bones_Dialog(const char * text, int s_height,
@@ -3768,6 +3810,7 @@ void draw_Bones_Dialog(const char * text, int s_height,
 	glPopMatrix();
 
     draw_Bones_Bottom_Line(d_width, s_height);
+    draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Poses_Dialog(const char * text, int s_height,
@@ -3822,6 +3865,8 @@ void draw_Poses_Dialog(const char * text, int s_height,
 	glPopMatrix();
 
     draw_Poses_Bottom_Line(d_width, s_height);
+
+    draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Deformers_Dialog(const char * text, int s_height,
@@ -3900,6 +3945,8 @@ void draw_Deformers_Dialog(const char * text, int s_height,
         else if (strcmp(defr_type, "selections") == 0)
             draw_Selections_Bottom_Line(d_width, s_height);
     }
+
+    draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Hierarchys_Dialog(const char * text, int s_height, int transformers_start, int clear_background, int current_trans, int selection_rectangle)
@@ -3955,6 +4002,8 @@ void draw_Hierarchys_Dialog(const char * text, int s_height, int transformers_st
 	glPopMatrix();
 
 	draw_Hierarchys_Bottom_Line(d_width, s_height);
+
+	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Selections_Dialog(const char * text, int s_height, char * sel_type, char ** sel_types, int sel_type_count,
@@ -4017,6 +4066,8 @@ void draw_Selections_Dialog(const char * text, int s_height, char * sel_type, ch
 	glPopMatrix();
 
 	draw_Selections_Bottom_Line(d_width, s_height);
+
+	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Loading_Dialog(char * path, const char * text, int s_height, char * ext, char ** extensions, int ext_count, int files_start, int clear_background, int update, int Edit_Lock)
@@ -4122,6 +4173,8 @@ void draw_Loading_Dialog(char * path, const char * text, int s_height, char * ex
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
+
+	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Saves_Dialog(char * path, const char * text, int s_height, char * ext, char ** extensions, int ext_count, int files_start, int clear_background, int update, int Edit_Lock)
@@ -4228,6 +4281,8 @@ void draw_Saves_Dialog(char * path, const char * text, int s_height, char * ext,
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
+
+	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Files_Dialog(char * path, const char * text, int s_height, char * ext, char ** extensions, int ext_count, int files_start, int clear_background, int update, int Edit_Lock)
@@ -4289,6 +4344,8 @@ void draw_Files_Dialog(char * path, const char * text, int s_height, char * ext,
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
+
+	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
 }
 
 void draw_Bottom_Line(int width, int height)
@@ -4408,7 +4465,7 @@ void draw_UI_elements(int width, int height)
     }
     else
     {
-        Func_Marker += 9;
+        Func_Marker += 10;
     }
     draw_Collapsed("Files", width, UI_FILES, Sidebar_Marker);
     Button_sidebar[Sidebar_Marker].func = SideBar[Func_Marker];

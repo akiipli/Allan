@@ -52,6 +52,7 @@ look for CUBECOMMENT
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include "UserInterface.h"
+#include "Properties.h"
 #include "Items.h"
 #include "IKSolution.h"
 #include "Deformer.h"
@@ -4831,6 +4832,11 @@ void open_Materials_List()
 
     draw_Materials_Dialog("Materials L.", screen_height, materials_start, 1, currentMaterial - materials_start, selection_rectangle);
 
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        draw_Properties(Materials[currentMaterial].Name, screen_height, 1);
+    }
+
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
     message = 0;
@@ -4884,6 +4890,11 @@ void open_Items_List()
     UPDATE_COLORS = 0;
 
     draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, currentItem, selection_rectangle);
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        draw_Properties(items[currentItem]->Name, screen_height, 1);
+    }
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -5369,6 +5380,12 @@ void update_Items_List(int update, int blit)
         draw_Items_List(screen_height, item_start, item_type, 0, ItemIndex - item_start, selection_rectangle);
         draw_Items_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        draw_Properties(items[currentItem]->Name, screen_height, 1);
+    }
+
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -5393,6 +5410,12 @@ void update_Materials_List(int update, int blit)
         draw_Materials_List(screen_height, materials_start, 1, currentMaterial - materials_start, selection_rectangle);
         //draw_Selections_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        draw_Properties(Materials[currentMaterial].Name, screen_height, 1);
+    }
+
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -12810,7 +12833,7 @@ int main(int argc, char * args[])
                         else if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && mouse_y > DIALOG_HEIGHT - BUTTON_HEIGHT && mouse_y < DIALOG_HEIGHT)
                         {
                             int h_index;
-                            if (mouse_x > SIDEBAR + DIALOG_WIDTH - 20 && mouse_x < SIDEBAR + DIALOG_WIDTH)
+                            if (mouse_x > SIDEBAR + DIALOG_WIDTH - DRAG_CORNER_WIDTH && mouse_x < SIDEBAR + DIALOG_WIDTH)
                             {
                                 Drag_Dialog = 1;
                             }
@@ -12818,7 +12841,7 @@ int main(int argc, char * args[])
                             {
                                 if (!Edit_Lock)
                                 {
-                                    if (mouse_x > SIDEBAR + DIALOG_WIDTH - BUTTON_WIDTH_MEDIUM - 20 && mouse_x <= SIDEBAR + DIALOG_WIDTH - 20)
+                                    if (mouse_x > SIDEBAR + DIALOG_WIDTH - BUTTON_WIDTH_MEDIUM - 20 && mouse_x <= SIDEBAR + DIALOG_WIDTH - DRAG_CORNER_WIDTH)
                                     {
                                         (*Button_h_scen[0].func)();
                                     }
@@ -12832,7 +12855,7 @@ int main(int argc, char * args[])
                             {
                                 if (!Edit_Lock)
                                 {
-                                    if (mouse_x > SIDEBAR + DIALOG_WIDTH - BUTTON_WIDTH_MEDIUM - 20 && mouse_x <= SIDEBAR + DIALOG_WIDTH - 20)
+                                    if (mouse_x > SIDEBAR + DIALOG_WIDTH - BUTTON_WIDTH_MEDIUM - 20 && mouse_x <= SIDEBAR + DIALOG_WIDTH - DRAG_CORNER_WIDTH)
                                     {
                                         (*Button_h_scen[0].func)();
                                     }
@@ -13402,15 +13425,19 @@ int main(int argc, char * args[])
                     {
                         DIALOG_HEIGHT = MIN_DIALOG_HEIGHT;
                     }
+                    if (DIALOG_WIDTH < MIN_DIALOG_WIDTH)
+                    {
+                        DIALOG_WIDTH = MIN_DIALOG_WIDTH;
+                    }
+                    if (DIALOG_HEIGHT > screen_height - MIN_PROPERTIES_HEIGHT)
+                    {
+                        DIALOG_HEIGHT = screen_height - MIN_PROPERTIES_HEIGHT;
+                    }
                     LISTLENGTH = DIALOG_HEIGHT / BUTTON_HEIGHT - 1;
                     if (LISTLENGTH > MAX_LISTLENGTH)
                     {
                         LISTLENGTH = MAX_LISTLENGTH;
                         DIALOG_HEIGHT = LISTLENGTH * BUTTON_HEIGHT + 1;
-                    }
-                    if (DIALOG_WIDTH < MIN_DIALOG_WIDTH)
-                    {
-                        DIALOG_WIDTH = MIN_DIALOG_WIDTH;
                     }
                     draw_Dialog();
                 }
