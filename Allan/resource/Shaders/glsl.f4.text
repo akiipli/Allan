@@ -129,11 +129,15 @@ void shadeWithShadow()
         fog_intensity = max(min((Position.z - fog.min_Dist) / fog.Distance, 1.0), 0);
         if (Night)
         {
-            color = Intensity * vec3(texture2D(tex, In.texpos) * In.Color) * In.Ambient;
+            color = vec3(texture2D(tex, In.texpos) * In.Color) * In.Ambient;
+            color *= Intensity;
+            color += Intensity / 4;
         }
         else
         {
-            color = Intensity * min(vec3(texture2D(tex, In.texpos) * In.Color), 1.0);
+            color = min(vec3(texture2D(tex, In.texpos) * In.Color), 1.0);
+            color *= Intensity;
+            color += Intensity / 4;
         }
         shadow = min(shadow + 0.5, 1);
         shadowcolor = (1 - In.Ambient) * shadow + In.Ambient * (1 - shadow);
