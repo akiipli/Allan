@@ -5816,9 +5816,13 @@ void deformer_Player()
     init_Hint();
 
     if (subdLevel > -1)
-    load_id_colors_No_Surface(Camera, subdLevel);
+    {
+        load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
+    }
     else
-    load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+    {
+        load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+    }
 
     UPDATE_COLORS = 1;
 
