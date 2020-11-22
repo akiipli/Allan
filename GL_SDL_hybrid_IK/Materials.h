@@ -9,13 +9,30 @@ Copyright <2018> <Allan Kiipli>
 
 typedef struct
 {
+    union
+    {
+        float Color[4];
+        struct
+        {
+            float R;
+            float G;
+            float B;
+            float A;
+        };
+    };
+}
+color;
+
+typedef struct
+{
     int index;
     int smooth;
     char Name[STRLEN];
     int texture;
     int Texture_idx;
     int use_texture;
-    float R, G, B, A;
+    //float R, G, B, A;
+    color RGBA;
     float Shininess;
     float Displacement;
     int normal;
@@ -53,10 +70,10 @@ int init_Material(int index)
     M->Normal_idx = 0; // index in normalsLists for glCallList
     M->Bump_idx = 0; // index in bumpsLists for glCallList
     M->use_texture = 0;
-    M->R = 255;
-    M->G = 255;
-    M->B = 255;
-    M->A = 255;
+    M->RGBA.R = 255;
+    M->RGBA.G = 255;
+    M->RGBA.B = 255;
+    M->RGBA.A = 255;
     M->Shininess = 2;
     return i;
 }

@@ -979,7 +979,7 @@ int read_Surfaces_file(char * fileName, int obj_count)
 
                 fgets(buff, BUF_SIZE, fp);
 
-                sscanf(buff, "%f %f %f %f %f %d %d %d %d %f", &M->R, &M->G, &M->B, &M->A, &M->Shininess, &M->normal, &M->Normal_idx, &M->bump, &M->Bump_idx, &M->Displacement);
+                sscanf(buff, "%f %f %f %f %f %d %d %d %d %f", &M->RGBA.R, &M->RGBA.G, &M->RGBA.B, &M->RGBA.A, &M->Shininess, &M->normal, &M->Normal_idx, &M->bump, &M->Bump_idx, &M->Displacement);
 
                 if (normsrf != NULL)
                 {

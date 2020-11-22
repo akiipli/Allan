@@ -33,6 +33,8 @@ for objects.
 #define TYPE_CAMERA 2
 #define TYPE_LIGHT  3
 
+void * Type;
+
 char item_type[TYPE_LENGTH];
 char * item_types[ITEM_NUM];
 int item_types_c = 3;

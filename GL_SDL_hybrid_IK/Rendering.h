@@ -457,10 +457,10 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
                     }
                     else
                     {
-                        r = Material.R;
-                        g = Material.G;
-                        b = Material.B;
-                        a = Material.A;
+                        r = Material.RGBA.R;
+                        g = Material.RGBA.G;
+                        b = Material.RGBA.B;
+                        a = Material.RGBA.A;
                         normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
                     }
                     if (Material.smooth)
@@ -674,10 +674,10 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
                     }
                     else
                     {
-                        r = Material.R;
-                        g = Material.G;
-                        b = Material.B;
-                        a = Material.A;
+                        r = Material.RGBA.R;
+                        g = Material.RGBA.G;
+                        b = Material.RGBA.B;
+                        a = Material.RGBA.A;
                         normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
                     }
                     if (Material.smooth)
@@ -1021,10 +1021,10 @@ void load_m_colors_object(object * O)
     id_color * I;
     id_color I0;
 
-    I0.R = Materials[O->surface].R / 255;
-    I0.G = Materials[O->surface].G / 255;
-    I0.B = Materials[O->surface].B / 255;
-    I0.A = Materials[O->surface].A / 255;
+    I0.R = Materials[O->surface].RGBA.R / 255;
+    I0.G = Materials[O->surface].RGBA.G / 255;
+    I0.B = Materials[O->surface].RGBA.B / 255;
+    I0.A = Materials[O->surface].RGBA.A / 255;
 
     I = &I0;
 
@@ -1100,10 +1100,10 @@ void load_id_colors_polygon(object * O, polygon * P, int mode)
         }
         else
         {
-            I0.R = Materials[P->surface].R / 255;
-            I0.G = Materials[P->surface].G / 255;
-            I0.B = Materials[P->surface].B / 255;
-            I0.A = Materials[P->surface].A / 255;
+            I0.R = Materials[P->surface].RGBA.R / 255;
+            I0.G = Materials[P->surface].RGBA.G / 255;
+            I0.B = Materials[P->surface].RGBA.B / 255;
+            I0.A = Materials[P->surface].RGBA.A / 255;
         }
 
         I = &I0;
@@ -2253,10 +2253,10 @@ void render_trips_OnScreen_(camera * C, int wireframe, int edgedraw, int vertdra
             }
             else
             {
-                r = Material.R;
-                g = Material.G;
-                b = Material.B;
-                a = Material.A;
+                r = Material.RGBA.R;
+                g = Material.RGBA.G;
+                b = Material.RGBA.B;
+                a = Material.RGBA.A;
             }
 
             dot_light = dot_productN(&polynormal, light_vec);
@@ -2618,10 +2618,10 @@ void render_trips_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw
             }
             else
             {
-                r = Material.R;
-                g = Material.G;
-                b = Material.B;
-                a = Material.A;
+                r = Material.RGBA.R;
+                g = Material.RGBA.G;
+                b = Material.RGBA.B;
+                a = Material.RGBA.A;
             }
 
             dot_light = dot_productN(&polynormal, light_vec);
@@ -4664,10 +4664,10 @@ void render_polys_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw
                 idx = P->surface;
                 Material = Materials[idx];
 
-                r = Material.R;
-                g = Material.G;
-                b = Material.B;
-                a = Material.A;
+                r = Material.RGBA.R;
+                g = Material.RGBA.G;
+                b = Material.RGBA.B;
+                a = Material.RGBA.A;
 
                 if (rendermode == ID_RENDER)
                 {
@@ -4926,10 +4926,10 @@ void load_id_colors_Fan_current(object * O, int mode)
                 }
                 else
                 {
-                    R = Materials[P->surface].R / 255;
-                    G = Materials[P->surface].G / 255;
-                    B = Materials[P->surface].B / 255;
-                    A = Materials[P->surface].A / 255;
+                    R = Materials[P->surface].RGBA.R / 255;
+                    G = Materials[P->surface].RGBA.G / 255;
+                    B = Materials[P->surface].RGBA.B / 255;
+                    A = Materials[P->surface].RGBA.A / 255;
                 }
             }
 
@@ -5028,10 +5028,10 @@ void load_id_colors_Fan_all(camera * C, int mode)
                     }
                     else
                     {
-                        R = Materials[P->surface].R / 255;
-                        G = Materials[P->surface].G / 255;
-                        B = Materials[P->surface].B / 255;
-                        A = Materials[P->surface].A / 255;
+                        R = Materials[P->surface].RGBA.R / 255;
+                        G = Materials[P->surface].RGBA.G / 255;
+                        B = Materials[P->surface].RGBA.B / 255;
+                        A = Materials[P->surface].RGBA.A / 255;
                     }
                 }
 
@@ -5133,10 +5133,10 @@ void load_id_colors_Fan(int * Objects, int Objects_count, int mode)
                     }
                     else
                     {
-                        R = Materials[P->surface].R / 255;
-                        G = Materials[P->surface].G / 255;
-                        B = Materials[P->surface].B / 255;
-                        A = Materials[P->surface].A / 255;
+                        R = Materials[P->surface].RGBA.R / 255;
+                        G = Materials[P->surface].RGBA.G / 255;
+                        B = Materials[P->surface].RGBA.B / 255;
+                        A = Materials[P->surface].RGBA.A / 255;
                     }
                 }
 
@@ -5213,10 +5213,10 @@ void load_id_colors_No_Surface(camera * C, int l)
                 }
                 else
                 {
-                    R = Materials[Q->surface].R / 255;
-                    G = Materials[Q->surface].G / 255;
-                    B = Materials[Q->surface].B / 255;
-                    A = Materials[Q->surface].R / 255;
+                    R = Materials[Q->surface].RGBA.R / 255;
+                    G = Materials[Q->surface].RGBA.G / 255;
+                    B = Materials[Q->surface].RGBA.B / 255;
+                    A = Materials[Q->surface].RGBA.R / 255;
                 }
 
 //                if (E)
@@ -5312,10 +5312,10 @@ void load_id_colors_current(object * O, int l, int mode)
                 }
                 else
                 {
-                    R = Materials[Q->surface].R / 255;
-                    G = Materials[Q->surface].G / 255;
-                    B = Materials[Q->surface].B / 255;
-                    A = Materials[Q->surface].A / 255;
+                    R = Materials[Q->surface].RGBA.R / 255;
+                    G = Materials[Q->surface].RGBA.G / 255;
+                    B = Materials[Q->surface].RGBA.B / 255;
+                    A = Materials[Q->surface].RGBA.A / 255;
                 }
             }
 
@@ -5418,10 +5418,10 @@ void load_id_colors_all(camera * C, int l, int mode)
                     }
                     else
                     {
-                        R = Materials[Q->surface].R / 255;
-                        G = Materials[Q->surface].G / 255;
-                        B = Materials[Q->surface].B / 255;
-                        A = Materials[Q->surface].A / 255;
+                        R = Materials[Q->surface].RGBA.R / 255;
+                        G = Materials[Q->surface].RGBA.G / 255;
+                        B = Materials[Q->surface].RGBA.B / 255;
+                        A = Materials[Q->surface].RGBA.A / 255;
                     }
                 }
 
@@ -5597,10 +5597,10 @@ void load_id_colors(int * Objects, int Objects_count, int l, int mode)
                     }
                     else
                     {
-                        R = Materials[Q->surface].R / 255;
-                        G = Materials[Q->surface].G / 255;
-                        B = Materials[Q->surface].B / 255;
-                        A = Materials[Q->surface].A / 255;
+                        R = Materials[Q->surface].RGBA.R / 255;
+                        G = Materials[Q->surface].RGBA.G / 255;
+                        B = Materials[Q->surface].RGBA.B / 255;
+                        A = Materials[Q->surface].RGBA.A / 255;
                     }
                 }
 //                if (E)
@@ -6434,10 +6434,10 @@ void render_quads_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw
                 idx = Q->surface;
                 Material = Materials[idx];
 
-                r = Material.R;
-                g = Material.G;
-                b = Material.B;
-                a = Material.A;
+                r = Material.RGBA.R;
+                g = Material.RGBA.G;
+                b = Material.RGBA.B;
+                a = Material.RGBA.A;
 
                 glColor4ub(r, g, b, a); // this call maybe can effect if fragments are implemented to blend it in.
 

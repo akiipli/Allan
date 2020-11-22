@@ -52,6 +52,7 @@ look for CUBECOMMENT
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include "UserInterface.h"
+#include "Materials.h"
 #include "Properties.h"
 #include "Items.h"
 #include "IKSolution.h"
@@ -61,7 +62,7 @@ look for CUBECOMMENT
 #include "Subcharacters.h"
 #include "Shaders.h"
 #include "File_IO.h"
-#include "Materials.h"
+
 #include "ImageLoad.h"
 #include "MathFunctions.h"
 #include "Cameras.h"
@@ -4100,6 +4101,10 @@ void open_OBJ(char * fileName)
 
             deselect_Objects();
 
+            objects[currentObject]->selected = 1;
+
+            assert_Object_Selection();
+
             subdLevel = -1;
         }
     }
@@ -4807,10 +4812,14 @@ void black_out_MaterialsList()
 
 void open_Materials_List()
 {
+    Type = &Materials[currentMaterial];
+
     render_Thumbnails();
 
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_MATERIAL;
 
     if (Bottom_Message)
     {
@@ -4834,7 +4843,7 @@ void open_Materials_List()
 
     if (DIALOG_HEIGHT < screen_height)
     {
-        draw_Properties(Materials[currentMaterial].Name, screen_height, 1);
+        draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES_MATERIAL, Type);
     }
 
     glDrawBuffer(GL_BACK);
@@ -4864,11 +4873,19 @@ void open_Items_List()
         create_Items_List(1);
         currentItem = currentObject;
         ItemIndex = currentItem;
+        PROPERTIES = PROPERTIES_OBJECT;
+        Type = objects[currentObject];
     }
     else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
+    {
         create_Items_List(2);
-    else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
+        PROPERTIES = PROPERTIES_CAMERA;
+    }
+    else if (strcmp(item_type, ITEM_TYPE_LIGHT) == 0)
+    {
         create_Items_List(3);
+        PROPERTIES = PROPERTIES_LIGHT;
+    }
 
     if (Bottom_Message)
     {
@@ -4893,7 +4910,7 @@ void open_Items_List()
 
     if (DIALOG_HEIGHT < screen_height)
     {
-        draw_Properties(items[currentItem]->Name, screen_height, 1);
+        draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
     }
 
     glDrawBuffer(GL_BACK);
@@ -5359,6 +5376,19 @@ void update_Textures_List()
 
 void update_Items_List(int update, int blit)
 {
+    if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
+    {
+        Type = objects[currentObject];
+    }
+    else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
+    {
+
+    }
+    else if (strcmp(item_type, ITEM_TYPE_LIGHT) == 0)
+    {
+
+    }
+
     black_out_ItemsList();
 
     DRAW_UI = 0;
@@ -5383,7 +5413,7 @@ void update_Items_List(int update, int blit)
 
     if (DIALOG_HEIGHT < screen_height)
     {
-        draw_Properties(items[currentItem]->Name, screen_height, 1);
+        draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
     }
 
     SDL_GL_SwapBuffers();
@@ -5392,6 +5422,8 @@ void update_Items_List(int update, int blit)
 
 void update_Materials_List(int update, int blit)
 {
+    Type = &Materials[currentMaterial];
+
     if (currentMaterial - materials_start >= 0)
         MatrList[currentMaterial - materials_start].color = UI_BACKL;
 
@@ -5413,7 +5445,7 @@ void update_Materials_List(int update, int blit)
 
     if (DIALOG_HEIGHT < screen_height)
     {
-        draw_Properties(Materials[currentMaterial].Name, screen_height, 1);
+        draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
     }
 
     SDL_GL_SwapBuffers();
@@ -9836,10 +9868,10 @@ void select_Locator_Selections(int currentLocator)
                 }
                 else
                 {
-                    I0.R = Materials[P->surface].R / 255;
-                    I0.G = Materials[P->surface].G / 255;
-                    I0.B = Materials[P->surface].B / 255;
-                    I0.A = Materials[P->surface].A / 255;
+                    I0.R = Materials[P->surface].RGBA.R / 255;
+                    I0.G = Materials[P->surface].RGBA.G / 255;
+                    I0.B = Materials[P->surface].RGBA.B / 255;
+                    I0.A = Materials[P->surface].RGBA.A / 255;
                 }
 
                 if (ELEMENT_ARRAYS)
@@ -11147,7 +11179,12 @@ void save_load_Scene()
 
             assert_Deformers_Selected();
 
-            //poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+            load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+            fill_in_VertCoords_Fan(Camera, ELEMENT_ARRAYS);
+
+            UPDATE_COLORS = 1;
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+            UPDATE_COLORS = 0;
 
             dialog_lock = 0;
             Osd = 1;
@@ -12197,6 +12234,10 @@ int main(int argc, char * args[])
                         edgeWeights = 0;
                     }
 
+                    if (Drag_Color)
+                    {
+                        Drag_Color = 0;
+                    }
                     if (Drag_Dialog)
                     {
                         Drag_Dialog = 0;
@@ -12990,6 +13031,41 @@ int main(int argc, char * args[])
                                 }
                             }
                         }
+
+                        /* Properties panel */
+
+                        else if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && mouse_y > DIALOG_HEIGHT && mouse_y < screen_height)
+                        {
+                            int h_index;
+                            if (dialog_type == MATERIAL_DIALOG)
+                            {
+                                h_index = (mouse_x - SIDEBAR * 2) / TABULATOR;
+                                if (!Drag_Color && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT)
+                                {
+                                    Drag_X = mouse_x;
+                                    if (h_index == 1)
+                                    {
+                                        Color_Component = 0;
+                                        Drag_Color = 1;
+                                    }
+                                    else if (h_index == 2)
+                                    {
+                                        Color_Component = 1;
+                                        Drag_Color = 1;
+                                    }
+                                    else if (h_index == 3)
+                                    {
+                                        Color_Component = 2;
+                                        Drag_Color = 1;
+                                    }
+                                    else if (h_index == 4)
+                                    {
+                                        Color_Component = 3;
+                                        Drag_Color = 1;
+                                    }
+                                }
+                            }
+                        }
                     }
                     else if (!Camera_screen_lock && mouse_x > SIDEBAR && mouse_y < screen_height)
                     {
@@ -13369,6 +13445,32 @@ int main(int argc, char * args[])
                 mouse_button_down = 0;
                 Drag_Dialog = 0;
 
+                if (Drag_Color)
+                {
+                    if (dialog_lock)
+                    {
+                        DRAW_UI = 0;
+                        UPDATE_COLORS = 1;
+                        all_objects_in_frame(Camera);
+                        if (subdLevel > - 1)
+                        {
+                            load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
+                        }
+                        else
+                        {
+                            load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+                        }
+
+                        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                        UPDATE_COLORS = 0;
+                        DRAW_UI = 1;
+                        draw_Dialog();
+                        SDL_GL_SwapBuffers();
+                    }
+
+                    Drag_Color = 0;
+                }
+
                 if (drag_rectangle)
                 {
                     printf("Camera width %d, height %d\n", Camera->width, Camera->height);
@@ -13417,7 +13519,19 @@ int main(int argc, char * args[])
             {
                 mouse_x = event.motion.x;
                 mouse_y = event.motion.y;
-                if (Drag_Dialog)
+                if (Drag_Color)
+                {
+                    ColorDelta = mouse_x - Drag_X;
+                    Color = Materials[currentMaterial].RGBA.Color[Color_Component];
+                    Color += ColorDelta;
+                    Color = clamp_i(Color, 0, 255);
+                    //printf("Color_Component %d, ColorDelta %d\r", Color_Component, ColorDelta);
+                    Materials[currentMaterial].RGBA.Color[Color_Component] = Color;
+                    update_Materials_List(0, 0);
+
+                    SDL_GL_SwapBuffers();
+                }
+                else if (Drag_Dialog)
                 {
                     DIALOG_WIDTH = mouse_x - SIDEBAR;
                     DIALOG_HEIGHT = mouse_y;
@@ -14776,7 +14890,8 @@ int main(int argc, char * args[])
             for (o = 0; o < objectIndex; o ++)
                 subdivide_after_Creation(objects[o], subdLevel, tune);
             all_objects_in_frame(Camera);
-            load_id_colors(selected_objects, selected_object_count, subdLevel, OBJECT_COLORS);
+            load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
+            //load_id_colors(selected_objects, selected_object_count, subdLevel, OBJECT_COLORS);
 
             object * O0;
 

@@ -46,6 +46,7 @@
 		<Unit filename="IKSolution.h" />
 		<Unit filename="ImageLoad.h" />
 		<Unit filename="InitializingFunctions.h" />
+		<Unit filename="Items.h" />
 		<Unit filename="Lights.h" />
 		<Unit filename="Loading.h" />
 		<Unit filename="Materials.h" />
@@ -53,6 +54,7 @@
 		<Unit filename="Modeling.h" />
 		<Unit filename="Object.h" />
 		<Unit filename="Poses.h" />
+		<Unit filename="Properties.h" />
 		<Unit filename="Rendering.h" />
 		<Unit filename="Saving.h" />
 		<Unit filename="Selections.h" />

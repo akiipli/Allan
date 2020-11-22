@@ -73,7 +73,7 @@ int save_Surfaces(char * surfaces_files_dir)
         fprintf(F, "%s\n", Norm_Names_Full[M->normal]);
         fprintf(F, "%s\n", Bump_Names_Full[M->bump]);
         fprintf(F, "%d %d %d %d\n", M->smooth, M->texture, M->Texture_idx, M->use_texture);
-        fprintf(F, "%f %f %f %f %f %d %d %d %d %f\n", M->R, M->G, M->B, M->A, M->Shininess, M->normal, M->Normal_idx, M->bump, M->Bump_idx, M->Displacement);
+        fprintf(F, "%f %f %f %f %f %d %d %d %d %f\n", M->RGBA.R, M->RGBA.G, M->RGBA.B, M->RGBA.A, M->Shininess, M->normal, M->Normal_idx, M->bump, M->Bump_idx, M->Displacement);
 
         objects_counter = 0;
 

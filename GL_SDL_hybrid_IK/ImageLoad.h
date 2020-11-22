@@ -776,10 +776,21 @@ void init_textures(SDL_Surface * screen)
     Surf_Text[Surf_Text_c] = texture;
     sprintf(Text_Names[Surf_Text_c], basename(dirfile));
 
-    surface_Material Default_Material = {0, 0, "Default", 0, 0, 0, 255, 255, 255, 255, 2, 0, 0, 0};
-    surface_Material Green_Material   = {1, 0, "Green",   0, 0, 0, 0,   255, 0,   255, 2, 0, 0, 0};
-    surface_Material Blue_Material    = {2, 0, "Blue",    0, 0, 0, 0,   0,   250, 255, 2, 0, 0, 0};
-    surface_Material Yellow_Material  = {3, 0, "Yellow",  0, 0, 0, 255, 255, 0,   255, 2, 0, 0, 0};
+    surface_Material Default_Material = {0, 0, "Default", 0, 0, 0};
+    surface_Material Green_Material   = {1, 0, "Green",   0, 0, 0};
+    surface_Material Blue_Material    = {2, 0, "Blue",    0, 0, 0};
+    surface_Material Yellow_Material  = {3, 0, "Yellow",  0, 0, 0};
+
+    memcpy(&Default_Material.RGBA, (float[4]){255.0, 255.0, 255.0, 255.0}, sizeof(float[4]));
+    memcpy(&Green_Material.RGBA,   (float[4]){0.0,   255.0, 0.0,   255.0}, sizeof(float[4]));
+    memcpy(&Blue_Material.RGBA,    (float[4]){0.0,   0.0,   250.0, 255.0}, sizeof(float[4]));
+    memcpy(&Yellow_Material.RGBA,  (float[4]){255.0, 255.0, 0.0,   255.0}, sizeof(float[4]));
+
+    Default_Material.Shininess = 2;
+    Green_Material.Shininess   = 2;
+    Blue_Material.Shininess    = 2;
+    Yellow_Material.Shininess  = 2;
+
     memcpy(&Materials[0], &Default_Material, sizeof(surface_Material));
     memcpy(&Materials[1], &Green_Material, sizeof(surface_Material));
     memcpy(&Materials[2], &Blue_Material, sizeof(surface_Material));

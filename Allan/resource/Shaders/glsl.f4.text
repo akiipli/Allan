@@ -77,6 +77,7 @@ void shadeWithShadow()
     float Intensity;
     float Highlight;
     float fog_intensity;
+    float alpha;
     vec3 lightDir;
     vec3 color;
     vec3 shadowcolor;
@@ -147,7 +148,9 @@ void shadeWithShadow()
 
         color *= shadowcolor;
 
-        gl_FragColor = vec4(vec3(fog.Color) * fog_intensity + color * (1.0 - fog_intensity), texture2D(tex, In.texpos).a);
+        alpha = texture2D(tex, In.texpos).a * In.Color.a;
+
+        gl_FragColor = vec4(vec3(fog.Color) * fog_intensity + color * (1.0 - fog_intensity), alpha);
         gl_FragDepth = gl_FragCoord.z;
     }
 }
