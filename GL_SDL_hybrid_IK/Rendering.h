@@ -5216,7 +5216,7 @@ void load_id_colors_No_Surface(camera * C, int l)
                     R = Materials[Q->surface].RGBA.R / 255;
                     G = Materials[Q->surface].RGBA.G / 255;
                     B = Materials[Q->surface].RGBA.B / 255;
-                    A = Materials[Q->surface].RGBA.R / 255;
+                    A = Materials[Q->surface].RGBA.A / 255;
                 }
 
 //                if (E)
