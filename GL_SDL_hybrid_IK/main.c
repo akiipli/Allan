@@ -13458,12 +13458,13 @@ int main(int argc, char * args[])
                         all_objects_in_frame(Camera);
                         if (subdLevel > - 1)
                         {
-                            load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
+                            int l;
+                            for (l = subdLevel; l >= 0; l --)
+                            {
+                                load_id_colors_all(Camera, l, OBJECT_COLORS);
+                            }
                         }
-                        else
-                        {
-                            load_id_colors_Fan_all(Camera, OBJECT_COLORS);
-                        }
+                        load_id_colors_Fan_all(Camera, OBJECT_COLORS);
 
                         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                         UPDATE_COLORS = 0;
