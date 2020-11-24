@@ -29,11 +29,16 @@ from corner.
 int PROPERTIES;
 int TABULATOR = 70;
 
+int Drag_X = 0;
+int DragDelta = 0;
+
 int Color;
 int Drag_Color = 0;
 int Color_Component = 0;
-int Drag_X = 0;
-int ColorDelta = 0;
+
+int Drag_Shine = 0;
+float Shine;
+float ShineDelta;
 
 void draw_Properties_Text(const char * text, int width, int height, int index)
 {
@@ -117,6 +122,10 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         GLfloat color[4] = {M->RGBA.R / 255.0, M->RGBA.G / 255.0, M->RGBA.B / 255.0, M->RGBA.A / 255.0};
 
         draw_Color_Button(SIDEBAR * 2, p_height, 0, color);
+
+        sprintf(text, "\tShininess %1.2f", M->Shininess);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
     }
 
 

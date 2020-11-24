@@ -4896,7 +4896,7 @@ void open_Items_List()
     black_out_ItemsList();
 
     SDL_SetCursor(Arrow);
-    edgedraw = 1;
+    //edgedraw = 1;
     dialog_lock = 1;
     dialog_type = ITEM_DIALOG;
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
@@ -11186,6 +11186,11 @@ void save_load_Scene()
             load_id_colors_Fan_all(Camera, OBJECT_COLORS);
             fill_in_VertCoords_Fan(Camera, ELEMENT_ARRAYS);
 
+            deselect_Objects();
+            currentObject = objectIndex - 1;
+            objects[currentObject]->selected = 1;
+            assert_Object_Selection();
+
             UPDATE_COLORS = 1;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
             UPDATE_COLORS = 0;
@@ -12238,6 +12243,10 @@ int main(int argc, char * args[])
                         edgeWeights = 0;
                     }
 
+                    if (Drag_Shine)
+                    {
+                        Drag_Shine = 0;
+                    }
                     if (Drag_Color)
                     {
                         Drag_Color = 0;
@@ -13068,6 +13077,14 @@ int main(int argc, char * args[])
                                         Drag_Color = 1;
                                     }
                                 }
+                                else if (!Drag_Shine && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 2)
+                                {
+                                    Drag_X = mouse_x;
+                                    if (h_index == 2)
+                                    {
+                                        Drag_Shine = 1;
+                                    }
+                                }
                             }
                         }
                     }
@@ -13449,7 +13466,7 @@ int main(int argc, char * args[])
                 mouse_button_down = 0;
                 Drag_Dialog = 0;
 
-                if (Drag_Color)
+                if (Drag_Color || Drag_Shine)
                 {
                     if (dialog_lock)
                     {
@@ -13474,6 +13491,7 @@ int main(int argc, char * args[])
                     }
 
                     Drag_Color = 0;
+                    Drag_Shine = 0;
                 }
 
                 if (drag_rectangle)
@@ -13524,13 +13542,26 @@ int main(int argc, char * args[])
             {
                 mouse_x = event.motion.x;
                 mouse_y = event.motion.y;
-                if (Drag_Color)
+                if (Drag_Shine)
                 {
-                    ColorDelta = mouse_x - Drag_X;
+                    DragDelta = mouse_x - Drag_X;
+                    ShineDelta = (float)DragDelta / 100.0;
+                    Shine = Materials[currentMaterial].Shininess;
+                    Shine += ShineDelta;
+                    Shine = clamp_f(Shine, 0, 60.0);
+
+                    Materials[currentMaterial].Shininess = Shine;
+                    update_Materials_List(0, 0);
+
+                    SDL_GL_SwapBuffers();
+                }
+                else if (Drag_Color)
+                {
+                    DragDelta = (mouse_x - Drag_X) / 2;
                     Color = Materials[currentMaterial].RGBA.Color[Color_Component];
-                    Color += ColorDelta;
+                    Color += DragDelta;
                     Color = clamp_i(Color, 0, 255);
-                    //printf("Color_Component %d, ColorDelta %d\r", Color_Component, ColorDelta);
+                    //printf("Color_Component %d, DragDelta %d\r", Color_Component, DragDelta);
                     Materials[currentMaterial].RGBA.Color[Color_Component] = Color;
                     update_Materials_List(0, 0);
 

@@ -999,8 +999,8 @@ void draw_Rectangle(float corner[8], int quads)
 
 void draw_Color_Button(int x, int y, int index, float color[4])
 {
-    int X = x + 10;
-    int Y = y + BUTTON_HEIGHT * index - 2;
+//    int X = x + 10;
+//    int Y = y + BUTTON_HEIGHT * index - 2;
 
     int width = BUTTON_HEIGHT;
 
@@ -1008,15 +1008,15 @@ void draw_Color_Button(int x, int y, int index, float color[4])
 	glDisable(GL_DEPTH_TEST);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-    glScissor(X, Y, width, BUTTON_HEIGHT);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glViewport(X, Y, width, BUTTON_HEIGHT);
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, width, BOTTOM_LINE, 0, 1, -1);
+//    glScissor(X, Y, width, BUTTON_HEIGHT);
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//    glViewport(X, Y, width, BUTTON_HEIGHT);
+//
+//    glMatrixMode(GL_PROJECTION);
+//    glPushMatrix();
+//    glLoadIdentity();
+//    glOrtho(0, width, BOTTOM_LINE, 0, 1, -1);
 
     glColor4fv(color);
 
@@ -1027,7 +1027,7 @@ void draw_Color_Button(int x, int y, int index, float color[4])
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
-	glPopMatrix();
+//	glPopMatrix();
 }
 
 void draw_Corner_Drag_Button(int width, int height)
