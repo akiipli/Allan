@@ -13511,6 +13511,13 @@ int main(int argc, char * args[])
                     }
                     else
                     {
+                        if (Polygon_Mode)
+                        {
+                            int l;
+                            for (l = 0; l < SUBD; l++)
+                                load_id_colors(selected_objects, selected_object_count, l, OBJECT_COLORS);
+                            load_id_colors_Fan(selected_objects, selected_object_count, OBJECT_COLORS);
+                        }
                         assert_Element_Selection();
                     }
 

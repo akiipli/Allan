@@ -1304,7 +1304,7 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                             P->selected = 0;
                             assignSelectionToQuads(O, P, 0);
                         }
-                        load_id_colors_polygon(O, P, OBJECT_COLORS);
+                        //load_id_colors_polygon(O, P, OBJECT_COLORS);
                     }
                 }
             }
@@ -1590,7 +1590,7 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                                 P->selected = 0;
                                 assignSelectionToQuads(O, P, 0);
                             }
-                            load_id_colors_polygon(O, P, OBJECT_COLORS);
+                            //load_id_colors_polygon(O, P, OBJECT_COLORS);
                         }
                     }
                 }
