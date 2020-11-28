@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1000;
+int saving_version = 1001;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -16,7 +16,7 @@ int currentTheme = 0;
 
 char scene_extension[20];
 char * scene_extensions[SCENE_EXT_NUM];
-int scene_ext_count = 6;
+int scene_ext_count = 7;
 int scene_files_start = 0;
 
 char scene_files_dir[STRLEN];
@@ -34,10 +34,81 @@ void init_scene_extensions()
     sprintf(scene_extensions[3], "Hierarchys");
     sprintf(scene_extensions[4], "Poses");
     sprintf(scene_extensions[5], "Surfaces");
+    sprintf(scene_extensions[6], "Subcharacters");
 
     sprintf(scene_files_dir, "%s", "c:/Trips Code/Scenes IK");
 
     sprintf(scene_extension, "%s", "");
+}
+
+void save_Subcharacters(char * subcharacter_files_dir)
+{
+    char dirfile[STRLEN];
+
+    FILE * F;
+
+    int d, s, i;
+
+    deformer * D;
+    subcharacter * S;
+
+    char n[8];
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+
+        dirfile[0] = '\0';
+        strcat(dirfile, subcharacter_files_dir);
+        strcat(dirfile, "/");
+        strcat(dirfile, D->Name);
+        strcat(dirfile, "_");
+        sprintf(n, "%d", d);
+        strcat(dirfile, n);
+        strcat(dirfile, ".txt");
+
+        F = fopen(dirfile, "w");
+
+        if (F == NULL) continue;
+
+        fprintf(F, "Subcharacters\n");
+        fprintf(F, "%d\n", D->Subcharacters_Count);
+
+        for (s = 0; s < D->Subcharacters_Count; s ++)
+        {
+            S = D->Subcharacters[s];
+            fprintf(F, "%s\n", S->Name);
+            fprintf(F, "%u\n", (unsigned)S);
+            fprintf(F, "%u\n", (unsigned)S->Deformer);
+            fprintf(F, "%d\n", S->start);
+
+            fprintf(F, "%d %d %d %d\n",
+                    S->Transformers_Count,
+                    S->Bones_Count,
+                    S->Poses_Count,
+                    S->Subcharacters_Count);
+
+            for (i = 0; i < S->Transformers_Count; i ++)
+            {
+                fprintf(F, "%u\n", (unsigned)S->Transformers[i]);
+            }
+            for (i = 0; i < S->Bones_Count; i ++)
+            {
+                fprintf(F, "%u\n", (unsigned)S->Bones[i]);
+            }
+            for (i = 0; i < S->Poses_Count; i ++)
+            {
+                fprintf(F, "%u\n", (unsigned)S->Poses[i]);
+            }
+            for (i = 0; i < S->Subcharacters_Count; i ++)
+            {
+                fprintf(F, "%u\n", (unsigned)S->Subcharacters[i]);
+            }
+        }
+
+        fprintf(F, "\n");
+        fclose(F);
+    }
 }
 
 int save_Surfaces(char * surfaces_files_dir)
@@ -380,14 +451,15 @@ void save_Deformers(char * deformers_files_dir)
         fprintf(F, "Deformer\n");
         fprintf(F, "%s\n", D->Name);
         fprintf(F, "%u\n", (unsigned)D);
-        fprintf(F, "%d %d %d %d %d %d %d\n",
+        fprintf(F, "%d %d %d %d %d %d %d %d\n",
                 D->collapsed,
                 D->Transformers_Count,
                 D->Selections_Count,
                 D->Objects_Count,
                 D->Bones_Count,
                 D->Poses_Count,
-                D->IKchains_Count);
+                D->IKchains_Count,
+                D->Subcharacters_Count);
         for (i = 0; i < D->Transformers_Count; i ++)
         {
             fprintf(F, "%u\n", (unsigned)D->Transformers[i]);
@@ -411,6 +483,10 @@ void save_Deformers(char * deformers_files_dir)
         for (i = 0; i < D->IKchains_Count; i ++)
         {
             fprintf(F, "%u\n", (unsigned)D->IKchains[i]);
+        }
+        for (i = 0; i < D->Subcharacters_Count; i ++)
+        {
+            fprintf(F, "%u\n", (unsigned)D->Subcharacters[i]);
         }
 
         fprintf(F, "%d\n", D->current_pose);

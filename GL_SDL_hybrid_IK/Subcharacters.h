@@ -130,6 +130,9 @@ int init_Subcharacter(deformer * D)
     S->Bones_Count = hi_selected_Bones_count;
 
     S->Deformer = D;
+    D->Subcharacters_Count ++;
+    D->Subcharacters = realloc(D->Subcharacters, D->Subcharacters_Count * sizeof(subcharacter *));
+    D->Subcharacters[D->Subcharacters_Count - 1] = S;
     S->start = start_Subcharacter;
 
     S->Poses_Count = 0;

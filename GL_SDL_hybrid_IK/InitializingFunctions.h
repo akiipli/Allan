@@ -56,6 +56,17 @@ void free_subcharacter(subcharacter * S)
     free(S);
 }
 
+void free_Subcharacters()
+{
+    int s;
+    subcharacter * S;
+    for (s = 0; s < subcharacterIndex; s ++)
+    {
+        S = subcharacters[s];
+        free_subcharacter(S);
+    }
+}
+
 void free_bone(bone * B)
 {
     int d;

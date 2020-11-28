@@ -13,6 +13,12 @@ typedef struct
 {
     unsigned address;
 }
+Subcharacter_In;
+
+typedef struct
+{
+    unsigned address;
+}
 Pose_In;
 
 typedef struct
@@ -204,6 +210,125 @@ Poses_In read_Poses_file(char * fileName)
     return POSESIN;
 }
 
+int read_Subcharacter_file(Subcharacter_In * SUBCHARACTER_IN, char * fileName)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    char * p;
+
+    subcharacter * S;
+
+    int i, s, subcharacters_count = 0;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Subcharacters\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &subcharacters_count);
+
+            for (s = 0; s < subcharacters_count; s ++)
+            {
+                if (subcharacterIndex >= SUBCHARACTERS)
+                {
+                    fclose(fp);
+                    return s - 1;
+                }
+                S = malloc(sizeof(subcharacter));
+                subcharacters[subcharacterIndex] = S;
+                S->index = subcharacterIndex;
+                S->Name = malloc(STRLEN * sizeof(char));
+
+                fgets(buff, BUF_SIZE, fp);
+
+                p = strchr(buff, '\n');
+                *p = '\0';
+
+                sprintf(S->Name, "%s", buff);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &SUBCHARACTER_IN->address);
+
+                S->address = SUBCHARACTER_IN->address;
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&S->Deformer);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &S->start);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d %d %d %d",
+                        &S->Transformers_Count,
+                        &S->Bones_Count,
+                        &S->Poses_Count,
+                        &S->Subcharacters_Count);
+
+                S->Transformers = malloc(S->Transformers_Count * sizeof(transformer*));
+                if (S->Transformers == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                S->Bones = malloc(S->Bones_Count * sizeof(bone*));
+                if (S->Bones == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+                S->Poses = malloc(S->Poses_Count * sizeof(pose*));
+                if (S->Poses == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+                S->Subcharacters = malloc(S->Subcharacters_Count * sizeof(subcharacter*));
+                if (S->Subcharacters == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                for (i = 0; i < S->Transformers_Count; i ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&S->Transformers[i]);
+                }
+
+                for (i = 0; i < S->Bones_Count; i ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&S->Bones[i]);
+                }
+                for (i = 0; i < S->Poses_Count; i ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&S->Poses[i]);
+                }
+                for (i = 0; i < S->Subcharacters_Count; i ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&S->Subcharacters[i]);
+                }
+
+                subcharacterIndex ++;
+            }
+        }
+    }
+
+    fclose(fp);
+    return subcharacters_count;
+}
+
 int read_Pose_file(Pose_In * POSE_IN, char * fileName)
 {
     FILE * fp;
@@ -365,19 +490,30 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
             D->address = DEFR_IN->address;
 
             fgets(buff, BUF_SIZE, fp);
-            sscanf(buff, "%d %d %d %d %d %d %d",
-                    &D->collapsed,
-                    &D->Transformers_Count,
-                    &D->Selections_Count,
-                    &D->Objects_Count,
-                    &D->Bones_Count,
-                    &D->Poses_Count,
-                    &D->IKchains_Count);
 
             if (loading_version <= 1000)
             {
+                sscanf(buff, "%d %d %d %d %d %d %d",
+                        &D->collapsed,
+                        &D->Transformers_Count,
+                        &D->Selections_Count,
+                        &D->Objects_Count,
+                        &D->Bones_Count,
+                        &D->Poses_Count,
+                        &D->IKchains_Count);
                 D->Subcharacters_Count = 0;
-                D->Subcharacters = malloc(D->Subcharacters_Count * sizeof(subcharacter*));
+            }
+            else
+            {
+                sscanf(buff, "%d %d %d %d %d %d %d %d",
+                        &D->collapsed,
+                        &D->Transformers_Count,
+                        &D->Selections_Count,
+                        &D->Objects_Count,
+                        &D->Bones_Count,
+                        &D->Poses_Count,
+                        &D->IKchains_Count,
+                        &D->Subcharacters_Count);
             }
 
             D->Transformers = malloc(D->Transformers_Count * sizeof(transformer*));
@@ -416,6 +552,12 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
                 fclose(fp);
                 return 0;
             }
+            D->Subcharacters = malloc(D->Subcharacters_Count * sizeof(subcharacter*));
+            if (D->Subcharacters == NULL)
+            {
+                fclose(fp);
+                return 0;
+            }
 
             for (i = 0; i < D->Transformers_Count; i ++)
             {
@@ -447,6 +589,15 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
             {
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%u", (unsigned*)&D->IKchains[i]);
+            }
+
+            if (loading_version >= 1001)
+            {
+                for (i = 0; i < D->Subcharacters_Count; i ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&D->Subcharacters[i]);
+                }
             }
 
             if (fgets(buff, BUF_SIZE, fp))
@@ -2220,6 +2371,49 @@ int load_Poses(char * path)
     return p_index;
 }
 
+int load_Subcharacters(char * path)
+{
+    char Path[STRLEN];
+    DIR * dir;
+    struct dirent * ent;
+
+    char ext[] = ".txt";
+    char Extension[] = ".txt";
+
+    int extension_len = strlen(ext);
+
+    int s_index = 0;
+
+    if ((dir = opendir(path)) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            Path[0] = '\0';
+            strcat(Path, path);
+            strcat(Path, "/");
+            strcat(Path, ent->d_name);
+            if (isFile(Path))
+            {
+                memcpy(Extension, &ent->d_name[strlen(ent->d_name) - extension_len], extension_len);
+                if (strcmp(Extension, ext) == 0)
+                {
+                    int result = 0;
+                    //printf("%s\n", Path);
+                    Subcharacter_In * SUBCHARACTER_IN = calloc(1, sizeof(Subcharacter_In));
+                    result = read_Subcharacter_file(SUBCHARACTER_IN, Path);
+                    if (result)
+                    {
+                        s_index += result;
+                        printf("%u\n", SUBCHARACTER_IN->address);
+                    }
+                    free(SUBCHARACTER_IN);
+                }
+            }
+        }
+    }
+    return s_index;
+}
+
 void null_Loaded_Addresses(int t_index, int obj_count, int b_index, int i_index)
 {
     int b, s, o, t, i;
@@ -2258,7 +2452,7 @@ void null_Loaded_Addresses(int t_index, int obj_count, int b_index, int i_index)
     }
 }
 
-void load_Hierarchys(char * path, int obj_count, int defr_count)
+void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacter_count)
 {
     char Path[STRLEN];
     DIR * dir;
@@ -2354,6 +2548,50 @@ void load_Hierarchys(char * path, int obj_count, int defr_count)
                         i_index = IKCHAINS_IN->chainsIndex;
                     }
                     free(IKCHAINS_IN);
+                }
+            }
+        }
+    }
+
+    if (subcharacter_count && w_address && t_index && b_index)
+    {
+        int s, t, b, p;
+
+        subcharacter * S;
+        transformer * T, * T0;
+        bone * B, * B0;
+
+        for (s = subcharacterIndex - subcharacter_count; s < subcharacterIndex; s ++)
+        {
+            S = subcharacters[s];
+
+            for (t = 0; t < S->Transformers_Count; t ++)
+            {
+                T = S->Transformers[t];
+
+                for (p = transformerIndex - t_index; p < transformerIndex; p ++)
+                {
+                    T0 = transformers[p];
+                    if (T0->address == (unsigned)T)
+                    {
+                        S->Transformers[t] = T0;
+                        break;
+                    }
+                }
+            }
+
+            for (b = 0; b < S->Bones_Count; b ++)
+            {
+                B = S->Bones[b];
+
+                for (p = bonesIndex - b_index; p < bonesIndex; p ++)
+                {
+                    B0 = bones[p];
+                    if (B0->address == (unsigned)B)
+                    {
+                        S->Bones[b] = B0;
+                        break;
+                    }
                 }
             }
         }
@@ -2797,6 +3035,58 @@ void assign_Poses(int pose_count, int defr_count)
                         P0->address = 0;
                         D->Poses[i] = P0;
                         D->Poses[i]->D = D;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void assign_Subcharacters(subcharacter_count, defr_count)
+{
+    if (defr_count)
+    {
+        int s, i, d, p;
+
+        subcharacter * S, * S0, * S1;
+        deformer * D;
+
+        for (d = deformerIndex - defr_count; d < deformerIndex; d ++)
+        {
+            D = deformers[d];
+
+            for (i = 0; i < D->Subcharacters_Count; i ++)
+            {
+                S = D->Subcharacters[i];
+                for (s = subcharacterIndex - subcharacter_count; s < subcharacterIndex; s ++)
+                {
+                    S0 = subcharacters[s];
+                    if (S0->address == (unsigned)S)
+                    {
+                        //S0->address = 0;
+                        D->Subcharacters[i] = S0;
+                        D->Subcharacters[i]->Deformer = D;
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (s = subcharacterIndex - subcharacter_count; s < subcharacterIndex; s ++)
+        {
+            S = subcharacters[s];
+
+            for (i = 0; i < S->Subcharacters_Count; i ++)
+            {
+                S0 = S->Subcharacters[i];
+
+                for (p = subcharacterIndex - subcharacter_count; p < subcharacterIndex; p ++)
+                {
+                    S1 = subcharacters[p];
+                    if (S1->address == (unsigned)S0)
+                    {
+                        S->Subcharacters[i] = S1;
                         break;
                     }
                 }

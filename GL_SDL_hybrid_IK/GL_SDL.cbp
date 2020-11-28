@@ -59,6 +59,7 @@
 		<Unit filename="Saving.h" />
 		<Unit filename="Selections.h" />
 		<Unit filename="Shaders.h" />
+		<Unit filename="Subcharacters.h" />
 		<Unit filename="Subdivision.h" />
 		<Unit filename="Transformer.h" />
 		<Unit filename="Transforms.h" />

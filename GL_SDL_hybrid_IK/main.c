@@ -742,6 +742,7 @@ void cleanup()
     free_poses();
     free_bones();
     free_ikChains();
+    free_Subcharacters();
 
     if (SHADERS)
     {
@@ -10577,6 +10578,7 @@ void clear_All()
         clear_Bones();
         clear_Locators();
         clear_Objects_();
+        free_Subcharacters();
 
     /*
     This is cheap clean;
@@ -10587,6 +10589,7 @@ void clear_All()
         objectIndex = 1; /*CUBECOMMENT*/
         bonesIndex = 0;
         iksIndex = 0; // IK
+        subcharacterIndex = 0;
         PoseIndex = 0;
         posesCount = 0;
         Materials_count = 4;
@@ -11048,6 +11051,12 @@ void save_load_Scene()
             strcat(Path, "/");
             strcat(Path, "Surfaces");
             save_Surfaces(Path);
+
+            Path[0] = '\0';
+            strcat(Path, scene_files_dir);
+            strcat(Path, "/");
+            strcat(Path, "Subcharacters");
+            save_Subcharacters(Path);
         }
 
         if (flip)
@@ -11072,7 +11081,7 @@ void save_load_Scene()
         if (dialog_lock)
             update_Loading_List(1, 0);
 
-        int obj_count = 0, defr_count = 0, pose_count = 0;
+        int obj_count = 0, defr_count = 0, pose_count = 0, subcharacter_count = 0;
 
         if (!isDirectory(scene_files_dir))
         {
@@ -11126,11 +11135,22 @@ void save_load_Scene()
             strcat(Path, "Deformers");
             defr_count = load_Deformers(Path);
 
+            if (loading_version >= 1001)
+            {
+                Path[0] = '\0';
+                strcat(Path, scene_files_dir);
+                strcat(Path, "/");
+                strcat(Path, "Subcharacters");
+                subcharacter_count = load_Subcharacters(Path);
+
+                assign_Subcharacters(subcharacter_count, defr_count);
+            }
+
             Path[0] = '\0';
             strcat(Path, scene_files_dir);
             strcat(Path, "/");
             strcat(Path, "Hierarchys");
-            load_Hierarchys(Path, obj_count, defr_count);
+            load_Hierarchys(Path, obj_count, defr_count, subcharacter_count);
 
             Path[0] = '\0';
             strcat(Path, scene_files_dir);
@@ -11139,6 +11159,8 @@ void save_load_Scene()
             pose_count = load_Poses(Path);
 
             assign_Poses(pose_count, defr_count);
+
+            /* Load Subcharacter poses */
 
             //validate_Loading();
             //verify_textPack_indices();
@@ -11633,6 +11655,7 @@ int main(int argc, char * args[])
     Button_scene_ext[3].func = &set_Button_scene_ext;
     Button_scene_ext[4].func = &set_Button_scene_ext;
     Button_scene_ext[5].func = &set_Button_scene_ext;
+    Button_scene_ext[6].func = &set_Button_scene_ext;
 
     Button_item[0].func = &set_Button_item;
     Button_item[1].func = &set_Button_item;
