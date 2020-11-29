@@ -158,6 +158,73 @@ void set_Subc_H_Button(int index)
 
 void free_subcharacter(subcharacter * S);
 
+void remove_Subcharacter_From_Subcharacter(subcharacter * S, subcharacter * S0)
+{
+    int s, index;
+
+    int condition = 0;
+
+    for (s = 0; s < S->Subcharacters_Count; s ++)
+    {
+        if (S0 == S->Subcharacters[s])
+        {
+            index = s;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        S->Subcharacters_Count --;
+
+        for (s = index; s < S->Subcharacters_Count; s ++)
+        {
+            S->Subcharacters[s] = S->Subcharacters[s + 1];
+        }
+    }
+}
+
+void remove_Subcharacter_From_Deformer_Subcharacters(deformer * D, subcharacter * S)
+{
+    int s;
+    subcharacter * S0;
+
+    for (s = 0; s < D->Subcharacters_Count; s ++)
+    {
+        S0 = D->Subcharacters[s];
+
+        remove_Subcharacter_From_Subcharacter(S, S0);
+    }
+}
+
+void remove_Subcharacter_From_Deformer(deformer * D, subcharacter * S)
+{
+    int s, index;
+
+    int condition = 0;
+
+    for (s = 0; s < D->Subcharacters_Count; s ++)
+    {
+        if (S == S->Subcharacters[s])
+        {
+            index = s;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        D->Subcharacters_Count --;
+
+        for (s = index; s < D->Subcharacters_Count; s ++)
+        {
+            D->Subcharacters[s] = D->Subcharacters[s + 1];
+        }
+    }
+}
+
 void delete_Subcharacter(subcharacter * S)
 {
     //printf("remove Bone From Bones\n");
@@ -177,6 +244,12 @@ void delete_Subcharacter(subcharacter * S)
 
     if (condition)
     {
+        deformer * D = S->Deformer;
+
+        remove_Subcharacter_From_Deformer(D, S);
+
+        remove_Subcharacter_From_Deformer_Subcharacters(D, S);
+
         free_subcharacter(S);
 
         subcharacterIndex --;
@@ -184,6 +257,29 @@ void delete_Subcharacter(subcharacter * S)
         {
             subcharacters[s] = subcharacters[s + 1];
             subcharacters[s]->index = s;
+        }
+    }
+}
+
+void delete_Deformer_Subcharacters(deformer * D)
+{
+    int s, i, index;
+    subcharacter * S;
+
+    for (s = 0; s < D->Subcharacters_Count; s ++)
+    {
+        S = D->Subcharacters[s];
+        index = S->index;
+
+        remove_Subcharacter_From_Deformer(D, S);
+
+        free_subcharacter(S);
+
+        subcharacterIndex --;
+        for (i = index; i < subcharacterIndex; i ++)
+        {
+            subcharacters[i] = subcharacters[i + 1];
+            subcharacters[i]->index = i;
         }
     }
 }

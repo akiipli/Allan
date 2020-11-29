@@ -9793,6 +9793,7 @@ void delete_Deformer()
     {
         deformer * D = deformers[currentDeformer_Node];
         delete_Deformer_Poses(D);
+        delete_Deformer_Subcharacters(D);
         remove_Deformer(D);
         if (currentDeformer_Node >= deformerIndex)
             currentDeformer_Node = deformerIndex - 1;
