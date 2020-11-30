@@ -4137,7 +4137,7 @@ int list_materials(char ** material_list, int start, int n)
     return material;
 }
 
-int list_subcharacters(char ** subch_list, int start, int n)
+int list_subcharacters(char ** subch_list, int start, int n, int * subcharacter_x_offset, int * subcharacter_x_collapsed)
 {
     int s = start;
     int character = 0;
@@ -4146,6 +4146,8 @@ int list_subcharacters(char ** subch_list, int start, int n)
         if (character >= Subcharacters_c - start)
             break;
         sprintf(subch_list[character], "%s", Subcharacter_Names[s]);
+        subcharacter_x_offset[character] = Subcharacter_X_Offset[s];
+        subcharacter_x_collapsed[character] = Subcharacter_X_Collapsed[s];
         s ++;
     }
     return character;
@@ -6187,11 +6189,17 @@ void handle_UP_Subcharacter(int scrollbar)
         if (SubcharacterIndex < 0) SubcharacterIndex ++;
         if (SubcharacterIndex - subcharacter_start >= 0)
             SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
-        if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
+
+        if (Subcharacter_List[SubcharacterIndex] >= 0)
         {
             subcharacters[currentSubcharacter]->selected = 0;
             currentSubcharacter = Subcharacter_List[SubcharacterIndex];
             subcharacters[currentSubcharacter]->selected = 1;
+        }
+        else
+        {
+            currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
+            assert_Deformers_Selected();
         }
     }
     DRAW_UI = 0;
@@ -6795,11 +6803,17 @@ void handle_DOWN_Subcharacter(int scrollbar)
             SubcharacterIndex --;
         if (SubcharacterIndex - subcharacter_start >= 0)
             SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
-        if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
+
+        if (Subcharacter_List[SubcharacterIndex] >= 0)
         {
             subcharacters[currentSubcharacter]->selected = 0;
             currentSubcharacter = Subcharacter_List[SubcharacterIndex];
             subcharacters[currentSubcharacter]->selected = 1;
+        }
+        else
+        {
+            currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
+            assert_Deformers_Selected();
         }
     }
     DRAW_UI = 0;
@@ -7491,10 +7505,23 @@ void remove_Subcharacter()
         subcharacter * S = subcharacters[currentSubcharacter];
 
         delete_Subcharacter(S);
+
         SubcharacterIndex --;
-        currentSubcharacter --;
-        if (currentSubcharacter < 0)
-            currentSubcharacter = 0;
+        if (SubcharacterIndex < 0) SubcharacterIndex ++;
+        if (SubcharacterIndex - subcharacter_start >= 0)
+            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+
+        if (Subcharacter_List[SubcharacterIndex] >= 0)
+        {
+            subcharacters[currentSubcharacter]->selected = 0;
+            currentSubcharacter = Subcharacter_List[SubcharacterIndex];
+            subcharacters[currentSubcharacter]->selected = 1;
+        }
+        else
+        {
+            currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
+            assert_Deformers_Selected();
+        }
 
         if (dialog_lock)
             draw_Dialog();
@@ -12430,18 +12457,35 @@ int main(int argc, char * args[])
                             {
                                 if (index + subcharacter_start < Subcharacters_c)
                                 {
-                                    if (SubcharacterIndex - subcharacter_start >= 0)
-                                        SubcList[SubcharacterIndex - subcharacter_start].color = UI_BLACK;
-                                    SubcharacterIndex = index + subcharacter_start;
-                                    if (SubcharacterIndex - subcharacter_start >= 0)
-                                        SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
-
-                                    currentSubcharacter = Subcharacter_List[SubcharacterIndex];
-
-                                    select_currentSubcharacter();
-
-                                    create_Subcharacters_List(SubcharacterIndex);
-
+                                    int X_Expand = Subcharacter_X_Offset[index + subcharacter_start] * 5;
+                                    if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
+                                    {
+                                        if (X_Expand == 5)
+                                        {
+                                            deformers[-(Subcharacter_List[index + subcharacter_start] + 1)]->collapsed =
+                                            !deformers[-(Subcharacter_List[index + subcharacter_start] + 1)]->collapsed;
+                                        }
+                                        create_Subcharacters_List(SubcharacterIndex);
+                                    }
+                                    else
+                                    {
+                                        if (SubcharacterIndex - subcharacter_start >= 0)
+                                            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BLACK;
+                                        SubcharacterIndex = index + subcharacter_start;
+                                        if (SubcharacterIndex - subcharacter_start >= 0)
+                                            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+                                        if (Subcharacter_List[SubcharacterIndex] >= 0)
+                                        {
+                                            currentSubcharacter = Subcharacter_List[SubcharacterIndex];
+                                            select_currentSubcharacter();
+                                        }
+                                        else
+                                        {
+                                            currentDeformer_Node = -(Subcharacter_List[index + subcharacter_start] + 1);
+                                            assert_Deformers_Selected();
+                                        }
+                                        create_Subcharacters_List(SubcharacterIndex);
+                                    }
                                     DRAW_UI = 0;
                                     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
