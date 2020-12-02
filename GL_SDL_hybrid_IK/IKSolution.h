@@ -993,7 +993,7 @@ void create_Ik_List(int IKIndex)
         IK_Names[ikChains_c][strlen(I->Name)] = '\0';
         IK_List[ikChains_c] = ikChains_c;
         ikChains_c ++;
-        if (ikChains_c >= IKCHAINS - 1)
+        if (ikChains_c >= IKCHAINS)
             break;
     }
 }

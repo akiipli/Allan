@@ -157,7 +157,7 @@ void create_Items_List(int type)
             //Item_Italic[Items_c] = I->selected;
             Item_List[Items_c] = Items_c;
             Items_c ++;
-            if (Items_c >= ITEMS - 1)
+            if (Items_c >= ITEMS)
                 break;
         }
     }

@@ -592,8 +592,11 @@ void list_Pose_Nodes(deformer * D, int currentPose)
         Pose_X_Collapsed[Poses_c] = 0;
 
         Poses_c ++;
-        if (Poses_c >= POSES - 1)
+
+        if (Poses_c >= POSES)
+        {
             break;
+        }
     }
 }
 
@@ -620,11 +623,14 @@ void create_Poses_List(int PoseIndex)
         Pose_X_Collapsed[Poses_c] = D->collapsed;
         Poses_c ++;
         Deformer_Node_c ++;
-        if (Poses_c < POSES)
+
+        if (Poses_c >= POSES)
         {
-            if (!D->collapsed)
-                list_Pose_Nodes(D, currentPose);
+            break;
         }
+
+        if (!D->collapsed)
+            list_Pose_Nodes(D, currentPose);
     }
 }
 

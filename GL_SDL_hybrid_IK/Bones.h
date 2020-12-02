@@ -1504,7 +1504,7 @@ void create_Bones_List(int BoneIndex)
         Bone_Italic[Bones_c] = B->selected;
         Bone_List[Bones_c] = Bones_c;
         Bones_c ++;
-        if (Bones_c >= BONES - 1)
+        if (Bones_c >= BONES)
             break;
     }
 }

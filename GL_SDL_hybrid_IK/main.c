@@ -6190,11 +6190,15 @@ void handle_UP_Subcharacter(int scrollbar)
         if (SubcharacterIndex - subcharacter_start >= 0)
             SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
 
-        if (Subcharacter_List[SubcharacterIndex] >= 0)
+        if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
         {
             subcharacters[currentSubcharacter]->selected = 0;
             currentSubcharacter = Subcharacter_List[SubcharacterIndex];
             subcharacters[currentSubcharacter]->selected = 1;
+        }
+        else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
+        {
+            currentSubcharacterPose = Subcharacter_List[SubcharacterIndex] - SUBCHARACTERS;
         }
         else
         {
@@ -6804,11 +6808,15 @@ void handle_DOWN_Subcharacter(int scrollbar)
         if (SubcharacterIndex - subcharacter_start >= 0)
             SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
 
-        if (Subcharacter_List[SubcharacterIndex] >= 0)
+        if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
         {
             subcharacters[currentSubcharacter]->selected = 0;
             currentSubcharacter = Subcharacter_List[SubcharacterIndex];
             subcharacters[currentSubcharacter]->selected = 1;
+        }
+        else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
+        {
+            currentSubcharacterPose = Subcharacter_List[SubcharacterIndex] - SUBCHARACTERS;
         }
         else
         {
@@ -7494,7 +7502,22 @@ void add_Subcharacter()
     }
 }
 
-void add_Subcharacter_Pose(){printf("add Subcharacter Pose\n");}
+void add_Pose_To_Subcharacter()
+{
+    set_Subc_H_Button(1);
+    printf("add Pose To Subcharacter\n");
+    if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
+    {
+        subcharacter * S = subcharacters[currentSubcharacter];
+
+        if (!BIND_POSE && subcharacter_posesIndex < SUBCHARACTER_POSES)
+        {
+            add_Subcharacter_Pose(S);
+            if (dialog_lock)
+                draw_Dialog();
+        }
+    }
+}
 
 void remove_Subcharacter()
 {
@@ -11742,7 +11765,7 @@ int main(int argc, char * args[])
     Button_h_ikch[1].func = &rename_IK;
 
     Button_h_subc[0].func = &add_Subcharacter;
-    Button_h_subc[1].func = &add_Subcharacter_Pose;
+    Button_h_subc[1].func = &add_Pose_To_Subcharacter;
     Button_h_subc[2].func = &remove_Subcharacter;
     Button_h_subc[3].func = &remove_Subcharacter_Pose;
     Button_h_subc[4].func = &rename_Subcharacter;
@@ -12465,6 +12488,11 @@ int main(int argc, char * args[])
                                             deformers[-(Subcharacter_List[index + subcharacter_start] + 1)]->collapsed =
                                             !deformers[-(Subcharacter_List[index + subcharacter_start] + 1)]->collapsed;
                                         }
+                                        else if (X_Expand == 10)
+                                        {
+                                            subcharacters[Subcharacter_List[index + subcharacter_start]]->collapsed =
+                                            !subcharacters[Subcharacter_List[index + subcharacter_start]]->collapsed;
+                                        }
                                         create_Subcharacters_List(SubcharacterIndex);
                                     }
                                     else
@@ -12474,10 +12502,15 @@ int main(int argc, char * args[])
                                         SubcharacterIndex = index + subcharacter_start;
                                         if (SubcharacterIndex - subcharacter_start >= 0)
                                             SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
-                                        if (Subcharacter_List[SubcharacterIndex] >= 0)
+                                        if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
                                         {
                                             currentSubcharacter = Subcharacter_List[SubcharacterIndex];
                                             select_currentSubcharacter();
+                                        }
+                                        else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
+                                        {
+                                            currentSubcharacterPose = Subcharacter_List[SubcharacterIndex] - SUBCHARACTERS;
+                                            printf("currentSubcharacterPose %d\n", currentSubcharacterPose);
                                         }
                                         else
                                         {

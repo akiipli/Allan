@@ -21,6 +21,7 @@ How this is implemented and verified, becomes clear in the process.
 #define SUBCHARACTERS_H_INCLUDED
 
 #define SUBCHARACTERS 200
+#define SUBCHARACTER_POSES 1000
 
 int start_Subcharacter;
 transformer ** hi_selected_Transformers;
@@ -35,14 +36,19 @@ int subcharacter_start = 0;
 int Subcharacter_List[SUBCHARACTERS];
 int currentSubcharacter = 0;
 
-int Subcharacter_X_Offset[POSES];
-int Subcharacter_X_Collapsed[POSES];
+int Subcharacter_X_Offset[SUBCHARACTERS];
+int Subcharacter_X_Collapsed[SUBCHARACTERS];
+
+pose * subcharacter_Poses[SUBCHARACTER_POSES];
+int subcharacter_posesIndex = 0;
+int currentSubcharacterPose = 0;
 
 typedef struct subcharacter
 {
     int index;
     unsigned address; // assigned after loading
     char * Name;
+    int collapsed;
     int selected;
 
     deformer * Deformer;
@@ -59,11 +65,89 @@ typedef struct subcharacter
 
     subcharacter ** Subcharacters;
     int Subcharacters_Count;
+
+    int current_pose;
 }
 subcharacter;
 
+int add_Subcharacter_Pose(subcharacter * S)
+{
+    pose * P = malloc(sizeof(pose));
+    if (P == NULL)
+    {
+        return -1;
+    }
+    subcharacter_Poses[subcharacter_posesIndex] = P;
+    P->index = subcharacter_posesIndex;
+    P->Name = malloc(STRLEN);
+    sprintf(P->Name, "S Pose %d", subcharacter_posesIndex);
+    P->D = S->Deformer;
+    P->transformers_count = S->Transformers_Count;
+    P->TP = calloc(P->transformers_count, sizeof(transformer_pose));
+
+    int t;
+
+    float rotVec_I[3][3];
+    invert_Rotation(S->Deformer->Transformers[S->start]->parent, rotVec_I);
+
+    for (t = 0; t < P->transformers_count; t ++)
+    {
+        P->TP[t].rot_Order = S->Transformers[t]->rot_Order;
+        memcpy(P->TP[t].scl, S->Transformers[t]->scl, sizeof(float[3]));
+        memcpy(P->TP[t].scl_vec, S->Transformers[t]->scl_vec, sizeof(float[3]));
+        memcpy(P->TP[t].rot, S->Transformers[t]->rot, sizeof(float[3]));
+//        memcpy(P->TP[t].rotVec, S->Transformers[t]->rotVec, sizeof(float[3][3]));
+//        memcpy(P->TP[t].rotVec_, S->Transformers[t]->rotVec_, sizeof(float[3][3]));
+        memcpy(P->TP[t].rotVec_I, S->Transformers[t]->rotVec_I, sizeof(float[3][3]));
+        memcpy(P->TP[t].rotVec_B, S->Transformers[t]->rotVec_B, sizeof(float[3][3]));
+        memcpy(P->TP[t].pos, S->Transformers[t]->pos, sizeof(float[3]));
+        memcpy(P->TP[t].pos_, S->Transformers[t]->pos_, sizeof(float[3]));
+        P->TP[t].style = S->Transformers[t]->style;
+
+        rotate_matrix_I(P->TP[t].rotVec_, rotVec_I, S->Transformers[t]->rotVec_);
+        rotate_matrix_I(P->TP[t].rotVec, rotVec_I, S->Transformers[t]->rotVec);
+    }
+
+    /* multiply with S->Deformer->Transformers[S->start]->parent Inverse Matrix */
+
+
+    S->Poses = realloc(S->Poses, (S->Poses_Count + 1) * sizeof(pose *));
+    S->Poses[S->Poses_Count ++] = P;
+    subcharacter_posesIndex ++;
+
+    return subcharacter_posesIndex;
+}
+
 subcharacter * subcharacters[SUBCHARACTERS];
 int subcharacterIndex = 0;
+
+void list_Subcharacter_Poses(subcharacter * S)
+{
+    int p;
+
+    pose * P;
+
+    for (p = 0; p < S->Poses_Count; p ++)
+    {
+        P = S->Poses[p];
+
+//        if (currentSubcharacter > 0 && S == subcharacters[currentSubcharacter])
+//            D->current_pose = p;
+
+        sprintf(Subcharacter_Names[Subcharacters_c], "%s", P->Name);
+        Subcharacter_List[Subcharacters_c] = SUBCHARACTERS + P->index;
+
+        Subcharacter_X_Offset[Subcharacters_c] = 3;
+        Subcharacter_X_Collapsed[Subcharacters_c] = 0;
+
+        Subcharacters_c ++;
+
+        if (Subcharacters_c >= SUBCHARACTERS)
+        {
+            break;
+        }
+    }
+}
 
 void list_Subcharacter_Nodes(deformer * D, int currentSubcharacter)
 {
@@ -81,11 +165,19 @@ void list_Subcharacter_Nodes(deformer * D, int currentSubcharacter)
         Subcharacter_List[Subcharacters_c] = S->index;
 
         Subcharacter_X_Offset[Subcharacters_c] = 2;
-        Subcharacter_X_Collapsed[Subcharacters_c] = 0;
+        Subcharacter_X_Collapsed[Subcharacters_c] = S->collapsed;
 
         Subcharacters_c ++;
-        if (Subcharacters_c >= SUBCHARACTERS - 1)
+
+        if (Subcharacters_c >= SUBCHARACTERS)
+        {
             break;
+        }
+
+        if (!S->collapsed)
+        {
+            list_Subcharacter_Poses(S);
+        }
     }
 }
 
@@ -112,10 +204,15 @@ void create_Subcharacters_List(int SubcIndex)
         Subcharacter_X_Collapsed[Subcharacters_c] = D->collapsed;
         Subcharacters_c ++;
         Deformer_Node_c ++;
-        if (Subcharacters_c < SUBCHARACTERS)
+
+        if (Subcharacters_c >= SUBCHARACTERS)
         {
-            if (!D->collapsed)
-                list_Subcharacter_Nodes(D, currentSubcharacter);
+            break;
+        }
+
+        if (!D->collapsed)
+        {
+            list_Subcharacter_Nodes(D, currentSubcharacter);
         }
     }
 }
@@ -141,11 +238,17 @@ void create_Subcharacters_List(int SubcIndex)
 */
 void replace_Subcharacter_Name(char * EditString)
 {
-    if (Subcharacter_List[SubcharacterIndex] >= 0)
+    if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
     {
         subcharacter * S = subcharacters[Subcharacter_List[SubcharacterIndex]];
         memcpy(S->Name, EditString, strlen(EditString));
         S->Name[strlen(EditString)] = '\0';
+    }
+    else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
+    {
+        pose * P = subcharacter_Poses[Subcharacter_List[SubcharacterIndex] - SUBCHARACTERS];
+        memcpy(P->Name, EditString, strlen(EditString));
+        P->Name[strlen(EditString)] = '\0';
     }
     else
     {
@@ -190,6 +293,8 @@ int init_Subcharacter(deformer * D)
     S->index = subcharacterIndex;
     S->Name = malloc(STRLEN * sizeof(char));
     sprintf(S->Name, "%s %d", "Subcharacter", subcharacterIndex);
+    S->collapsed = 0;
+    S->selected = 0;
 
     S->Transformers = malloc(sizeof(transformer *) * hi_selected_Transformers_count);
 
@@ -217,6 +322,8 @@ int init_Subcharacter(deformer * D)
 
     S->Poses_Count = 0;
     S->Poses = malloc(sizeof(pose *) * S->Poses_Count);
+
+    S->current_pose = -1;
 
     S->Subcharacters_Count = 0;
     S->Subcharacters = malloc(sizeof(subcharacter *) * S->Subcharacters_Count);

@@ -260,10 +260,16 @@ int read_Subcharacter_file(Subcharacter_In * SUBCHARACTER_IN, char * fileName)
                 S->address = SUBCHARACTER_IN->address;
 
                 fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &S->collapsed);
+
+                fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%u", (unsigned*)&S->Deformer);
 
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%d", &S->start);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &S->current_pose);
 
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%d %d %d %d",

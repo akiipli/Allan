@@ -79,8 +79,10 @@ void save_Subcharacters(char * subcharacter_files_dir)
             S = D->Subcharacters[s];
             fprintf(F, "%s\n", S->Name);
             fprintf(F, "%u\n", (unsigned)S);
+            fprintf(F, "%d\n", S->collapsed);
             fprintf(F, "%u\n", (unsigned)S->Deformer);
             fprintf(F, "%d\n", S->start);
+            fprintf(F, "%d\n", S->current_pose);
 
             fprintf(F, "%d %d %d %d\n",
                     S->Transformers_Count,

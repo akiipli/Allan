@@ -256,8 +256,6 @@ void list_Deformer_Nodes(deformer * D, int SelsIndex, object * O)
 
     for (t = 0; t < D->Transformers_Count; t ++)
     {
-        if (Deformers_c >= DEFORMERS)
-            break;
         T = D->Transformers[t];
         if (T->Bone != NULL && (T == T->Bone->B))
             continue;
@@ -293,6 +291,11 @@ void list_Deformer_Nodes(deformer * D, int SelsIndex, object * O)
         }
 
         Deformers_c ++;
+
+        if (Deformers_c >= DEFORMERS)
+        {
+            break;
+        }
     }
 }
 
@@ -305,8 +308,6 @@ void create_Deformers_List(int SelsIndex, object * O)
 
     for (d = 0; d < deformerIndex; d ++)
     {
-        if (Deformers_c >= DEFORMERS)
-            break;
         D = deformers[d];
 
         if (D->selected)
@@ -319,6 +320,12 @@ void create_Deformers_List(int SelsIndex, object * O)
         Defr_X_Collapsed[Deformers_c] = D->collapsed;
         Deformers_c ++;
         Deformer_Node_c ++;
+
+        if (Deformers_c >= DEFORMERS)
+        {
+            break;
+        }
+
         if (!D->collapsed)
             list_Deformer_Nodes(D, SelsIndex, O);
     }

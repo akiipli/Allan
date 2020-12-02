@@ -73,14 +73,17 @@ void list_transformers(transformer * T, int depth)
     Hierarchys_c ++;
     depth ++;
 
-    if (!T->collapsed)
+    if (Hierarchys_c < HIERARCHYS)
     {
-        for (c = 0; c < T->childcount; c ++)
+        if (!T->collapsed)
         {
-            C = T->childs[c];
-            if (C->parent == T && transformerIndex < TRANSFORMERS)
+            for (c = 0; c < T->childcount; c ++)
             {
-                list_transformers(C, depth);
+                C = T->childs[c];
+                if (C->parent == T && transformerIndex < TRANSFORMERS)
+                {
+                    list_transformers(C, depth);
+                }
             }
         }
     }
