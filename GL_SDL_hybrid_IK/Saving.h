@@ -562,9 +562,9 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
     if (F == NULL) return 0;
 
     fprintf(F, "Transformers\n");
-    fprintf(F, "%d\n", transformerIndex - 6); /*CUBECOMMENT*/
+    fprintf(F, "%d\n", transformerIndex - CUBEINDEX); /*CUBECOMMENT*/
 
-    for (t = 6; t < transformerIndex; t ++) /*CUBECOMMENT*/
+    for (t = CUBEINDEX; t < transformerIndex; t ++) /*CUBECOMMENT*/
     {
         //T = Locators[l];
         T = transformers[t];

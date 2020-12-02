@@ -17,7 +17,7 @@ look for CUBECOMMENT
 
 /*CORRECT IT*/
 
-
+#define CUBEINDEX 7
 
 #define DEBUG_WITHOUT_IL 0 //  change this to 1
 
@@ -6186,25 +6186,30 @@ void handle_UP_Subcharacter(int scrollbar)
         if (SubcharacterIndex - subcharacter_start >= 0)
             SubcList[SubcharacterIndex - subcharacter_start].color = UI_BLACK;
         SubcharacterIndex --;
-        if (SubcharacterIndex < 0) SubcharacterIndex ++;
-        if (SubcharacterIndex - subcharacter_start >= 0)
-            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
 
-        if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
+        if (SubcharacterIndex >= 0)
         {
-            subcharacters[currentSubcharacter]->selected = 0;
-            currentSubcharacter = Subcharacter_List[SubcharacterIndex];
-            subcharacters[currentSubcharacter]->selected = 1;
+            if (SubcharacterIndex - subcharacter_start >= 0)
+                SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+
+            if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
+            {
+                subcharacters[currentSubcharacter]->selected = 0;
+                currentSubcharacter = Subcharacter_List[SubcharacterIndex];
+                subcharacters[currentSubcharacter]->selected = 1;
+            }
+            else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
+            {
+                currentSubcharacterPose = Subcharacter_List[SubcharacterIndex] - SUBCHARACTERS;
+            }
+            else
+            {
+                currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
+                assert_Deformers_Selected();
+            }
         }
-        else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
-        {
-            currentSubcharacterPose = Subcharacter_List[SubcharacterIndex] - SUBCHARACTERS;
-        }
-        else
-        {
-            currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
-            assert_Deformers_Selected();
-        }
+
+        if (SubcharacterIndex < 0) SubcharacterIndex ++;
     }
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -6803,26 +6808,30 @@ void handle_DOWN_Subcharacter(int scrollbar)
         if (SubcharacterIndex - subcharacter_start >= 0)
             SubcList[SubcharacterIndex - subcharacter_start].color = UI_BLACK;
         SubcharacterIndex ++;
-        if (SubcharacterIndex > Subcharacters_c - 1)
-            SubcharacterIndex --;
-        if (SubcharacterIndex - subcharacter_start >= 0)
-            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
 
-        if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
+        if (SubcharacterIndex < Subcharacters_c)
         {
-            subcharacters[currentSubcharacter]->selected = 0;
-            currentSubcharacter = Subcharacter_List[SubcharacterIndex];
-            subcharacters[currentSubcharacter]->selected = 1;
+            if (SubcharacterIndex - subcharacter_start >= 0)
+                SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+
+            if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
+            {
+                subcharacters[currentSubcharacter]->selected = 0;
+                currentSubcharacter = Subcharacter_List[SubcharacterIndex];
+                subcharacters[currentSubcharacter]->selected = 1;
+            }
+            else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
+            {
+                currentSubcharacterPose = Subcharacter_List[SubcharacterIndex] - SUBCHARACTERS;
+            }
+            else
+            {
+                currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
+                assert_Deformers_Selected();
+            }
         }
-        else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
-        {
-            currentSubcharacterPose = Subcharacter_List[SubcharacterIndex] - SUBCHARACTERS;
-        }
-        else
-        {
-            currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
-            assert_Deformers_Selected();
-        }
+        if (SubcharacterIndex >= Subcharacters_c)
+            SubcharacterIndex --;
     }
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -10611,7 +10620,7 @@ void clear_Locators()
         free(T);
     }
 
-    transformerIndex = 6;
+    transformerIndex = CUBEINDEX;
     locatorIndex = 0;
 }
 
@@ -10645,8 +10654,8 @@ void clear_All()
         posesCount = 0;
         Materials_count = 4;
 
-        transformerIndex = 6;
-        transformerCount = 6;
+        transformerIndex = CUBEINDEX;
+        transformerCount = CUBEINDEX;
         locatorIndex = 0;
 
         HierIndex = 0;
@@ -10658,7 +10667,7 @@ void clear_All()
 
     */
 
-        World.childcount = 5; /*CUBECOMMENT*/
+        World.childcount = CUBEINDEX - 1; /*CUBECOMMENT*/
 
         create_Transformers_List();
 
@@ -10673,7 +10682,7 @@ void clear_All()
         bone_start = 0;
         ikch_start = 0;
         memcpy(sels_start, (int[4]){0, 0, 0, 0}, sizeof(sels_start));
-        currentLocator = 5;
+        currentLocator = CUBEINDEX - 1;
         currentPose = 0;
         O = objects[currentObject];
         O->selected = 0;
