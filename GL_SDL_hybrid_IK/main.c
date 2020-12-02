@@ -6160,14 +6160,14 @@ void handle_UP_IK(int scrollbar)
 
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    if (!scrollbar)
-    {
-        glDrawBuffer(GL_FRONT);
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        glDrawBuffer(GL_BACK);
-    }
+    draw_IK_Dialog("IK List", screen_height,
+                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
+    SDL_GL_SwapBuffers();
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    draw_IK_Dialog("IK List", screen_height,
+                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
+    SDL_GL_SwapBuffers();
     DRAW_UI = 1;
-    update_IK_List(1, 0);
 }
 
 void handle_UP_Subcharacter(int scrollbar)
@@ -6285,14 +6285,15 @@ void handle_UP_Bone(int scrollbar)
     }
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    if (!scrollbar)
-    {
-        glDrawBuffer(GL_FRONT);
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        glDrawBuffer(GL_BACK);
-    }
+    glDrawBuffer(GL_BACK);
+    draw_Bones_Dialog("Bones List", screen_height,
+                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
+    SDL_GL_SwapBuffers();
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    draw_Bones_Dialog("Bones List", screen_height,
+                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
+    SDL_GL_SwapBuffers();
     DRAW_UI = 1;
-    update_Bones_List(1, 0);
 }
 
 void swap_Poses_up(pose * P)
@@ -6782,14 +6783,14 @@ void handle_DOWN_IK(int scrollbar)
 
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    if (!scrollbar)
-    {
-        glDrawBuffer(GL_FRONT);
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        glDrawBuffer(GL_BACK);
-    }
+    draw_IK_Dialog("IK List", screen_height,
+                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
+    SDL_GL_SwapBuffers();
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    draw_IK_Dialog("IK List", screen_height,
+                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
+    SDL_GL_SwapBuffers();
     DRAW_UI = 1;
-    update_IK_List(1, 0);
 }
 
 void handle_DOWN_Subcharacter(int scrollbar)
@@ -6909,14 +6910,15 @@ void handle_DOWN_Bone(int scrollbar)
     }
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    if (!scrollbar)
-    {
-        glDrawBuffer(GL_FRONT);
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        glDrawBuffer(GL_BACK);
-    }
+    glDrawBuffer(GL_BACK);
+    draw_Bones_Dialog("Bones List", screen_height,
+                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
+    SDL_GL_SwapBuffers();
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    draw_Bones_Dialog("Bones List", screen_height,
+                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
+    SDL_GL_SwapBuffers();
     DRAW_UI = 1;
-    update_Bones_List(1, 0);
 }
 
 void swap_Poses_down(pose * P)
@@ -8665,6 +8667,97 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
     }
 }
 
+void delete_Transformer_raw(transformer * T0)
+{
+    int c;
+
+    //create_Transformers_List();
+
+    selected_transformer_count = 0;
+
+    child_collection_count = 0;
+
+    for (c = 0; c < T0->childcount; c ++)
+    {
+        child_collection[child_collection_count ++] = T0->childs[c];
+    }
+    for (c = 0; c < child_collection_count; c ++)
+    {
+        if (BIND_POSE)
+        {
+            remove_Child(child_collection[c], T0, T0->parent);
+        }
+        else
+        {
+            normalize_rotation_unparent(child_collection[c]);
+            remove_Child(child_collection[c], T0, T0->parent);
+            normalize_rotation_parent(child_collection[c]);
+        }
+    }
+    remove_Child(T0, T0->parent, NULL);
+
+    if (T0->Deformer != NULL)
+    {
+        remove_Transformer_From_Deformer(T0);
+    }
+
+    free_Transformer(T0);
+    free(T0);
+}
+
+void clean_Unused_Transformers()
+{
+    int t, o;
+    transformer * T;
+
+    unsigned address, address0;
+
+    int condition;
+
+    for (t = transformerIndex - 1; t >= 0; t --)
+    {
+        T = transformers[t];
+
+        address = (unsigned)T->Object;
+
+        if (address != 0)
+        {
+            condition = 0;
+
+            for (o = 0; o < objectIndex; o ++)
+            {
+                address0 = (unsigned)objects[o];
+                if (address == address0)
+                {
+                    condition = 1;
+                    break;
+                }
+            }
+
+            if (!condition)
+            {
+                printf("transformer has no connection %s\n", T->Name);
+                delete_Transformer_raw(T);
+            }
+        }
+    }
+
+    create_Hierarchys_List();
+
+    if (currentLocator >= transformerIndex - 1)
+        currentLocator = transformerIndex - 1;
+    if (currentLocator < 0)
+        currentLocator = 0;
+
+    T = transformers[currentLocator];
+
+    if (dialog_lock)
+    {
+        set_Hier_H_Button(4);
+        draw_Dialog();
+    }
+}
+
 void handle_Hier_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
@@ -8736,6 +8829,10 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
     else if (letter == 13 || letter == 10) // return, enter
     {
         select_Transformer();
+    }
+    else if (letter == 'c')
+    {
+        clean_Unused_Transformers();
     }
 }
 

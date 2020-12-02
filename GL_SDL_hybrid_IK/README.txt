@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+10:36 PM 12/2/2020
+Pressing c in Hierarchy list, cleans transformers that have no connection to objects they refer to.
+Its a sanity check.
+
 11:37 AM 11/4/2020
 Enter and return are different now for selection renaming.
 Use enter to assign while renaming.
