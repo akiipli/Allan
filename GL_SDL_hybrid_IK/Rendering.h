@@ -4040,7 +4040,7 @@ void render_Transformers_ID()
 
     glBegin(GL_LINES);
 
-    for (t = 5; t < transformerIndex; t ++)
+    for (t = CUBEINDEX - 1; t < transformerIndex; t ++)
     {
         if (t >= TRANSFORMERS - 1)
             break;
@@ -4339,7 +4339,7 @@ void render_Labels(int width, int height)
 
     int result;
 
-    for (t = 5; t < transformerIndex; t ++)
+    for (t = CUBEINDEX - 1; t < transformerIndex; t ++)
     {
         if (t >= TRANSFORMERS - 1)
             break;
@@ -4387,7 +4387,7 @@ void render_Transformers(int currentLocator)
 
     glBegin(GL_LINES);
 
-    for (t = 5; t < transformerIndex; t ++)
+    for (t = CUBEINDEX - 1; t < transformerIndex; t ++)
     {
         if (t >= TRANSFORMERS - 1)
             break;

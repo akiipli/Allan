@@ -394,12 +394,6 @@ void blit_ViewPort()
     glReadBuffer(GL_BACK);
 }
 
-float distance(float A[3], float B[3])
-{
-    float C[3] = {A[0] - B[0], A[1] - B[1], A[2] - B[2]};
-    return sqrt(C[0] * C[0] + C[1] * C[1] + C[2] * C[2]);
-}
-
 void find_Camera_Objects()
 {
     if (splitview)
@@ -1540,7 +1534,7 @@ void frame_object(camera * C, int all_Views)
     }
     else if (DRAW_LOCATORS && Object_Mode)
     {
-        for (t = 5; t < transformerIndex; t ++) // skip world and cameras
+        for (t = CUBEINDEX - 1; t < transformerIndex; t ++) // skip world and cameras
         {
             T = transformers[t];
             if (T->selected || t == currentLocator)
@@ -1858,15 +1852,18 @@ void Draw_Rectangle()
 
 void draw_Locators()
 {
-    if (!Bone_Mode)
-        render_Transformers(currentLocator);
-    if (!BONES_ID_RENDER)
+    if (rendermode != ID_RENDER)
     {
-        render_Parent_Lines();
-        render_HighLighted_Bones();
+        if (!Bone_Mode)
+            render_Transformers(currentLocator);
+        if (!BONES_ID_RENDER)
+        {
+            render_Parent_Lines();
+            render_HighLighted_Bones();
+        }
+        if (!Bone_Mode)
+            render_IK_Chains();
     }
-    if (!Bone_Mode)
-        render_IK_Chains();
 }
 
 void Draw_Ui()
@@ -2330,6 +2327,8 @@ void set_Object_Mode()
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYB;
     SDL_SetCursor(Arrow);
+
+    LOCAT_ID_RENDER = DRAW_LOCATORS;
 }
 
 void set_Polygon_Mode()
@@ -8420,6 +8419,54 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
         update_Subcharacters_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
+    }
+    else if (letter == 13 || letter == 10) // return, enter
+    {
+        subcharacter * S = subcharacters[currentSubcharacter];
+        pose * P = subcharacter_Poses[currentSubcharacterPose];
+        apply_Subcharacter_Pose(S, P);
+        compose_Subcharacter_Pose(S);
+
+        deformer * D = S->Deformer;
+
+        if (D->Transformers_Count > 0)
+        {
+            transformer * T = D->Transformers[0];
+
+            Update_Objects_Count = 0;
+
+            rotate_collect(T);
+            rotate_vertex_groups_D_Init();
+
+            rotate_Deformer_verts(D);
+
+            update_rotate_bounding_box();
+
+            if (subdLevel > -1)
+            {
+                int o;
+
+                for (o = 0; o < Update_Objects_Count; o ++)
+                {
+                    O = Update_Objects[o];
+                    if (O->deforms)
+                    {
+                        tune_subdivide_post_transformed(O, subdLevel);
+                    }
+                }
+            }
+
+            if (dialog_lock)
+            {
+                poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                draw_Dialog();
+                SDL_GL_SwapBuffers();
+            }
+            else
+            {
+                poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+            }
+        }
     }
 }
 

@@ -23,6 +23,12 @@ How this is implemented and verified, becomes clear in the process.
 #define SUBCHARACTERS 200
 #define SUBCHARACTER_POSES 1000
 
+float distance(float A[3], float B[3])
+{
+    float C[3] = {A[0] - B[0], A[1] - B[1], A[2] - B[2]};
+    return sqrt(C[0] * C[0] + C[1] * C[1] + C[2] * C[2]);
+}
+
 int start_Subcharacter;
 transformer ** hi_selected_Transformers;
 int hi_selected_Transformers_count;
@@ -70,6 +76,69 @@ typedef struct subcharacter
 }
 subcharacter;
 
+void compose_Subcharacter_Pose(subcharacter * S)
+{
+    int b;
+    bone * B;
+    float len;
+
+    for (b = 0; b < S->Bones_Count; b ++)
+    {
+        B = S->Bones[b];
+        len = distance(B->A->pos, B->B->pos);
+
+        B->A->pos[0] = B->A->parent->pos[0];
+        B->A->pos[1] = B->A->parent->pos[1];
+        B->A->pos[2] = B->A->parent->pos[2];
+
+        if (B->A->rot_Order == yxz || B->A->rot_Order == xyz)
+        {
+            B->B->pos[0] = B->A->pos[0] + B->A->rotVec_[2][0] * len;
+            B->B->pos[1] = B->A->pos[1] + B->A->rotVec_[2][1] * len;
+            B->B->pos[2] = B->A->pos[2] + B->A->rotVec_[2][2] * len;
+        }
+        else if (B->A->rot_Order == zxy || B->A->rot_Order == xzy)
+        {
+            B->B->pos[0] = B->A->pos[0] + B->A->rotVec_[1][0] * len;
+            B->B->pos[1] = B->A->pos[1] + B->A->rotVec_[1][1] * len;
+            B->B->pos[2] = B->A->pos[2] + B->A->rotVec_[1][2] * len;
+        }
+        else if (B->A->rot_Order == zyx || B->A->rot_Order == yzx)
+        {
+            B->B->pos[0] = B->A->pos[0] + B->A->rotVec_[0][0] * len;
+            B->B->pos[1] = B->A->pos[1] + B->A->rotVec_[0][1] * len;
+            B->B->pos[2] = B->A->pos[2] + B->A->rotVec_[0][2] * len;
+        }
+    }
+}
+
+void apply_Subcharacter_Pose(subcharacter * S, pose * P)
+{
+    int t;
+
+    transformer * T = S->Deformer->Bones[S->start]->A->parent;
+
+    for (t = 0; t < P->transformers_count; t ++)
+    {
+        S->Transformers[t]->rot_Order = P->TP[t].rot_Order;
+        memcpy(S->Transformers[t]->scl, P->TP[t].scl, sizeof(float[3]));
+        memcpy(S->Transformers[t]->scl_vec, P->TP[t].scl_vec, sizeof(float[3]));
+        memcpy(S->Transformers[t]->rot, P->TP[t].rot, sizeof(float[3]));
+
+        //memcpy(S->Transformers[t]->rotVec, P->TP[t].rotVec, sizeof(float[3][3]));
+        //memcpy(S->Transformers[t]->rotVec_, P->TP[t].rotVec_, sizeof(float[3][3]));
+
+        memcpy(S->Transformers[t]->rotVec_I, P->TP[t].rotVec_I, sizeof(float[3][3]));
+        memcpy(S->Transformers[t]->rotVec_B, P->TP[t].rotVec_B, sizeof(float[3][3]));
+        memcpy(S->Transformers[t]->pos, P->TP[t].pos, sizeof(float[3]));
+        memcpy(S->Transformers[t]->pos_, P->TP[t].pos_, sizeof(float[3]));
+        S->Transformers[t]->style = P->TP[t].style;
+
+        rotate_matrix_I(S->Transformers[t]->rotVec_, T->rotVec_, P->TP[t].rotVec_);
+        rotate_matrix_I(S->Transformers[t]->rotVec, T->rotVec, P->TP[t].rotVec);
+    }
+}
+
 int add_Subcharacter_Pose(subcharacter * S)
 {
     pose * P = malloc(sizeof(pose));
@@ -88,7 +157,7 @@ int add_Subcharacter_Pose(subcharacter * S)
     int t;
 
     float rotVec_I[3][3];
-    invert_Rotation(S->Deformer->Transformers[S->start]->parent, rotVec_I);
+    invert_Rotation(S->Deformer->Bones[S->start]->A->parent, rotVec_I);
 
     for (t = 0; t < P->transformers_count; t ++)
     {
