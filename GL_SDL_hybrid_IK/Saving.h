@@ -16,7 +16,7 @@ int currentTheme = 0;
 
 char scene_extension[20];
 char * scene_extensions[SCENE_EXT_NUM];
-int scene_ext_count = 7;
+int scene_ext_count = SCENE_EXT_NUM;
 int scene_files_start = 0;
 
 char scene_files_dir[STRLEN];
@@ -35,10 +35,84 @@ void init_scene_extensions()
     sprintf(scene_extensions[4], "Poses");
     sprintf(scene_extensions[5], "Surfaces");
     sprintf(scene_extensions[6], "Subcharacters");
+    sprintf(scene_extensions[7], "SubcharacterP");
 
     sprintf(scene_files_dir, "%s", "c:/Trips Code/Scenes IK");
 
     sprintf(scene_extension, "%s", "");
+}
+
+void save_Subcharacter_Poses(char * subcharacter_poses_dir)
+{
+    char dirfile[STRLEN];
+
+    FILE * F;
+
+    int s, p, t;
+
+    subcharacter * S;
+    transformer_pose * T;
+    pose * P;
+
+    char n[8];
+
+    for (s = 0; s < subcharacterIndex; s ++)
+    {
+        S = subcharacters[s];
+
+        dirfile[0] = '\0';
+        strcat(dirfile, subcharacter_poses_dir);
+        strcat(dirfile, "/");
+        strcat(dirfile, S->Name);
+        strcat(dirfile, "_");
+        sprintf(n, "%d", s);
+        strcat(dirfile, n);
+        strcat(dirfile, ".txt");
+
+        F = fopen(dirfile, "w");
+
+        if (F == NULL) continue;
+
+        fprintf(F, "SubcharacterP\n");
+        fprintf(F, "%d\n", S->Poses_Count);
+
+        for (p = 0; p < S->Poses_Count; p ++)
+        {
+            P = S->Poses[p];
+            fprintf(F, "%s\n", P->Name);
+            fprintf(F, "%u\n", (unsigned)P);
+            fprintf(F, "%u\n", (unsigned)P->D);
+            fprintf(F, "%d\n", P->transformers_count);
+
+            for (t = 0; t < P->transformers_count; t ++)
+            {
+                T = &P->TP[t];
+                fprintf(F, "%d\n", T->rot_Order);
+                fprintf(F, "%f %f %f\n", T->scl[0], T->scl[1], T->scl[2]);
+                fprintf(F, "%f %f %f\n", T->scl_vec[0], T->scl_vec[1], T->scl_vec[2]);
+                fprintf(F, "%f %f %f\n", T->rot[0], T->rot[1], T->rot[2]);
+
+                fprintf(F, "%f %f %f %f %f %f %f %f %f\n",
+                        T->rotVec_[0][0], T->rotVec_[0][1], T->rotVec_[0][2],
+                        T->rotVec_[1][0], T->rotVec_[1][1], T->rotVec_[1][2],
+                        T->rotVec_[2][0], T->rotVec_[2][1], T->rotVec_[2][2]);
+                fprintf(F, "%f %f %f %f %f %f %f %f %f\n",
+                        T->rotVec_I[0][0], T->rotVec_I[0][1], T->rotVec_I[0][2],
+                        T->rotVec_I[1][0], T->rotVec_I[1][1], T->rotVec_I[1][2],
+                        T->rotVec_I[2][0], T->rotVec_I[2][1], T->rotVec_I[2][2]);
+                fprintf(F, "%f %f %f %f %f %f %f %f %f\n",
+                        T->rotVec_B[0][0], T->rotVec_B[0][1], T->rotVec_B[0][2],
+                        T->rotVec_B[1][0], T->rotVec_B[1][1], T->rotVec_B[1][2],
+                        T->rotVec_B[2][0], T->rotVec_B[2][1], T->rotVec_B[2][2]);
+                fprintf(F, "%f %f %f\n", T->pos[0], T->pos[1], T->pos[2]);
+                fprintf(F, "%f %f %f\n", T->pos_[0], T->pos_[1], T->pos_[2]);
+                fprintf(F, "%d\n", T->style);
+            }
+        }
+
+        fprintf(F, "\n");
+        fclose(F);
+    }
 }
 
 void save_Subcharacters(char * subcharacter_files_dir)

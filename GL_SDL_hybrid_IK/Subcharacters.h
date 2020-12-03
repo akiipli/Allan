@@ -227,8 +227,8 @@ void list_Subcharacter_Nodes(deformer * D, int currentSubcharacter)
     {
         S = D->Subcharacters[s];
 
-//        if (currentSubcharacter > 0 && S == subcharacters[currentSubcharacter])
-//            D->current_pose = p;
+        if (S->selected)
+            selected_subcharacter_node = Subcharacters_c;
 
         sprintf(Subcharacter_Names[Subcharacters_c], "%s", S->Name);
         Subcharacter_List[Subcharacters_c] = S->index;
@@ -413,6 +413,7 @@ void set_Subc_H_Button(int index)
 }
 
 void free_subcharacter(subcharacter * S);
+void free_subcharacter_Poses(subcharacter * S);
 
 void remove_Subcharacter_From_Subcharacter(subcharacter * S, subcharacter * S0)
 {
@@ -481,10 +482,8 @@ void remove_Subcharacter_From_Deformer(deformer * D, subcharacter * S)
     }
 }
 
-void delete_Subcharacter(subcharacter * S)
+int delete_Subcharacter(subcharacter * S)
 {
-    //printf("remove Bone From Bones\n");
-
     int index, s;
     int condition = 0;
 
@@ -506,6 +505,8 @@ void delete_Subcharacter(subcharacter * S)
 
         remove_Subcharacter_From_Deformer_Subcharacters(D, S);
 
+        free_subcharacter_Poses(S);
+
         free_subcharacter(S);
 
         subcharacterIndex --;
@@ -515,6 +516,7 @@ void delete_Subcharacter(subcharacter * S)
             subcharacters[s]->index = s;
         }
     }
+    return condition;
 }
 
 void delete_Deformer_Subcharacters(deformer * D)
@@ -528,6 +530,8 @@ void delete_Deformer_Subcharacters(deformer * D)
         index = S->index;
 
         remove_Subcharacter_From_Deformer(D, S);
+
+        free_subcharacter_Poses(S);
 
         free_subcharacter(S);
 

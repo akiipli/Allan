@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+12:14 AM 12/4/2020
+Massive work is done with Subcharacters, integrating them into future pose based animation system.
+Pressing Enter or Return in Subcharacters List applies current subcharacter pose. Both need to be
+current.
+
 10:36 PM 12/2/2020
 Pressing c in Hierarchy list, cleans transformers that have no connection to objects they refer to.
 Its a sanity check.

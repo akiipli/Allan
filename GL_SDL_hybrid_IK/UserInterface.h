@@ -13,7 +13,7 @@ Copyright <2018> <Allan Kiipli>
 
 #define STRLEN 256
 
-#define SCENE_EXT_NUM 7
+#define SCENE_EXT_NUM 8
 
 #define SIDEBAR 100
 #define BOTTOM_LINE 20
@@ -56,7 +56,7 @@ int LISTLENGTH = 12;
 #define H_MATR_NUM 4
 #define H_ITEM_NUM 1
 #define H_IKCH_NUM 2
-#define H_SUBC_NUM 6
+#define H_SUBC_NUM 5
 #define H_TEXT_NUM 2
 
 #define TYPE_LENGTH 20
@@ -140,6 +140,7 @@ void display_thumbnail_(float origin_x, float origin_y, int m_index, float color
 
 int dir_lists = 0;
 int selected_deformer_node = 0;
+int selected_subcharacter_node = 0;
 
 typedef struct
 {
@@ -1062,7 +1063,8 @@ void draw_Corner_Drag_Button(int width, int height)
 	glPopMatrix();
 }
 
-void draw_Button_subcharacter_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed, int frame_selection)
+void draw_Button_subcharacter_text(const char * text, int width, int height, int index, int colorchange,
+                                   int frame_it, int x_offset, int x_collapsed, int frame_selection, int highlight)
 {
     int advance;
     int font_height = 11;
@@ -1102,7 +1104,9 @@ void draw_Button_subcharacter_text(const char * text, int width, int height, int
     }
 	glEnable(GL_TEXTURE_2D);
 
-    if (colorchange)
+	if (highlight)
+        glColor4fv(buttoncolors[UI_DIMSL].color);
+    else if (colorchange)
         glColor4fv(buttoncolors[SubcList[index].color].color);
 	else
         glColor4fv(buttoncolors[UI_BLACK].color);
@@ -2389,7 +2393,8 @@ void draw_Subcharacter_List(int s_height, int start, int clear_background, int c
 	int subcharacter_x_offset[LISTLENGTH];
 	int subcharacter_x_collapsed[LISTLENGTH];
 
-    int i;
+    int i, highlight;
+
 	for (i = 0; i < LISTLENGTH; i ++)
     {
         subch_list[i] = malloc(255 * sizeof(char));
@@ -2399,19 +2404,21 @@ void draw_Subcharacter_List(int s_height, int start, int clear_background, int c
 
 	for (i = 0; i < s; i ++)
     {
+        if (i == selected_subcharacter_node - start) highlight = 1; else highlight = 0;
+
         if (i == current_subch && selection_rectangle)
         {
             if (i == selected_deformer_node - start)
-                draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 1, subcharacter_x_offset[i], subcharacter_x_collapsed[i], 1);
+                draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 1, subcharacter_x_offset[i], subcharacter_x_collapsed[i], 1, highlight);
             else
-                draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 0, subcharacter_x_offset[i], subcharacter_x_collapsed[i], 1);
+                draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 0, subcharacter_x_offset[i], subcharacter_x_collapsed[i], 1, highlight);
         }
         else
         {
             if (i == selected_deformer_node - start)
-                draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 1, subcharacter_x_offset[i], subcharacter_x_collapsed[i], 0);
+                draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 1, subcharacter_x_offset[i], subcharacter_x_collapsed[i], 0, highlight);
             else
-                draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 0, subcharacter_x_offset[i], subcharacter_x_collapsed[i], 0);
+                draw_Button_subcharacter_text(subch_list[i], d_width, d_height, i, 1, 0, subcharacter_x_offset[i], subcharacter_x_collapsed[i], 0, highlight);
         }
     }
 
@@ -3459,7 +3466,6 @@ void draw_Subcharacter_Bottom_Line(int width, int height)
     draw_Button_subcharacter_horizontal("Remove", 2, 1);
     draw_Button_subcharacter_horizontal("Rem P.", 3, 1);
     draw_Button_subcharacter_horizontal("Rename", 4, 1);
-    draw_Button_subcharacter_horizontal("Ren P.", 5, 1);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

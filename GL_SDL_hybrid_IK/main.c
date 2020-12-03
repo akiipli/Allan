@@ -734,6 +734,7 @@ void cleanup()
     free_transformers();
     free_deformers();
     free_poses();
+    free_subcharacter_poses();
     free_bones();
     free_ikChains();
     free_Subcharacters();
@@ -6169,6 +6170,18 @@ void handle_UP_IK(int scrollbar)
     DRAW_UI = 1;
 }
 
+void select_Subcharacter()
+{
+    int s;
+
+    for (s = 0; s < subcharacterIndex; s ++)
+    {
+        subcharacters[s]->selected = 0;
+    }
+    if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
+        subcharacters[currentSubcharacter]->selected = 1;
+}
+
 void handle_UP_Subcharacter(int scrollbar)
 {
     if (scrollbar)
@@ -6193,9 +6206,7 @@ void handle_UP_Subcharacter(int scrollbar)
 
             if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
             {
-                subcharacters[currentSubcharacter]->selected = 0;
                 currentSubcharacter = Subcharacter_List[SubcharacterIndex];
-                subcharacters[currentSubcharacter]->selected = 1;
             }
             else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
             {
@@ -6203,9 +6214,11 @@ void handle_UP_Subcharacter(int scrollbar)
             }
             else
             {
-                currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
-                assert_Deformers_Selected();
+//                currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
+//                assert_Deformers_Selected();
             }
+            select_Subcharacter();
+            create_Subcharacters_List(SubcharacterIndex);
         }
 
         if (SubcharacterIndex < 0) SubcharacterIndex ++;
@@ -6213,7 +6226,10 @@ void handle_UP_Subcharacter(int scrollbar)
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     DRAW_UI = 1;
-    update_Subcharacters_List(1, 0);
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
 }
 
 void handle_UP_Item(int scrollbar)
@@ -6816,9 +6832,7 @@ void handle_DOWN_Subcharacter(int scrollbar)
 
             if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
             {
-                subcharacters[currentSubcharacter]->selected = 0;
                 currentSubcharacter = Subcharacter_List[SubcharacterIndex];
-                subcharacters[currentSubcharacter]->selected = 1;
             }
             else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
             {
@@ -6826,9 +6840,11 @@ void handle_DOWN_Subcharacter(int scrollbar)
             }
             else
             {
-                currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
-                assert_Deformers_Selected();
+//                currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
+//                assert_Deformers_Selected();
             }
+            select_Subcharacter();
+            create_Subcharacters_List(SubcharacterIndex);
         }
         if (SubcharacterIndex >= Subcharacters_c)
             SubcharacterIndex --;
@@ -6836,7 +6852,10 @@ void handle_DOWN_Subcharacter(int scrollbar)
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     DRAW_UI = 1;
-    update_Subcharacters_List(1, 0);
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
 }
 
 void handle_DOWN_Item(int scrollbar)
@@ -7498,6 +7517,7 @@ void add_Subcharacter()
                 {
                     init_Subcharacter(D);
                     currentSubcharacter = subcharacterIndex - 1;
+                    select_Subcharacter();
                     SubcharacterIndex = (subcharacterIndex - 1) - subcharacter_start;
                 }
 
@@ -7535,33 +7555,100 @@ void remove_Subcharacter()
     printf("remove Subcharacter\n");
     if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
     {
+        int result;
+
         subcharacter * S = subcharacters[currentSubcharacter];
 
-        delete_Subcharacter(S);
+        result = delete_Subcharacter(S);
 
-        SubcharacterIndex --;
-        if (SubcharacterIndex < 0) SubcharacterIndex ++;
-        if (SubcharacterIndex - subcharacter_start >= 0)
-            SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
-
-        if (Subcharacter_List[SubcharacterIndex] >= 0)
+        if (result)
         {
-            subcharacters[currentSubcharacter]->selected = 0;
-            currentSubcharacter = Subcharacter_List[SubcharacterIndex];
-            subcharacters[currentSubcharacter]->selected = 1;
-        }
-        else
-        {
-            currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
-            assert_Deformers_Selected();
-        }
+            if (currentSubcharacterPose >= subcharacter_posesIndex)
+            {
+                currentSubcharacterPose = subcharacter_posesIndex - 1;
+            }
+            if (currentSubcharacterPose < 0) currentSubcharacterPose = 0;
 
-        if (dialog_lock)
-            draw_Dialog();
+            SubcharacterIndex --;
+            if (SubcharacterIndex < 0) SubcharacterIndex ++;
+            if (SubcharacterIndex - subcharacter_start >= 0)
+                SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+
+            if (Subcharacter_List[SubcharacterIndex] >= 0)
+            {
+                subcharacters[currentSubcharacter]->selected = 0;
+                currentSubcharacter = Subcharacter_List[SubcharacterIndex];
+                subcharacters[currentSubcharacter]->selected = 1;
+            }
+            else
+            {
+                currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
+                assert_Deformers_Selected();
+            }
+
+            if (dialog_lock)
+                draw_Dialog();
+        }
     }
 }
 
-void remove_Subcharacter_Pose(){printf("remove Subcharacter Pose\n");}
+void remove_Subcharacter_Pose()
+{
+    printf("remove Subcharacter Pose\n");
+
+    if (subcharacter_posesIndex > 0 && currentSubcharacterPose < subcharacter_posesIndex)
+    {
+        int result;
+
+        pose * P = subcharacter_Poses[currentSubcharacterPose];
+        subcharacter * S = subcharacters[currentSubcharacter];
+
+        result = free_subcharacter_Pose(S, P);
+
+
+        if (result)
+        {
+            SubcharacterIndex --;
+
+            if (SubcharacterIndex < 0) SubcharacterIndex = 0;
+
+            if (SubcharacterIndex >= 0)
+            {
+                create_Subcharacters_List(SubcharacterIndex);
+
+                if (SubcharacterIndex - subcharacter_start >= 0)
+                    SubcList[SubcharacterIndex - subcharacter_start].color = UI_BACKL;
+
+                if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)
+                {
+                    currentSubcharacter = Subcharacter_List[SubcharacterIndex];
+                }
+                else if (Subcharacter_List[SubcharacterIndex] >= SUBCHARACTERS)
+                {
+                    currentSubcharacterPose = Subcharacter_List[SubcharacterIndex] - SUBCHARACTERS;
+                }
+                else
+                {
+                    currentDeformer_Node = -(Subcharacter_List[SubcharacterIndex] + 1);
+                    assert_Deformers_Selected();
+                }
+                select_Subcharacter();
+            }
+
+            currentSubcharacterPose --;
+
+            if (currentSubcharacterPose >= subcharacter_posesIndex)
+            {
+                currentSubcharacterPose = subcharacter_posesIndex - 1;
+            }
+            if (currentSubcharacterPose < 0) currentSubcharacterPose = 0;
+
+            if (dialog_lock)
+                draw_Dialog();
+
+        }
+    }
+}
 
 void rename_Subcharacter()
 {
@@ -7579,8 +7666,6 @@ void rename_Subcharacter()
         }
     }
 }
-
-void rename_Subcharacter_Pose(){printf("rename Subcharacter Pose\n");}
 
 void rename_Item()
 {
@@ -9997,6 +10082,19 @@ void delete_Deformer()
         deformer * D = deformers[currentDeformer_Node];
         delete_Deformer_Poses(D);
         delete_Deformer_Subcharacters(D);
+
+        if (currentSubcharacter >= subcharacterIndex)
+        {
+            currentSubcharacter = subcharacterIndex - 1;
+        }
+        if (currentSubcharacter < 0) currentSubcharacter = 0;
+
+        if (currentSubcharacterPose >= subcharacter_posesIndex)
+        {
+            currentSubcharacterPose = subcharacter_posesIndex - 1;
+        }
+        if (currentSubcharacterPose < 0) currentSubcharacterPose = 0;
+
         remove_Deformer(D);
         if (currentDeformer_Node >= deformerIndex)
             currentDeformer_Node = deformerIndex - 1;
@@ -10784,6 +10882,9 @@ void clear_All()
         clear_Objects_();
         free_Subcharacters();
 
+        free_poses();
+        free_subcharacter_poses();
+
     /*
     This is cheap clean;
 
@@ -10794,6 +10895,9 @@ void clear_All()
         bonesIndex = 0;
         iksIndex = 0; // IK
         subcharacterIndex = 0;
+        posesIndex = 0;
+        subcharacter_posesIndex = 0;
+
         PoseIndex = 0;
         posesCount = 0;
         Materials_count = 4;
@@ -11261,6 +11365,12 @@ void save_load_Scene()
             strcat(Path, "/");
             strcat(Path, "Subcharacters");
             save_Subcharacters(Path);
+
+            Path[0] = '\0';
+            strcat(Path, scene_files_dir);
+            strcat(Path, "/");
+            strcat(Path, "SubcharacterP");
+            save_Subcharacter_Poses(Path);
         }
 
         if (flip)
@@ -11285,7 +11395,7 @@ void save_load_Scene()
         if (dialog_lock)
             update_Loading_List(1, 0);
 
-        int obj_count = 0, defr_count = 0, pose_count = 0, subcharacter_count = 0;
+        int obj_count = 0, defr_count = 0, pose_count = 0, subcharacter_count = 0, subcharacter_poses_count = 0;
 
         if (!isDirectory(scene_files_dir))
         {
@@ -11348,6 +11458,14 @@ void save_load_Scene()
                 subcharacter_count = load_Subcharacters(Path);
 
                 assign_Subcharacters(subcharacter_count, defr_count);
+
+                Path[0] = '\0';
+                strcat(Path, scene_files_dir);
+                strcat(Path, "/");
+                strcat(Path, "SubcharacterP");
+                subcharacter_poses_count = load_Subcharacter_Poses(Path);
+
+                assign_Subcharacter_Poses(subcharacter_count, subcharacter_poses_count, defr_count);
             }
 
             Path[0] = '\0';
@@ -11416,6 +11534,8 @@ void save_load_Scene()
             currentObject = objectIndex - 1;
             objects[currentObject]->selected = 1;
             assert_Object_Selection();
+            currentSubcharacter = 0;
+            select_Subcharacter();
 
             UPDATE_COLORS = 1;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
@@ -11860,6 +11980,7 @@ int main(int argc, char * args[])
     Button_scene_ext[4].func = &set_Button_scene_ext;
     Button_scene_ext[5].func = &set_Button_scene_ext;
     Button_scene_ext[6].func = &set_Button_scene_ext;
+    Button_scene_ext[7].func = &set_Button_scene_ext;
 
     Button_item[0].func = &set_Button_item;
     Button_item[1].func = &set_Button_item;
@@ -11922,7 +12043,6 @@ int main(int argc, char * args[])
     Button_h_subc[2].func = &remove_Subcharacter;
     Button_h_subc[3].func = &remove_Subcharacter_Pose;
     Button_h_subc[4].func = &rename_Subcharacter;
-    Button_h_subc[5].func = &rename_Subcharacter_Pose;
 
     Button_h_scen[0].func = &save_load_Scene;
 
@@ -12670,6 +12790,7 @@ int main(int argc, char * args[])
                                             currentDeformer_Node = -(Subcharacter_List[index + subcharacter_start] + 1);
                                             assert_Deformers_Selected();
                                         }
+                                        select_Subcharacter();
                                         create_Subcharacters_List(SubcharacterIndex);
                                     }
                                     DRAW_UI = 0;

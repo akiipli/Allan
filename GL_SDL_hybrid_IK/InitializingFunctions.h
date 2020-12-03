@@ -109,6 +109,74 @@ void free_poses()
     }
 }
 
+int free_subcharacter_Pose(subcharacter * S, pose * P)
+{
+    int i, p, index, index0;
+
+    int condition = 0;
+
+    for (p = 0; p < S->Poses_Count; p ++)
+    {
+        if (P == S->Poses[p])
+        {
+            index = P->index;
+            index0 = p;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        S->Poses_Count --;
+        for (i = index0; i < S->Poses_Count; i ++)
+        {
+            S->Poses[i] = S->Poses[i + 1];
+        }
+
+        subcharacter_posesIndex --;
+        for (i = index; i < subcharacter_posesIndex; i ++)
+        {
+            subcharacter_Poses[i] = subcharacter_Poses[i + 1];
+            subcharacter_Poses[i]->index = i;
+        }
+        free_pose(P);
+    }
+
+    return condition;
+}
+
+void free_subcharacter_Poses(subcharacter * S)
+{
+    int p, i;
+    pose * P;
+
+    for (p = 0; p < S->Poses_Count; p ++)
+    {
+        P = S->Poses[p];
+
+        subcharacter_posesIndex --;
+        for (i = P->index; i < subcharacter_posesIndex; i ++)
+        {
+            subcharacter_Poses[i] = subcharacter_Poses[i + 1];
+            subcharacter_Poses[i]->index = i;
+        }
+        free_pose(P);
+    }
+}
+
+void free_subcharacter_poses()
+{
+    int p;
+    pose * P;
+
+    for(p = 0; p < subcharacter_posesIndex; p ++)
+    {
+        P = subcharacter_Poses[p];
+        free_pose(P);
+    }
+}
+
 void free_deformers()
 {
     int d;

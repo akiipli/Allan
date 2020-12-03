@@ -335,6 +335,108 @@ int read_Subcharacter_file(Subcharacter_In * SUBCHARACTER_IN, char * fileName)
     return subcharacters_count;
 }
 
+int read_Subcharacter_Pose_file(Pose_In * POSE_IN, char * fileName)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    char * p;
+
+    pose * P;
+    transformer_pose * T;
+
+    int i, t, poses_count = 0;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("SubcharacterP\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &poses_count);
+
+            for (i = 0; i < poses_count; i ++)
+            {
+                if (subcharacter_posesIndex >= SUBCHARACTER_POSES)
+                {
+                    fclose(fp);
+                    return i - 1;
+                }
+                P = malloc(sizeof(pose));
+                subcharacter_Poses[subcharacter_posesIndex] = P;
+                P->index = subcharacter_posesIndex;
+                P->Name = malloc(STRLEN * sizeof(char));
+
+                fgets(buff, BUF_SIZE, fp);
+
+                p = strchr(buff, '\n');
+                *p = '\0';
+
+                sprintf(P->Name, "%s", buff);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &POSE_IN->address);
+
+                P->address = POSE_IN->address;
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&P->D);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &P->transformers_count);
+
+                P->TP = calloc(P->transformers_count, sizeof(transformer_pose));
+
+                for (t = 0; t < P->transformers_count; t ++)
+                {
+                    T = &P->TP[t];
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &T->rot_Order);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->scl[0], &T->scl[1], &T->scl[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->scl_vec[0], &T->scl_vec[1], &T->scl_vec[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->rot[0], &T->rot[1], &T->rot[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f %f %f %f %f %f %f",
+                            &T->rotVec_[0][0], &T->rotVec_[0][1], &T->rotVec_[0][2],
+                            &T->rotVec_[1][0], &T->rotVec_[1][1], &T->rotVec_[1][2],
+                            &T->rotVec_[2][0], &T->rotVec_[2][1], &T->rotVec_[2][2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f %f %f %f %f %f %f",
+                            &T->rotVec_I[0][0], &T->rotVec_I[0][1], &T->rotVec_I[0][2],
+                            &T->rotVec_I[1][0], &T->rotVec_I[1][1], &T->rotVec_I[1][2],
+                            &T->rotVec_I[2][0], &T->rotVec_I[2][1], &T->rotVec_I[2][2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f %f %f %f %f %f %f",
+                            &T->rotVec_B[0][0], &T->rotVec_B[0][1], &T->rotVec_B[0][2],
+                            &T->rotVec_B[1][0], &T->rotVec_B[1][1], &T->rotVec_B[1][2],
+                            &T->rotVec_B[2][0], &T->rotVec_B[2][1], &T->rotVec_B[2][2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->pos[0], &T->pos[1], &T->pos[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f %f %f", &T->pos_[0], &T->pos_[1], &T->pos_[2]);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &T->style);
+                    scale_xyz(T);
+                }
+                subcharacter_posesIndex ++;
+                posesCount ++;
+            }
+        }
+    }
+
+    fclose(fp);
+    return poses_count;
+}
+
 int read_Pose_file(Pose_In * POSE_IN, char * fileName)
 {
     FILE * fp;
@@ -2334,6 +2436,49 @@ int load_Deformers(char * path)
     return defr_count;
 }
 
+int load_Subcharacter_Poses(char * path)
+{
+    char Path[STRLEN];
+    DIR * dir;
+    struct dirent * ent;
+
+    char ext[] = ".txt";
+    char Extension[] = ".txt";
+
+    int extension_len = strlen(ext);
+
+    int p_index = 0;
+
+    if ((dir = opendir(path)) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            Path[0] = '\0';
+            strcat(Path, path);
+            strcat(Path, "/");
+            strcat(Path, ent->d_name);
+            if (isFile(Path))
+            {
+                memcpy(Extension, &ent->d_name[strlen(ent->d_name) - extension_len], extension_len);
+                if (strcmp(Extension, ext) == 0)
+                {
+                    int result = 0;
+                    //printf("%s\n", Path);
+                    Pose_In * POSE_IN = calloc(1, sizeof(Pose_In));
+                    result = read_Subcharacter_Pose_file(POSE_IN, Path);
+                    if (result)
+                    {
+                        p_index += result;
+                        printf("%u\n", POSE_IN->address);
+                    }
+                    free(POSE_IN);
+                }
+            }
+        }
+    }
+    return p_index;
+}
+
 int load_Poses(char * path)
 {
     char Path[STRLEN];
@@ -3049,7 +3194,55 @@ void assign_Poses(int pose_count, int defr_count)
     }
 }
 
-void assign_Subcharacters(subcharacter_count, defr_count)
+void assign_Subcharacter_Poses(int subcharacter_count, int subcharacter_poses_count, int defr_count)
+{
+    if (defr_count)
+    {
+        int s, i, d, p;
+
+        pose * P, * P0;
+        subcharacter * S;
+        deformer * D;
+
+        for (p = subcharacter_posesIndex - subcharacter_poses_count; p < subcharacter_posesIndex; p ++)
+        {
+            P = subcharacter_Poses[p];
+
+            for (d = deformerIndex - defr_count; d < deformerIndex; d ++)
+            {
+                D = deformers[d];
+
+                if (D->address == (unsigned)P->D)
+                {
+                    P->D = D;
+                    break;
+                }
+            }
+        }
+
+        for (s = subcharacterIndex - subcharacter_count; s < subcharacterIndex; s ++)
+        {
+            S = subcharacters[s];
+
+            for (i = 0; i < S->Poses_Count; i ++)
+            {
+                P = S->Poses[i];
+
+                for (p = subcharacter_posesIndex - subcharacter_poses_count; p < subcharacter_posesIndex; p ++)
+                {
+                    P0 = subcharacter_Poses[p];
+                    if (P0->address == (unsigned)P)
+                    {
+                        S->Poses[i] = P0;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void assign_Subcharacters(int subcharacter_count, int defr_count)
 {
     if (defr_count)
     {
