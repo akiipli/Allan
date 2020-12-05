@@ -7518,7 +7518,6 @@ void add_Subcharacter()
                     init_Subcharacter(D);
                     currentSubcharacter = subcharacterIndex - 1;
                     select_Subcharacter();
-                    SubcharacterIndex = (subcharacterIndex - 1) - subcharacter_start;
                 }
 
                 free(hi_selected_Bones);

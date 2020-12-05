@@ -116,26 +116,29 @@ void apply_Subcharacter_Pose(subcharacter * S, pose * P)
 {
     int t;
 
-    transformer * T = S->Deformer->Bones[S->start]->A->parent;
-
-    for (t = 0; t < P->transformers_count; t ++)
+    if (P->transformers_count == S->Transformers_Count)
     {
-        S->Transformers[t]->rot_Order = P->TP[t].rot_Order;
-        memcpy(S->Transformers[t]->scl, P->TP[t].scl, sizeof(float[3]));
-        memcpy(S->Transformers[t]->scl_vec, P->TP[t].scl_vec, sizeof(float[3]));
-        memcpy(S->Transformers[t]->rot, P->TP[t].rot, sizeof(float[3]));
+        transformer * T = S->Deformer->Bones[S->start]->A->parent;
 
-        //memcpy(S->Transformers[t]->rotVec, P->TP[t].rotVec, sizeof(float[3][3]));
-        //memcpy(S->Transformers[t]->rotVec_, P->TP[t].rotVec_, sizeof(float[3][3]));
+        for (t = 0; t < P->transformers_count; t ++)
+        {
+            S->Transformers[t]->rot_Order = P->TP[t].rot_Order;
+            memcpy(S->Transformers[t]->scl, P->TP[t].scl, sizeof(float[3]));
+            memcpy(S->Transformers[t]->scl_vec, P->TP[t].scl_vec, sizeof(float[3]));
+            memcpy(S->Transformers[t]->rot, P->TP[t].rot, sizeof(float[3]));
 
-        memcpy(S->Transformers[t]->rotVec_I, P->TP[t].rotVec_I, sizeof(float[3][3]));
-        memcpy(S->Transformers[t]->rotVec_B, P->TP[t].rotVec_B, sizeof(float[3][3]));
-        memcpy(S->Transformers[t]->pos, P->TP[t].pos, sizeof(float[3]));
-        memcpy(S->Transformers[t]->pos_, P->TP[t].pos_, sizeof(float[3]));
-        S->Transformers[t]->style = P->TP[t].style;
+            //memcpy(S->Transformers[t]->rotVec, P->TP[t].rotVec, sizeof(float[3][3]));
+            //memcpy(S->Transformers[t]->rotVec_, P->TP[t].rotVec_, sizeof(float[3][3]));
 
-        rotate_matrix_I(S->Transformers[t]->rotVec_, T->rotVec_, P->TP[t].rotVec_);
-        rotate_matrix_I(S->Transformers[t]->rotVec, T->rotVec, P->TP[t].rotVec);
+            memcpy(S->Transformers[t]->rotVec_I, P->TP[t].rotVec_I, sizeof(float[3][3]));
+            memcpy(S->Transformers[t]->rotVec_B, P->TP[t].rotVec_B, sizeof(float[3][3]));
+            memcpy(S->Transformers[t]->pos, P->TP[t].pos, sizeof(float[3]));
+            memcpy(S->Transformers[t]->pos_, P->TP[t].pos_, sizeof(float[3]));
+            S->Transformers[t]->style = P->TP[t].style;
+
+            rotate_matrix_I(S->Transformers[t]->rotVec_, T->rotVec_, P->TP[t].rotVec_);
+            rotate_matrix_I(S->Transformers[t]->rotVec, T->rotVec, P->TP[t].rotVec);
+        }
     }
 }
 
