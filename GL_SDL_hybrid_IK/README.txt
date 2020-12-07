@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+9:44 PM 12/7/2020
+IK uses now updated solver. IK spine is updated in IK operations. Fixing and Unfixing do not use
+matrix updates to maintain constant pose for the rest of the chain. Deformer player and poses
+do not fix or unfix IK goals.
+
 12:14 AM 12/4/2020
 Massive work is done with Subcharacters, integrating them into future pose based animation system.
 Pressing Enter or Return in Subcharacters List applies current subcharacter pose. Both need to be

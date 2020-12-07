@@ -626,6 +626,51 @@ void rotate_rotVec_pose_B(transformer * T)
     }
 }
 
+float distance(float A[3], float B[3]);
+
+void compose_Hierarchy(transformer * T)
+{
+    int t;
+    transformer * C;
+    float len;
+
+    for (t = 0; t < T->childcount; t ++)
+    {
+        C = T->childs[t];
+        len = distance(T->pos_bind, C->pos_bind);
+
+        if (len > 0)
+        {
+            if (T->rot_Order == yxz || T->rot_Order == xyz)
+            {
+                C->pos[0] = T->pos[0] + T->rotVec_[2][0] * len * T->scl_vec[0];
+                C->pos[1] = T->pos[1] + T->rotVec_[2][1] * len * T->scl_vec[1];
+                C->pos[2] = T->pos[2] + T->rotVec_[2][2] * len * T->scl_vec[2];
+            }
+            else if (T->rot_Order == zxy || T->rot_Order == xzy)
+            {
+                C->pos[0] = T->pos[0] + T->rotVec_[1][0] * len * T->scl_vec[0];
+                C->pos[1] = T->pos[1] + T->rotVec_[1][1] * len * T->scl_vec[1];
+                C->pos[2] = T->pos[2] + T->rotVec_[1][2] * len * T->scl_vec[2];
+            }
+            else if (T->rot_Order == zyx || T->rot_Order == yzx)
+            {
+                C->pos[0] = T->pos[0] + T->rotVec_[0][0] * len * T->scl_vec[0];
+                C->pos[1] = T->pos[1] + T->rotVec_[0][1] * len * T->scl_vec[1];
+                C->pos[2] = T->pos[2] + T->rotVec_[0][2] * len * T->scl_vec[2];
+            }
+        }
+        else
+        {
+            C->pos[0] = T->pos[0];
+            C->pos[1] = T->pos[1];
+            C->pos[2] = T->pos[2];
+        }
+
+        compose_Hierarchy(C);
+    }
+}
+
 void solve_IK_Chain(ikChain * I, int update)
 {
     /*
@@ -974,8 +1019,29 @@ void solve_IK_Chain(ikChain * I, int update)
         memcpy(I->A->rotVec, I->rotVec_F, sizeof(float[3][3]));
         memcpy(I->A->rotVec_, I->rotVec_F, sizeof(float[3][3]));
 
+        T = I->A;
+
+        if (T->scl_vec[0] != 1.0)
+            scale_x(T);
+        if (T->scl_vec[1] != 1.0)
+            scale_y(T);
+        if (T->scl_vec[2] != 1.0)
+            scale_z(T);
+
         memcpy(I->B->rotVec, I->rotVec_F, sizeof(float[3][3]));
         memcpy(I->B->rotVec_, I->rotVec_F, sizeof(float[3][3]));
+
+        T = I->B;
+
+        rotate_T(T);
+
+        for (c = 0; c < T->childcount; c ++)
+        {
+            C = T->childs[c];
+
+            rotate_M(T);
+        }
+        compose_Hierarchy(T);
     }
 }
 
@@ -1018,15 +1084,18 @@ void set_IK_H_Button(int index)
 
 void fix_ik_goal(transformer * T)
 {
-    normalize_rotation_unparent(T);
+//    solve_IK_Chain(T->IK, 1);
+//    normalize_rotation_unparent(T);
 }
 
 void unfix_ik_goal(transformer * T)
 {
-    normalize_rotation_parent(T);
     T->scl[0] *= (1 / T->parent->scl_vec[0]);
     T->scl[1] *= (1 / T->parent->scl_vec[1]);
     T->scl[2] *= (1 / T->parent->scl_vec[2]);
+    solve_IK_Chain(T->IK, 1);
+//    normalize_rotation_parent(T);
+
 }
 
 void unfix_ik_goals()

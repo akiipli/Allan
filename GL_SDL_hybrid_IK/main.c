@@ -5632,7 +5632,7 @@ void apply_Pose(deformer * D, pose * P, int dialog)
 
             paste_Pose_(D, P);
 
-            unfix_pose_ik_goals(D, P);
+//            unfix_pose_ik_goals(D, P);
 
             // deformations
 //            Update_Objects_Count = 0;
@@ -7944,7 +7944,7 @@ void apply_Pose_rotation()
             pose * P = poses[currentPose];
             deformer * D = P->D;
 
-            unfix_deformer_ik_goals(D);
+//            unfix_deformer_ik_goals(D);
 
             float Delta[3];
 
@@ -8435,6 +8435,48 @@ void handle_IK_Dialog(char letter, SDLMod mod)
     }
 }
 
+void update_Deformed_View(deformer * D)
+{
+    if (D->Transformers_Count > 0)
+    {
+        transformer * T = D->Transformers[0];
+
+        Update_Objects_Count = 0;
+
+        rotate_collect(T);
+        rotate_vertex_groups_D_Init();
+
+        rotate_Deformer_verts(D);
+
+        update_rotate_bounding_box();
+
+        if (subdLevel > -1)
+        {
+            int o;
+
+            for (o = 0; o < Update_Objects_Count; o ++)
+            {
+                O = Update_Objects[o];
+                if (O->deforms)
+                {
+                    tune_subdivide_post_transformed(O, subdLevel);
+                }
+            }
+        }
+
+        if (dialog_lock)
+        {
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            draw_Dialog();
+            SDL_GL_SwapBuffers();
+        }
+        else
+        {
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+        }
+    }
+}
+
 void handle_Subcharacter_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
@@ -8513,44 +8555,7 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
 
         deformer * D = S->Deformer;
 
-        if (D->Transformers_Count > 0)
-        {
-            transformer * T = D->Transformers[0];
-
-            Update_Objects_Count = 0;
-
-            rotate_collect(T);
-            rotate_vertex_groups_D_Init();
-
-            rotate_Deformer_verts(D);
-
-            update_rotate_bounding_box();
-
-            if (subdLevel > -1)
-            {
-                int o;
-
-                for (o = 0; o < Update_Objects_Count; o ++)
-                {
-                    O = Update_Objects[o];
-                    if (O->deforms)
-                    {
-                        tune_subdivide_post_transformed(O, subdLevel);
-                    }
-                }
-            }
-
-            if (dialog_lock)
-            {
-                poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                draw_Dialog();
-                SDL_GL_SwapBuffers();
-            }
-            else
-            {
-                poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
-            }
-        }
+        update_Deformed_View(D);
     }
 }
 
@@ -10537,7 +10542,16 @@ void transform_Objects_And_Render()
                 if (BIND_POSE)
                     rotate_bind(T);
                 else
-                    rotate_T(T);
+                {
+                    if (T->IK != NULL)
+                    {
+                        solve_IK_Chain(T->IK, 1);
+                    }
+                    else
+                    {
+                        rotate_T(T);
+                    }
+                }
             }
         }
     }
@@ -12504,7 +12518,7 @@ int main(int argc, char * args[])
                             Update_Objects_Count = 0;
                             if (T->IK != NULL && (T->style == ik_goal || T->style == ik_fixed))
                             {
-                                solve_IK_Chain(T->IK, 0);
+                                solve_IK_Chain(T->IK, 1);
                             }
                             if (T->Deformer != NULL)
                             {
@@ -15860,7 +15874,7 @@ int main(int argc, char * args[])
                 SDL_SetCursor(Arrow);
                 if (!BIND_POSE && deformerIndex > 0)
                 {
-                    unfix_ik_goals();
+                    //unfix_ik_goals();
                     deformer_Player();
                 }
             }
@@ -16100,6 +16114,11 @@ int main(int argc, char * args[])
                     {
                         T->style = ik_goal;
                         unfix_ik_goal(T);
+                        if (T->Deformer != NULL)
+                        {
+                            deformer * D = T->Deformer;
+                            update_Deformed_View(D);
+                        }
                     }
                 }
                 else

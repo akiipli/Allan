@@ -1176,7 +1176,7 @@ void solve_all_IK_Chains()
 
     for (d = 0; d < deformerIndex; d ++)
     {
-        solve_IK_Chains(deformers[d], 0);
+        solve_IK_Chains(deformers[d], 1);
     }
 }
 
