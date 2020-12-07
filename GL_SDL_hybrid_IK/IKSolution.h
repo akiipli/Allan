@@ -1093,9 +1093,8 @@ void unfix_ik_goal(transformer * T)
     T->scl[0] *= (1 / T->parent->scl_vec[0]);
     T->scl[1] *= (1 / T->parent->scl_vec[1]);
     T->scl[2] *= (1 / T->parent->scl_vec[2]);
-    solve_IK_Chain(T->IK, 1);
 //    normalize_rotation_parent(T);
-
+    solve_IK_Chain(T->IK, 1);
 }
 
 void unfix_ik_goals()
