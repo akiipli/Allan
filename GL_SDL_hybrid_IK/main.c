@@ -6223,9 +6223,6 @@ void handle_UP_Subcharacter(int scrollbar)
 
         if (SubcharacterIndex < 0) SubcharacterIndex ++;
     }
-    DRAW_UI = 0;
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    DRAW_UI = 1;
     if (dialog_lock)
     {
         draw_Dialog();
@@ -6849,9 +6846,6 @@ void handle_DOWN_Subcharacter(int scrollbar)
         if (SubcharacterIndex >= Subcharacters_c)
             SubcharacterIndex --;
     }
-    DRAW_UI = 0;
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    DRAW_UI = 1;
     if (dialog_lock)
     {
         draw_Dialog();
@@ -7499,6 +7493,29 @@ void rename_Scene_dir()
     }
 }
 
+int get_SubcharacterIndex(int index)
+{
+    int d, s;
+    int Index = 0;
+
+    deformer * D;
+    subcharacter * S;
+
+    for (d = 0; d <= index; d ++)
+    {
+        D = deformers[d];
+        Index ++;
+        for (s = 0; s < D->Subcharacters_Count; s ++)
+        {
+            S = D->Subcharacters[s];
+            Index ++;
+            Index += S->Poses_Count;
+        }
+    }
+
+    return Index - 1;
+}
+
 void add_Subcharacter()
 {
     if (subcharacterIndex < SUBCHARACTERS - 1)
@@ -7518,6 +7535,8 @@ void add_Subcharacter()
                     init_Subcharacter(D);
                     currentSubcharacter = subcharacterIndex - 1;
                     select_Subcharacter();
+
+                    SubcharacterIndex = get_SubcharacterIndex(D->index);
                 }
 
                 free(hi_selected_Bones);
@@ -7531,6 +7550,38 @@ void add_Subcharacter()
     }
 }
 
+int get_SubcharacterPoseIndex(int index)
+{
+    int d, s;
+    int Preak = 0;
+    int Index = 0;
+
+    deformer * D;
+    subcharacter * S;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+        Index ++;
+        for (s = 0; s < D->Subcharacters_Count; s ++)
+        {
+            S = D->Subcharacters[s];
+            Index ++;
+            Index += S->Poses_Count;
+            if (S->index == index)
+            {
+                Preak = 1;
+                break;
+            }
+        }
+        if (Preak)
+        {
+            break;
+        }
+    }
+    return Index - 1;
+}
+
 void add_Pose_To_Subcharacter()
 {
     set_Subc_H_Button(1);
@@ -7542,6 +7593,9 @@ void add_Pose_To_Subcharacter()
         if (!BIND_POSE && subcharacter_posesIndex < SUBCHARACTER_POSES)
         {
             add_Subcharacter_Pose(S);
+
+            SubcharacterIndex = get_SubcharacterPoseIndex(S->index);
+
             if (dialog_lock)
                 draw_Dialog();
         }
