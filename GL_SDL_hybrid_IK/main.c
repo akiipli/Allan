@@ -7425,7 +7425,7 @@ void add_Pose()
 void delete_Bone(bone * B)
 {
     Draw_Bottom_Message("delete Bone\n");
-    if (B->D == NULL)
+    if (B->D == NULL && B->IK == NULL)
     {
         //if (BIND_POSE)
         //{
@@ -7447,6 +7447,8 @@ void remove_IK()
             ikChain * I = ikChains[currentIK];
             remove_ikChain_From_ikChains_(I, 0);
             IKIndex --;
+            if (IKIndex < 0)
+                IKIndex = 0;
             currentIK --;
             if (currentIK < 0)
                 currentIK = 0;
@@ -8873,6 +8875,59 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
     }
 }
 
+void remove_Transformer_From_Locators(transformer * T)
+{
+    int l, index;
+
+    int condition = 0;
+
+    for (l = 0; l < locatorIndex; l ++)
+    {
+        if (T == Locators[l])
+        {
+            index = l;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        locatorIndex --;
+        for (l = index; l < locatorIndex; l ++)
+        {
+            Locators[l] = Locators[l + 1];
+        }
+    }
+}
+
+void remove_Transformer_From_Transformers(transformer * T)
+{
+    int t, index;
+
+    int condition = 0;
+
+    for (t = 0; t < transformerIndex; t ++)
+    {
+        if (T == transformers[t])
+        {
+            index = t;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        transformerIndex --;
+        for (t = index; t < transformerIndex; t ++)
+        {
+            transformers[t] = transformers[t + 1];
+            transformers[t]->index = t;
+        }
+    }
+}
+
 void delete_Transformer_raw(transformer * T0)
 {
     int c;
@@ -8906,6 +8961,9 @@ void delete_Transformer_raw(transformer * T0)
     {
         remove_Transformer_From_Deformer(T0);
     }
+
+    remove_Transformer_From_Transformers(T0);
+    remove_Transformer_From_Locators(T0);
 
     free_Transformer(T0);
     free(T0);
@@ -9588,11 +9646,7 @@ void new_Locator()
 
 void delete_Bone_Transformer(transformer * T0)
 {
-    int l, c;
-
-    int index;
-
-    int condition;
+    int c;
 
     //create_Transformers_List();
 
@@ -9632,48 +9686,9 @@ void delete_Bone_Transformer(transformer * T0)
         remove_Transformer_From_Deformer(T0);
     }
 
-    condition = 0;
+    remove_Transformer_From_Transformers(T0);
+    remove_Transformer_From_Locators(T0);
 
-    for (l = 0; l < locatorIndex; l ++)
-    {
-        if (T0 == Locators[l])
-        {
-            index = l;
-            condition = 1;
-            break;
-        }
-    }
-
-    if (condition)
-    {
-        locatorIndex --;
-        for (l = index; l < locatorIndex; l ++)
-        {
-            Locators[l] = Locators[l + 1];
-        }
-    }
-/*
-    condition = 0;
-
-    for (t = 0; t < transformerIndex; t ++)
-    {
-        if (T0 == transformers[t])
-        {
-            index = t;
-            condition = 1;
-            break;
-        }
-    }
-
-    if (condition)
-    {
-        transformerIndex --;
-        for (t = index; t < transformerIndex; t ++)
-        {
-            transformers[t] = transformers[t + 1];
-        }
-    }
-*/
     free_Transformer(T0);
     free(T0);
 
@@ -9717,6 +9732,12 @@ void delete_IK_Transformers(ikChain * I)
     {
         remove_Transformer_From_Deformer(I->A);
     }
+
+    remove_Transformer_From_Transformers(I->B);
+    remove_Transformer_From_Locators(I->B);
+
+    remove_Transformer_From_Transformers(I->A);
+    remove_Transformer_From_Locators(I->A);
 
     free_Transformer(I->B);
     free(I->B);
@@ -9765,6 +9786,9 @@ void delete_Transformer(transformer * T0)
         remove_Transformer_From_Deformer(T0);
     }
 
+    remove_Transformer_From_Transformers(T0);
+    remove_Transformer_From_Locators(T0);
+
     free_Transformer(T0);
     free(T0);
 
@@ -9789,7 +9813,7 @@ void delete_Locator()
 {
     printf("delete Locator\n");
 
-    int c, l, index, condition;
+    int c, l, condition;
 
     selected_transformer_count = 0;
 
@@ -9803,7 +9827,6 @@ void delete_Locator()
     {
         if (current_T == Locators[l])
         {
-            index = l;
             condition = 1;
             break;
         }
@@ -9812,6 +9835,10 @@ void delete_Locator()
     if (condition)
     {
         if (!BIND_POSE && current_T->Deformer != NULL)
+        {
+            condition = 0;
+        }
+        if (current_T->IK != NULL)
         {
             condition = 0;
         }
@@ -9852,15 +9879,14 @@ void delete_Locator()
             S->Transformer = NULL;
         }
 
-        locatorIndex --;
-        for (l = index; l < locatorIndex; l ++)
-        {
-            Locators[l] = Locators[l + 1];
-        }
         if (current_T->Deformer != NULL)
         {
             remove_Transformer_From_Deformer(current_T);
         }
+
+        remove_Transformer_From_Transformers(current_T);
+        remove_Transformer_From_Locators(current_T);
+
         free_Transformer(current_T);
         free(current_T);
     }
@@ -15362,7 +15388,9 @@ int main(int argc, char * args[])
                     }
                 }
                 else if (T->Bone != NULL)
+                {
                     delete_Bone(T->Bone);
+                }
                 else
                     delete_Locator();
             }
