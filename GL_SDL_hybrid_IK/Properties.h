@@ -152,7 +152,7 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "Position\tX %1.2f\tY %1.2f\tZ %1.2f", T->pos[0], T->pos[1], T->pos[2]);
         draw_Properties_Text(text, d_width, p_height, idx);
         idx ++;
-        sprintf(text, "Scaling\tX %1.2f\tY %1.2f\tZ %1.2f", T->scl_vec[0], T->scl_vec[1], T->scl_vec[2]);
+        sprintf(text, "Scaling\tX %1.2f\tY %1.2f\tZ %1.2f", T->scl[0], T->scl[1], T->scl[2]);
         draw_Properties_Text(text, d_width, p_height, idx);
         idx ++;
     }
