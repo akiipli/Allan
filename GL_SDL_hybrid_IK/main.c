@@ -8900,7 +8900,7 @@ void remove_Transformer_From_Locators(transformer * T)
         }
     }
 }
-
+/*
 void remove_Transformer_From_Transformers(transformer * T)
 {
     int t, index;
@@ -8927,7 +8927,7 @@ void remove_Transformer_From_Transformers(transformer * T)
         }
     }
 }
-
+*/
 void delete_Transformer_raw(transformer * T0)
 {
     int c;
@@ -8962,11 +8962,13 @@ void delete_Transformer_raw(transformer * T0)
         remove_Transformer_From_Deformer(T0);
     }
 
-    remove_Transformer_From_Transformers(T0);
+//    remove_Transformer_From_Transformers(T0);
     remove_Transformer_From_Locators(T0);
 
     free_Transformer(T0);
     free(T0);
+
+    create_Hierarchys_List();
 }
 
 void clean_Unused_Transformers()
@@ -9686,7 +9688,7 @@ void delete_Bone_Transformer(transformer * T0)
         remove_Transformer_From_Deformer(T0);
     }
 
-    remove_Transformer_From_Transformers(T0);
+//    remove_Transformer_From_Transformers(T0);
     remove_Transformer_From_Locators(T0);
 
     free_Transformer(T0);
@@ -9733,10 +9735,10 @@ void delete_IK_Transformers(ikChain * I)
         remove_Transformer_From_Deformer(I->A);
     }
 
-    remove_Transformer_From_Transformers(I->B);
+//    remove_Transformer_From_Transformers(I->B);
     remove_Transformer_From_Locators(I->B);
 
-    remove_Transformer_From_Transformers(I->A);
+//    remove_Transformer_From_Transformers(I->A);
     remove_Transformer_From_Locators(I->A);
 
     free_Transformer(I->B);
@@ -9786,7 +9788,7 @@ void delete_Transformer(transformer * T0)
         remove_Transformer_From_Deformer(T0);
     }
 
-    remove_Transformer_From_Transformers(T0);
+//    remove_Transformer_From_Transformers(T0);
     remove_Transformer_From_Locators(T0);
 
     free_Transformer(T0);
@@ -9884,7 +9886,7 @@ void delete_Locator()
             remove_Transformer_From_Deformer(current_T);
         }
 
-        remove_Transformer_From_Transformers(current_T);
+//        remove_Transformer_From_Transformers(current_T);
         remove_Transformer_From_Locators(current_T);
 
         free_Transformer(current_T);
