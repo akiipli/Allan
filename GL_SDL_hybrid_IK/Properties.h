@@ -25,6 +25,7 @@ from corner.
 #define PROPERTIES_CAMERA 2
 #define PROPERTIES_LIGHT 3
 #define PROPERTIES_MATERIAL 4
+#define PROPERTIES_LOCATOR 5
 
 int PROPERTIES;
 int TABULATOR = 70;
@@ -127,7 +128,34 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         draw_Properties_Text(text, d_width, p_height, idx);
         idx ++;
     }
+    else if (type == PROPERTIES_LOCATOR)
+    {
+        transformer * T = (transformer *)subject;
+        if (T->rot_Order == zxy)
+            sprintf(text, "zxy");
+        else if (T->rot_Order == yxz)
+            sprintf(text, "yxz");
+        else if (T->rot_Order == zyx)
+            sprintf(text, "zyx");
+        else if (T->rot_Order == xyz)
+            sprintf(text, "xyz");
+        else if (T->rot_Order == xzy)
+            sprintf(text, "xzy");
+        else if (T->rot_Order == yzx)
+            sprintf(text, "yzx");
 
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+        sprintf(text, "Rotation\tX %1.2f\tY %1.2f\tZ %1.2f", T->rot[0], T->rot[1], T->rot[2]);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+        sprintf(text, "Position\tX %1.2f\tY %1.2f\tZ %1.2f", T->pos[0], T->pos[1], T->pos[2]);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+        sprintf(text, "Scaling\tX %1.2f\tY %1.2f\tZ %1.2f", T->scl_vec[0], T->scl_vec[1], T->scl_vec[2]);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+    }
 
 
 	//glEnable(GL_TEXTURE_2D);

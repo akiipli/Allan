@@ -4648,8 +4648,12 @@ void open_Deformers_List()
 
 void open_Hierarchys_List()
 {
+    Type = transformers[currentLocator];
+
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_LOCATOR;
 
     create_Hierarchys_List();
 
@@ -4695,6 +4699,11 @@ void open_Hierarchys_List()
     UPDATE_COLORS = 0;
 
     draw_Hierarchys_Dialog("Hierarchys L.", screen_height, hier_start, 1, HierIndex - hier_start, selection_rectangle);
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
+    }
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -6437,6 +6446,8 @@ void handle_UP_Pose(int scrollbar)
 
 void update_Hierarchys_List(int update, int blit)
 {
+    Type = transformers[currentLocator];
+
     if (HierIndex - hier_start >= 0)
         HierList[HierIndex - hier_start].color = UI_BACKL;
 
@@ -6454,6 +6465,11 @@ void update_Hierarchys_List(int update, int blit)
     {
         draw_Hierarchys_List(screen_height, hier_start, 1, HierIndex - hier_start, selection_rectangle);
         draw_Hierarchys_Bottom_Line(DIALOG_WIDTH, screen_height);
+    }
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
     }
 
     if (HierIndex - hier_start >= 0)
