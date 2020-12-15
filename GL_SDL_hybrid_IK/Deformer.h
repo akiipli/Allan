@@ -1269,7 +1269,7 @@ void order_IK_Chains(ikChain ** IKList, int l, ikChain * currentIK, transformer 
 
     if (T->Bone != NULL && T->Bone->IK != NULL && T->Bone->IK != currentIK)
     {
-        IKList[l++] = T->Bone->IK;
+        IKList[l ++] = T->Bone->IK;
         currentIK = T->Bone->IK;
     }
 
@@ -1294,7 +1294,7 @@ void order_deformers_IK_Chains(deformer * D)
 
     if (T->Bone != NULL && T->Bone->IK != NULL)
     {
-        IKList[l++] = T->Bone->IK;
+        IKList[l ++] = T->Bone->IK;
         currentIK = T->Bone->IK;
     }
 

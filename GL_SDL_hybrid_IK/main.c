@@ -3594,7 +3594,8 @@ void set_Button_defr(int idx)
     {
         create_Transformers_List();
         create_Deformers_List(SelsIndex[3], O);
-        set_Button_sels(3);
+        if (!BIND_POSE)
+            set_Button_sels(3);
     }
     else if (current_defr_type == 1)
     {
@@ -9418,8 +9419,10 @@ void handle_ControlDown()
             add_selection_mode = 1;
             if (cull_Selection)
                 SDL_SetCursor(Arrow_Plus_Cull);
-            else
+            else if (!Object_Mode)
                 SDL_SetCursor(Arrow_Plus);
+            else
+                SDL_SetCursor(Arrow);
         }
     }
 }

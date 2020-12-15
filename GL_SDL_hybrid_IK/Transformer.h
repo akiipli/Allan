@@ -1163,7 +1163,7 @@ void rotate_M(transformer * T)
     }
     else if (T->IK != NULL && T->style == ik_fixed)
     {
-        //update_Spine(T->IK);
+
     }
     else
     {
@@ -1201,6 +1201,7 @@ void rotate_M(transformer * T)
 //
 //    scale_rotVec(rotVec, T->rotVec_, T->scl);
 //    rotate_children_(T, T->pos, rotVec);
+
     if (T->IK != NULL && T->style == ik_fixed)
     {
 
@@ -1756,6 +1757,8 @@ void move_H(transformer * T, float Delta[3])
     }
 }
 
+void solve_IK_Chain(ikChain * I, int update);
+
 void move_Deformer(transformer * T, float Delta[3])
 {
     transformer * P = T->parent;
@@ -1770,7 +1773,16 @@ void move_Deformer(transformer * T, float Delta[3])
     rotate_hierarchy_T(P, T);
     move_T(T, Delta);
     move_H(T, Delta);
-    solve_IK_Chains(T->Deformer, 1);
+
+    if (T->childcount == 0)
+    {
+        solve_IK_Chains(T->Deformer, 0);
+    }
+    else
+    {
+        solve_IK_Chains(T->Deformer, 1);
+    }
+
     rotate_Deformer_verts(T->Deformer);
 }
 
