@@ -88,6 +88,7 @@ void compose_Subcharacter_Hierarchy(subcharacter * S)
     int b, c;
     bone * B;
     transformer * C;
+    ikChain * I;
 
     for (b = 0; b < S->Bones_Count; b ++)
     {
@@ -102,6 +103,18 @@ void compose_Subcharacter_Hierarchy(subcharacter * S)
             else if (b == S->Bones_Count - 1)
             {
                 advocate_Hierarchy(B->B, C);
+            }
+        }
+        if (B->IK != NULL)
+        {
+            I = B->IK;
+            if (B == I->Bones[I->bonescount - 1])
+            {
+                I->B->pos[0] = B->B->pos[0];
+                I->B->pos[1] = B->B->pos[1];
+                I->B->pos[2] = B->B->pos[2];
+                //update_Spine(I);
+                compose_Hierarchy(I->B);
             }
         }
     }
