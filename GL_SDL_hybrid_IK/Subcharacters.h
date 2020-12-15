@@ -93,6 +93,7 @@ void compose_Subcharacter_Hierarchy(subcharacter * S)
     for (b = 0; b < S->Bones_Count; b ++)
     {
         B = S->Bones[b];
+
         for (c = 0; c < B->B->childcount; c ++)
         {
             C = B->B->childs[c];
@@ -105,6 +106,12 @@ void compose_Subcharacter_Hierarchy(subcharacter * S)
                 advocate_Hierarchy(B->B, C);
             }
         }
+    }
+
+    for (b = 0; b < S->Bones_Count; b ++)
+    {
+        B = S->Bones[b];
+
         if (B->IK != NULL)
         {
             I = B->IK;
