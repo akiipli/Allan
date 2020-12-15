@@ -76,6 +76,37 @@ typedef struct subcharacter
 }
 subcharacter;
 
+void advocate_Hierarchy(transformer * T, transformer * C)
+{
+    //rotate_T(T);
+    rotate_M(C);
+    compose_Hierarchy(T);
+}
+
+void compose_Subcharacter_Hierarchy(subcharacter * S)
+{
+    int b, c;
+    bone * B;
+    transformer * C;
+
+    for (b = 0; b < S->Bones_Count; b ++)
+    {
+        B = S->Bones[b];
+        for (c = 0; c < B->B->childcount; c ++)
+        {
+            C = B->B->childs[c];
+            if (b < S->Bones_Count - 1 && C != S->Bones[b + 1]->A)
+            {
+                advocate_Hierarchy(B->B, C);
+            }
+            else if (b == S->Bones_Count - 1)
+            {
+                advocate_Hierarchy(B->B, C);
+            }
+        }
+    }
+}
+
 void compose_Subcharacter_Pose(subcharacter * S)
 {
     int b;

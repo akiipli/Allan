@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+3:04 PM 12/15/2020
+Updated subcharacter pose applying mechanisms. Now hierarchy is affected after subcharacter.
+
 9:44 PM 12/7/2020
 IK uses now updated solver. IK spine is updated in IK operations. Fixing and Unfixing do not use
 matrix updates to maintain constant pose for the rest of the chain. Deformer player and poses

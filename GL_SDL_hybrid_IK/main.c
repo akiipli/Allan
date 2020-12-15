@@ -8624,6 +8624,7 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
         pose * P = subcharacter_Poses[currentSubcharacterPose];
         apply_Subcharacter_Pose(S, P);
         compose_Subcharacter_Pose(S);
+        compose_Subcharacter_Hierarchy(S);
 
         deformer * D = S->Deformer;
 

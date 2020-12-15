@@ -1033,14 +1033,8 @@ void solve_IK_Chain(ikChain * I, int update)
 
         T = I->B;
 
-        rotate_T(T);
+        rotate_M(T);
 
-        for (c = 0; c < T->childcount; c ++)
-        {
-            C = T->childs[c];
-
-            rotate_M(T);
-        }
         compose_Hierarchy(T);
     }
 }
