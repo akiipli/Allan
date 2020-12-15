@@ -639,7 +639,13 @@ void compose_Hierarchy(transformer * T)
         C = T->childs[t];
         len = distance(T->pos_bind, C->pos_bind);
 
-        if (len > 0)
+        if (C->IK != NULL && (C->style == ik_goal || C->style == ik_fixed))
+        {
+            C->pos[0] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[0];
+            C->pos[1] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[1];
+            C->pos[2] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[2];
+        }
+        else if (len > 0)
         {
             if (T->rot_Order == yxz || T->rot_Order == xyz)
             {

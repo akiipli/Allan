@@ -108,11 +108,11 @@ void compose_Subcharacter_Hierarchy(subcharacter * S)
         if (B->IK != NULL)
         {
             I = B->IK;
-            if (B == I->Bones[I->bonescount - 1])
+            if (B == I->Bones[0])
             {
-                I->B->pos[0] = B->B->pos[0];
-                I->B->pos[1] = B->B->pos[1];
-                I->B->pos[2] = B->B->pos[2];
+                I->B->pos[0] = I->Bones[I->bonescount - 1]->B->pos[0];
+                I->B->pos[1] = I->Bones[I->bonescount - 1]->B->pos[1];
+                I->B->pos[2] = I->Bones[I->bonescount - 1]->B->pos[2];
                 //update_Spine(I);
                 compose_Hierarchy(I->B);
             }

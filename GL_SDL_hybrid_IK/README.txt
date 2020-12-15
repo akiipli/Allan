@@ -5,6 +5,7 @@ Allan Kiipli
 
 3:04 PM 12/15/2020
 Updated subcharacter pose applying mechanisms. Now hierarchy is affected after subcharacter.
+Avoid subcharacters that are a partial IK chain. Then IK targets may stay afloat after pose apply.
 
 9:44 PM 12/7/2020
 IK uses now updated solver. IK spine is updated in IK operations. Fixing and Unfixing do not use
@@ -14,7 +15,8 @@ do not fix or unfix IK goals.
 12:14 AM 12/4/2020
 Massive work is done with Subcharacters, integrating them into future pose based animation system.
 Pressing Enter or Return in Subcharacters List applies current subcharacter pose. Both need to be
-current.
+current. It is possible to apply pose that is not this subcharacter member, but it needs to have
+same number of transformers in it.
 
 10:36 PM 12/2/2020
 Pressing c in Hierarchy list, cleans transformers that have no connection to objects they refer to.
