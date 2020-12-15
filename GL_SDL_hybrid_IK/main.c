@@ -8103,6 +8103,7 @@ void add_Branch()
         {
             add_Branch_To_Deformer(T, D);
             add_Branch_IK_Chains(T, D);
+            generate_Bones_In_Deformer(D);
 //            create_Deformers_List(SelsIndex[3], O);
 //            draw_Deformers_List(screen_height, defr_start, 1, currentDeformer);
 //            draw_Deformers_Bottom_Line(DIALOG_WIDTH, screen_height);
