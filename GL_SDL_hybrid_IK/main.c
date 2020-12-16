@@ -10464,11 +10464,11 @@ void start_Movement()
         bake_position_Children(T);
         bake(T);
 
-        if (T->IK != NULL)
-        {
-            ik_has_to_update = check_Subsequent_IK_Chains(T, T->IK);
-            printf("ik has to update %d\n", ik_has_to_update);
-        }
+//        if (T->IK != NULL)
+//        {
+//            ik_has_to_update = check_Subsequent_IK_Chains(T, T->IK);
+//            printf("ik has to update %d\n", ik_has_to_update);
+//        }
 
         if (T->Deformer != NULL)
         {

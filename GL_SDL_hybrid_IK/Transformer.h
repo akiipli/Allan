@@ -13,7 +13,7 @@ Copyright <2018> <Allan Kiipli>
 #define root_node 4
 #define ik_fixed 5
 
-int ik_has_to_update = 0;
+int ik_has_to_update = 1;
 
 float MIN_SCALE = 1 / 1000000;
 int SCALE = 0;
