@@ -1390,14 +1390,8 @@ void rotate_Deformer(transformer * T)
     rotate_hierarchy_T(P, T);
 
     rotate_(T);
-    if (T->IK != NULL && ik_has_to_update)
-    {
-        solve_IK_Chain(T->IK, ik_has_to_update);
-    }
-    else
-    {
-        solve_IK_Chains(T->Deformer, ik_has_to_update); // specify affected IK chains before, collect them
-    }
+
+    solve_IK_Chains(T->Deformer, ik_has_to_update); // specify affected IK chains before, collect them
 
     rotate_Deformer_verts(T->Deformer);
 }
@@ -1782,16 +1776,7 @@ void move_Deformer(transformer * T, float Delta[3])
     rotate_hierarchy_T(P, T);
     move_T(T, Delta);
     move_H(T, Delta);
-
-    if (T->IK != NULL && ik_has_to_update)
-    {
-        solve_IK_Chain(T->IK, ik_has_to_update);
-    }
-    else
-    {
-        solve_IK_Chains(T->Deformer, ik_has_to_update);
-    }
-
+    solve_IK_Chains(T->Deformer, ik_has_to_update);
     rotate_Deformer_verts(T->Deformer);
 }
 
