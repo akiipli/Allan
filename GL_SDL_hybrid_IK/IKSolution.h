@@ -1096,7 +1096,7 @@ void unfix_ik_goal(transformer * T)
     T->scl[1] *= (1 / T->parent->scl_vec[1]);
     T->scl[2] *= (1 / T->parent->scl_vec[2]);
 //    normalize_rotation_parent(T);
-    solve_IK_Chain(T->IK, 1);
+    solve_IK_Chain(T->IK, ik_has_to_update);
 }
 
 void unfix_ik_goals()
@@ -1217,6 +1217,28 @@ void move_IKs_To_Parent(transformer * T)
         C = T->childs[c];
         move_R(C, Delta);
     }
+}
+
+int check_Subsequent_IK_Chains(transformer * T, ikChain * I)
+{
+    int c;
+    transformer * C;
+
+    int update = 1;
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        if (C->IK != NULL && C->IK != I)
+        {
+            update = 0;
+            return update;
+            break;
+        }
+        update = check_Subsequent_IK_Chains(C, I);
+    }
+
+    return update;
 }
 
 #endif // IKSOLUTION_H_INCLUDED

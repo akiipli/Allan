@@ -10464,6 +10464,12 @@ void start_Movement()
         bake_position_Children(T);
         bake(T);
 
+        if (T->IK != NULL)
+        {
+            ik_has_to_update = check_Subsequent_IK_Chains(T, T->IK);
+            printf("ik has to update %d\n", ik_has_to_update);
+        }
+
         if (T->Deformer != NULL)
         {
             if (T->Deformer->Transformers_Count > 0)
@@ -10555,7 +10561,8 @@ void make_Movement()
 //        }
 //        else
 //        {
-            move_(T, Delta, subdLevel);
+
+        move_(T, Delta, subdLevel);
 //        }
         if (T->Deformer != NULL)
         {
@@ -10647,7 +10654,7 @@ void transform_Objects_And_Render()
                 {
                     if (T->IK != NULL)
                     {
-                        solve_IK_Chain(T->IK, 1);
+                        solve_IK_Chain(T->IK, 0);
                     }
                     else
                     {
@@ -12620,7 +12627,7 @@ int main(int argc, char * args[])
                             Update_Objects_Count = 0;
                             if (T->IK != NULL && (T->style == ik_goal || T->style == ik_fixed))
                             {
-                                solve_IK_Chain(T->IK, 1);
+                                solve_IK_Chain(T->IK, ik_has_to_update);
                             }
                             if (T->Deformer != NULL)
                             {
