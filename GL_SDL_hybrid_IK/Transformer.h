@@ -1373,6 +1373,7 @@ void collect_Children(transformer * T)
 void rotate_vertex_groups_D_Init();
 void solve_IK_Chain(ikChain * I, int update);
 void solve_IK_Chains(deformer * D, int update);
+void solve_IK_Chains_exclude(ikChain * IK, deformer * D, int update);
 void rotate_Deformer_verts(deformer * D);
 
 void rotate_Deformer(transformer * T)
@@ -1750,7 +1751,12 @@ void move_H(transformer * T, float Delta[3])
     for (c = 0; c < T->childcount; c ++)
     {
         C = T->childs[c];
-        if (C->IK != NULL && C->style == ik_fixed)
+
+        if (C->Bone != NULL && C->Bone->IK_member > 0)
+        {
+
+        }
+        else if (C->IK != NULL && C->style == ik_fixed)
         {
 
         }
@@ -1776,7 +1782,17 @@ void move_Deformer(transformer * T, float Delta[3])
     rotate_hierarchy_T(P, T);
     move_T(T, Delta);
     move_H(T, Delta);
-    solve_IK_Chains(T->Deformer, ik_has_to_update);
+
+    if (T->IK != NULL)
+    {
+        solve_IK_Chains_exclude(T->IK, T->Deformer, 1);
+        solve_IK_Chain(T->IK, 1);
+    }
+    else
+    {
+        solve_IK_Chains(T->Deformer, ik_has_to_update);
+    }
+
     rotate_Deformer_verts(T->Deformer);
 }
 

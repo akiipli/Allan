@@ -1158,6 +1158,19 @@ void remove_ikChain_From_ikChains_(ikChain * I, int no_delete)
     }
 }
 
+void solve_IK_Chains_exclude(ikChain * IK, deformer * D, int update)
+{
+    int i;
+    ikChain * I;
+
+    for (i = 0; i < D->IKchains_Count; i ++)
+    {
+        I = D->IKchains[i];
+        if (I != IK)
+            solve_IK_Chain(I, update);
+    }
+}
+
 void solve_IK_Chains(deformer * D, int update)
 {
     int i;
