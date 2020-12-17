@@ -2677,6 +2677,9 @@ void select_Selection()
             }
         }
     }
+
+    assert_Element_Selection();
+
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
