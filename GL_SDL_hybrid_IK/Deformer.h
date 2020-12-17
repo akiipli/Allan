@@ -1158,7 +1158,7 @@ void remove_ikChain_From_ikChains_(ikChain * I, int no_delete)
     }
 }
 
-void solve_IK_Chains_exclude(ikChain * IK, deformer * D, int update)
+void solve_IK_Chains(deformer * D)
 {
     int i;
     ikChain * I;
@@ -1166,20 +1166,7 @@ void solve_IK_Chains_exclude(ikChain * IK, deformer * D, int update)
     for (i = 0; i < D->IKchains_Count; i ++)
     {
         I = D->IKchains[i];
-        if (I != IK)
-            solve_IK_Chain(I, update);
-    }
-}
-
-void solve_IK_Chains(deformer * D, int update)
-{
-    int i;
-    ikChain * I;
-
-    for (i = 0; i < D->IKchains_Count; i ++)
-    {
-        I = D->IKchains[i];
-        solve_IK_Chain(I, update);
+        solve_IK_Chain(I);
     }
 }
 
@@ -1189,7 +1176,7 @@ void solve_all_IK_Chains()
 
     for (d = 0; d < deformerIndex; d ++)
     {
-        solve_IK_Chains(deformers[d], ik_has_to_update);
+        solve_IK_Chains(deformers[d]);
     }
 }
 
@@ -1247,7 +1234,7 @@ void update_Deformers_Poses()
 
             rotate_(T);
 
-            solve_IK_Chains(D, 0); // specify affected IK chains before, collect them
+            solve_IK_Chains(D); // specify affected IK chains before, collect them
         }
     }
 }
@@ -1341,6 +1328,24 @@ void hierarchycal_IK_Chains()
         if (D->IKchains_Count > 0)
         {
             order_deformers_IK_Chains(D);
+        }
+    }
+}
+
+void populate_IK_Updates()
+{
+    int d;
+    deformer * D;
+    transformer * T;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+
+        if (D->Transformers_Count > 0 && D->IKchains_Count > 0)
+        {
+            T = D->Transformers[0];
+            populate_IK_Update(D, NULL, T);
         }
     }
 }

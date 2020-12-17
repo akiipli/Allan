@@ -93,6 +93,7 @@ struct ikChain
     float rotVec_B[3][3]; // bind pose matrix
     float rotVec_F[3][3]; // final pose matrix
     float rotVec_I[3][3]; // bind pose inverse
+    int update;
 }
 ;
 
@@ -278,6 +279,8 @@ int init_ikChain(deformer * Deformer)
         add_Transformer_To_Deformer(I->A, I->Deformer);
         add_Transformer_To_Deformer(I->B, I->Deformer);
     }
+
+    I->update = 0;
 
     iksIndex ++;
     return 1;
@@ -685,7 +688,7 @@ void compose_Hierarchy(transformer * T, int ignore_IK)
     }
 }
 
-void solve_IK_Chain(ikChain * I, int update)
+void solve_IK_Chain(ikChain * I)
 {
     /*
     i match intermediate spine with true length with adjust Proportional
@@ -1026,7 +1029,7 @@ void solve_IK_Chain(ikChain * I, int update)
     child movement section end
     */
 
-    if (update)
+    if (I->update)
     {
         make_Spine(I->rotVec_F, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order);
 
@@ -1092,7 +1095,7 @@ void set_IK_H_Button(int index)
 
 void fix_ik_goal(transformer * T)
 {
-//    solve_IK_Chain(T->IK, 1);
+//    solve_IK_Chain(T->IK);
 //    normalize_rotation_unparent(T);
 }
 
@@ -1102,7 +1105,7 @@ void unfix_ik_goal(transformer * T)
     T->scl[1] *= (1 / T->parent->scl_vec[1]);
     T->scl[2] *= (1 / T->parent->scl_vec[2]);
 //    normalize_rotation_parent(T);
-    solve_IK_Chain(T->IK, ik_has_to_update);
+    solve_IK_Chain(T->IK);
 }
 
 void unfix_ik_goals()
@@ -1225,26 +1228,31 @@ void move_IKs_To_Parent(transformer * T)
     }
 }
 
-int check_Subsequent_IK_Chains(transformer * T, ikChain * I)
+void populate_IK_Update(deformer * D, ikChain * I, transformer * T)
 {
     int c;
+
     transformer * C;
 
-    int update = 1;
+    if (T->childcount == 0)
+    {
+        if (I != NULL)
+            I->update = 1;
+        I = NULL;
+    }
 
     for (c = 0; c < T->childcount; c ++)
     {
         C = T->childs[c];
-        if (C->IK != NULL && C->IK != I)
-        {
-            update = 0;
-            return update;
-            break;
-        }
-        update = check_Subsequent_IK_Chains(C, I);
-    }
 
-    return update;
+        if (C->Bone != NULL && C->Bone->IK_member > 0)
+        {
+            I = C->Bone->IK;
+            I->update = 0;
+        }
+
+        populate_IK_Update(D, I, C);
+    }
 }
 
 #endif // IKSOLUTION_H_INCLUDED

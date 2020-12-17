@@ -10122,6 +10122,8 @@ void set_Bind_Mode()
 
         hierarchycal_IK_Chains();
 
+        populate_IK_Updates();
+
         //solve_all_IK_Chains();
 
         set_Bind_Pose_For_Transformers(1);
@@ -10464,12 +10466,6 @@ void start_Movement()
         bake_position_Children(T);
         bake(T);
 
-//        if (T->IK != NULL)
-//        {
-//            ik_has_to_update = check_Subsequent_IK_Chains(T, T->IK);
-//            printf("ik has to update %d\n", ik_has_to_update);
-//        }
-
         if (T->Deformer != NULL)
         {
             if (T->Deformer->Transformers_Count > 0)
@@ -10544,7 +10540,7 @@ void make_Movement()
 //                if (T->childs[0]->IK->bonescount > 1)
 //                {
 //                    //if (T->Deformer != NULL)
-//                        //solve_IK_Chains(T->Deformer, 0);
+//                        //solve_IK_Chains(T->Deformer);
 //                    move_(T, Delta, subdLevel);
 //                }
 //                else
@@ -10555,7 +10551,7 @@ void make_Movement()
 //            }
 //            else
 //            {
-//                //solve_IK_Chain(T->IK, 0);
+//                //solve_IK_Chain(T->IK);
 //                move_(T, Delta, subdLevel);
 //            }
 //        }
@@ -10652,9 +10648,9 @@ void transform_Objects_And_Render()
                     rotate_bind(T);
                 else
                 {
-                    if (T->IK != NULL)
+                    if (T->Deformer != NULL)
                     {
-                        solve_IK_Chain(T->IK, 0);
+                        solve_IK_Chains(T->Deformer);
                     }
                     else
                     {
@@ -11361,6 +11357,8 @@ void exit_Bind_Mode()
 
     hierarchycal_IK_Chains();
 
+    populate_IK_Updates();
+
     set_Bind_Pose_For_Transformers(1);
 
     normalize_rotation_parent_childs(&World);
@@ -11658,6 +11656,8 @@ void save_load_Scene()
             assert_Object_Selection();
             currentSubcharacter = 0;
             select_Subcharacter();
+
+            populate_IK_Updates();
 
             UPDATE_COLORS = 1;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
@@ -12627,7 +12627,7 @@ int main(int argc, char * args[])
                             Update_Objects_Count = 0;
                             if (T->IK != NULL && (T->style == ik_goal || T->style == ik_fixed))
                             {
-                                solve_IK_Chain(T->IK, ik_has_to_update);
+                                solve_IK_Chain(T->IK);
                             }
                             if (T->Deformer != NULL)
                             {

@@ -13,8 +13,6 @@ Copyright <2018> <Allan Kiipli>
 #define root_node 4
 #define ik_fixed 5
 
-int ik_has_to_update = 1;
-
 float MIN_SCALE = 1 / 1000000;
 int SCALE = 0;
 
@@ -1371,9 +1369,8 @@ void collect_Children(transformer * T)
 }
 
 void rotate_vertex_groups_D_Init();
-void solve_IK_Chain(ikChain * I, int update);
-void solve_IK_Chains(deformer * D, int update);
-void solve_IK_Chains_exclude(ikChain * IK, deformer * D, int update);
+void solve_IK_Chain(ikChain * I);
+void solve_IK_Chains(deformer * D);
 void rotate_Deformer_verts(deformer * D);
 
 void rotate_Deformer(transformer * T)
@@ -1392,7 +1389,7 @@ void rotate_Deformer(transformer * T)
 
     rotate_(T);
 
-    solve_IK_Chains(T->Deformer, ik_has_to_update); // specify affected IK chains before, collect them
+    solve_IK_Chains(T->Deformer); // specify affected IK chains before, collect them
 
     rotate_Deformer_verts(T->Deformer);
 }
@@ -1435,7 +1432,7 @@ void rotate_Deformer_pose(transformer * T)
         rotate_P(C); // rotate_ got updated with scaling in rotate_scale
     }
 
-    solve_IK_Chains(T->Deformer, ik_has_to_update);
+    solve_IK_Chains(T->Deformer);
 
     for (c = child_collection_count - 1; c >= 0; c --)
     {
@@ -1783,15 +1780,7 @@ void move_Deformer(transformer * T, float Delta[3])
     move_T(T, Delta);
     move_H(T, Delta);
 
-    if (T->IK != NULL)
-    {
-        solve_IK_Chains_exclude(T->IK, T->Deformer, 1);
-        solve_IK_Chain(T->IK, 1);
-    }
-    else
-    {
-        solve_IK_Chains(T->Deformer, ik_has_to_update);
-    }
+    solve_IK_Chains(T->Deformer);
 
     rotate_Deformer_verts(T->Deformer);
 }
