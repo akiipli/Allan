@@ -7650,7 +7650,8 @@ void remove_Subcharacter()
             {
                 subcharacters[currentSubcharacter]->selected = 0;
                 currentSubcharacter = Subcharacter_List[SubcharacterIndex];
-                subcharacters[currentSubcharacter]->selected = 1;
+                if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
+                    subcharacters[currentSubcharacter]->selected = 1;
             }
             else
             {
