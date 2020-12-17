@@ -13,7 +13,7 @@ Copy runtime librarys to Windows/SysWOW64.
 
 Place Trips Code to c drive.
 
-Exe files are in C:\GL_SDL_hybrid_IK\bin\Release.
+Exe files are in C:\GL_SDL_hybrid_IK\bin\Debug.
 Guidelines are in C:\GL_SDL_hybrid_IK\README.txt.
 
 How to use.
