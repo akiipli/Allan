@@ -1234,7 +1234,11 @@ void populate_IK_Update(deformer * D, ikChain * I, transformer * T)
 
     transformer * C;
 
-    if (T->childcount == 0)
+    if (T->Bone != NULL && T->Bone->IK_member > 0)
+    {
+
+    }
+    else if (T->childcount == 0)
     {
         if (I != NULL)
             I->update = 1;

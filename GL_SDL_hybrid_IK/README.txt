@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+3:49 PM 12/18/2020
+When creating Subcharacter poses, make sure there is no fixed IK chains, 
+that modify the orientations in the limb. Else poses come at an unnatural angle.
+
 3:04 PM 12/15/2020
 Updated subcharacter pose applying mechanisms. Now hierarchy is affected after subcharacter.
 Avoid subcharacters that are a partial IK chain. Then IK targets may stay afloat after pose apply.
