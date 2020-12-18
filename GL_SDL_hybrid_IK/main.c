@@ -4487,8 +4487,19 @@ void black_out_BoneList()
 
 void open_Bones_List()
 {
+    if (currentBone >= 0 && currentBone < bonesIndex)
+    {
+        Type = bones[currentBone];
+    }
+    else
+    {
+        Type = NULL;
+    }
+
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_BONE;
 
     set_Bone_Mode();
 
@@ -4530,6 +4541,14 @@ void open_Bones_List()
     UPDATE_COLORS = 0;
 
     draw_Bones_Dialog("Bones List", screen_height, bone_start, 1, BoneIndex - bone_start, selection_rectangle);
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(bones[currentBone]->Name, screen_height, 1, PROPERTIES_BONE, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_BONE, Type);
+    }
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -5370,6 +5389,15 @@ void update_Subcharacters_List(int update, int blit)
 
 void update_Bones_List(int update, int blit)
 {
+    if (currentBone >= 0 && currentBone < bonesIndex)
+    {
+        Type = bones[currentBone];
+    }
+    else
+    {
+        Type = NULL;
+    }
+
     if (BoneIndex - bone_start >= 0)
         BoneList[BoneIndex - bone_start].color = UI_BACKL;
 
@@ -5388,6 +5416,15 @@ void update_Bones_List(int update, int blit)
         draw_Bones_List(screen_height, bone_start, 0, BoneIndex - bone_start, selection_rectangle);
         draw_Bones_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(bones[currentBone]->Name, screen_height, 1, PROPERTIES_BONE, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_BONE, Type);
+    }
+
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -6328,6 +6365,8 @@ void handle_UP_Bone(int scrollbar)
         if (bone_start < 0) bone_start = 0;
         if (BoneIndex - bone_start >= 0)
             BoneList[BoneIndex - bone_start].color = UI_BACKL;
+
+        update_Bones_List(0, 0);
     }
     else
     {
@@ -6343,18 +6382,13 @@ void handle_UP_Bone(int scrollbar)
             currentBone = Bone_List[BoneIndex];
             bones[currentBone]->selected = 1;
         }
+
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
+        update_Bones_List(1, 1);
+        DRAW_UI = 1;
     }
-    DRAW_UI = 0;
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    glDrawBuffer(GL_BACK);
-    draw_Bones_Dialog("Bones List", screen_height,
-                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
-    SDL_GL_SwapBuffers();
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    draw_Bones_Dialog("Bones List", screen_height,
-                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
-    SDL_GL_SwapBuffers();
-    DRAW_UI = 1;
 }
 
 void swap_Poses_up(pose * P)
@@ -6957,6 +6991,8 @@ void handle_DOWN_Bone(int scrollbar)
         if (bone_start > Bones_c - LISTLENGTH) bone_start --;
         if (BoneIndex - bone_start >= 0)
             BoneList[BoneIndex - bone_start].color = UI_BACKL;
+
+        update_Bones_List(0, 0);
     }
     else
     {
@@ -6973,18 +7009,13 @@ void handle_DOWN_Bone(int scrollbar)
             currentBone = Bone_List[BoneIndex];
             bones[currentBone]->selected = 1;
         }
+
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
+        update_Bones_List(1, 1);
+        DRAW_UI = 1;
     }
-    DRAW_UI = 0;
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    glDrawBuffer(GL_BACK);
-    draw_Bones_Dialog("Bones List", screen_height,
-                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
-    SDL_GL_SwapBuffers();
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    draw_Bones_Dialog("Bones List", screen_height,
-                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
-    SDL_GL_SwapBuffers();
-    DRAW_UI = 1;
 }
 
 void swap_Poses_down(pose * P)
@@ -11781,11 +11812,6 @@ void select_currentBone()
             bones[currentBone]->selected = 1;
         }
     }
-
-    if (dialog_lock)
-    {
-        draw_Dialog();
-    }
 }
 
 void select_Transformer_IK(transformer * T)
@@ -12870,14 +12896,7 @@ int main(int argc, char * args[])
 
                                     DRAW_UI = 0;
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                                    glDrawBuffer(GL_BACK);
-                                    draw_Bones_Dialog("Bones List", screen_height,
-                                                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
-                                    SDL_GL_SwapBuffers();
-                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                                    draw_Bones_Dialog("Bones List", screen_height,
-                                                bone_start, 1, BoneIndex - bone_start, selection_rectangle);
-                                    SDL_GL_SwapBuffers();
+                                    update_Bones_List(1, 1);
                                     DRAW_UI = 1;
                                 }
                             }

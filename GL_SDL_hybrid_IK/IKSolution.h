@@ -642,9 +642,21 @@ void compose_Hierarchy(transformer * T, int ignore_IK)
         C = T->childs[t];
         len = distance(T->pos_bind, C->pos_bind);
 
-        if (ignore_IK && C->Bone != NULL && C->Bone->IK_member > 0)
+        if (!ignore_IK &&  C->IK != NULL && C->style != ik_start)
+        {
+            C->pos[0] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[0];
+            C->pos[1] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[1];
+            C->pos[2] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[2];
+        }
+        else if (ignore_IK && C->Bone != NULL && C->Bone->IK_member > 0)
         {
 
+        }
+        else if (ignore_IK && C->IK != NULL && C->style == ik_start)
+        {
+            C->pos[0] = T->pos[0];
+            C->pos[1] = T->pos[1];
+            C->pos[2] = T->pos[2];
         }
         else if (ignore_IK && C->IK != NULL)
         {

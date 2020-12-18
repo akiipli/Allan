@@ -27,6 +27,7 @@ from corner.
 #define PROPERTIES_MATERIAL 4
 #define PROPERTIES_LOCATOR 5
 #define PROPERTIES_IK 6
+#define PROPERTIES_BONE 7
 
 int PROPERTIES;
 int TABULATOR = 70;
@@ -168,6 +169,29 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         draw_Properties_Text(text, d_width, p_height, idx);
         idx ++;
         sprintf(text, "Update\t%d", I->update);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+    }
+    else if (subject != NULL && type == PROPERTIES_BONE)
+    {
+        bone * B = (bone *)subject;
+
+        sprintf(text, "A\t%s", B->A->Name);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+        sprintf(text, "B\t%s", B->B->Name);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+        if (B->D != NULL)
+            sprintf(text, "Deformer\t%s", B->D->Name);
+        else
+            sprintf(text, "Deformer");
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+        if (B->IK != NULL)
+            sprintf(text, "IK\t%s", B->IK->Name);
+        else
+            sprintf(text, "IK");
         draw_Properties_Text(text, d_width, p_height, idx);
         idx ++;
     }
