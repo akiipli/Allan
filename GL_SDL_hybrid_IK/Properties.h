@@ -26,6 +26,7 @@ from corner.
 #define PROPERTIES_LIGHT 3
 #define PROPERTIES_MATERIAL 4
 #define PROPERTIES_LOCATOR 5
+#define PROPERTIES_IK 6
 
 int PROPERTIES;
 int TABULATOR = 70;
@@ -156,7 +157,20 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         draw_Properties_Text(text, d_width, p_height, idx);
         idx ++;
     }
+    else if (subject != NULL && type == PROPERTIES_IK)
+    {
+        ikChain * I = (ikChain *)subject;
 
+        sprintf(text, "Deformer\t%s", I->Deformer->Name);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+        sprintf(text, "Bones\t%d", I->bonescount);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+        sprintf(text, "Update\t%d", I->update);
+        draw_Properties_Text(text, d_width, p_height, idx);
+        idx ++;
+    }
 
 	//glEnable(GL_TEXTURE_2D);
 

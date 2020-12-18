@@ -53,10 +53,10 @@ look for CUBECOMMENT
 #include FT_FREETYPE_H
 #include "UserInterface.h"
 #include "Materials.h"
-#include "Properties.h"
 #include "Items.h"
 #include "IKSolution.h"
 #include "Deformer.h"
+#include "Properties.h"
 #include "Poses.h"
 #include "Bones.h"
 #include "Subcharacters.h"
@@ -4420,8 +4420,20 @@ void black_out_IkList()
 
 void open_IK_List()
 {
+    if (currentIK >= 0 && currentIK < iksIndex)
+    {
+        Type = ikChains[currentIK];
+    }
+    else
+    {
+        Type = NULL;
+    }
+
+
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_IK;
 
     create_Ik_List(IKIndex);
 
@@ -4447,6 +4459,14 @@ void open_IK_List()
     UPDATE_COLORS = 0;
 
     draw_IK_Dialog("IK List", screen_height, ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(ikChains[currentIK]->Name, screen_height, 1, PROPERTIES_IK, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
+    }
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -5284,6 +5304,15 @@ void update_Saves_List(int update, int blit)
 
 void update_IK_List(int update, int blit)
 {
+    if (currentIK >= 0 && currentIK < iksIndex)
+    {
+        Type = ikChains[currentIK];
+    }
+    else
+    {
+        Type = NULL;
+    }
+
     if (IKIndex - ikch_start >= 0)
         IkchList[IKIndex - ikch_start].color = UI_BACKL;
 
@@ -5302,6 +5331,15 @@ void update_IK_List(int update, int blit)
         draw_IK_List(screen_height, ikch_start, 0, IKIndex - ikch_start, selection_rectangle);
         draw_IK_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(ikChains[currentIK]->Name, screen_height, 1, PROPERTIES_IK, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
+    }
+
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -6157,6 +6195,8 @@ void handle_UP_IK(int scrollbar)
         if (ikch_start < 0) ikch_start = 0;
         if (IKIndex - ikch_start >= 0)
             IkchList[IKIndex - ikch_start].color = UI_BACKL;
+
+        update_IK_List(0, 0);
     }
     else
     {
@@ -6167,20 +6207,16 @@ void handle_UP_IK(int scrollbar)
         if (IKIndex - ikch_start >= 0)
             IkchList[IKIndex - ikch_start].color = UI_BACKL;
         currentIK = IK_List[IKIndex];
-    }
-    if (currentIK >= 0 && currentIK < iksIndex)
-        select_IK_Goal(ikChains[currentIK]);
 
-    DRAW_UI = 0;
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    draw_IK_Dialog("IK List", screen_height,
-                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
-    SDL_GL_SwapBuffers();
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    draw_IK_Dialog("IK List", screen_height,
-                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
-    SDL_GL_SwapBuffers();
-    DRAW_UI = 1;
+        if (currentIK >= 0 && currentIK < iksIndex)
+            select_IK_Goal(ikChains[currentIK]);
+
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
+        update_IK_List(1, 1);
+        DRAW_UI = 1;
+    }
 }
 
 void select_Subcharacter()
@@ -6798,6 +6834,8 @@ void handle_DOWN_IK(int scrollbar)
         if (ikch_start > ikChains_c - LISTLENGTH) ikch_start --;
         if (IKIndex - ikch_start >= 0)
             IkchList[IKIndex - ikch_start].color = UI_BACKL;
+
+        update_IK_List(0, 0);
     }
     else
     {
@@ -6809,20 +6847,16 @@ void handle_DOWN_IK(int scrollbar)
         if (IKIndex - ikch_start >= 0)
             IkchList[IKIndex - ikch_start].color = UI_BACKL;
         currentIK = IK_List[IKIndex];
-    }
-    if (currentIK >= 0 && currentIK < iksIndex)
-        select_IK_Goal(ikChains[currentIK]);
 
-    DRAW_UI = 0;
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    draw_IK_Dialog("IK List", screen_height,
-                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
-    SDL_GL_SwapBuffers();
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    draw_IK_Dialog("IK List", screen_height,
-                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
-    SDL_GL_SwapBuffers();
-    DRAW_UI = 1;
+        if (currentIK >= 0 && currentIK < iksIndex)
+            select_IK_Goal(ikChains[currentIK]);
+
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
+        update_IK_List(1, 1);
+        DRAW_UI = 1;
+    }
 }
 
 void handle_DOWN_Subcharacter(int scrollbar)
@@ -12865,13 +12899,7 @@ int main(int argc, char * args[])
 
                                     DRAW_UI = 0;
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                                    draw_IK_Dialog("IK List", screen_height,
-                                                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
-                                    SDL_GL_SwapBuffers();
-                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                                    draw_IK_Dialog("IK List", screen_height,
-                                                ikch_start, 1, IKIndex - ikch_start, selection_rectangle);
-                                    SDL_GL_SwapBuffers();
+                                    update_IK_List(1, 1);
                                     DRAW_UI = 1;
                                 }
                             }
