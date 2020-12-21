@@ -21,6 +21,7 @@ from corner.
 
 #define MIN_PROPERTIES_HEIGHT 20
 
+#define PROPERTIES_NONE 0
 #define PROPERTIES_OBJECT 1
 #define PROPERTIES_CAMERA 2
 #define PROPERTIES_LIGHT 3
@@ -29,7 +30,10 @@ from corner.
 #define PROPERTIES_IK 6
 #define PROPERTIES_BONE 7
 
-int PROPERTIES;
+#define X_OFFSET 5
+#define Y_OFFSET 10
+
+int PROPERTIES = 0;
 int TABULATOR = 70;
 
 int Drag_X = 0;
@@ -43,7 +47,38 @@ int Drag_Shine = 0;
 float Shine;
 float ShineDelta;
 
-void draw_Properties_Text(const char * text, int width, int height, int index)
+int properties[Y_OFFSET][X_OFFSET];
+
+int left, right, top, bottom;
+int prop_x, prop_y;
+
+void init_properties()
+{
+    int x, y;
+
+    for (y = 0; y < Y_OFFSET; y ++)
+    {
+        for (x = 0; x < X_OFFSET; x ++)
+        {
+            properties[y][x] = UI_BLACK;
+        }
+    }
+}
+
+void black_out_properties()
+{
+    int x, y;
+
+    for (y = 0; y < Y_OFFSET; y ++)
+    {
+        for (x = 0; x < X_OFFSET; x ++)
+        {
+            properties[y][x] = UI_BLACK;
+        }
+    }
+}
+
+void draw_Properties_Text(const char * text, int width, int height, int index, int highlight, int x_offset)
 {
 	//glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -52,10 +87,13 @@ void draw_Properties_Text(const char * text, int width, int height, int index)
 
 	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
-	float origin_x = 5;
+	float origin_x = 5 + (x_offset * TABULATOR);
 	float origin_y = BUTTON_HEIGHT * index + 15;
 
-	glColor4fv(buttoncolors[UI_BLACK].color);
+	if (highlight)
+        glColor4fv(buttoncolors[properties[index][x_offset]].color);
+    else
+        glColor4fv(buttoncolors[UI_BLACK].color);
 
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
@@ -102,32 +140,40 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
     {
         object * O = (object *)subject;
         sprintf(text, "\tpolys\tedges\tverts");
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         sprintf(text, "elements\t%d\t%d\t%d", O->polycount, O->edgecount, O->vertcount);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         sprintf(text, "selected\t%d\t%d\t%d", O->selected_polys_count, O->selected_edges_count, O->selected_verts_count);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         sprintf(text, "surface\t%d %s", O->surface, Materials[O->surface].Name);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
     }
     else if (type == PROPERTIES_MATERIAL)
     {
         surface_Material * M = (surface_Material *)subject;
 
-        sprintf(text, "\tR %d\tG %d\tB %d\tA %d", (int)M->RGBA.R, (int)M->RGBA.G, (int)M->RGBA.B, (int)M->RGBA.A);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        sprintf(text, "R %d", (int)M->RGBA.R);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+        sprintf(text, "G %d", (int)M->RGBA.G);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+        sprintf(text, "B %d", (int)M->RGBA.B);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 3);
+        sprintf(text, "A %d", (int)M->RGBA.A);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 4);
         idx ++;
 
         GLfloat color[4] = {M->RGBA.R / 255.0, M->RGBA.G / 255.0, M->RGBA.B / 255.0, M->RGBA.A / 255.0};
 
         draw_Color_Button(SIDEBAR * 2, p_height, 0, color);
 
-        sprintf(text, "\tShininess %1.2f", M->Shininess);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        sprintf(text, "\tShininess");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%1.2f", M->Shininess);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
         idx ++;
     }
     else if (type == PROPERTIES_LOCATOR)
@@ -146,16 +192,16 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         else if (T->rot_Order == yzx)
             sprintf(text, "yzx");
 
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         sprintf(text, "Rotation\tX %1.2f\tY %1.2f\tZ %1.2f", T->rot[0], T->rot[1], T->rot[2]);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         sprintf(text, "Position\tX %1.2f\tY %1.2f\tZ %1.2f", T->pos[0], T->pos[1], T->pos[2]);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         sprintf(text, "Scaling\tX %1.2f\tY %1.2f\tZ %1.2f", T->scl[0], T->scl[1], T->scl[2]);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
     }
     else if (subject != NULL && type == PROPERTIES_IK)
@@ -163,13 +209,15 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         ikChain * I = (ikChain *)subject;
 
         sprintf(text, "Deformer\t%s", I->Deformer->Name);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         sprintf(text, "Bones\t%d", I->bonescount);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
-        sprintf(text, "Update\t%d", I->update);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        sprintf(text, "Update");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%d", I->update);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
         idx ++;
     }
     else if (subject != NULL && type == PROPERTIES_BONE)
@@ -177,22 +225,22 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         bone * B = (bone *)subject;
 
         sprintf(text, "A\t%s", B->A->Name);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         sprintf(text, "B\t%s", B->B->Name);
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         if (B->D != NULL)
             sprintf(text, "Deformer\t%s", B->D->Name);
         else
             sprintf(text, "Deformer");
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         if (B->IK != NULL)
             sprintf(text, "IK\t%s", B->IK->Name);
         else
             sprintf(text, "IK");
-        draw_Properties_Text(text, d_width, p_height, idx);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
     }
 

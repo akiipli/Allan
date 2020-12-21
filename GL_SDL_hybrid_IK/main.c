@@ -667,6 +667,8 @@ int init()
 
     SDL_WM_SetCaption(caption, NULL);
     fonts_on = init_fonts();
+    if (!fonts_on) quit_app(0);
+    init_properties();
 
     SHADERS = init_shaders_();
     if (SHADERS)
@@ -690,7 +692,6 @@ int init()
     THUMBNAILS = setup_Material_Thumbnail_FBO();
     printf("THUMBNAILS %d\n", THUMBNAILS);
 
-    if (!fonts_on) quit_app(0);
     printf("fonts on %d\n", fonts_on);
     init_ui();
     init_labels();
@@ -4301,6 +4302,9 @@ void open_Selections_List()
 {
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_NONE;
+
     int idx = 0;
 
     if (selection_Mode == POLYS)
@@ -4375,6 +4379,8 @@ void open_Subcharacters_List()
 {
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_NONE;
 
     create_Subcharacters_List(SubcharacterIndex);
 
@@ -4599,6 +4605,9 @@ void open_Poses_List()
 {
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_NONE;
+
     ROTATED_POSE = 1;
 
     PoseIndex = find_Pose_Index();
@@ -4651,6 +4660,8 @@ void open_Deformers_List()
 {
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_NONE;
 
     //create_Deformers_List(SelsIndex[3], O);
 
@@ -4767,6 +4778,8 @@ void open_Textures_List()
 {
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_NONE;
 
     if (Bottom_Message)
     {
@@ -4978,6 +4991,8 @@ void open_Saves_List()
     Osd = 0;
     HINTS = 0;
 
+    PROPERTIES = PROPERTIES_NONE;
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("Saves List\n");
@@ -5032,6 +5047,8 @@ void open_Loading_List()
     Osd = 0;
     HINTS = 0;
 
+    PROPERTIES = PROPERTIES_NONE;
+
     if (Bottom_Message)
     {
         Draw_Bottom_Message("Loading List\n");
@@ -5060,6 +5077,8 @@ void open_OBJ_List()
 {
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_NONE;
 
     if (Bottom_Message)
     {
@@ -5102,6 +5121,8 @@ void open_Img_List()
 {
     Osd = 0;
     HINTS = 0;
+
+    PROPERTIES = PROPERTIES_NONE;
 
     if (Bottom_Message)
     {
@@ -11743,6 +11764,21 @@ void save_load_Scene()
     Button_h_scen[0].color = UI_GRAYB;
 }
 
+void change_IK_Update()
+{
+    if (currentIK >= 0 && currentIK < iksIndex)
+    {
+        ikChains[currentIK]->update = !ikChains[currentIK]->update;
+    }
+
+    if (Type != NULL)
+        draw_Properties(ikChains[currentIK]->Name, screen_height, 1, PROPERTIES_IK, Type);
+    else
+        draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
+
+    SDL_GL_SwapBuffers();
+}
+
 void select_currentIK()
 {
     printf("select currentIK %d\n", currentIK);
@@ -13598,9 +13634,10 @@ int main(int argc, char * args[])
                         else if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && mouse_y > DIALOG_HEIGHT && mouse_y < screen_height)
                         {
                             int h_index;
+                            h_index = (mouse_x - SIDEBAR * 2) / TABULATOR;
+
                             if (dialog_type == MATERIAL_DIALOG)
                             {
-                                h_index = (mouse_x - SIDEBAR * 2) / TABULATOR;
                                 if (!Drag_Color && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT)
                                 {
                                     Drag_X = mouse_x;
@@ -13625,12 +13662,23 @@ int main(int argc, char * args[])
                                         Drag_Color = 1;
                                     }
                                 }
-                                else if (!Drag_Shine && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 2)
+                                else if (!Drag_Shine && mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 2)
                                 {
                                     Drag_X = mouse_x;
                                     if (h_index == 2)
                                     {
                                         Drag_Shine = 1;
+                                    }
+                                }
+                            }
+                            else if (dialog_type == IK_DIALOG)
+                            {
+                                if (mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 2 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 3)
+                                {
+                                    if (h_index == 1)
+                                    {
+                                        //printf("set ik update\n");
+                                        change_IK_Update();
                                     }
                                 }
                             }
@@ -14097,6 +14145,7 @@ int main(int argc, char * args[])
             {
                 mouse_x = event.motion.x;
                 mouse_y = event.motion.y;
+
                 if (Drag_Shine)
                 {
                     DragDelta = mouse_x - Drag_X;
@@ -14121,6 +14170,51 @@ int main(int argc, char * args[])
                     update_Materials_List(0, 0);
 
                     SDL_GL_SwapBuffers();
+                }
+                else if (PROPERTIES != PROPERTIES_NONE)
+                {
+                    left = SIDEBAR * 2;
+                    right = SIDEBAR + DIALOG_WIDTH;
+                    top = DIALOG_HEIGHT;
+                    bottom = screen_height;
+                    if (mouse_x > left && mouse_x < right && mouse_y > top && mouse_y < bottom)
+                    {
+                        prop_x = (mouse_x - left) / TABULATOR;
+                        prop_y = (mouse_y - top) / BUTTON_HEIGHT;
+
+                        if (prop_x >= X_OFFSET) prop_x = X_OFFSET - 1;
+                        else if (prop_x < 0) prop_x = 0;
+                        if (prop_y >= Y_OFFSET) prop_y = Y_OFFSET - 1;
+                        else if (prop_y < 0) prop_y = 0;
+
+                        if (PROPERTIES == PROPERTIES_MATERIAL)
+                        {
+                            //printf("prop_x %d\tprop_y %d\t\r", prop_x, prop_y);
+
+                            if (properties[prop_y][prop_x] != UI_BACKL)
+                            {
+                                //printf("rendering\t\t\r");
+                                black_out_properties();
+                                properties[prop_y][prop_x] = UI_BACKL;
+                                draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
+                                SDL_GL_SwapBuffers();
+                            }
+                        }
+                        else if (PROPERTIES == PROPERTIES_IK)
+                        {
+                            if (properties[prop_y][prop_x] != UI_BACKL)
+                            {
+                                //printf("rendering\t\t\r");
+                                black_out_properties();
+                                properties[prop_y][prop_x] = UI_BACKL;
+                                if (Type != NULL)
+                                    draw_Properties(ikChains[currentIK]->Name, screen_height, 1, PROPERTIES_IK, Type);
+                                else
+                                    draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
+                                SDL_GL_SwapBuffers();
+                            }
+                        }
+                    }
                 }
                 else if (Drag_Dialog)
                 {
@@ -16473,6 +16567,7 @@ int main(int argc, char * args[])
                     dialog_lock = 0;
                     Osd = 1;
                     HINTS = 1;
+                    PROPERTIES = PROPERTIES_NONE;
 
                     if (dialog_type == POSE_DIALOG)
                     {
