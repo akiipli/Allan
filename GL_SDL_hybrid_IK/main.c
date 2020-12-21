@@ -14171,6 +14171,30 @@ int main(int argc, char * args[])
 
                     SDL_GL_SwapBuffers();
                 }
+                else if (Drag_Dialog)
+                {
+                    DIALOG_WIDTH = mouse_x - SIDEBAR;
+                    DIALOG_HEIGHT = mouse_y;
+                    if (DIALOG_HEIGHT < MIN_DIALOG_HEIGHT)
+                    {
+                        DIALOG_HEIGHT = MIN_DIALOG_HEIGHT;
+                    }
+                    if (DIALOG_WIDTH < MIN_DIALOG_WIDTH)
+                    {
+                        DIALOG_WIDTH = MIN_DIALOG_WIDTH;
+                    }
+                    if (DIALOG_HEIGHT > screen_height - MIN_PROPERTIES_HEIGHT)
+                    {
+                        DIALOG_HEIGHT = screen_height - MIN_PROPERTIES_HEIGHT;
+                    }
+                    LISTLENGTH = DIALOG_HEIGHT / BUTTON_HEIGHT - 1;
+                    if (LISTLENGTH > MAX_LISTLENGTH)
+                    {
+                        LISTLENGTH = MAX_LISTLENGTH;
+                        DIALOG_HEIGHT = LISTLENGTH * BUTTON_HEIGHT + 1;
+                    }
+                    draw_Dialog();
+                }
                 else if (PROPERTIES != PROPERTIES_NONE)
                 {
                     left = SIDEBAR * 2;
@@ -14215,30 +14239,6 @@ int main(int argc, char * args[])
                             }
                         }
                     }
-                }
-                else if (Drag_Dialog)
-                {
-                    DIALOG_WIDTH = mouse_x - SIDEBAR;
-                    DIALOG_HEIGHT = mouse_y;
-                    if (DIALOG_HEIGHT < MIN_DIALOG_HEIGHT)
-                    {
-                        DIALOG_HEIGHT = MIN_DIALOG_HEIGHT;
-                    }
-                    if (DIALOG_WIDTH < MIN_DIALOG_WIDTH)
-                    {
-                        DIALOG_WIDTH = MIN_DIALOG_WIDTH;
-                    }
-                    if (DIALOG_HEIGHT > screen_height - MIN_PROPERTIES_HEIGHT)
-                    {
-                        DIALOG_HEIGHT = screen_height - MIN_PROPERTIES_HEIGHT;
-                    }
-                    LISTLENGTH = DIALOG_HEIGHT / BUTTON_HEIGHT - 1;
-                    if (LISTLENGTH > MAX_LISTLENGTH)
-                    {
-                        LISTLENGTH = MAX_LISTLENGTH;
-                        DIALOG_HEIGHT = LISTLENGTH * BUTTON_HEIGHT + 1;
-                    }
-                    draw_Dialog();
                 }
                 else if (edgeWeights)
                 {
