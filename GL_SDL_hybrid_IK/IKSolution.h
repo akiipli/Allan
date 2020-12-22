@@ -996,20 +996,20 @@ void solve_IK_Chain(ikChain * I)
 
         // TO DO: scaling
 
-        T = I->Bones[b]->A;
+//        T = I->Bones[b]->A;
 
         memcpy(I->Bones[b]->A->rotVec, I->Bones[b]->A->rotVec_, sizeof(float[3][3]));
 
-        T->scl_vec[0] = I->A->scl_vec[0];
-        T->scl_vec[1] = I->A->scl_vec[1];
-        T->scl_vec[2] = I->A->scl_vec[2];
-
-        if (T->scl_vec[0] != 1.0)
-            scale_x(T);
-        if (T->scl_vec[1] != 1.0)
-            scale_y(T);
-        if (T->scl_vec[2] != 1.0)
-            scale_z(T);
+//        T->scl_vec[0] = I->A->scl_vec[0];
+//        T->scl_vec[1] = I->A->scl_vec[1];
+//        T->scl_vec[2] = I->A->scl_vec[2];
+//
+//        if (T->scl_vec[0] != 1.0)
+//            scale_x(T);
+//        if (T->scl_vec[1] != 1.0)
+//            scale_y(T);
+//        if (T->scl_vec[2] != 1.0)
+//            scale_z(T);
 
         memcpy(I->Bones[b]->B->rotVec_, I->Bones[b]->A->rotVec_, sizeof(float[3][3]));
         memcpy(I->Bones[b]->B->rotVec, I->Bones[b]->A->rotVec_, sizeof(float[3][3]));
