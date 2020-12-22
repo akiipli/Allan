@@ -136,7 +136,7 @@ void compose_Subcharacter_Pose(subcharacter * S)
     for (b = 0; b < S->Bones_Count; b ++)
     {
         B = S->Bones[b];
-        len = distance(B->A->pos, B->B->pos);
+        len = distance(B->A->pos_bind, B->B->pos_bind);
 
         B->A->pos[0] = B->A->parent->pos[0];
         B->A->pos[1] = B->A->parent->pos[1];
@@ -144,21 +144,21 @@ void compose_Subcharacter_Pose(subcharacter * S)
 
         if (B->A->rot_Order == yxz || B->A->rot_Order == xyz)
         {
-            B->B->pos[0] = B->A->pos[0] + B->A->rotVec_[2][0] * len;
-            B->B->pos[1] = B->A->pos[1] + B->A->rotVec_[2][1] * len;
-            B->B->pos[2] = B->A->pos[2] + B->A->rotVec_[2][2] * len;
+            B->B->pos[0] = B->A->pos[0] + B->A->rotVec_[2][0] * len * B->A->scl_vec[2];
+            B->B->pos[1] = B->A->pos[1] + B->A->rotVec_[2][1] * len * B->A->scl_vec[2];
+            B->B->pos[2] = B->A->pos[2] + B->A->rotVec_[2][2] * len * B->A->scl_vec[2];
         }
         else if (B->A->rot_Order == zxy || B->A->rot_Order == xzy)
         {
-            B->B->pos[0] = B->A->pos[0] + B->A->rotVec_[1][0] * len;
-            B->B->pos[1] = B->A->pos[1] + B->A->rotVec_[1][1] * len;
-            B->B->pos[2] = B->A->pos[2] + B->A->rotVec_[1][2] * len;
+            B->B->pos[0] = B->A->pos[0] + B->A->rotVec_[1][0] * len * B->A->scl_vec[1];
+            B->B->pos[1] = B->A->pos[1] + B->A->rotVec_[1][1] * len * B->A->scl_vec[1];
+            B->B->pos[2] = B->A->pos[2] + B->A->rotVec_[1][2] * len * B->A->scl_vec[1];
         }
         else if (B->A->rot_Order == zyx || B->A->rot_Order == yzx)
         {
-            B->B->pos[0] = B->A->pos[0] + B->A->rotVec_[0][0] * len;
-            B->B->pos[1] = B->A->pos[1] + B->A->rotVec_[0][1] * len;
-            B->B->pos[2] = B->A->pos[2] + B->A->rotVec_[0][2] * len;
+            B->B->pos[0] = B->A->pos[0] + B->A->rotVec_[0][0] * len * B->A->scl_vec[0];
+            B->B->pos[1] = B->A->pos[1] + B->A->rotVec_[0][1] * len * B->A->scl_vec[0];
+            B->B->pos[2] = B->A->pos[2] + B->A->rotVec_[0][2] * len * B->A->scl_vec[0];
         }
     }
 }
@@ -174,8 +174,8 @@ void apply_Subcharacter_Pose(subcharacter * S, pose * P)
         for (t = 0; t < P->transformers_count; t ++)
         {
             S->Transformers[t]->rot_Order = P->TP[t].rot_Order;
-            memcpy(S->Transformers[t]->scl, P->TP[t].scl, sizeof(float[3]));
-            memcpy(S->Transformers[t]->scl_vec, P->TP[t].scl_vec, sizeof(float[3]));
+            //memcpy(S->Transformers[t]->scl, P->TP[t].scl, sizeof(float[3]));
+            //memcpy(S->Transformers[t]->scl_vec, P->TP[t].scl_vec, sizeof(float[3]));
             memcpy(S->Transformers[t]->rot, P->TP[t].rot, sizeof(float[3]));
 
             //memcpy(S->Transformers[t]->rotVec, P->TP[t].rotVec, sizeof(float[3][3]));

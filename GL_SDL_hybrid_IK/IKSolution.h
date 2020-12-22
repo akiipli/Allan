@@ -966,6 +966,11 @@ void solve_IK_Chain(ikChain * I)
 
     // now construct matrix for every bone in final form
 
+    int c;
+    transformer * T;
+    transformer * C;
+    float Delta[3];
+
     direction_Pack z_Axis;
 
     for (b = 0; b < I->bonescount; b ++)
@@ -991,9 +996,24 @@ void solve_IK_Chain(ikChain * I)
 
         // TO DO: scaling
 
+        T = I->Bones[b]->A;
+
         memcpy(I->Bones[b]->A->rotVec, I->Bones[b]->A->rotVec_, sizeof(float[3][3]));
+
+        T->scl_vec[0] = I->A->scl_vec[0];
+        T->scl_vec[1] = I->A->scl_vec[1];
+        T->scl_vec[2] = I->A->scl_vec[2];
+
+        if (T->scl_vec[0] != 1.0)
+            scale_x(T);
+        if (T->scl_vec[1] != 1.0)
+            scale_y(T);
+        if (T->scl_vec[2] != 1.0)
+            scale_z(T);
+
         memcpy(I->Bones[b]->B->rotVec_, I->Bones[b]->A->rotVec_, sizeof(float[3][3]));
         memcpy(I->Bones[b]->B->rotVec, I->Bones[b]->A->rotVec_, sizeof(float[3][3]));
+
     }
 
     // transfer positions
@@ -1007,12 +1027,6 @@ void solve_IK_Chain(ikChain * I)
     /*
     child movement
     */
-
-    int c;
-    transformer * T;
-    transformer * C;
-    float Delta[3];
-
 
     for (b = 0; b < I->bonescount - 1; b ++)
     {
@@ -1057,8 +1071,8 @@ void solve_IK_Chain(ikChain * I)
         if (T->scl_vec[2] != 1.0)
             scale_z(T);
 
-        memcpy(I->B->rotVec, I->rotVec_F, sizeof(float[3][3]));
-        memcpy(I->B->rotVec_, I->rotVec_F, sizeof(float[3][3]));
+        memcpy(I->B->rotVec, I->A->rotVec, sizeof(float[3][3]));
+        memcpy(I->B->rotVec_, I->A->rotVec_, sizeof(float[3][3]));
 
         T = I->B;
 
@@ -1113,9 +1127,9 @@ void fix_ik_goal(transformer * T)
 
 void unfix_ik_goal(transformer * T)
 {
-    T->scl[0] *= (1 / T->parent->scl_vec[0]);
-    T->scl[1] *= (1 / T->parent->scl_vec[1]);
-    T->scl[2] *= (1 / T->parent->scl_vec[2]);
+//    T->scl[0] *= (1 / T->parent->scl_vec[0]);
+//    T->scl[1] *= (1 / T->parent->scl_vec[1]);
+//    T->scl[2] *= (1 / T->parent->scl_vec[2]);
 //    normalize_rotation_parent(T);
     solve_IK_Chain(T->IK);
 }
