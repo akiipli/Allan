@@ -5023,6 +5023,8 @@ void export_OBJ_Format()
 
     object * O0;
 
+    dialog_lock = 0;
+
     Draw_Bottom_Message("export OBJ Format\n");
 
     DRAW_UI = 1;
