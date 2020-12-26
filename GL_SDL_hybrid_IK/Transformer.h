@@ -329,6 +329,34 @@ void rotate_vector(float rotVec_[3][3], float vec[3], float result[3])
     result[2] = rotVec_[0][2] * vec[0] + rotVec_[1][2] * vec[1] + rotVec_[2][2] * vec[2];
 }
 
+void rotate_center_(float cen_[3], float rotVec_[3][3], float cen[3], float result[3])
+                            // data, matrix, center, result
+{
+    float x_ = cen_[0] - cen[0];
+    float y_ = cen_[1] - cen[1];
+    float z_ = cen_[2] - cen[2];
+    float X = rotVec_[0][0] * x_ + rotVec_[1][0] * y_ + rotVec_[2][0] * z_;
+    float Y = rotVec_[0][1] * x_ + rotVec_[1][1] * y_ + rotVec_[2][1] * z_;
+    float Z = rotVec_[0][2] * x_ + rotVec_[1][2] * y_ + rotVec_[2][2] * z_;
+    result[0] = X;
+    result[1] = Y;
+    result[2] = Z;
+}
+
+void rotate_center_1(float cen_[3], float rotVec_[3][3], float cen[3], float result[3])
+                            // data, matrix, center, result
+{
+    float x_ = cen_[0];
+    float y_ = cen_[1];
+    float z_ = cen_[2];
+    float X = rotVec_[0][0] * x_ + rotVec_[1][0] * y_ + rotVec_[2][0] * z_;
+    float Y = rotVec_[0][1] * x_ + rotVec_[1][1] * y_ + rotVec_[2][1] * z_;
+    float Z = rotVec_[0][2] * x_ + rotVec_[1][2] * y_ + rotVec_[2][2] * z_;
+    result[0] = X + cen[0];
+    result[1] = Y + cen[1];
+    result[2] = Z + cen[2];
+}
+
 void rotate_center(float cen_[3], float rotVec_[3][3], float cen[3], float result[3])
                             // data, matrix, center, result
 {
@@ -350,36 +378,54 @@ void transfer_coordinates(transformer * T)
     T->pos_[2] = T->pos[2];
 }
 
-void bake_coordinates(transformer * T, float cen[3], float rotVec[3][3])
+void bake_coordinates(transformer * T)
 {
+    float rotVec_I[3][3];
+    invert_Rotation(T->parent, rotVec_I);
                 // data, matrix, center, result
-    rotate_center(T->pos, rotVec, cen, T->pos_);
+    rotate_center_(T->pos, rotVec_I, T->parent->pos, T->pos_);
 }
 
-void bake_coordinates_children(transformer * T, float center[3], float rotVec[3][3])
+void bake_coordinates_children(transformer * T)
 {
     int c;
     transformer * C;
     for (c = 0; c < T->childcount; c ++)
     {
         C = T->childs[c];
-        bake_coordinates(C, center, rotVec);
-        bake_coordinates_children(C, center, rotVec);
+        bake_coordinates(C);
+        bake_coordinates_children(C);
+    }
+}
+
+void bake_coordinates_scale(transformer * T)
+{
+    float rotVec_I[3][3];
+    invert_Rotation_scale(T->parent, rotVec_I);
+                // data, matrix, center, result
+    rotate_center_(T->pos, rotVec_I, T->parent->pos, T->pos_);
+}
+
+void bake_coordinates_children_scale(transformer * T)
+{
+    int c;
+    transformer * C;
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        bake_coordinates_scale(C);
+        bake_coordinates_children_scale(C);
     }
 }
 
 void bake_scale(transformer * T)
 {
-    float rotVec_I[3][3];
-    invert_Rotation_scale(T, rotVec_I);
-    bake_coordinates_children(T, T->pos, rotVec_I);
+    bake_coordinates_children_scale(T);
 }
 
 void bake(transformer * T)
 {
-    float rotVec_I[3][3];
-    invert_Rotation(T, rotVec_I);
-    bake_coordinates_children(T, T->pos, rotVec_I);
+    bake_coordinates_children(T);
 }
 
 void move_Back(transformer * T, float amount)
@@ -811,68 +857,7 @@ void rotate_T(transformer * T)
 
 void rotate_vertex_groups(transformer * T);
 
-void rotate_children_P(transformer * T, float pos[3], float rotVec_[3][3])
-{
-    int c;
-    transformer * C;
-
-    for (c = 0; c < T->childcount; c ++)
-    {
-        C = T->childs[c];
-        if (C->Bone != NULL && C->Bone->IK_member > 0)
-        {
-
-        }
-//        else if (C->IK != NULL && C->style == ik_start)
-//        {
-//            update_Spine(C->IK);
-//        }
-        else
-        {
-
-            rotate_center(C->pos_, rotVec_, pos, C->pos);
-                          // data, matrix, center, result
-            if (C->Bone != NULL)
-            {
-                if (C == C->Bone->B)
-                    memcpy(C->rotVec_, C->Bone->A->rotVec_, sizeof(C->rotVec_));
-                else
-                    rotate_matrix_I(C->rotVec_, C->parent->rotVec_, C->Bone->rotVec_I);
-            }
-            else if (C->parent != NULL)
-            {
-                rotate_matrix_I(C->rotVec_, C->parent->rotVec_, C->rotVec_I);
-            }
-
-            if (C->rot_Order == zxy)
-                rotate_axis_zxy(C);
-            else if (C->rot_Order == yxz)
-                rotate_axis_yxz(C);
-            else if (C->rot_Order == zyx)
-                rotate_axis_zyx(C);
-            else if (C->rot_Order == xyz)
-                rotate_axis_xyz(C);
-            else if (C->rot_Order == xzy)
-                rotate_axis_xzy(C);
-            else if (C->rot_Order == yzx)
-                rotate_axis_yzx(C);
-
-            scale_axis(C);
-        }
-
-        //rotate_vertex_groups(C);
-//        if (C->IK != NULL && C->style == ik_start)
-//        {
-//
-//        }
-//        else
-//        {
-        rotate_children_P(C, pos, rotVec_);
-//        }
-    }
-}
-
-void rotate_children_M(transformer * T, float pos[3], float rotVec_[3][3])
+void rotate_children_M(transformer * T)
 {
     int c;
     transformer * C;
@@ -925,12 +910,12 @@ void rotate_children_M(transformer * T, float pos[3], float rotVec_[3][3])
         }
         else
         {
-            rotate_children_M(C, pos, rotVec_);
+            rotate_children_M(C);
         }
     }
 }
 
-void rotate_children_(transformer * T, float pos[3], float rotVec_[3][3])
+void rotate_children_(transformer * T)
 {
     int c;
     transformer * C;
@@ -949,7 +934,10 @@ void rotate_children_(transformer * T, float pos[3], float rotVec_[3][3])
         else
         {
 
-            rotate_center(C->pos_, rotVec_, pos, C->pos);
+            if (SCALE)
+                rotate_center_1(C->pos_, C->parent->rotVec, C->parent->pos, C->pos);
+            else
+                rotate_center_1(C->pos_, C->parent->rotVec_, C->parent->pos, C->pos);
                           // data, matrix, center, result
             if (C->Bone != NULL)
             {
@@ -986,12 +974,12 @@ void rotate_children_(transformer * T, float pos[3], float rotVec_[3][3])
         }
         else
         {
-            rotate_children_(C, pos, rotVec_);
+            rotate_children_(C);
         }
     }
 }
 
-void rotate_children(transformer * T, float pos[3], float rotVec_[3][3])
+void rotate_children(transformer * T)
 {
     int c;
     transformer * C;
@@ -1009,8 +997,10 @@ void rotate_children(transformer * T, float pos[3], float rotVec_[3][3])
         }
         else
         {
-
-            rotate_center(C->pos_, rotVec_, pos, C->pos);
+            if (SCALE)
+                rotate_center_1(C->pos_, C->parent->rotVec, C->parent->pos, C->pos);
+            else
+                rotate_center_1(C->pos_, C->parent->rotVec_, C->parent->pos, C->pos);
                           // data, matrix, center, result
             if (C->Bone != NULL)
             {
@@ -1052,7 +1042,7 @@ void rotate_children(transformer * T, float pos[3], float rotVec_[3][3])
         }
         else
         {
-            rotate_children(C, pos, rotVec_);
+            rotate_children(C);
         }
     }
 }
@@ -1094,65 +1084,6 @@ void rotate_scale(transformer * T)
     scale_rotVec(rotVec, T->rotVec_, T->scl);
 
     rotate_children_scale(T, T->pos, rotVec);
-}
-
-void rotate_P(transformer * T)
-{
-    if (T->Bone != NULL && T->Bone->IK_member > 0)
-    {
-
-    }
-//    else if (T->IK != NULL  && T->style == ik_fixed)
-//    {
-//        update_Spine(T->IK);
-//    }
-    else
-    {
-        if (T->Bone != NULL && T->parent != NULL)
-        {
-            if (T == T->Bone->B)
-                memcpy(T->rotVec_, T->Bone->A->rotVec_, sizeof(T->rotVec_));
-            else
-                rotate_matrix_I(T->rotVec_, T->parent->rotVec_, T->Bone->rotVec_I);
-        }
-        else if (T->parent != NULL)
-        {
-            rotate_matrix_I(T->rotVec_, T->parent->rotVec_, T->rotVec_I);
-        }
-
-        if (T->rot_Order == zxy)
-            rotate_axis_zxy(T);
-        else if (T->rot_Order == yxz)
-            rotate_axis_yxz(T);
-        else if (T->rot_Order == zyx)
-            rotate_axis_zyx(T);
-        else if (T->rot_Order == xyz)
-            rotate_axis_xyz(T);
-        else if (T->rot_Order == xzy)
-            rotate_axis_xzy(T);
-        else if (T->rot_Order == yzx)
-            rotate_axis_yzx(T);
-
-        scale_axis(T);
-    }
-
-    //rotate_vertex_groups(T);
-//    if (T->IK != NULL && T->style == ik_fixed)
-//    {
-//
-//    }
-//    else
-//    {
-    float rotVec[3][3];
-
-    scale_rotVec(rotVec, T->rotVec_, T->scl);
-    rotate_children_P(T, T->pos, rotVec);
-//    }
-
-//    if (SCALE)
-//        rotate_children_(T, T->pos, T->rotVec);
-//    else
-//        rotate_children_(T, T->pos, T->rotVec_);
 }
 
 void rotate_M(transformer * T)
@@ -1208,10 +1139,7 @@ void rotate_M(transformer * T)
     }
     else
     {
-        if (SCALE)
-            rotate_children_M(T, T->pos, T->rotVec);
-        else
-            rotate_children_M(T, T->pos, T->rotVec_);
+        rotate_children_M(T);
     }
 }
 
@@ -1267,10 +1195,7 @@ void rotate_(transformer * T)
     }
     else
     {
-        if (SCALE)
-            rotate_children_(T, T->pos, T->rotVec);
-        else
-            rotate_children_(T, T->pos, T->rotVec_);
+        rotate_children_(T);
     }
 }
 
@@ -1326,10 +1251,7 @@ void rotate(transformer * T)
     }
     else
     {
-        if (SCALE)
-            rotate_children(T, T->pos, T->rotVec);
-        else
-            rotate_children(T, T->pos, T->rotVec_);
+        rotate_children(T);
     }
 }
 
@@ -1410,51 +1332,14 @@ void rotate_Deformer_pose(transformer * T)
         }
     }
 
-    child_collection_count = 1;
+    SCALE = 1;
 
-    child_collection[0] = P;
-
-    collect_Children(P);
-
-    int c;
-    transformer * C;
-
-    //SCALE = 1;
-
-    for (c = child_collection_count - 1; c >= 0; c --)
-    //for (c = 0; c < child_collection_count; c ++)
-    {
-        C = child_collection[c];
-        //bake_scale2(C);
-        //bake_scale1(C); // affects centers too much
-        //bake_scale(C); // no effect for centers
-        bake(C);
-        rotate_P(C); // rotate_ got updated with scaling in rotate_scale
-    }
+    bake(P);
+    rotate_(P);
 
     solve_IK_Chains(T->Deformer);
 
-    for (c = child_collection_count - 1; c >= 0; c --)
-    {
-        C = child_collection[c];
-        if (C->Bone != NULL && C->Bone->IK_member > 0)
-        {
-
-        }
-        else if (C->Bone != NULL && C == C->Bone->A)
-        {
-            synthesize_Bone_Axis(C->Bone, C->scl_vec);
-        }
-    }
-
-//    for (c = 0; c < child_collection_count; c ++)
-//    {
-//        C = child_collection[c];
-//        bake(C);
-//        rotate_scale(C);
-//    }
-
-    //SCALE = 0;
+    SCALE = 0;
 }
 
 void transfer_rotVec_B(transformer * T)
