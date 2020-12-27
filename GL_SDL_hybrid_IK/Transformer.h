@@ -931,6 +931,10 @@ void rotate_children_(transformer * T)
         {
             //update_Spine(C->IK);
         }
+        else if (C->IK != NULL && C->style == ik_start)
+        {
+            update_Spine(C->IK);
+        }
         else
         {
 
@@ -1152,6 +1156,10 @@ void rotate_(transformer * T)
     else if (T->IK != NULL && T->style == ik_fixed)
     {
         //update_Spine(T->IK);
+    }
+    else if (T->IK != NULL && T->style == ik_start)
+    {
+        update_Spine(T->IK);
     }
     else
     {
