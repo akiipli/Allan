@@ -1047,6 +1047,21 @@ void rotate_children_(transformer * T)
     }
 }
 
+void rotate_children_P(transformer * T)
+{
+    int c;
+    transformer * C;
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+
+        rotate_vertex_groups(C);
+
+        rotate_children_P(C);
+    }
+}
+
 void rotate_children(transformer * T)
 {
     int c;
@@ -1325,6 +1340,13 @@ void rotate_(transformer * T)
     {
         rotate_children_(T);
     }
+}
+
+void rotate_P(transformer * T)
+{
+    rotate_vertex_groups(T);
+
+    rotate_children_P(T);
 }
 
 void rotate(transformer * T)

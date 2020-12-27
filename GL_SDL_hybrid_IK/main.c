@@ -12749,7 +12749,7 @@ int main(int argc, char * args[])
                             {
                                 rotate_collect(T);
                                 rotate_vertex_groups_D_Init();
-                                rotate(T);
+                                rotate_P(T);
                             }
                             update_rotate_bounding_box();
                         }
