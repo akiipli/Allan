@@ -527,6 +527,99 @@ void update_Default_Pose()
     }
 }
 
+transformer ** Action_Begin_Transformers;
+int Action_Begin_Transformers_Count;
+pose * Action_Begin_Pose;
+
+void init_Action_Begin_Transformers()
+{
+    Action_Begin_Transformers = malloc(0);
+    Action_Begin_Transformers_Count = 0;
+    Action_Begin_Pose = malloc(sizeof(pose));
+    Action_Begin_Pose->transformers_count = 0;
+    Action_Begin_Pose->TP = malloc(0);
+}
+
+void paste_Action_Begin()
+{
+    int t;
+
+    transformer * T;
+    pose * P = Action_Begin_Pose;
+
+    for (t = 0; t < P->transformers_count; t ++)
+    {
+        T = Action_Begin_Transformers[t];
+        T->rot_Order = P->TP[t].rot_Order;
+        memcpy(T->scl, P->TP[t].scl, sizeof(float[3]));
+        memcpy(T->scl_vec, P->TP[t].scl_vec, sizeof(float[3]));
+        memcpy(T->rot, P->TP[t].rot, sizeof(float[3]));
+        memcpy(T->rotVec, P->TP[t].rotVec, sizeof(float[3][3]));
+        memcpy(T->rotVec_, P->TP[t].rotVec_, sizeof(float[3][3]));
+
+        memcpy(T->rotVec_I, P->TP[t].rotVec_I, sizeof(float[3][3]));
+        memcpy(T->rotVec_B, P->TP[t].rotVec_B, sizeof(float[3][3]));
+
+        memcpy(T->pos, P->TP[t].pos, sizeof(float[3]));
+        memcpy(T->pos_, P->TP[t].pos_, sizeof(float[3]));
+
+        T->style = P->TP[t].style;
+    }
+}
+
+void list_Action_Begin_Transformers(transformer * T)
+{
+    int c;
+    transformer * C;
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        Action_Begin_Transformers[Action_Begin_Transformers_Count ++] = C;
+        list_Action_Begin_Transformers(C);
+    }
+}
+
+void create_Action_Begin_Pose(transformer * T)
+{
+    Action_Begin_Transformers = realloc(Action_Begin_Transformers, TRANSFORMERS * sizeof(transformer *));
+    Action_Begin_Transformers_Count = 0;
+
+    Action_Begin_Transformers[Action_Begin_Transformers_Count ++] = T;
+
+    list_Action_Begin_Transformers(T);
+
+    Action_Begin_Transformers = realloc(Action_Begin_Transformers, Action_Begin_Transformers_Count * sizeof(transformer *));
+
+    Action_Begin_Pose->transformers_count = Action_Begin_Transformers_Count;
+    Action_Begin_Pose->TP = realloc(Action_Begin_Pose->TP, Action_Begin_Pose->transformers_count * sizeof(transformer_pose));
+
+    int t;
+
+    transformer * T0;
+
+    pose * P = Action_Begin_Pose;
+
+    printf("Action_Begin_Pose transformers_count %d\n", Action_Begin_Pose->transformers_count);
+
+    for (t = 0; t < Action_Begin_Pose->transformers_count; t ++)
+    {
+        T0 = Action_Begin_Transformers[t];
+
+        P->TP[t].rot_Order = T0->rot_Order;
+        memcpy(P->TP[t].scl, T0->scl, sizeof(float[3]));
+        memcpy(P->TP[t].scl_vec, T0->scl_vec, sizeof(float[3]));
+        memcpy(P->TP[t].rot, T0->rot, sizeof(float[3]));
+        memcpy(P->TP[t].rotVec, T0->rotVec, sizeof(float[3][3]));
+        memcpy(P->TP[t].rotVec_, T0->rotVec_, sizeof(float[3][3]));
+        memcpy(P->TP[t].rotVec_I, T0->rotVec_I, sizeof(float[3][3]));
+        memcpy(P->TP[t].rotVec_B, T0->rotVec_B, sizeof(float[3][3]));
+        memcpy(P->TP[t].pos, T0->pos, sizeof(float[3]));
+        memcpy(P->TP[t].pos_, T0->pos_, sizeof(float[3]));
+        P->TP[t].style = T0->style;
+    }
+}
+
 void add_Pose_To_Deformer(deformer * D, int relative_pos)
 {
     pose * P = malloc(sizeof(pose));

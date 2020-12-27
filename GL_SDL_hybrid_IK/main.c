@@ -670,6 +670,8 @@ int init()
     if (!fonts_on) quit_app(0);
     init_properties();
 
+    init_Action_Begin_Transformers();
+
     SHADERS = init_shaders_();
     if (SHADERS)
     {
@@ -739,6 +741,9 @@ void cleanup()
     free_bones();
     free_ikChains();
     free_Subcharacters();
+    free(Action_Begin_Transformers);
+    free(Action_Begin_Pose->TP);
+    free(Action_Begin_Pose);
 
     if (SHADERS)
     {
@@ -10216,7 +10221,7 @@ void set_Bind_Mode()
 
         populate_IK_Updates();
 
-        //solve_all_IK_Chains();
+        //solve_all_IK_Chains(0);
 
         set_Bind_Pose_For_Transformers(1);
 
@@ -10475,6 +10480,33 @@ void select_Locator_Selections(int currentLocator)
         set_Vert_Selection(S);
 }
 
+void init_Action_Begin_Pose(transformer * T)
+{
+    if (T->Deformer != NULL)
+    {
+        T = T->Deformer->Transformers[0];
+    }
+    else if (T->IK != NULL)
+    {
+        T = T->IK->A->parent;
+    }
+
+    transformer * P0 = T;
+    transformer * P = T->parent;
+
+    while (P != NULL)
+    {
+        P = P->parent;
+
+        if (P != NULL && P->selected)
+        {
+            P0 = P;
+        }
+    }
+
+    create_Action_Begin_Pose(P0);
+}
+
 void start_Movement()
 {
     subdLevel_mem = subdLevel;
@@ -10558,6 +10590,8 @@ void start_Movement()
         bake_position_Children(T);
         bake(T);
 
+        init_Action_Begin_Pose(T);
+
         if (T->Deformer != NULL)
         {
             if (T->Deformer->Transformers_Count > 0)
@@ -10619,39 +10653,8 @@ void make_Movement()
     }
     else
     {
-//        if (T->IK != NULL && (T->style == ik_goal || T->style == ik_fixed))
-//        {
-//            T->pos[0] = T->Pos_[0] + Delta[0];
-//            T->pos[1] = T->Pos_[1] + Delta[1];
-//            T->pos[2] = T->Pos_[2] + Delta[2];
-//
-//
-//
-//            if (T->childcount > 0 && T->childs[0]->IK != NULL)
-//            {
-//                if (T->childs[0]->IK->bonescount > 1)
-//                {
-//                    //if (T->Deformer != NULL)
-//                        //solve_IK_Chains(T->Deformer);
-//                    move_(T, Delta, subdLevel);
-//                }
-//                else
-//                {
-//                    //solve_IK_Chain(T->IK, 0);
-//                    move_(T, Delta, subdLevel);
-//                }
-//            }
-//            else
-//            {
-//                //solve_IK_Chain(T->IK);
-//                move_(T, Delta, subdLevel);
-//            }
-//        }
-//        else
-//        {
-
         move_(T, Delta, subdLevel);
-//        }
+
         if (T->Deformer != NULL)
         {
             if (T->Deformer->Transformers_Count > 0)
@@ -12727,10 +12730,9 @@ int main(int argc, char * args[])
                         else
                         {
                             Update_Objects_Count = 0;
-                            if (T->IK != NULL && (T->style == ik_goal || T->style == ik_fixed))
-                            {
-                                solve_IK_Chain(T->IK);
-                            }
+
+                            paste_Action_Begin();
+
                             if (T->Deformer != NULL)
                             {
                                 if (T->Deformer->Transformers_Count > 0)
@@ -12741,7 +12743,7 @@ int main(int argc, char * args[])
                                 {
                                     rotate_collect(T);
                                 }
-                                rotate_Deformer(T);
+                                paste_Deformer(T);
                             }
                             else
                             {
@@ -16459,6 +16461,9 @@ int main(int argc, char * args[])
                         {
                             bake_position(T);
                             bake_position_Children(T);
+
+                            init_Action_Begin_Pose(T);
+
                             if (mod & KMOD_SHIFT)
                             {
                                 ROTATION = 1;

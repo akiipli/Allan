@@ -1121,7 +1121,7 @@ void set_IK_H_Button(int index)
 
 void fix_ik_goal(transformer * T)
 {
-//    solve_IK_Chain(T->IK);
+//    solve_IK_Chain(T->IK, 0);
 //    normalize_rotation_unparent(T);
 }
 

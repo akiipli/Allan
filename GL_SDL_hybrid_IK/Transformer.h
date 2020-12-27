@@ -1422,6 +1422,22 @@ void rotate_vertex_groups_D_Init();
 void solve_IK_Chain(ikChain * I);
 void solve_IK_Chains(deformer * D);
 void rotate_Deformer_verts(deformer * D);
+void paste_Action_Begin();
+
+void paste_Deformer(transformer * T)
+{
+    transformer * P = T->parent;
+
+    while (P != NULL && P->Deformer == T->Deformer)
+    {
+        P = P->parent;
+    }
+
+    //rotate_collect(P);
+    rotate_vertex_groups_D_Init();
+
+    rotate_Deformer_verts(T->Deformer);
+}
 
 void rotate_Deformer(transformer * T)
 {
