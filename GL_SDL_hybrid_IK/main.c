@@ -12809,6 +12809,12 @@ int main(int argc, char * args[])
 //                        draw_Dialog();
 //                    SDL_GL_SwapBuffers();
 
+                    if (MOVEMENT)
+                    {
+                        if (T->Deformer != NULL)
+                            normalize_IK_Spines(T->Deformer);
+                    }
+
                     if (edgeWeights)
                     {
                         finish_adjusting_Edges_Weights();
@@ -16374,10 +16380,19 @@ int main(int argc, char * args[])
                     {
                         T->style = ik_goal;
                         unfix_ik_goal(T);
+
                         if (T->Deformer != NULL)
                         {
-                            deformer * D = T->Deformer;
-                            update_Deformed_View(D);
+                            Update_Objects_Count = 0;
+                            if (T->Deformer->Transformers_Count > 0)
+                            {
+                                rotate_collect(T->Deformer->Transformers[0]);
+                            }
+                            else
+                            {
+                                rotate_collect(T);
+                            }
+                            rotate_Deformer(T);
                         }
                     }
                 }
@@ -16454,6 +16469,10 @@ int main(int argc, char * args[])
                             T = O->T;
                         }
                         if (T->IK != NULL && T->style == ik_fixed)
+                        {
+                            Camera_screen_lock = 0;
+                        }
+                        else if (T->IK != NULL && T->style == ik_start)
                         {
                             Camera_screen_lock = 0;
                         }

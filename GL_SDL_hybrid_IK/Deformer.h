@@ -1350,4 +1350,21 @@ void populate_IK_Updates()
     }
 }
 
+void normalize_IK_Spine(ikChain * I)
+{
+    normalize_rotation_parent_IK(I->A);
+}
+
+void normalize_IK_Spines(deformer * D)
+{
+    int i;
+    ikChain * I;
+
+    for (i = 0; i < D->IKchains_Count; i ++)
+    {
+        I = D->IKchains[i];
+        normalize_IK_Spine(I);
+    }
+}
+
 #endif // DEFORMER_H_INCLUDED
