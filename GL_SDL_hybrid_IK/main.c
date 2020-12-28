@@ -12727,7 +12727,7 @@ int main(int argc, char * args[])
                         {
                             rotate_bind(T);
                         }
-                        else
+                        else if (object_hook)
                         {
                             Update_Objects_Count = 0;
 

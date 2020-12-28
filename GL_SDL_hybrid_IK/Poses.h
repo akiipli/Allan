@@ -533,7 +533,7 @@ pose * Action_Begin_Pose;
 
 void init_Action_Begin_Transformers()
 {
-    Action_Begin_Transformers = malloc(0);
+    Action_Begin_Transformers = malloc(TRANSFORMERS * sizeof(transformer *));
     Action_Begin_Transformers_Count = 0;
     Action_Begin_Pose = malloc(sizeof(pose));
     Action_Begin_Pose->transformers_count = 0;
@@ -582,14 +582,11 @@ void list_Action_Begin_Transformers(transformer * T)
 
 void create_Action_Begin_Pose(transformer * T)
 {
-    Action_Begin_Transformers = realloc(Action_Begin_Transformers, TRANSFORMERS * sizeof(transformer *));
     Action_Begin_Transformers_Count = 0;
 
     Action_Begin_Transformers[Action_Begin_Transformers_Count ++] = T;
 
     list_Action_Begin_Transformers(T);
-
-    Action_Begin_Transformers = realloc(Action_Begin_Transformers, Action_Begin_Transformers_Count * sizeof(transformer *));
 
     Action_Begin_Pose->transformers_count = Action_Begin_Transformers_Count;
     Action_Begin_Pose->TP = realloc(Action_Begin_Pose->TP, Action_Begin_Pose->transformers_count * sizeof(transformer_pose));
