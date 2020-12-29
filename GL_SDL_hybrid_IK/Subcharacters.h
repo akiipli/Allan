@@ -80,7 +80,7 @@ void advocate_Hierarchy(transformer * T, transformer * C)
 {
     //rotate_T(T);
     rotate_M(C);
-    compose_Hierarchy(T, 0);
+    compose_Hierarchy_S(T);
 }
 
 void compose_Subcharacter_Hierarchy(subcharacter * S)
@@ -121,7 +121,7 @@ void compose_Subcharacter_Hierarchy(subcharacter * S)
                 I->B->pos[1] = I->Bones[I->bonescount - 1]->B->pos[1];
                 I->B->pos[2] = I->Bones[I->bonescount - 1]->B->pos[2];
                 //update_Spine(I);
-                compose_Hierarchy(I->B, 0);
+                compose_Hierarchy_S(I->B);
             }
         }
     }

@@ -631,7 +631,7 @@ void rotate_rotVec_pose_B(transformer * T)
 
 float distance(float A[3], float B[3]);
 
-void compose_Hierarchy(transformer * T, int ignore_IK)
+void compose_Hierarchy_S(transformer * T)
 {
     int t;
     transformer * C;
@@ -642,32 +642,12 @@ void compose_Hierarchy(transformer * T, int ignore_IK)
         C = T->childs[t];
         len = distance(T->pos_bind, C->pos_bind);
 
-        if (!ignore_IK &&  C->IK != NULL && C->style != ik_start)
+        if (C->IK != NULL && C->style != ik_start)
         {
             C->pos[0] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[0];
             C->pos[1] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[1];
             C->pos[2] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[2];
         }
-        else if (ignore_IK && C->Bone != NULL && C->Bone->IK_member > 0)
-        {
-
-        }
-        else if (ignore_IK && C->IK != NULL && C->style == ik_start)
-        {
-            C->pos[0] = T->pos[0];
-            C->pos[1] = T->pos[1];
-            C->pos[2] = T->pos[2];
-        }
-        else if (ignore_IK && C->IK != NULL)
-        {
-
-        }
-//        else if (C->IK != NULL && C->style == ik_goal)
-//        {
-//            C->pos[0] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[0];
-//            C->pos[1] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[1];
-//            C->pos[2] = C->IK->Bones[C->IK->bonescount - 1]->B->pos[2];
-//        }
         else if (len > 0)
         {
             if (T->rot_Order == yxz || T->rot_Order == xyz)
@@ -696,7 +676,64 @@ void compose_Hierarchy(transformer * T, int ignore_IK)
             C->pos[2] = T->pos[2];
         }
 
-        compose_Hierarchy(C, ignore_IK);
+        compose_Hierarchy_S(C);
+    }
+}
+
+void compose_Hierarchy(transformer * T)
+{
+    int t;
+    transformer * C;
+    float len;
+
+    for (t = 0; t < T->childcount; t ++)
+    {
+        C = T->childs[t];
+        len = distance(T->pos_bind, C->pos_bind);
+
+        if (C->Bone != NULL && C->Bone->IK_member > 0)
+        {
+
+        }
+        else if (C->IK != NULL && C->style == ik_start)
+        {
+            C->pos[0] = T->pos[0];
+            C->pos[1] = T->pos[1];
+            C->pos[2] = T->pos[2];
+        }
+        else if (C->IK != NULL)
+        {
+
+        }
+        else if (len > 0)
+        {
+            if (T->rot_Order == yxz || T->rot_Order == xyz)
+            {
+                C->pos[0] = T->pos[0] + T->rotVec_[2][0] * len * T->scl_vec[0];
+                C->pos[1] = T->pos[1] + T->rotVec_[2][1] * len * T->scl_vec[1];
+                C->pos[2] = T->pos[2] + T->rotVec_[2][2] * len * T->scl_vec[2];
+            }
+            else if (T->rot_Order == zxy || T->rot_Order == xzy)
+            {
+                C->pos[0] = T->pos[0] + T->rotVec_[1][0] * len * T->scl_vec[0];
+                C->pos[1] = T->pos[1] + T->rotVec_[1][1] * len * T->scl_vec[1];
+                C->pos[2] = T->pos[2] + T->rotVec_[1][2] * len * T->scl_vec[2];
+            }
+            else if (T->rot_Order == zyx || T->rot_Order == yzx)
+            {
+                C->pos[0] = T->pos[0] + T->rotVec_[0][0] * len * T->scl_vec[0];
+                C->pos[1] = T->pos[1] + T->rotVec_[0][1] * len * T->scl_vec[1];
+                C->pos[2] = T->pos[2] + T->rotVec_[0][2] * len * T->scl_vec[2];
+            }
+        }
+        else
+        {
+            C->pos[0] = T->pos[0];
+            C->pos[1] = T->pos[1];
+            C->pos[2] = T->pos[2];
+        }
+
+        compose_Hierarchy(C);
     }
 }
 
@@ -1078,7 +1115,7 @@ void solve_IK_Chain(ikChain * I)
 
         rotate_M(T);
 
-        compose_Hierarchy(T, 1);
+        compose_Hierarchy(T);
     }
 }
 
