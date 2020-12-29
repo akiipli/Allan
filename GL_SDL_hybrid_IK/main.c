@@ -8725,6 +8725,9 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
         compose_Subcharacter_Pose(S);
         compose_Subcharacter_Hierarchy(S);
 
+        solve_IK_Chains(S->Deformer);
+        normalize_IK_Spines(S->Deformer);
+
         deformer * D = S->Deformer;
 
         update_Deformed_View(D);

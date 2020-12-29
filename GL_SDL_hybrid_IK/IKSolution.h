@@ -733,7 +733,14 @@ void compose_Hierarchy(transformer * T)
             C->pos[2] = T->pos[2];
         }
 
-        compose_Hierarchy(C);
+        if (C->IK != NULL && C->style != ik_start)
+        {
+
+        }
+        else
+        {
+            compose_Hierarchy(C);
+        }
     }
 }
 

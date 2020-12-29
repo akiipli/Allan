@@ -912,7 +912,7 @@ void rotate_children_M(transformer * T)
         }
 
         //rotate_vertex_groups(C);
-        if (C->IK != NULL && C->style == ik_fixed)
+        if (C->IK != NULL && C->style != ik_start)
         {
 
         }
