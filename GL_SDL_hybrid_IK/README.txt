@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+11:18 AM 12/30/2020
+About versions. Save scene to a new file, if program save version is changed.
+Else corruption may happen.
+
 3:49 PM 12/18/2020
 When creating Subcharacter poses, make sure there is no fixed IK chains, 
 that modify the orientations in the limb. Else poses come at an unnatural angle.

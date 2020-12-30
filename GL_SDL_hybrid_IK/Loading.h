@@ -859,7 +859,15 @@ int read_ikChains_file(ikChains_In * CHAINS_IN, char * fileName)
                 sscanf(buff, "%f %f", &I->poleRot, &I->P.distance);
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%f %f %f", &I->P.vec[0], &I->P.vec[1], &I->P.vec[2]);
-
+                if (loading_version >= 1002)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &I->update);
+                }
+                else
+                {
+                    I->update = 1;
+                }
                 iksIndex ++;
             }
         }

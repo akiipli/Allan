@@ -56,6 +56,48 @@ typedef struct bone bone;
 
 typedef struct ikChain ikChain;
 
+typedef struct
+{
+    float vec[3];
+}
+vec3;
+
+typedef struct
+{
+    float distance;
+    float vec[3];
+}
+direction_Pack;
+
+struct ikChain
+{
+    int index;
+    unsigned address; // assigned after loading
+    char * Name;
+    int selected;
+    deformer * Deformer;
+    int bonescount;
+    bone ** Bones;
+    float sum_length; // sum of bone lengths
+    vec3 * vectors; // transition into stretched pose
+    vec3 * vectors_bone; // in between bone vectors
+    vec3 * positions_A; // A points in the chain
+    vec3 * positions_B; // B points in the chain
+    vec3 * bones_Rot; // Bones rotational axis
+    transformer * A;
+    transformer * B;
+    float rotVec_0[3][3]; // intermediate matrix
+    float rotVec_1[3][3]; // final pose matrix
+    float poleRot;
+    direction_Pack P;
+
+    float rotVec_B[3][3]; // bind pose matrix
+    float rotVec_F[3][3]; // final pose matrix
+    float rotVec_I[3][3]; // bind pose inverse
+    int update;
+}
+;
+
 typedef struct bone
 {
     int index;
@@ -807,7 +849,7 @@ void rotate_T(transformer * T)
     {
 
     }
-    else if (T->IK != NULL && T->style == ik_fixed)
+    else if (T->IK != NULL && T->style == ik_fixed && !T->IK->update)
     {
         //update_Spine(T->IK);
     }
@@ -877,7 +919,7 @@ void rotate_children_M(transformer * T)
         {
 
         }
-        else if (C->IK != NULL && C->style == ik_fixed)
+        else if (C->IK != NULL && C->style == ik_fixed && !C->IK->update)
         {
             //update_Spine(C->IK);
         }
@@ -935,18 +977,26 @@ void rotate_children_(transformer * T)
         {
 
         }
-        else if (C->IK != NULL && C->style == ik_fixed)
+        else if (C->IK != NULL && C->style == ik_fixed && !C->IK->update)
         {
             //update_Spine(C->IK);
         }
         else
         {
 
-            if (SCALE)
-                rotate_center_1(C->pos_, C->parent->rotVec, C->parent->pos, C->pos);
+            if (C->IK != NULL && C->style == ik_fixed && C->IK->update)
+            {
+
+            }
             else
-                rotate_center_1(C->pos_, C->parent->rotVec_, C->parent->pos, C->pos);
+            {
+                if (SCALE)
+                    rotate_center_1(C->pos_, C->parent->rotVec, C->parent->pos, C->pos);
+                else
+                    rotate_center_1(C->pos_, C->parent->rotVec_, C->parent->pos, C->pos);
                           // data, matrix, center, result
+            }
+
             if (C->Bone != NULL)
             {
                 if (C == C->Bone->B)
@@ -976,7 +1026,7 @@ void rotate_children_(transformer * T)
         }
 
         //rotate_vertex_groups(C);
-        if (C->IK != NULL && C->style == ik_fixed)
+        if (C->IK != NULL && C->style == ik_fixed && !C->IK->update)
         {
 
         }
@@ -1014,17 +1064,24 @@ void rotate_children(transformer * T)
         {
 
         }
-        else if (C->IK != NULL && C->style == ik_fixed)
+        else if (C->IK != NULL && C->style == ik_fixed && !C->IK->update)
         {
             //update_Spine(C->IK);
         }
         else
         {
-            if (SCALE)
-                rotate_center_1(C->pos_, C->parent->rotVec, C->parent->pos, C->pos);
+            if (C->IK != NULL && C->style == ik_fixed && C->IK->update)
+            {
+
+            }
             else
-                rotate_center_1(C->pos_, C->parent->rotVec_, C->parent->pos, C->pos);
-                          // data, matrix, center, result
+            {
+                if (SCALE)
+                    rotate_center_1(C->pos_, C->parent->rotVec, C->parent->pos, C->pos);
+                else
+                    rotate_center_1(C->pos_, C->parent->rotVec_, C->parent->pos, C->pos);
+                              // data, matrix, center, result
+            }
             if (C->Bone != NULL)
             {
                 if (C == C->Bone->B)
@@ -1059,7 +1116,7 @@ void rotate_children(transformer * T)
 //        }
 
         rotate_vertex_groups(C);
-        if (C->IK != NULL && C->style == ik_fixed)
+        if (C->IK != NULL && C->style == ik_fixed && !C->IK->update)
         {
 
         }
@@ -1115,7 +1172,7 @@ void rotate_M(transformer * T)
     {
 
     }
-    else if (T->IK != NULL && T->style == ik_fixed)
+    else if (T->IK != NULL && T->style == ik_fixed && !T->IK->update)
     {
 
     }
@@ -1156,7 +1213,7 @@ void rotate_M(transformer * T)
 //    scale_rotVec(rotVec, T->rotVec_, T->scl);
 //    rotate_children_(T, T->pos, rotVec);
 
-    if (T->IK != NULL && T->style == ik_fixed)
+    if (T->IK != NULL && T->style == ik_fixed && !T->IK->update)
     {
 
     }
@@ -1172,7 +1229,7 @@ void rotate_(transformer * T)
     {
 
     }
-    else if (T->IK != NULL && T->style == ik_fixed)
+    else if (T->IK != NULL && T->style == ik_fixed && !T->IK->update)
     {
         //update_Spine(T->IK);
     }
@@ -1212,7 +1269,7 @@ void rotate_(transformer * T)
 //
 //    scale_rotVec(rotVec, T->rotVec_, T->scl);
 //    rotate_children_(T, T->pos, rotVec);
-    if (T->IK != NULL && T->style == ik_fixed)
+    if (T->IK != NULL && T->style == ik_fixed && !T->IK->update)
     {
 
     }
@@ -1235,7 +1292,7 @@ void rotate(transformer * T)
     {
 
     }
-    else if (T->IK != NULL && T->style == ik_fixed)
+    else if (T->IK != NULL && T->style == ik_fixed && !T->IK->update)
     {
         //update_Spine(T->IK);
     }
@@ -1275,7 +1332,7 @@ void rotate(transformer * T)
 //    }
 
     rotate_vertex_groups(T);
-    if (T->IK != NULL && T->style == ik_fixed)
+    if (T->IK != NULL && T->style == ik_fixed && !T->IK->update)
     {
 
     }
@@ -1299,7 +1356,7 @@ void rotate_hierarchy_T(transformer * P, transformer * T)
             continue;
         }
 
-        if (C->IK != NULL && C->style == ik_fixed)
+        if (C->IK != NULL && C->style == ik_fixed && !C->IK->update)
         {
 
         }

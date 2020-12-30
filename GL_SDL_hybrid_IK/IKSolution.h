@@ -55,48 +55,6 @@ implanted into solution.
 
 int ALIGN_IS_ON = 1;
 
-typedef struct
-{
-    float distance;
-    float vec[3];
-}
-direction_Pack;
-
-typedef struct
-{
-    float vec[3];
-}
-vec3;
-
-struct ikChain
-{
-    int index;
-    unsigned address; // assigned after loading
-    char * Name;
-    int selected;
-    deformer * Deformer;
-    int bonescount;
-    bone ** Bones;
-    float sum_length; // sum of bone lengths
-    vec3 * vectors; // transition into stretched pose
-    vec3 * vectors_bone; // in between bone vectors
-    vec3 * positions_A; // A points in the chain
-    vec3 * positions_B; // B points in the chain
-    vec3 * bones_Rot; // Bones rotational axis
-    transformer * A;
-    transformer * B;
-    float rotVec_0[3][3]; // intermediate matrix
-    float rotVec_1[3][3]; // final pose matrix
-    float poleRot;
-    direction_Pack P;
-
-    float rotVec_B[3][3]; // bind pose matrix
-    float rotVec_F[3][3]; // final pose matrix
-    float rotVec_I[3][3]; // bind pose inverse
-    int update;
-}
-;
-
 int ikChains_c = 0;
 char IK_Names[IKCHAINS][STRLEN];
 int IKIndex;
@@ -280,7 +238,7 @@ int init_ikChain(deformer * Deformer)
         add_Transformer_To_Deformer(I->B, I->Deformer);
     }
 
-    I->update = 0;
+    I->update = 1;
 
     iksIndex ++;
     return 1;

@@ -10222,7 +10222,7 @@ void set_Bind_Mode()
 
         hierarchycal_IK_Chains();
 
-        populate_IK_Updates();
+        //populate_IK_Updates();
 
         //solve_all_IK_Chains(0);
 
@@ -11455,7 +11455,7 @@ void exit_Bind_Mode()
 
     hierarchycal_IK_Chains();
 
-    populate_IK_Updates();
+    //populate_IK_Updates();
 
     set_Bind_Pose_For_Transformers(1);
 
@@ -11755,7 +11755,7 @@ void save_load_Scene()
             currentSubcharacter = 0;
             select_Subcharacter();
 
-            populate_IK_Updates();
+            //populate_IK_Updates();
 
             UPDATE_COLORS = 1;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
@@ -11776,15 +11776,25 @@ void change_IK_Update()
 {
     if (currentIK >= 0 && currentIK < iksIndex)
     {
-        ikChains[currentIK]->update = !ikChains[currentIK]->update;
+        ikChain * I = ikChains[currentIK];
+        I->update = !I->update;
+
+        if (I->Deformer != NULL)
+        {
+            deformer * D = I->Deformer;
+            solve_IK_Chain(I);
+            update_Deformed_View(D);
+        }
+        else
+        {
+            if (Type != NULL)
+                draw_Properties(I->Name, screen_height, 1, PROPERTIES_IK, Type);
+            else
+                draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
+
+            SDL_GL_SwapBuffers();
+        }
     }
-
-    if (Type != NULL)
-        draw_Properties(ikChains[currentIK]->Name, screen_height, 1, PROPERTIES_IK, Type);
-    else
-        draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
-
-    SDL_GL_SwapBuffers();
 }
 
 void select_currentIK()
@@ -13831,7 +13841,15 @@ int main(int argc, char * args[])
                             if (Object_Mode && LOCAT_ID_RENDER && o < transformerIndex && o >= 0)
                             {
                                 T = transformers[o];
-                                if (T->Bone != NULL && T == T->Bone->A)
+                                if (T->IK != NULL && T->style == ik_start)
+                                {
+                                    if (T->parent != NULL)
+                                    {
+                                        T = T->parent;
+                                        o = T->index;
+                                    }
+                                }
+                                else if (T->Bone != NULL && T == T->Bone->A)
                                 {
                                     if (T->parent != NULL && T->parent->Bone != NULL)
                                     {
