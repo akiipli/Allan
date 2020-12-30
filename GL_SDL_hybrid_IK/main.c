@@ -11783,6 +11783,7 @@ void change_IK_Update()
         {
             deformer * D = I->Deformer;
             solve_IK_Chain(I);
+            normalize_IK_Spine(I);
             update_Deformed_View(D);
         }
         else
