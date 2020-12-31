@@ -11503,6 +11503,9 @@ void save_load_Scene()
 
     create_Transformers_List();
 
+    solve_all_IK_Chains();
+    normalize_all_IK_Spines();
+
     int flip = 0;
 
     if (VIEWS_FLIPPED)
@@ -11766,9 +11769,6 @@ void save_load_Scene()
             assert_Object_Selection();
             currentSubcharacter = 0;
             select_Subcharacter();
-
-            //solve_all_IK_Chains();
-            //normalize_all_IK_Spines();
 
             //populate_IK_Updates();
 

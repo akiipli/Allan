@@ -610,21 +610,21 @@ void compose_Hierarchy_S(transformer * T)
         {
             if (T->rot_Order == yxz || T->rot_Order == xyz)
             {
-                C->pos[0] = T->pos[0] + T->rotVec_[2][0] * len * T->scl_vec[0];
-                C->pos[1] = T->pos[1] + T->rotVec_[2][1] * len * T->scl_vec[1];
-                C->pos[2] = T->pos[2] + T->rotVec_[2][2] * len * T->scl_vec[2];
+                C->pos[0] = T->pos[0] + T->rotVec[2][0] * len;
+                C->pos[1] = T->pos[1] + T->rotVec[2][1] * len;
+                C->pos[2] = T->pos[2] + T->rotVec[2][2] * len;
             }
             else if (T->rot_Order == zxy || T->rot_Order == xzy)
             {
-                C->pos[0] = T->pos[0] + T->rotVec_[1][0] * len * T->scl_vec[0];
-                C->pos[1] = T->pos[1] + T->rotVec_[1][1] * len * T->scl_vec[1];
-                C->pos[2] = T->pos[2] + T->rotVec_[1][2] * len * T->scl_vec[2];
+                C->pos[0] = T->pos[0] + T->rotVec[1][0] * len;
+                C->pos[1] = T->pos[1] + T->rotVec[1][1] * len;
+                C->pos[2] = T->pos[2] + T->rotVec[1][2] * len;
             }
             else if (T->rot_Order == zyx || T->rot_Order == yzx)
             {
-                C->pos[0] = T->pos[0] + T->rotVec_[0][0] * len * T->scl_vec[0];
-                C->pos[1] = T->pos[1] + T->rotVec_[0][1] * len * T->scl_vec[1];
-                C->pos[2] = T->pos[2] + T->rotVec_[0][2] * len * T->scl_vec[2];
+                C->pos[0] = T->pos[0] + T->rotVec[0][0] * len;
+                C->pos[1] = T->pos[1] + T->rotVec[0][1] * len;
+                C->pos[2] = T->pos[2] + T->rotVec[0][2] * len;
             }
         }
         else
@@ -667,21 +667,21 @@ void compose_Hierarchy(transformer * T)
         {
             if (T->rot_Order == yxz || T->rot_Order == xyz)
             {
-                C->pos[0] = T->pos[0] + T->rotVec_[2][0] * len * T->scl_vec[0];
-                C->pos[1] = T->pos[1] + T->rotVec_[2][1] * len * T->scl_vec[1];
-                C->pos[2] = T->pos[2] + T->rotVec_[2][2] * len * T->scl_vec[2];
+                C->pos[0] = T->pos[0] + T->rotVec[2][0] * len;
+                C->pos[1] = T->pos[1] + T->rotVec[2][1] * len;
+                C->pos[2] = T->pos[2] + T->rotVec[2][2] * len;
             }
             else if (T->rot_Order == zxy || T->rot_Order == xzy)
             {
-                C->pos[0] = T->pos[0] + T->rotVec_[1][0] * len * T->scl_vec[0];
-                C->pos[1] = T->pos[1] + T->rotVec_[1][1] * len * T->scl_vec[1];
-                C->pos[2] = T->pos[2] + T->rotVec_[1][2] * len * T->scl_vec[2];
+                C->pos[0] = T->pos[0] + T->rotVec[1][0] * len;
+                C->pos[1] = T->pos[1] + T->rotVec[1][1] * len;
+                C->pos[2] = T->pos[2] + T->rotVec[1][2] * len;
             }
             else if (T->rot_Order == zyx || T->rot_Order == yzx)
             {
-                C->pos[0] = T->pos[0] + T->rotVec_[0][0] * len * T->scl_vec[0];
-                C->pos[1] = T->pos[1] + T->rotVec_[0][1] * len * T->scl_vec[1];
-                C->pos[2] = T->pos[2] + T->rotVec_[0][2] * len * T->scl_vec[2];
+                C->pos[0] = T->pos[0] + T->rotVec[0][0] * len;
+                C->pos[1] = T->pos[1] + T->rotVec[0][1] * len;
+                C->pos[2] = T->pos[2] + T->rotVec[0][2] * len;
             }
         }
         else
