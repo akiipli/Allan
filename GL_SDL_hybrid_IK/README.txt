@@ -3,6 +3,13 @@
 Author here is:
 Allan Kiipli
 
+7:55 PM 12/31/2020
+Multirotation is there. Also scale. Multirotation is flexible and works also in Bind Mode.
+It affects Bone A transformers. Also it is constrained to Deformer transformers. Select
+multiple transformers and finally select and highlight current transformer in yellow.
+Then down the hierarchy from current, rotation and scaling is propagated. Also reset
+function uses same concept to reset either rotation or scale.
+
 11:18 AM 12/30/2020
 About versions. Save scene to a new file, if program save version is changed.
 Else corruption may happen.

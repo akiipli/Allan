@@ -202,6 +202,15 @@ int child_collection_count;
 transformer * transformers[TRANSFORMERS];
 transformer * Locators[LOCATORS];
 
+float delta, delta_x, delta_y, delta_1, delta_2;
+int multi_Rotation = 1;
+transformer * T_m;
+int multi_Rotation_Transformers_Count = 0;
+transformer * multi_Rotation_Transformers[TRANSFORMERS];
+
+float object_Rot_[TRANSFORMERS][3];
+float object_Scl_[TRANSFORMERS][3];
+
 void add_Child(transformer * T, transformer * parent)
 {
     int c;
@@ -1400,17 +1409,17 @@ void paste_Deformer(transformer * T)
 
 void rotate_Deformer(transformer * T)
 {
-    transformer * P = T->parent;
-
-    while (P != NULL && P->Deformer == T->Deformer)
-    {
-        P = P->parent;
-    }
+//    transformer * P = T->parent;
+//
+//    while (P != NULL && P->Deformer == T->Deformer)
+//    {
+//        P = P->parent;
+//    }
 
     //rotate_collect(P);
     rotate_vertex_groups_D_Init();
 
-    //rotate_hierarchy_T(P, T);
+//    rotate_hierarchy_T(P, T);
 
     rotate_(T);
 

@@ -1367,4 +1367,16 @@ void normalize_IK_Spines(deformer * D)
     }
 }
 
+void normalize_all_IK_Spines()
+{
+    int i;
+    ikChain * I;
+
+    for (i = 0; i < iksIndex; i ++)
+    {
+        I = ikChains[i];
+        normalize_IK_Spine(I);
+    }
+}
+
 #endif // DEFORMER_H_INCLUDED

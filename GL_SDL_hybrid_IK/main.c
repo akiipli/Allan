@@ -10714,7 +10714,19 @@ void transform_Objects_And_Render()
             {
                 if (BIND_POSE)
                 {
-                    rotate_bind(T);
+                    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+                    {
+                        int t;
+                        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+                        {
+                            T_m = multi_Rotation_Transformers[t];
+                            rotate_bind(T_m);
+                        }
+                    }
+                    else
+                    {
+                        rotate_bind(T);
+                    }
                 }
                 else
                 {
@@ -10748,7 +10760,7 @@ void transform_Objects_And_Render()
                 {
                     if (T->Deformer != NULL)
                     {
-                        solve_IK_Chains(T->Deformer);
+                        //solve_IK_Chains(T->Deformer);
                     }
                     else
                     {
@@ -11755,6 +11767,9 @@ void save_load_Scene()
             currentSubcharacter = 0;
             select_Subcharacter();
 
+            //solve_all_IK_Chains();
+            //normalize_all_IK_Spines();
+
             //populate_IK_Updates();
 
             UPDATE_COLORS = 1;
@@ -12077,6 +12092,44 @@ void assign_Surface_To_Selected_Objects()
     SDL_GL_SwapBuffers();
 }
 
+void collect_Deformer_multi_Rotation(transformer * T, deformer * D)
+{
+    if (T->Bone != NULL && T == T->Bone->B)
+    {
+
+    }
+    else if (T->selected && T->Deformer == D)
+    {
+        multi_Rotation_Transformers[multi_Rotation_Transformers_Count ++] = T;
+    }
+
+    int c;
+    transformer * C;
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        collect_Deformer_multi_Rotation(C, D);
+    }
+}
+
+void populate_multi_Rotation()
+{
+    int t;
+    transformer * T;
+
+    for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+    {
+        T = multi_Rotation_Transformers[t];
+        object_Rot_[t][0] = T->rot[0];
+        object_Rot_[t][1] = T->rot[1];
+        object_Rot_[t][2] = T->rot[2];
+        object_Scl_[t][0] = T->scl[0];
+        object_Scl_[t][1] = T->scl[1];
+        object_Scl_[t][2] = T->scl[2];
+    }
+}
+
 void Exit()
 {
     quit = 1;
@@ -12085,6 +12138,244 @@ void Exit()
     DRAW_UI = 1;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
     SDL_Delay(100);
+}
+
+void make_Rotation_Persp(float delta_y, float delta_1, float delta_2)
+{
+    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    {
+        int t;
+        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+        {
+            T_m = multi_Rotation_Transformers[t];
+            if (Axis_lock)
+            {
+                T_m->rot[0] = object_Rot_[t][0];
+                T_m->rot[1] = object_Rot_[t][1];
+                T_m->rot[2] = object_Rot_[t][2];
+                T_m->rot[Axis_lock - 1] += delta_1;
+            }
+            else
+            {
+                T_m->rot[0] = object_Rot_[t][0] + delta_y;
+                T_m->rot[1] = object_Rot_[t][1] + delta_2;
+            }
+        }
+    }
+    else
+    {
+        if (Axis_lock)
+        {
+            T->rot[0] = object_Rot[0];
+            T->rot[1] = object_Rot[1];
+            T->rot[2] = object_Rot[2];
+            T->rot[Axis_lock - 1] += delta_1;
+        }
+        else
+        {
+            T->rot[0] = object_Rot[0] + delta_y;
+            T->rot[1] = object_Rot[1] - delta_2;
+        }
+    }
+}
+
+void make_Rotation_Left(float delta_y, float delta_x)
+{
+    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    {
+        int t;
+        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+        {
+            T_m = multi_Rotation_Transformers[t];
+            if (Axis_lock)
+            {
+                T_m->rot[0] = object_Rot_[t][0];
+                T_m->rot[1] = object_Rot_[t][1];
+                T_m->rot[2] = object_Rot_[t][2];
+                T_m->rot[Axis_lock - 1] += delta_x;
+            }
+            else
+            {
+                T_m->rot[1] = object_Rot_[t][1] + delta_x;
+                T_m->rot[2] = object_Rot_[t][2] - delta_y;
+            }
+        }
+    }
+    else
+    {
+        if (Axis_lock)
+        {
+            T->rot[0] = object_Rot[0];
+            T->rot[1] = object_Rot[1];
+            T->rot[2] = object_Rot[2];
+            T->rot[Axis_lock - 1] += delta_x;
+        }
+        else
+        {
+            T->rot[1] = object_Rot[1] + delta_x;
+            T->rot[2] = object_Rot[2] - delta_y;
+        }
+    }
+}
+
+void make_Rotation_Front(float delta_y, float delta_x)
+{
+    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    {
+        int t;
+        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+        {
+            T_m = multi_Rotation_Transformers[t];
+            if (Axis_lock)
+            {
+                T_m->rot[0] = object_Rot_[t][0];
+                T_m->rot[1] = object_Rot_[t][1];
+                T_m->rot[2] = object_Rot_[t][2];
+                T_m->rot[Axis_lock - 1] += delta_x;
+            }
+            else
+            {
+                T_m->rot[0] = object_Rot_[t][0] + delta_y;
+                T_m->rot[1] = object_Rot_[t][1] + delta_x;
+            }
+        }
+    }
+    else
+    {
+        if (Axis_lock)
+        {
+            T->rot[0] = object_Rot[0];
+            T->rot[1] = object_Rot[1];
+            T->rot[2] = object_Rot[2];
+            T->rot[Axis_lock - 1] += delta_x;
+        }
+        else
+        {
+            T->rot[0] = object_Rot[0] + delta_y;
+            T->rot[1] = object_Rot[1] + delta_x;
+        }
+    }
+}
+
+void make_Rotation_Top(float delta_y, float delta_x)
+{
+    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    {
+        int t;
+        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+        {
+            T_m = multi_Rotation_Transformers[t];
+            if (Axis_lock)
+            {
+                T_m->rot[0] = object_Rot_[t][0];
+                T_m->rot[1] = object_Rot_[t][1];
+                T_m->rot[2] = object_Rot_[t][2];
+                T_m->rot[Axis_lock - 1] += delta_x;
+            }
+            else
+            {
+                T_m->rot[0] = object_Rot_[t][0] + delta_y;
+                T_m->rot[2] = object_Rot_[t][2] - delta_x;
+            }
+        }
+    }
+    else
+    {
+        if (Axis_lock)
+        {
+            T->rot[0] = object_Rot[0];
+            T->rot[1] = object_Rot[1];
+            T->rot[2] = object_Rot[2];
+            T->rot[Axis_lock - 1] += delta_x;
+        }
+        else
+        {
+            T->rot[0] = object_Rot[0] + delta_y;
+            T->rot[2] = object_Rot[2] - delta_x;
+        }
+    }
+}
+
+void make_Scale(float delta)
+{
+    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    {
+        int t;
+        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+        {
+            T_m = multi_Rotation_Transformers[t];
+            if (Axis_lock)
+            {
+                T_m->scl[0] = object_Scl_[t][0];
+                T_m->scl[1] = object_Scl_[t][1];
+                T_m->scl[2] = object_Scl_[t][2];
+                T_m->scl[Axis_lock - 1] = object_Scl_[t][Axis_lock - 1] + delta;
+            }
+            else
+            {
+                T_m->scl[0] = object_Scl_[t][0] + delta;
+                T_m->scl[1] = object_Scl_[t][1] + delta;
+                T_m->scl[2] = object_Scl_[t][2] + delta;
+            }
+        }
+    }
+    else
+    {
+        if (Axis_lock)
+        {
+            T->scl[0] = object_Scl[0];
+            T->scl[1] = object_Scl[1];
+            T->scl[2] = object_Scl[2];
+            T->scl[Axis_lock - 1] = object_Scl[Axis_lock - 1] + delta;
+        }
+        else
+        {
+            T->scl[0] = object_Scl[0] + delta;
+            T->scl[1] = object_Scl[1] + delta;
+            T->scl[2] = object_Scl[2] + delta;
+        }
+    }
+}
+
+void make_Scale_Persp(float delta_1, float delta_2)
+{
+    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    {
+        int t;
+        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+        {
+            T_m = multi_Rotation_Transformers[t];
+            if (Axis_lock)
+            {
+                T_m->scl[0] = object_Scl_[t][0];
+                T_m->scl[1] = object_Scl_[t][1];
+                T_m->scl[2] = object_Scl_[t][2];
+                T_m->scl[Axis_lock - 1] = object_Scl_[t][Axis_lock - 1] + delta_1;
+            }
+            else
+            {
+                T_m->scl[0] = object_Scl_[t][0] + delta_2;
+                T_m->scl[1] = object_Scl_[t][1] + delta_2;
+                T_m->scl[2] = object_Scl_[t][2] + delta_2;
+            }
+        }
+    }
+    else
+    {
+        if (Axis_lock)
+        {
+            T->scl[0] = object_Scl[0];
+            T->scl[1] = object_Scl[1];
+            T->scl[2] = object_Scl[2];
+            T->scl[Axis_lock - 1] = object_Scl[Axis_lock - 1] + delta_1;
+        }
+        else
+        {
+            T->scl[0] = object_Scl[0] + delta_2;
+            T->scl[1] = object_Scl[1] + delta_2;
+            T->scl[2] = object_Scl[2] + delta_2;
+        }
+    }
 }
 
 int main(int argc, char * args[])
@@ -12739,6 +13030,9 @@ int main(int argc, char * args[])
 
                         if (BIND_POSE)
                         {
+                            Update_Objects_Count = 0;
+
+                            paste_Action_Begin();
                             rotate_bind(T);
                         }
                         else if (object_hook)
@@ -12779,6 +13073,8 @@ int main(int argc, char * args[])
                             rotate_Camera(&Camera_Front, CamDist);
                             rotate_Camera(&Camera_Left, CamDist);
                         }
+
+                        multi_Rotation_Transformers_Count = 0;
 
                         subdLevel = subdLevel_mem;
                         camera_rotate = 0;
@@ -12822,6 +13118,8 @@ int main(int argc, char * args[])
 //                    if (dialog_lock)
 //                        draw_Dialog();
 //                    SDL_GL_SwapBuffers();
+
+                    multi_Rotation_Transformers_Count = 0;
 
                     if (MOVEMENT)
                     {
@@ -14319,34 +14617,14 @@ int main(int argc, char * args[])
                             y_offset = mouse_y - Camera_Top.origin_2d[1];
                             if (object_hook == 2) //scale
                             {
-                                if (Axis_lock)
-                                {
-                                    T->scl[0] = object_Scl[0];
-                                    T->scl[1] = object_Scl[1];
-                                    T->scl[2] = object_Scl[2];
-                                    T->scl[Axis_lock - 1] = object_Scl[Axis_lock - 1] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
-                                else
-                                {
-                                    T->scl[0] = object_Scl[0] + (float)x_offset / ((float)screen_width / 4.0);
-                                    T->scl[1] = object_Scl[1] + (float)x_offset / ((float)screen_width / 4.0);
-                                    T->scl[2] = object_Scl[2] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
+                                delta = (float)x_offset / ((float)screen_width / 4.0);
+                                make_Scale(delta);
                             }
                             else if (object_hook == 3) //rotate
                             {
-                                if (Axis_lock)
-                                {
-                                    T->rot[0] = object_Rot[0];
-                                    T->rot[1] = object_Rot[1];
-                                    T->rot[2] = object_Rot[2];
-                                    T->rot[Axis_lock - 1] += (float)x_offset / ((float)screen_width / 4.0);
-                                }
-                                else
-                                {
-                                    T->rot[0] = object_Rot[0] + (float)y_offset / ((float)screen_height / 4.0);
-                                    T->rot[2] = object_Rot[2] - (float)x_offset / ((float)screen_width / 4.0);
-                                }
+                                delta_y = (float)y_offset / ((float)screen_height / 4.0);
+                                delta_x = (float)x_offset / ((float)screen_width / 4.0);
+                                make_Rotation_Top(delta_y, delta_x);
                             }
                             else // move
                             {
@@ -14427,34 +14705,14 @@ int main(int argc, char * args[])
                             y_offset = mouse_y - Camera_Front.origin_2d[1];
                             if (object_hook == 2) //scale
                             {
-                                if (Axis_lock)
-                                {
-                                    T->scl[0] = object_Scl[0];
-                                    T->scl[1] = object_Scl[1];
-                                    T->scl[2] = object_Scl[2];
-                                    T->scl[Axis_lock - 1] = object_Scl[Axis_lock - 1] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
-                                else
-                                {
-                                    T->scl[0] = object_Scl[0] + (float)x_offset / ((float)screen_width / 4.0);
-                                    T->scl[1] = object_Scl[1] + (float)x_offset / ((float)screen_width / 4.0);
-                                    T->scl[2] = object_Scl[2] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
+                                delta = (float)x_offset / ((float)screen_width / 4.0);
+                                make_Scale(delta);
                             }
                             else if (object_hook == 3) //rotate
                             {
-                                if (Axis_lock)
-                                {
-                                    T->rot[0] = object_Rot[0];
-                                    T->rot[1] = object_Rot[1];
-                                    T->rot[2] = object_Rot[2];
-                                    T->rot[Axis_lock - 1] += (float)x_offset / ((float)screen_width / 4.0);
-                                }
-                                else
-                                {
-                                    T->rot[0] = object_Rot[0] + (float)y_offset / ((float)screen_height / 4.0);
-                                    T->rot[1] = object_Rot[1] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
+                                delta_y = (float)y_offset / ((float)screen_height / 4.0);
+                                delta_x = (float)x_offset / ((float)screen_width / 4.0);
+                                make_Rotation_Front(delta_y, delta_x);
                             }
                             else // move
                             {
@@ -14535,34 +14793,14 @@ int main(int argc, char * args[])
                             y_offset = mouse_y - Camera_Left.origin_2d[1];
                             if (object_hook == 2) //scale
                             {
-                                if (Axis_lock)
-                                {
-                                    T->scl[0] = object_Scl[0];
-                                    T->scl[1] = object_Scl[1];
-                                    T->scl[2] = object_Scl[2];
-                                    T->scl[Axis_lock - 1] = object_Scl[Axis_lock - 1] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
-                                else
-                                {
-                                    T->scl[0] = object_Scl[0] + (float)x_offset / ((float)screen_width / 4.0);
-                                    T->scl[1] = object_Scl[1] + (float)x_offset / ((float)screen_width / 4.0);
-                                    T->scl[2] = object_Scl[2] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
+                                delta = (float)x_offset / ((float)screen_width / 4.0);
+                                make_Scale(delta);
                             }
                             else if (object_hook == 3) //rotate
                             {
-                                if (Axis_lock)
-                                {
-                                    T->rot[0] = object_Rot[0];
-                                    T->rot[1] = object_Rot[1];
-                                    T->rot[2] = object_Rot[2];
-                                    T->rot[Axis_lock - 1] += (float)x_offset / ((float)screen_width / 4.0);
-                                }
-                                else
-                                {
-                                    T->rot[1] = object_Rot[1] + (float)x_offset / ((float)screen_width / 4.0);
-                                    T->rot[2] = object_Rot[2] - (float)y_offset / ((float)screen_height / 4.0);
-                                }
+                                delta_y = (float)y_offset / ((float)screen_height / 4.0);
+                                delta_x = (float)x_offset / ((float)screen_width / 4.0);
+                                make_Rotation_Left(delta_y, delta_x);
                             }
                             else // move
                             {
@@ -14643,34 +14881,14 @@ int main(int argc, char * args[])
                             y_offset = mouse_y - Camera->origin_2d[1];
                             if (object_hook == 2) //scale
                             {
-                                if (Axis_lock)
-                                {
-                                    T->scl[0] = object_Scl[0];
-                                    T->scl[1] = object_Scl[1];
-                                    T->scl[2] = object_Scl[2];
-                                    T->scl[Axis_lock - 1] = object_Scl[Axis_lock - 1] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
-                                else
-                                {
-                                    T->scl[0] = object_Scl[0] + (float)x_offset / ((float)screen_width / 4.0);
-                                    T->scl[1] = object_Scl[1] + (float)x_offset / ((float)screen_width / 4.0);
-                                    T->scl[2] = object_Scl[2] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
+                                delta = (float)x_offset / ((float)screen_width / 4.0);
+                                make_Scale(delta);
                             }
                             else if (object_hook == 3) //rotate
                             {
-                                if (Axis_lock)
-                                {
-                                    T->rot[0] = object_Rot[0];
-                                    T->rot[1] = object_Rot[1];
-                                    T->rot[2] = object_Rot[2];
-                                    T->rot[Axis_lock - 1] += (float)x_offset / ((float)screen_width / 4.0);
-                                }
-                                else
-                                {
-                                    T->rot[0] = object_Rot[0] + (float)y_offset / ((float)screen_height / 4.0);
-                                    T->rot[1] = object_Rot[1] + (float)x_offset / ((float)screen_width / 4.0);
-                                }
+                                delta_y = (float)y_offset / ((float)screen_height / 4.0);
+                                delta_x = (float)x_offset / ((float)screen_width / 4.0);
+                                make_Rotation_Front(delta_y, delta_x);
                             }
                             else // move
                             {
@@ -14815,36 +15033,19 @@ int main(int argc, char * args[])
                     {
                         x_offset = mouse_x - Camera->origin_2d[0];
                         y_offset = mouse_y - Camera->origin_2d[1];
+
                         if (object_hook == 2) //scale
                         {
-                            if (Axis_lock)
-                            {
-                                T->scl[0] = object_Scl[0];
-                                T->scl[1] = object_Scl[1];
-                                T->scl[2] = object_Scl[2];
-                                T->scl[Axis_lock - 1] = object_Scl[Axis_lock - 1] + (float)x_offset / ((float)screen_width / 4.0);
-                            }
-                            else
-                            {
-                                T->scl[0] = object_Scl[0] + ((float)x_offset / ((float)screen_width / 2.0));
-                                T->scl[1] = object_Scl[1] + ((float)x_offset / ((float)screen_width / 2.0));
-                                T->scl[2] = object_Scl[2] + ((float)x_offset / ((float)screen_width / 2.0));
-                            }
+                            delta_1 = (float)x_offset / ((float)screen_width / 4.0);
+                            delta_2 = (float)x_offset / ((float)screen_width / 2.0);
+                            make_Scale_Persp(delta_1, delta_2);
                         }
                         else if (object_hook == 3) //rotate
                         {
-                            if (Axis_lock)
-                            {
-                                T->rot[0] = object_Rot[0];
-                                T->rot[1] = object_Rot[1];
-                                T->rot[2] = object_Rot[2];
-                                T->rot[Axis_lock - 1] += (float)x_offset / ((float)screen_width / 4.0);
-                            }
-                            else
-                            {
-                                T->rot[0] = object_Rot[0] + (float)y_offset / ((float)screen_height / 2.0);
-                                T->rot[1] = object_Rot[1] + (float)x_offset / ((float)screen_width / 2.0);
-                            }
+                            delta_y = (float)y_offset / ((float)screen_height / 4.0);
+                            delta_1 = (float)x_offset / ((float)screen_width / 4.0);
+                            delta_2 = (float)x_offset / ((float)screen_width / 2.0);
+                            make_Rotation_Persp(delta_y, delta_1, delta_2);
                         }
                         else // move
                         {
@@ -15725,9 +15926,29 @@ int main(int argc, char * args[])
                 {
                     bake_scale(T);
 
-                    T->scl[0] = 1.0;
-                    T->scl[1] = 1.0;
-                    T->scl[2] = 1.0;
+                    if (T->Deformer != NULL && multi_Rotation)
+                    {
+                        collect_Deformer_multi_Rotation(T, T->Deformer);
+                    }
+
+                    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+                    {
+                        int t;
+                        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+                        {
+                            T_m = multi_Rotation_Transformers[t];
+
+                            T_m->scl[0] = 1.0;
+                            T_m->scl[1] = 1.0;
+                            T_m->scl[2] = 1.0;
+                        }
+                    }
+                    else
+                    {
+                        T->scl[0] = 1.0;
+                        T->scl[1] = 1.0;
+                        T->scl[2] = 1.0;
+                    }
                 }
 
                 message = -10;
@@ -15756,9 +15977,29 @@ int main(int argc, char * args[])
                 {
                     bake(T);
 
-                    T->rot[0] = 0.0;
-                    T->rot[1] = 0.0;
-                    T->rot[2] = 0.0;
+                    if (T->Deformer != NULL && multi_Rotation)
+                    {
+                        collect_Deformer_multi_Rotation(T, T->Deformer);
+                    }
+
+                    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+                    {
+                        int t;
+                        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+                        {
+                            T_m = multi_Rotation_Transformers[t];
+
+                            T_m->rot[0] = 0.0;
+                            T_m->rot[1] = 0.0;
+                            T_m->rot[2] = 0.0;
+                        }
+                    }
+                    else
+                    {
+                        T->rot[0] = 0.0;
+                        T->rot[1] = 0.0;
+                        T->rot[2] = 0.0;
+                    }
                 }
 
                 message = -10;
@@ -16504,6 +16745,13 @@ int main(int argc, char * args[])
                             bake_position_Children(T);
 
                             init_Action_Begin_Pose(T);
+
+                            if (T->Deformer != NULL && multi_Rotation)
+                            {
+                                multi_Rotation_Transformers_Count = 0;
+                                collect_Deformer_multi_Rotation(T, T->Deformer);
+                                populate_multi_Rotation();
+                            }
 
                             if (mod & KMOD_SHIFT)
                             {

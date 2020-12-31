@@ -1127,6 +1127,8 @@ void fix_ik_goal(transformer * T)
 //    normalize_rotation_unparent(T);
 }
 
+void normalize_IK_Spine(ikChain * I);
+
 void unfix_ik_goal(transformer * T)
 {
 //    T->scl[0] *= (1 / T->parent->scl_vec[0]);
@@ -1136,6 +1138,7 @@ void unfix_ik_goal(transformer * T)
 //    scale_axis(T);
     T->IK->update = 1;
     solve_IK_Chain(T->IK);
+    normalize_IK_Spine(T->IK);
 }
 
 void unfix_ik_goals()
