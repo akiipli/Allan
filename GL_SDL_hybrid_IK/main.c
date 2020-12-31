@@ -16741,6 +16741,8 @@ int main(int argc, char * args[])
                         }
                         else
                         {
+                            if (T->Deformer != NULL)
+                                normalize_IK_Spines(T->Deformer);
                             bake_position(T);
                             bake_position_Children(T);
 
