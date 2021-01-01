@@ -6060,8 +6060,9 @@ void deformer_Player()
 
                     apply_Pose(D, D->Poses[D->current_pose], 0);
                 }
-                solve_IK_Chains(D);
-                normalize_IK_Spines(D);
+//                solve_IK_Chains(D);
+//                normalize_IK_Spines(D);
+//                transformer_pin_Preparation(D);
                 update_Deformed_View(D, 0);
             }
             break;
@@ -11800,6 +11801,8 @@ void change_Transformer_Pin()
         transformer * T = transformers[currentLocator];
         T->pin ++;
         if (T->pin > 3) T->pin = 0;
+
+        memcpy(&T->rotVec_Pin, T->rotVec_, sizeof T->rotVec_Pin);
 
         if (T->Deformer != NULL)
         {

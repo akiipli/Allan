@@ -613,7 +613,7 @@ void create_Action_Begin_Pose(transformer * T)
         memcpy(P->TP[t].pos_, T0->pos_, sizeof(float[3]));
         P->TP[t].style = T0->style;
 
-        memcpy(T0->rotVec_P, T0->rotVec_, sizeof(float[3][3])); // Pin
+        memcpy(T0->rotVec_Pin, T0->rotVec_, sizeof(float[3][3]));
     }
 }
 

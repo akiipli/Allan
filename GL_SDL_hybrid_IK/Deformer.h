@@ -1379,4 +1379,16 @@ void normalize_all_IK_Spines()
     }
 }
 
+void transformer_pin_Preparation(deformer * D)
+{
+    int t;
+    transformer * T;
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        T = D->Transformers[t];
+        memcpy(&T->rotVec_Pin, T->rotVec_, sizeof T->rotVec_Pin);
+    }
+}
+
 #endif // DEFORMER_H_INCLUDED

@@ -1481,7 +1481,7 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                         &T->rotVec_B[1][0], &T->rotVec_B[1][1], &T->rotVec_B[1][2],
                         &T->rotVec_B[2][0], &T->rotVec_B[2][1], &T->rotVec_B[2][2]);
 
-                memcpy(&T->rotVec_P, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_P);
+                memcpy(&T->rotVec_Pin, T->rotVec_, sizeof T->rotVec_Pin);
 
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%f %f %f", &T->pos[0], &T->pos[1], &T->pos[2]);
