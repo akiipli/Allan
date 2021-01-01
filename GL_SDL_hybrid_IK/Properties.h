@@ -194,6 +194,18 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
 
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
+        if (T->pin == pin_0)
+            sprintf(text, "Pin 0");
+        else if (T->pin == pin_x)
+            sprintf(text, "Pin x");
+        else if (T->pin == pin_y)
+            sprintf(text, "Pin y");
+        else if (T->pin == pin_z)
+            sprintf(text, "Pin z");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%d", T->pin);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+        idx ++;
         sprintf(text, "Rotation\tX %1.2f\tY %1.2f\tZ %1.2f", T->rot[0], T->rot[1], T->rot[2]);
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;

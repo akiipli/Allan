@@ -1398,14 +1398,31 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                 sscanf(buff, "%u", &T->address);
 
                 fgets(buff, BUF_SIZE, fp);
-                sscanf(buff, "%d %d %d %d %d %d %f",
-                        &T->style,
-                        &T->childcount,
-                        &T->collapsed,
-                        &T->rot_Order,
-                        &T->bind_set,
-                        &T->Selections_Count,
-                        &T->LocatorSize);
+
+                if (loading_version <= 1002)
+                {
+                    sscanf(buff, "%d %d %d %d %d %d %f",
+                            &T->style,
+                            &T->childcount,
+                            &T->collapsed,
+                            &T->rot_Order,
+                            &T->bind_set,
+                            &T->Selections_Count,
+                            &T->LocatorSize);
+                    T->pin = pin_0;
+                }
+                else
+                {
+                    sscanf(buff, "%d %d %d %d %d %d %f %d",
+                            &T->style,
+                            &T->childcount,
+                            &T->collapsed,
+                            &T->rot_Order,
+                            &T->bind_set,
+                            &T->Selections_Count,
+                            &T->LocatorSize,
+                            &T->pin);
+                }
 
                 //T->LocatorSize = LocatorSize;
 
@@ -1463,6 +1480,9 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                         &T->rotVec_B[0][0], &T->rotVec_B[0][1], &T->rotVec_B[0][2],
                         &T->rotVec_B[1][0], &T->rotVec_B[1][1], &T->rotVec_B[1][2],
                         &T->rotVec_B[2][0], &T->rotVec_B[2][1], &T->rotVec_B[2][2]);
+
+                memcpy(&T->rotVec_P, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_P);
+
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%f %f %f", &T->pos[0], &T->pos[1], &T->pos[2]);
                 fgets(buff, BUF_SIZE, fp);

@@ -5899,6 +5899,51 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
     DRAW_UI = 1;
 }
 
+void update_Deformed_View(deformer * D, int update)
+{
+    if (D->Transformers_Count > 0)
+    {
+        transformer * T = D->Transformers[0];
+
+        Update_Objects_Count = 0;
+
+        rotate_collect(T);
+        rotate_vertex_groups_D_Init();
+
+        rotate_Deformer_verts(D);
+
+        update_rotate_bounding_box();
+
+        if (subdLevel > -1)
+        {
+            int o;
+
+            for (o = 0; o < Update_Objects_Count; o ++)
+            {
+                O = Update_Objects[o];
+                if (O->deforms)
+                {
+                    tune_subdivide_post_transformed(O, subdLevel);
+                }
+            }
+        }
+
+        if (update)
+        {
+            if (dialog_lock)
+            {
+                poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                draw_Dialog();
+                SDL_GL_SwapBuffers();
+            }
+            else
+            {
+                poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+            }
+        }
+    }
+}
+
 void deformer_Player()
 {
     int t, p, u, o, f, d;
@@ -6015,6 +6060,9 @@ void deformer_Player()
 
                     apply_Pose(D, D->Poses[D->current_pose], 0);
                 }
+                solve_IK_Chains(D);
+                normalize_IK_Spines(D);
+                update_Deformed_View(D, 0);
             }
             break;
         }
@@ -8606,48 +8654,6 @@ void handle_IK_Dialog(char letter, SDLMod mod)
     }
 }
 
-void update_Deformed_View(deformer * D)
-{
-    if (D->Transformers_Count > 0)
-    {
-        transformer * T = D->Transformers[0];
-
-        Update_Objects_Count = 0;
-
-        rotate_collect(T);
-        rotate_vertex_groups_D_Init();
-
-        rotate_Deformer_verts(D);
-
-        update_rotate_bounding_box();
-
-        if (subdLevel > -1)
-        {
-            int o;
-
-            for (o = 0; o < Update_Objects_Count; o ++)
-            {
-                O = Update_Objects[o];
-                if (O->deforms)
-                {
-                    tune_subdivide_post_transformed(O, subdLevel);
-                }
-            }
-        }
-
-        if (dialog_lock)
-        {
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-            draw_Dialog();
-            SDL_GL_SwapBuffers();
-        }
-        else
-        {
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
-        }
-    }
-}
-
 void handle_Subcharacter_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
@@ -8730,7 +8736,7 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
 
         deformer * D = S->Deformer;
 
-        update_Deformed_View(D);
+        update_Deformed_View(D, 1);
     }
 }
 
@@ -11787,6 +11793,33 @@ void save_load_Scene()
     Button_h_scen[0].color = UI_GRAYB;
 }
 
+void change_Transformer_Pin()
+{
+    if (currentLocator >= 0 && currentLocator < transformerIndex)
+    {
+        transformer * T = transformers[currentLocator];
+        T->pin ++;
+        if (T->pin > 3) T->pin = 0;
+
+        if (T->Deformer != NULL)
+        {
+            deformer * D = T->Deformer;
+            solve_IK_Chains(D);
+            normalize_IK_Spines(D);
+            update_Deformed_View(D, 1);
+        }
+        else
+        {
+            if (Type != NULL)
+                draw_Properties(T->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
+            else
+                draw_Properties("", screen_height, 1, PROPERTIES_LOCATOR, Type);
+
+            SDL_GL_SwapBuffers();
+        }
+    }
+}
+
 void change_IK_Update()
 {
     if (currentIK >= 0 && currentIK < iksIndex)
@@ -11799,7 +11832,7 @@ void change_IK_Update()
             deformer * D = I->Deformer;
             solve_IK_Chain(I);
             normalize_IK_Spine(I);
-            update_Deformed_View(D);
+            update_Deformed_View(D, 1);
         }
         else
         {
@@ -14004,6 +14037,17 @@ int main(int argc, char * args[])
                                     }
                                 }
                             }
+                            else if (dialog_type == HIER_DIALOG)
+                            {
+                                if (mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 1 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 2)
+                                {
+                                    if (h_index == 1)
+                                    {
+                                        //printf("set ik update\n");
+                                        change_Transformer_Pin();
+                                    }
+                                }
+                            }
                         }
                     }
                     else if (!Camera_screen_lock && mouse_x > SIDEBAR && mouse_y < screen_height)
@@ -14565,6 +14609,20 @@ int main(int argc, char * args[])
                                     draw_Properties(ikChains[currentIK]->Name, screen_height, 1, PROPERTIES_IK, Type);
                                 else
                                     draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
+                                SDL_GL_SwapBuffers();
+                            }
+                        }
+                        else if (PROPERTIES == PROPERTIES_LOCATOR)
+                        {
+                            if (properties[prop_y][prop_x] != UI_BACKL)
+                            {
+                                //printf("rendering\t\t\r");
+                                black_out_properties();
+                                properties[prop_y][prop_x] = UI_BACKL;
+                                if (Type != NULL)
+                                    draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
+                                else
+                                    draw_Properties("", screen_height, 1, PROPERTIES_LOCATOR, Type);
                                 SDL_GL_SwapBuffers();
                             }
                         }

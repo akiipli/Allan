@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1002;
+int saving_version = 1003;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -645,14 +645,15 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
 
         fprintf(F, "%s\n", T->Name);
         fprintf(F, "%u\n", (unsigned)T);
-        fprintf(F, "%d %d %d %d %d %d %f\n",
+        fprintf(F, "%d %d %d %d %d %d %f %d\n",
                 T->style,
                 T->childcount,
                 T->collapsed,
                 T->rot_Order,
                 T->bind_set,
                 T->Selections_Count,
-                T->LocatorSize);
+                T->LocatorSize,
+                T->pin);
         fprintf(F, "%u %u %u %u %u\n",
                 (unsigned)T->parent,
                 (unsigned)T->Object,

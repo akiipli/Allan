@@ -527,8 +527,6 @@ void update_Default_Pose()
     }
 }
 
-transformer ** Action_Begin_Transformers;
-int Action_Begin_Transformers_Count;
 pose * Action_Begin_Pose;
 
 void init_Action_Begin_Transformers()
@@ -614,6 +612,8 @@ void create_Action_Begin_Pose(transformer * T)
         memcpy(P->TP[t].pos, T0->pos, sizeof(float[3]));
         memcpy(P->TP[t].pos_, T0->pos_, sizeof(float[3]));
         P->TP[t].style = T0->style;
+
+        memcpy(T0->rotVec_P, T0->rotVec_, sizeof(float[3][3])); // Pin
     }
 }
 

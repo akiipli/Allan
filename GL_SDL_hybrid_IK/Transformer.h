@@ -46,6 +46,13 @@ float dot_productFF(float[3], float[3]);
 #define xzy 4
 #define yzx 5
 
+#define pin_0 0
+#define pin_x 1
+#define pin_y 2
+#define pin_z 3
+
+float pin_rotVec_[3][3];
+
 #define aim_vector 2
 #define world 0
 
@@ -185,6 +192,7 @@ struct transformer
     float rotVec_[3][3];
     float rotVec_I[3][3];
     float rotVec_B[3][3];
+    float rotVec_P[3][3]; // Pin
     float pos[3];
     float pos_[3];
     float Pos_[3];
@@ -194,6 +202,7 @@ struct transformer
     float * aim;  //rotVec_[aim_vector]
     ikChain * IK;
     float LocatorSize;
+    int pin; //x 1, y 2, z 3
 };
 
 transformer * child_collection[TRANSFORMERS];
@@ -210,6 +219,9 @@ transformer * multi_Rotation_Transformers[TRANSFORMERS];
 
 float object_Rot_[TRANSFORMERS][3];
 float object_Scl_[TRANSFORMERS][3];
+
+transformer ** Action_Begin_Transformers;
+int Action_Begin_Transformers_Count;
 
 void add_Child(transformer * T, transformer * parent)
 {
@@ -300,6 +312,7 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         memcpy(&T->rotVec_, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_);
         memcpy(&T->rotVec_I, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_I);
         memcpy(&T->rotVec_B, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_B);
+        memcpy(&T->rotVec_P, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_P);
         memcpy(&T->pos, (float[3]) {0.0, 0.0, 0.0}, sizeof T->pos);
         memcpy(&T->pos_, (float[3]) {0.0, 0.0, 0.0}, sizeof T->pos_);
         memcpy(&T->Pos_, (float[3]) {0.0, 0.0, 0.0}, sizeof T->Pos_);
@@ -308,6 +321,7 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         T->aim = T->rotVec_[2];
         T->IK = NULL;
         T->LocatorSize = LocatorSize;
+        T->pin = 0;
     }
 }
 
@@ -736,46 +750,122 @@ void rotate_axis(float angle, float axis1[3], float axis2[3], float result1[3], 
     END:;
 }
 
+void cross_Product(float v1[3], float v2[3], float N[3]);
+
+void pin_down(transformer * T)
+{
+    if (Action_Begin_Transformers_Count > 0)
+    {
+        memcpy(pin_rotVec_, T->rotVec_P, sizeof pin_rotVec_);
+    }
+    if (T->pin == pin_x)
+    {
+        memcpy(T->rotVec[0], pin_rotVec_[0], sizeof(float[3]));
+        cross_Product(T->rotVec[0], T->rotVec[1], T->rotVec[2]);
+        cross_Product(T->rotVec[2], T->rotVec[0], T->rotVec[1]);
+    }
+    else if (T->pin == pin_y)
+    {
+        memcpy(T->rotVec[1], pin_rotVec_[1], sizeof(float[3]));
+        cross_Product(T->rotVec[1], T->rotVec[2], T->rotVec[0]);
+        cross_Product(T->rotVec[0], T->rotVec[1], T->rotVec[2]);
+    }
+    else if (T->pin == pin_z)
+    {
+        memcpy(T->rotVec[2], pin_rotVec_[2], sizeof(float[3]));
+        cross_Product(T->rotVec[2], T->rotVec[0], T->rotVec[1]);
+        cross_Product(T->rotVec[1], T->rotVec[2], T->rotVec[0]);
+    }
+}
+
 void rotate_axis_yxz(transformer * T)
 {
+    if (T->pin != pin_0)
+    {
+        memcpy(pin_rotVec_, T->rotVec_, sizeof pin_rotVec_);
+    }
     rotate_axis(T->rot[1], T->rotVec_[2], T->rotVec_[0], T->rotVec[2], T->rotVec[0]);
     rotate_axis(T->rot[0], T->rotVec_[1], T->rotVec[2], T->rotVec[1], T->rotVec[2]);
     rotate_axis(T->rot[2], T->rotVec[0], T->rotVec[1], T->rotVec[0], T->rotVec[1]);
+    if (T->pin != pin_0)
+    {
+        pin_down(T);
+    }
 }
 
 void rotate_axis_zxy(transformer * T)
 {
+    if (T->pin != pin_0)
+    {
+        memcpy(pin_rotVec_, T->rotVec_, sizeof pin_rotVec_);
+    }
     rotate_axis(T->rot[2], T->rotVec_[0], T->rotVec_[1], T->rotVec[0], T->rotVec[1]);
     rotate_axis(T->rot[0], T->rotVec[1], T->rotVec_[2], T->rotVec[1], T->rotVec[2]);
     rotate_axis(T->rot[1], T->rotVec[2], T->rotVec[0], T->rotVec[2], T->rotVec[0]);
+    if (T->pin != pin_0)
+    {
+        pin_down(T);
+    }
 }
 
 void rotate_axis_zyx(transformer * T)
 {
+    if (T->pin != pin_0)
+    {
+        memcpy(pin_rotVec_, T->rotVec_, sizeof pin_rotVec_);
+    }
     rotate_axis(T->rot[2], T->rotVec_[0], T->rotVec_[1], T->rotVec[0], T->rotVec[1]);
     rotate_axis(T->rot[1], T->rotVec_[2], T->rotVec[0], T->rotVec[2], T->rotVec[0]);
     rotate_axis(T->rot[0], T->rotVec[1], T->rotVec[2], T->rotVec[1], T->rotVec[2]);
+    if (T->pin != pin_0)
+    {
+        pin_down(T);
+    }
 }
 
 void rotate_axis_xyz(transformer * T)
 {
+    if (T->pin != pin_0)
+    {
+        memcpy(pin_rotVec_, T->rotVec_, sizeof pin_rotVec_);
+    }
     rotate_axis(T->rot[0], T->rotVec_[1], T->rotVec_[2], T->rotVec[1], T->rotVec[2]);
     rotate_axis(T->rot[1], T->rotVec[2], T->rotVec_[0], T->rotVec[2], T->rotVec[0]);
     rotate_axis(T->rot[2], T->rotVec[0], T->rotVec[1], T->rotVec[0], T->rotVec[1]);
+    if (T->pin != pin_0)
+    {
+        pin_down(T);
+    }
 }
 
 void rotate_axis_xzy(transformer * T)
 {
+    if (T->pin != pin_0)
+    {
+        memcpy(pin_rotVec_, T->rotVec_, sizeof pin_rotVec_);
+    }
     rotate_axis(T->rot[0], T->rotVec_[1], T->rotVec_[2], T->rotVec[1], T->rotVec[2]);
     rotate_axis(T->rot[2], T->rotVec_[0], T->rotVec[1], T->rotVec[0], T->rotVec[1]);
     rotate_axis(T->rot[1], T->rotVec[2], T->rotVec[0], T->rotVec[2], T->rotVec[0]);
+    if (T->pin != pin_0)
+    {
+        pin_down(T);
+    }
 }
 
 void rotate_axis_yzx(transformer * T)
 {
+    if (T->pin != pin_0)
+    {
+        memcpy(pin_rotVec_, T->rotVec_, sizeof pin_rotVec_);
+    }
     rotate_axis(T->rot[1], T->rotVec_[2], T->rotVec_[0], T->rotVec[2], T->rotVec[0]);
     rotate_axis(T->rot[2], T->rotVec[0], T->rotVec_[1], T->rotVec[0], T->rotVec[1]);
     rotate_axis(T->rot[0], T->rotVec[1], T->rotVec[2], T->rotVec[1], T->rotVec[2]);
+    if (T->pin != pin_0)
+    {
+        pin_down(T);
+    }
 }
 
 void scale_x(transformer * T)
