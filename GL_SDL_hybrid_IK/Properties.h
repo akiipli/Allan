@@ -231,6 +231,11 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "%d", I->update);
         draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
         idx ++;
+        sprintf(text, "Stretch");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%d", I->stretch);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+        idx ++;
     }
     else if (subject != NULL && type == PROPERTIES_BONE)
     {

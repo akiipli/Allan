@@ -11823,6 +11823,32 @@ void change_Transformer_Pin()
     }
 }
 
+void change_IK_Stretch()
+{
+    if (currentIK >= 0 && currentIK < iksIndex)
+    {
+        ikChain * I = ikChains[currentIK];
+        I->stretch = !I->stretch;
+
+        if (I->Deformer != NULL)
+        {
+            deformer * D = I->Deformer;
+            solve_IK_Chain(I);
+            normalize_IK_Spine(I);
+            update_Deformed_View(D, 1);
+        }
+        else
+        {
+            if (Type != NULL)
+                draw_Properties(I->Name, screen_height, 1, PROPERTIES_IK, Type);
+            else
+                draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
+
+            SDL_GL_SwapBuffers();
+        }
+    }
+}
+
 void change_IK_Update()
 {
     if (currentIK >= 0 && currentIK < iksIndex)
@@ -14035,8 +14061,14 @@ int main(int argc, char * args[])
                                 {
                                     if (h_index == 1)
                                     {
-                                        //printf("set ik update\n");
                                         change_IK_Update();
+                                    }
+                                }
+                                else if (mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 3 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 4)
+                                {
+                                    if (h_index == 1)
+                                    {
+                                        change_IK_Stretch();
                                     }
                                 }
                             }
@@ -14046,7 +14078,6 @@ int main(int argc, char * args[])
                                 {
                                     if (h_index == 1)
                                     {
-                                        //printf("set ik update\n");
                                         change_Transformer_Pin();
                                     }
                                 }

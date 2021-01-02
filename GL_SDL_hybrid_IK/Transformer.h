@@ -100,8 +100,11 @@ struct ikChain
     float rotVec_F[3][3]; // final pose matrix
     float rotVec_I[3][3]; // bind pose inverse
     int update;
+    int stretch;
 }
 ;
+
+void project_IK_goal_To_Spine(ikChain * I);
 
 typedef struct bone
 {
@@ -1059,7 +1062,10 @@ void rotate_children_(transformer * T)
 
             if (C->IK != NULL && C->style == ik_fixed && C->IK->update)
             {
-
+                if (!C->IK->stretch)
+                {
+                    project_IK_goal_To_Spine(C->IK);
+                }
             }
             else
             {
@@ -1778,7 +1784,21 @@ void move_H(transformer * T, float Delta[3])
         }
         else if (C->IK != NULL && C->style == ik_fixed)
         {
+            if (C->IK->update && !C->IK->stretch)
+            {
+                project_IK_goal_To_Spine(C->IK);
 
+                if (C->IK->B->childcount > 0)
+                {
+                    float Delta0[3];
+
+                    Delta0[0] = C->IK->B->childs[0]->pos[0] - C->IK->B->pos[0];
+                    Delta0[1] = C->IK->B->childs[0]->pos[1] - C->IK->B->pos[1];
+                    Delta0[2] = C->IK->B->childs[0]->pos[2] - C->IK->B->pos[2];
+
+                    move_H(C, Delta0);
+                }
+            }
         }
         else
         {

@@ -239,6 +239,7 @@ int init_ikChain(deformer * Deformer)
     }
 
     I->update = 1;
+    I->stretch = 1;
 
     iksIndex ++;
     return 1;
@@ -1289,6 +1290,26 @@ void populate_IK_Update(deformer * D, ikChain * I, transformer * T)
         }
 
         populate_IK_Update(D, I, C);
+    }
+}
+
+void project_IK_goal_To_Spine(ikChain * I)
+{
+    /* Pos_ is prepared in create_Action_Begin_Pose */
+
+    direction_Pack P = length_AB(I->A->pos, I->B->Pos_);
+
+    if (P.distance > I->sum_length)
+    {
+        I->B->pos[0] = I->A->pos[0] + P.vec[0] * I->sum_length;
+        I->B->pos[1] = I->A->pos[1] + P.vec[1] * I->sum_length;
+        I->B->pos[2] = I->A->pos[2] + P.vec[2] * I->sum_length;
+    }
+    else
+    {
+        I->B->pos[0] = I->B->Pos_[0];
+        I->B->pos[1] = I->B->Pos_[1];
+        I->B->pos[2] = I->B->Pos_[2];
     }
 }
 
