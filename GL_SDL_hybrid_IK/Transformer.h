@@ -89,6 +89,15 @@ typedef struct
 }
 constraint;
 
+typedef struct
+{
+    ikChain * IK;
+    deformer * Deformer;
+}
+constraint_Pack;
+
+constraint_Pack Constraint_Pack;
+
 struct ikChain
 {
     int index;
@@ -1826,18 +1835,131 @@ void move_H(transformer * T, float Delta[3])
     }
 }
 
-void move_Deformer(transformer * T, float Delta[3])
-{
-    transformer * P = T->parent;
+void move_T_Constraint(transformer * T, float Delta[3]);
 
-    while (P != NULL && P->Deformer == T->Deformer)
+void move_H_Constraint(transformer * T, float Delta[3])
+{
+    int c;
+    transformer * C, * C0;
+
+    for (c = 0; c < T->childcount; c ++)
     {
-        P = P->parent;
+        C = T->childs[c];
+
+        if (C->Constraint != NULL)
+        {
+            C0 = C->Constraint->IK_goal;
+
+            if (C0->IK != NULL && C0->style == ik_fixed)
+            {
+                if (C0->IK->update && !C0->IK->stretch)
+                {
+                    project_IK_goal_To_Spine(C0->IK);
+
+                    if (C0->IK->B->childcount > 0)
+                    {
+                        float Delta0[3];
+
+                        Delta0[0] = C0->IK->B->childs[0]->pos[0] - C0->IK->B->pos[0];
+                        Delta0[1] = C0->IK->B->childs[0]->pos[1] - C0->IK->B->pos[1];
+                        Delta0[2] = C0->IK->B->childs[0]->pos[2] - C0->IK->B->pos[2];
+
+                        move_H_Constraint(C0, Delta0);
+                    }
+                }
+            }
+        }
+
+        move_T_Constraint(C, Delta);
+        move_H_Constraint(C, Delta);
+    }
+}
+
+void rotate_Constraint(transformer * T)
+{
+    int c;
+    transformer * C, * C0;
+
+    if (T->Constraint != NULL)
+    {
+        C0 = T->Constraint->IK_goal;
+
+        if (C0->IK != NULL && C0->style == ik_fixed)
+        {
+            if (C0->IK->update && !C0->IK->stretch)
+            {
+                project_IK_goal_To_Spine(C0->IK);
+            }
+        }
     }
 
-    //rotate_collect(P);
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        rotate_Constraint(C);
+    }
+}
+
+void move_T_Constraint(transformer * T, float Delta[3])
+{
+    transformer * C0;
+
+    if (T->Constraint != NULL)
+    {
+        C0 = T->Constraint->IK_goal;
+
+        if (C0->IK != NULL && C0->style == ik_fixed)
+        {
+            if (C0->IK->update && !C0->IK->stretch)
+            {
+                project_IK_goal_To_Spine(C0->IK);
+
+                if (C0->IK->B->childcount > 0)
+                {
+                    float Delta0[3];
+
+                    Delta0[0] = C0->IK->B->childs[0]->pos[0] - C0->IK->B->pos[0];
+                    Delta0[1] = C0->IK->B->childs[0]->pos[1] - C0->IK->B->pos[1];
+                    Delta0[2] = C0->IK->B->childs[0]->pos[2] - C0->IK->B->pos[2];
+
+                    move_H_Constraint(C0, Delta0);
+                }
+            }
+        }
+    }
+
+    move_T(T, Delta);
+}
+
+void rotate_Deformer_Constraint(transformer * T)
+{
     rotate_vertex_groups_D_Init();
-    //rotate_hierarchy_T(P, T);
+
+    rotate_(T);
+
+    rotate_Constraint(T);
+
+    solve_IK_Chain(Constraint_Pack.IK);
+
+    rotate_Deformer_verts(Constraint_Pack.IK->Deformer);
+}
+
+void move_Deformer_Constraint(transformer * T, float Delta[3])
+{
+    rotate_vertex_groups_D_Init();
+
+    move_T_Constraint(T, Delta);
+    move_H_Constraint(T, Delta);
+
+    solve_IK_Chain(Constraint_Pack.IK);
+
+    rotate_Deformer_verts(Constraint_Pack.IK->Deformer);
+}
+
+void move_Deformer(transformer * T, float Delta[3])
+{
+    rotate_vertex_groups_D_Init();
+
     move_T(T, Delta);
     move_H(T, Delta);
 
@@ -1848,7 +1970,22 @@ void move_Deformer(transformer * T, float Delta[3])
 
 void update_rotate_bounding_box();
 
-void move_(transformer * T, float Delta[3], int L)
+void move_Constraint(transformer * T, float Delta[3])
+{
+    if (Constraint_Pack.IK->Deformer != NULL)
+    {
+        move_Deformer_Constraint(T, Delta);
+    }
+    else
+    {
+        rotate_vertex_groups_D_Init();
+        move_T(T, Delta);
+        move_Children(T, Delta);
+    }
+    update_rotate_bounding_box();
+}
+
+void move_(transformer * T, float Delta[3])
 {
     if (T->Deformer != NULL)
     {

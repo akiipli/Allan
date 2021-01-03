@@ -77,6 +77,27 @@ ikChain * ik_Chains_Collection[IKCHAINS];
 constraint * constraints[CONSTRAINTS];
 int constraintsIndex = 0;
 
+void scan_For_Locator_Constraints(transformer * T)
+{
+    int c;
+
+    transformer * C;
+
+    if (T->Constraint != NULL && T == T->Constraint->Locator)
+    {
+        Constraint_Pack.IK = T->Constraint->IK_goal->IK;
+        Constraint_Pack.Deformer = Constraint_Pack.IK->Deformer;
+    }
+    else
+    {
+        for (c = 0; c < T->childcount; c ++)
+        {
+            C = T->childs[c];
+            scan_For_Locator_Constraints(C);
+        }
+    }
+}
+
 void remove_Constraint_From_Constraints(constraint * C)
 {
     int c, index;
@@ -406,6 +427,8 @@ void make_Spine(float rotVec_[3][3], float P_vec[3], float rotVec_P[3][3], int o
     float x_axis[3];
     float y_axis[3];
     float rotVec_p[3][3];
+
+    //memcpy(rotVec_p, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof rotVec_p);
 
     /* simulating order yxz
     where z is aim */

@@ -7929,9 +7929,11 @@ void add_IK_Constraint()
             printf("add IK Constraint\n");
             ikChain * I = ikChains[currentIK];
 
-            init_IK_Constraint(I);
-
-            create_Transformers_List();
+            if (I->C == NULL)
+            {
+                init_IK_Constraint(I);
+                create_Transformers_List();
+            }
 
             DRAW_UI = 0;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
@@ -9647,7 +9649,7 @@ void unparent(transformer * T, transformer * P)
 
 void parent(transformer * T, transformer * P)
 {
-    if (strcmp(T->Name, "Object 5") == 0)
+    if (T->index == CUBEINDEX - 1)
     {
         /*CUBECOMMENT*/
     }
@@ -10541,6 +10543,19 @@ void select_Locator_Selections(int currentLocator)
         set_Vert_Selection(S);
 }
 
+void continue_Action_Begin_Pose(transformer * T)
+{
+    if (T->Deformer != NULL)
+    {
+        T = T->Deformer->Transformers[0];
+    }
+    else if (T->IK != NULL)
+    {
+        T = T->IK->A->parent;
+    }
+    create_Action_Begin_Pose(T);
+}
+
 void init_Action_Begin_Pose(transformer * T)
 {
     if (T->Deformer != NULL)
@@ -10564,7 +10579,7 @@ void init_Action_Begin_Pose(transformer * T)
             P0 = P;
         }
     }
-
+    Action_Begin_Transformers_Count = 0;
     create_Action_Begin_Pose(P0);
 }
 
@@ -10635,8 +10650,18 @@ void start_Movement()
         T_pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
         T_pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
 
+        Constraint_Pack.IK = NULL;
+        scan_For_Locator_Constraints(T);
+
+        if (Constraint_Pack.IK != NULL)
+            printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
+
         Update_Objects_Count = 0;
-        if (T->Deformer != NULL && T->Deformer->Transformers_Count > 0)
+        if (Constraint_Pack.Deformer != NULL && Constraint_Pack.Deformer->Transformers_Count > 0)
+        {
+            rotate_collect(Constraint_Pack.Deformer->Transformers[0]);
+        }
+        else if (T->Deformer != NULL && T->Deformer->Transformers_Count > 0)
         {
             rotate_collect(T->Deformer->Transformers[0]);
         }
@@ -10652,6 +10677,11 @@ void start_Movement()
         bake(T);
 
         init_Action_Begin_Pose(T);
+
+        if (Constraint_Pack.IK != NULL)
+        {
+            continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+        }
 
         if (T->Deformer != NULL)
         {
@@ -10714,7 +10744,14 @@ void make_Movement()
     }
     else
     {
-        move_(T, Delta, subdLevel);
+        if (Constraint_Pack.IK != NULL)
+        {
+            move_Constraint(T, Delta);
+        }
+        else
+        {
+            move_(T, Delta);
+        }
 
         if (T->Deformer != NULL)
         {
@@ -10789,23 +10826,42 @@ void transform_Objects_And_Render()
                 else
                 {
                     Update_Objects_Count = 0;
-                    if (T->Deformer != NULL)
+                    if (Constraint_Pack.IK != NULL)
                     {
-                        if (T->Deformer->Transformers_Count > 0)
+                        if (Constraint_Pack.IK->Deformer != NULL)
                         {
-                            rotate_collect(T->Deformer->Transformers[0]);
+                            if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
+                            {
+                                rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
+                            }
+                            else
+                            {
+                                rotate_collect(T);
+                            }
+                        }
+                        rotate_Deformer_Constraint(T);
+                    }
+                    else
+                    {
+
+                        if (T->Deformer != NULL)
+                        {
+                            if (T->Deformer->Transformers_Count > 0)
+                            {
+                                rotate_collect(T->Deformer->Transformers[0]);
+                            }
+                            else
+                            {
+                                rotate_collect(T);
+                            }
+                            rotate_Deformer(T);
                         }
                         else
                         {
                             rotate_collect(T);
+                            rotate_vertex_groups_D_Init();
+                            rotate(T);
                         }
-                        rotate_Deformer(T);
-                    }
-                    else
-                    {
-                        rotate_collect(T);
-                        rotate_vertex_groups_D_Init();
-                        rotate(T);
                     }
                     update_rotate_bounding_box();
                 }
@@ -13174,23 +13230,42 @@ int main(int argc, char * args[])
 
                             paste_Action_Begin();
 
-                            if (T->Deformer != NULL)
+                            if (Constraint_Pack.IK != NULL)
                             {
-                                if (T->Deformer->Transformers_Count > 0)
+                                if (Constraint_Pack.IK->Deformer != NULL)
                                 {
-                                    rotate_collect(T->Deformer->Transformers[0]);
+                                    if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
+                                    {
+                                        rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
+                                    }
+                                    else
+                                    {
+                                        rotate_collect(T);
+                                    }
+                                }
+                                paste_Deformer(Constraint_Pack.IK->Deformer->Transformers[0]);
+                            }
+                            else
+                            {
+
+                                if (T->Deformer != NULL)
+                                {
+                                    if (T->Deformer->Transformers_Count > 0)
+                                    {
+                                        rotate_collect(T->Deformer->Transformers[0]);
+                                    }
+                                    else
+                                    {
+                                        rotate_collect(T);
+                                    }
+                                    paste_Deformer(T);
                                 }
                                 else
                                 {
                                     rotate_collect(T);
+                                    rotate_vertex_groups_D_Init();
+                                    rotate_P(T);
                                 }
-                                paste_Deformer(T);
-                            }
-                            else
-                            {
-                                rotate_collect(T);
-                                rotate_vertex_groups_D_Init();
-                                rotate_P(T);
                             }
                             update_rotate_bounding_box();
                         }
@@ -16904,12 +16979,23 @@ int main(int argc, char * args[])
                         }
                         else
                         {
+                            Constraint_Pack.IK = NULL;
+                            scan_For_Locator_Constraints(T);
+
+                            if (Constraint_Pack.IK != NULL)
+                                printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
+
                             if (T->Deformer != NULL)
                                 normalize_IK_Spines(T->Deformer);
                             bake_position(T);
                             bake_position_Children(T);
 
                             init_Action_Begin_Pose(T);
+
+                            if (Constraint_Pack.IK != NULL)
+                            {
+                                continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+                            }
 
                             if (T->Deformer != NULL && multi_Rotation)
                             {

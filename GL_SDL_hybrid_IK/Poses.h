@@ -580,8 +580,6 @@ void list_Action_Begin_Transformers(transformer * T)
 
 void create_Action_Begin_Pose(transformer * T)
 {
-    Action_Begin_Transformers_Count = 0;
-
     Action_Begin_Transformers[Action_Begin_Transformers_Count ++] = T;
 
     list_Action_Begin_Transformers(T);
