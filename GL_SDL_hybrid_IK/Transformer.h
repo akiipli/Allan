@@ -1028,6 +1028,14 @@ void rotate_children_M(transformer * T)
         }
         else
         {
+            if (C->IK != NULL && C->style == ik_fixed && C->IK->update)
+            {
+                if (!C->IK->stretch)
+                {
+                    project_IK_goal_To_Spine(C->IK);
+                }
+            }
+
             if (C->Bone != NULL)
             {
                 if (C == C->Bone->B)
@@ -1814,17 +1822,6 @@ void move_H(transformer * T, float Delta[3])
             if (C->IK->update && !C->IK->stretch)
             {
                 project_IK_goal_To_Spine(C->IK);
-
-                if (C->IK->B->childcount > 0)
-                {
-                    float Delta0[3];
-
-                    Delta0[0] = C->IK->B->childs[0]->pos[0] - C->IK->B->pos[0];
-                    Delta0[1] = C->IK->B->childs[0]->pos[1] - C->IK->B->pos[1];
-                    Delta0[2] = C->IK->B->childs[0]->pos[2] - C->IK->B->pos[2];
-
-                    move_H(C, Delta0);
-                }
             }
         }
         else
@@ -1855,17 +1852,6 @@ void move_H_Constraint(transformer * T, float Delta[3])
                 if (C0->IK->update && !C0->IK->stretch)
                 {
                     project_IK_goal_To_Spine(C0->IK);
-
-                    if (C0->IK->B->childcount > 0)
-                    {
-                        float Delta0[3];
-
-                        Delta0[0] = C0->IK->B->childs[0]->pos[0] - C0->IK->B->pos[0];
-                        Delta0[1] = C0->IK->B->childs[0]->pos[1] - C0->IK->B->pos[1];
-                        Delta0[2] = C0->IK->B->childs[0]->pos[2] - C0->IK->B->pos[2];
-
-                        move_H_Constraint(C0, Delta0);
-                    }
                 }
             }
         }
@@ -1913,17 +1899,6 @@ void move_T_Constraint(transformer * T, float Delta[3])
             if (C0->IK->update && !C0->IK->stretch)
             {
                 project_IK_goal_To_Spine(C0->IK);
-
-                if (C0->IK->B->childcount > 0)
-                {
-                    float Delta0[3];
-
-                    Delta0[0] = C0->IK->B->childs[0]->pos[0] - C0->IK->B->pos[0];
-                    Delta0[1] = C0->IK->B->childs[0]->pos[1] - C0->IK->B->pos[1];
-                    Delta0[2] = C0->IK->B->childs[0]->pos[2] - C0->IK->B->pos[2];
-
-                    move_H_Constraint(C0, Delta0);
-                }
             }
         }
     }
@@ -1939,7 +1914,7 @@ void rotate_Deformer_Constraint(transformer * T)
 
     rotate_Constraint(T);
 
-    solve_IK_Chain(Constraint_Pack.IK);
+    solve_IK_Chains(Constraint_Pack.IK->Deformer);
 
     rotate_Deformer_verts(Constraint_Pack.IK->Deformer);
 }
@@ -1951,7 +1926,7 @@ void move_Deformer_Constraint(transformer * T, float Delta[3])
     move_T_Constraint(T, Delta);
     move_H_Constraint(T, Delta);
 
-    solve_IK_Chain(Constraint_Pack.IK);
+    solve_IK_Chains(Constraint_Pack.IK->Deformer);
 
     rotate_Deformer_verts(Constraint_Pack.IK->Deformer);
 }
