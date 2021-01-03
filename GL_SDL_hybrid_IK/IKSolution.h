@@ -1444,11 +1444,13 @@ void project_IK_goal_To_Spine(ikChain * I)
         P = length_AB(I->A->pos, I->B->Pos_);
     }
 
-    if (P.distance > I->sum_length)
+    float sum_length = I->sum_length * 1.1;
+
+    if (P.distance > sum_length)
     {
-        I->B->pos[0] = I->A->pos[0] + P.vec[0] * I->sum_length;
-        I->B->pos[1] = I->A->pos[1] + P.vec[1] * I->sum_length;
-        I->B->pos[2] = I->A->pos[2] + P.vec[2] * I->sum_length;
+        I->B->pos[0] = I->A->pos[0] + P.vec[0] * sum_length;
+        I->B->pos[1] = I->A->pos[1] + P.vec[1] * sum_length;
+        I->B->pos[2] = I->A->pos[2] + P.vec[2] * sum_length;
     }
     else
     {
