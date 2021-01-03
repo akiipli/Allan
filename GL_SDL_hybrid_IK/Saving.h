@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1004;
+int saving_version = 1005;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -654,12 +654,13 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
                 T->Selections_Count,
                 T->LocatorSize,
                 T->pin);
-        fprintf(F, "%u %u %u %u %u\n",
+        fprintf(F, "%u %u %u %u %u %u\n",
                 (unsigned)T->parent,
                 (unsigned)T->Object,
                 (unsigned)T->Deformer,
                 (unsigned)T->Bone,
-                (unsigned)T->IK);
+                (unsigned)T->IK,
+                (unsigned)T->Constraint);
 
         fprintf(F, "%f %f %f\n", T->scl[0], T->scl[1], T->scl[2]);
         fprintf(F, "%f %f %f\n", T->scl_vec[0], T->scl_vec[1], T->scl_vec[2]);
@@ -828,30 +829,49 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
         fprintf(F, "%f %f\n", I->poleRot, I->P.distance);
         fprintf(F, "%f %f %f\n", I->P.vec[0], I->P.vec[1], I->P.vec[2]);
         fprintf(F, "%d %d\n", I->update, I->stretch);
+        fprintf(F, "%u\n", (unsigned)I->C);
+    }
+
+    fprintf(F, "\n");
+    fclose(F);
+
+    dirfile[0] = '\0';
+    strcat(dirfile, hierarchys_files_dir);
+    strcat(dirfile, "/");
+    strcat(dirfile, "Constraints");
+    strcat(dirfile, ".txt");
+
+    F = fopen(dirfile, "w");
+
+    if (F == NULL) return 0;
+
+    fprintf(F, "Constraints\n");
+    fprintf(F, "%d\n", constraintsIndex);
+
+    int c;
+    constraint * C;
+
+    for (c = 0; c < constraintsIndex; c ++)
+    {
+        C = constraints[c];
+
+        fprintf(F, "%s\n", C->Name);
+        fprintf(F, "%u\n", (unsigned)C);
+        fprintf(F, "%d\n", C->constraint_type);
+        fprintf(F, "%u\n", (unsigned)C->Locator);
+        fprintf(F, "%u\n", (unsigned)C->IK_goal);
     }
 
     fprintf(F, "\n");
     fclose(F);
     /*
     int index;
-    unsigned address; // assigned after loading
+    unsigned address;
     char * Name;
     int selected;
-    deformer * Deformer;
-    int bonescount;
-    bone ** Bones;
-    float sum_length; // sum of bone lengths
-    vec3 * vectors; // transition into stretched pose
-    vec3 * vectors_bone; // in between bone vectors
-    vec3 * positions_A; // A points in the chain
-    vec3 * positions_B; // B points in the chain
-    vec3 * bones_Rot; // Bones rotational axis
-    transformer * A;
-    transformer * B;
-    float rotVec_0[3][3]; // intermediate matrix
-    float rotVec_1[3][3]; // final pose matrix
-    float poleRot;
-    direction_Pack P;
+    int constraint_type;
+    transformer * Locator;
+    transformer * IK_goal;
     */
     return 1;
 }

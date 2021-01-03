@@ -54,6 +54,9 @@ float dot_productFF(float[3], float[3]);
 #define aim_vector 2
 #define world 0
 
+#define constraint_none 0
+#define constraint_to_point 1
+
 typedef struct transformer transformer;
 typedef struct object object;
 typedef struct deformer deformer;
@@ -73,6 +76,18 @@ typedef struct
     float vec[3];
 }
 direction_Pack;
+
+typedef struct
+{
+    int index;
+    unsigned address; // assigned after loading
+    char * Name;
+    int selected;
+    int constraint_type;
+    transformer * Locator;
+    transformer * IK_goal;
+}
+constraint;
 
 struct ikChain
 {
@@ -101,6 +116,7 @@ struct ikChain
     float rotVec_I[3][3]; // bind pose inverse
     int update;
     int stretch;
+    constraint * C;
 }
 ;
 
@@ -204,6 +220,7 @@ struct transformer
     ikChain * IK;
     float LocatorSize;
     int pin; //x 1, y 2, z 3
+    constraint * Constraint;
 };
 
 transformer * child_collection[TRANSFORMERS];
@@ -323,6 +340,7 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         T->IK = NULL;
         T->LocatorSize = LocatorSize;
         T->pin = 0;
+        T->Constraint = NULL;
     }
 }
 

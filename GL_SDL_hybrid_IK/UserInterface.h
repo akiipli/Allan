@@ -55,7 +55,7 @@ int LISTLENGTH = 12;
 #define H_BONE_NUM 2
 #define H_MATR_NUM 4
 #define H_ITEM_NUM 1
-#define H_IKCH_NUM 2
+#define H_IKCH_NUM 4
 #define H_SUBC_NUM 5
 #define H_TEXT_NUM 2
 
@@ -1931,7 +1931,7 @@ void draw_Button_subcharacter_horizontal(const char * text, int index, int color
 
 void draw_Button_ik_horizontal(const char * text, int index, int colorchange)
 {
-    int h_dim = BUTTON_WIDTH_SHORT * index;
+    int h_dim = BUTTON_WIDTH_MEDIUM * index;
 	/*draw frame*/
 
 	//glDisable(GL_TEXTURE_2D);
@@ -1944,15 +1944,15 @@ void draw_Button_ik_horizontal(const char * text, int index, int colorchange)
 
     draw_Rectangle((float[8]){h_dim, 0,
         h_dim, BUTTON_HEIGHT,
-        h_dim + BUTTON_WIDTH_SHORT, BUTTON_HEIGHT,
-        h_dim + BUTTON_WIDTH_SHORT, 0}, QUADS);
+        h_dim + BUTTON_WIDTH_MEDIUM, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_MEDIUM, 0}, QUADS);
 
 	glColor4fv(buttoncolors[UI_WHITE].color);
 
     draw_Rectangle((float[8]){h_dim, 0,
         h_dim, BUTTON_HEIGHT,
-        h_dim + BUTTON_WIDTH_SHORT, BUTTON_HEIGHT,
-        h_dim + BUTTON_WIDTH_SHORT, 0}, LINE_LOOP);
+        h_dim + BUTTON_WIDTH_MEDIUM, BUTTON_HEIGHT,
+        h_dim + BUTTON_WIDTH_MEDIUM, 0}, LINE_LOOP);
 
 	//glEnable(GL_TEXTURE_2D);
 
@@ -3489,6 +3489,8 @@ void draw_IK_Bottom_Line(int width, int height)
 
     draw_Button_ik_horizontal("Remove", 0, 1);
     draw_Button_ik_horizontal("Rename", 1, 1);
+    draw_Button_ik_horizontal("Add Con.", 2, 1);
+    draw_Button_ik_horizontal("Rem Con.", 3, 1);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

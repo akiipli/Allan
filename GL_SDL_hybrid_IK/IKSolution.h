@@ -48,6 +48,7 @@ implanted into solution.
 
 #define BONES 400
 #define IKCHAINS 200
+#define CONSTRAINTS 200
 
 #define IK_MEMBER 3
 #define IK_START 1
@@ -72,6 +73,117 @@ int ikValidates;
 
 int ik_Collection_Count;
 ikChain * ik_Chains_Collection[IKCHAINS];
+
+constraint * constraints[CONSTRAINTS];
+int constraintsIndex = 0;
+
+void remove_Constraint_From_Constraints(constraint * C)
+{
+    int c, index;
+
+    int condition = 0;
+
+    for (c = 0; c < constraintsIndex; c ++)
+    {
+        if (C == constraints[c])
+        {
+            condition = 1;
+            index = c;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        constraintsIndex --;
+        for (c = index; c < constraintsIndex; c ++)
+        {
+            constraints[c] = constraints[c + 1];
+            constraints[c]->index = c;
+        }
+        C->IK_goal->Constraint = NULL;
+        C->Locator->Constraint = NULL;
+        free(C->Name);
+        free(C);
+    }
+}
+
+void delete_Constraint(ikChain * I)
+{
+    constraint * C;
+
+    int c, index;
+
+    int condition = 0;
+
+    for (c = 0; c < constraintsIndex; c ++)
+    {
+        C = constraints[c];
+
+        if (C == I->C)
+        {
+            condition = 1;
+            index = c;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        constraintsIndex --;
+        for (c = index; c < constraintsIndex; c ++)
+        {
+            constraints[c] = constraints[c + 1];
+            constraints[c]->index = c;
+        }
+        I->C = NULL;
+        C->IK_goal->Constraint = NULL;
+        C->Locator->Constraint = NULL;
+        free(C->Name);
+        free(C);
+    }
+}
+
+void init_IK_Constraint(ikChain * I)
+{
+    if (transformerIndex < TRANSFORMERS)
+    {
+        constraint * C = malloc(sizeof(constraint));
+
+        if (C != NULL && constraintsIndex < CONSTRAINTS)
+        {
+            C->index = constraintsIndex;
+            constraints[constraintsIndex] = C;
+
+            transformer * T = calloc(1, sizeof(transformer));
+
+            if (T != NULL)
+            {
+                Locators[locatorIndex ++] = T;
+
+                init_transformer(T, &World, "Constraint");
+
+                memcpy(T->pos, I->B->pos, sizeof(T->pos));
+
+                T->LocatorSize *= 2;
+
+                C->Name = malloc(STRLEN * sizeof(char));
+                sprintf(C->Name, "ikConstraint %d", constraintsIndex);
+                C->constraint_type = constraint_to_point;
+                I->C = C;
+                C->Locator = T;
+                C->IK_goal = I->B;
+                T->Constraint = C;
+                I->B->Constraint = C;
+                constraintsIndex ++;
+            }
+            else
+            {
+                free(C);
+            }
+        }
+    }
+}
 
 void collect_Chain_Bones(bone * A, bone * B)
 {
@@ -240,6 +352,7 @@ int init_ikChain(deformer * Deformer)
 
     I->update = 1;
     I->stretch = 1;
+    I->C = NULL;
 
     iksIndex ++;
     return 1;
@@ -1297,7 +1410,16 @@ void project_IK_goal_To_Spine(ikChain * I)
 {
     /* Pos_ is prepared in create_Action_Begin_Pose */
 
-    direction_Pack P = length_AB(I->A->pos, I->B->Pos_);
+    direction_Pack P;
+
+    if (I->C != NULL)
+    {
+        P = length_AB(I->A->pos, I->C->Locator->pos);
+    }
+    else
+    {
+        P = length_AB(I->A->pos, I->B->Pos_);
+    }
 
     if (P.distance > I->sum_length)
     {
@@ -1307,9 +1429,18 @@ void project_IK_goal_To_Spine(ikChain * I)
     }
     else
     {
-        I->B->pos[0] = I->B->Pos_[0];
-        I->B->pos[1] = I->B->Pos_[1];
-        I->B->pos[2] = I->B->Pos_[2];
+        if (I->C != NULL)
+        {
+            I->B->pos[0] = I->C->Locator->pos[0];
+            I->B->pos[1] = I->C->Locator->pos[1];
+            I->B->pos[2] = I->C->Locator->pos[2];
+        }
+        else
+        {
+            I->B->pos[0] = I->B->Pos_[0];
+            I->B->pos[1] = I->B->Pos_[1];
+            I->B->pos[2] = I->B->Pos_[2];
+        }
     }
 }
 

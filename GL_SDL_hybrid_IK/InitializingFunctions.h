@@ -46,6 +46,18 @@ void free_ikChains()
     }
 }
 
+void free_Constraints()
+{
+    int c;
+    constraint * C;
+    for (c = 0; c < constraintsIndex; c ++)
+    {
+        C = constraints[c];
+        free(C->Name);
+        free(C);
+    }
+}
+
 void free_subcharacter(subcharacter * S)
 {
     free(S->Name);

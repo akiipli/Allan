@@ -1147,6 +1147,13 @@ void remove_ikChain_From_ikChains_(ikChain * I, int no_delete)
             delete_IK_Transformers(I);
         }
 
+        if (I->C != NULL)
+        {
+            I->C->IK_goal->Constraint = NULL;
+            I->C->Locator->Constraint = NULL;
+            free(I->C);
+        }
+
         free_ikChain(I);
 
         iksIndex --;

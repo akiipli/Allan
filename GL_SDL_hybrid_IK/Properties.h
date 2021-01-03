@@ -220,7 +220,10 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
     {
         ikChain * I = (ikChain *)subject;
 
-        sprintf(text, "Deformer\t%s", I->Deformer->Name);
+        if (I->Deformer != NULL)
+            sprintf(text, "Deformer\t%s", I->Deformer->Name);
+        else
+            sprintf(text, "Deformer");
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
         sprintf(text, "Bones\t%d", I->bonescount);
@@ -235,6 +238,12 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         sprintf(text, "%d", I->stretch);
         draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+        idx ++;
+        if (I->C != NULL)
+            sprintf(text, "Constraint %s", I->C->Locator->Name);
+        else
+            sprintf(text, "Constraint");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
     }
     else if (subject != NULL && type == PROPERTIES_BONE)

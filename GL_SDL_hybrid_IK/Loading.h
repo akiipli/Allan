@@ -35,6 +35,12 @@ ikChains_In;
 
 typedef struct
 {
+    int constraintsIndex;
+}
+constraints_In;
+
+typedef struct
+{
     int bonesIndex;
 }
 Bones_In;
@@ -739,6 +745,90 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
     return 1;
 }
 
+int read_Constraints_file(constraints_In * CONSTRAINTS_IN, char * fileName)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    int c;
+
+    char * p;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Constraints\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &CONSTRAINTS_IN->constraintsIndex);
+
+            for (c = 0; c < CONSTRAINTS_IN->constraintsIndex; c ++)
+            {
+                if (constraintsIndex >= CONSTRAINTS)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                constraint * C = malloc(sizeof(constraint));
+
+                if (C == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                constraints[constraintsIndex] = C;
+                C->index = constraintsIndex;
+
+                C->Name = malloc(STRLEN * sizeof(char));
+
+                if (C->Name == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                fgets(buff, BUF_SIZE, fp);
+
+                p = strchr(buff, '\n');
+                *p = '\0';
+
+                sprintf(C->Name, "%s", buff);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&C->address);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &C->constraint_type);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&C->Locator);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&C->IK_goal);
+
+                constraintsIndex ++;
+            }
+        }
+    }
+    else
+    {
+        fclose(fp);
+        return 0;
+    }
+
+    fclose(fp);
+    return 1;
+}
+
 int read_ikChains_file(ikChains_In * CHAINS_IN, char * fileName)
 {
     FILE * fp;
@@ -874,6 +964,15 @@ int read_ikChains_file(ikChains_In * CHAINS_IN, char * fileName)
                 {
                     I->update = 1;
                     I->stretch = 1;
+                }
+                if (loading_version >= 1005)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&I->C);
+                }
+                else
+                {
+                    I->C = NULL;
                 }
                 iksIndex ++;
             }
@@ -1432,14 +1531,28 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                 }
 
                 //T->LocatorSize = LocatorSize;
-
-                fgets(buff, BUF_SIZE, fp);
-                sscanf(buff, "%u %u %u %u %u",
-                        (unsigned*)&T->parent,
-                        (unsigned*)&T->Object,
-                        (unsigned*)&T->Deformer,
-                        (unsigned*)&T->Bone,
-                        (unsigned*)&T->IK);
+                if (loading_version >= 1005)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u %u %u %u %u %u",
+                            (unsigned*)&T->parent,
+                            (unsigned*)&T->Object,
+                            (unsigned*)&T->Deformer,
+                            (unsigned*)&T->Bone,
+                            (unsigned*)&T->IK,
+                            (unsigned*)&T->Constraint);
+                }
+                else
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u %u %u %u %u",
+                            (unsigned*)&T->parent,
+                            (unsigned*)&T->Object,
+                            (unsigned*)&T->Deformer,
+                            (unsigned*)&T->Bone,
+                            (unsigned*)&T->IK);
+                    T->Constraint = NULL;
+                }
 
                 if (T->Object == 0)
                     Locators[locatorIndex ++] = T;
@@ -2644,13 +2757,14 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
     DIR * dir;
     struct dirent * ent;
 
-    int result, b_index, t_index, i_index;
+    int result, b_index, t_index, i_index, c_index;
     unsigned w_address;
 
     w_address = 0;
     t_index = 0;
     b_index = 0;
     i_index = 0;
+    c_index = 0;
 
     if ((dir = opendir(path)) != NULL)
     {
@@ -2734,6 +2848,19 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
                         i_index = IKCHAINS_IN->chainsIndex;
                     }
                     free(IKCHAINS_IN);
+                }
+                else if (strcmp(ent->d_name, "Constraints.txt") == 0)
+                {
+                    result = 0;
+                    printf("CONSTRAINTS\n");
+                    constraints_In * CONSTRAINTS_IN = calloc(1, sizeof(constraints_In));
+                    result = read_Constraints_file(CONSTRAINTS_IN, Path);
+                    if (result)
+                    {
+                        printf("%u\n", CONSTRAINTS_IN->constraintsIndex);
+                        c_index = CONSTRAINTS_IN->constraintsIndex;
+                    }
+                    free(CONSTRAINTS_IN);
                 }
             }
         }
@@ -3041,6 +3168,61 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
             if (condition)
             {
                 T->IK = NULL;
+            }
+        }
+    }
+
+   if (w_address && t_index && i_index && c_index)
+    {
+        int t, i, c;
+
+        ikChain * I;
+        constraint * C;
+        transformer * T;
+
+        int condition;
+
+        for (c = constraintsIndex - c_index; c < constraintsIndex; c ++)
+        {
+            C = constraints[c];
+
+            condition = 1;
+            for (i = iksIndex - i_index; i < iksIndex; i ++)
+            {
+                I = ikChains[i];
+                if (C->address == (unsigned)I->C)
+                {
+                    condition = 0;
+                    I->C = C;
+                    break;
+                }
+            }
+            if (condition)
+            {
+                I->C = NULL;
+            }
+
+            condition = 0;
+
+            for (t = transformerIndex - t_index; t < transformerIndex; t ++)
+            {
+                T = transformers[t];
+                if (T->address == (unsigned)C->Locator)
+                {
+                    C->Locator = T;
+                    T->Constraint = C;
+                    condition ++;
+                }
+                else if (T->address == (unsigned)C->IK_goal)
+                {
+                    C->IK_goal = T;
+                    T->Constraint = C;
+                    condition ++;
+                }
+                if (condition >= 2)
+                {
+                    break;
+                }
             }
         }
     }

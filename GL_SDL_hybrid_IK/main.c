@@ -733,13 +733,13 @@ void cleanup()
     {
         free(object_selection[i].indices);
     }
-
     free_transformers();
     free_deformers();
     free_poses();
     free_subcharacter_poses();
     free_bones();
     free_ikChains();
+    free_Constraints();
     free_Subcharacters();
     free(Action_Begin_Transformers);
     free(Action_Begin_Pose->TP);
@@ -7919,6 +7919,53 @@ void rename_IK()
     }
 }
 
+void add_IK_Constraint()
+{
+    if (BIND_POSE)
+    {
+        if (currentIK >= 0 && currentIK < iksIndex)
+        {
+            set_IK_H_Button(2);
+            printf("add IK Constraint\n");
+            ikChain * I = ikChains[currentIK];
+
+            init_IK_Constraint(I);
+
+            create_Transformers_List();
+
+            DRAW_UI = 0;
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            draw_Dialog();
+            DRAW_UI = 1;
+        }
+    }
+}
+
+void remove_IK_Constraint()
+{
+    if (BIND_POSE)
+    {
+        if (currentIK >= 0 && currentIK < iksIndex)
+        {
+            set_IK_H_Button(3);
+            printf("remove IK Constraint\n");
+            ikChain * I = ikChains[currentIK];
+
+            if (I->C != NULL)
+            {
+                create_Transformers_List();
+                currentLocator = I->C->Locator->index;
+
+                delete_Constraint(I);
+            }
+
+            DRAW_UI = 0;
+            draw_Dialog();
+            DRAW_UI = 1;
+        }
+    }
+}
+
 void transfer_Object_Surface_To_Geometry(object * O, int s)
 {
     int p, l, q;
@@ -9956,6 +10003,10 @@ void delete_Locator()
         {
             condition = 0;
         }
+        if (T->Constraint != NULL)
+        {
+            condition = 0;
+        }
     }
 
     if (condition && current_T->Bone == NULL)
@@ -10894,6 +10945,23 @@ void clear_Deformers()
     }
 }
 
+void clear_Constraints()
+{
+    if (!dialog_lock)
+    {
+        int c;
+
+        constraint * C;
+
+        for (c = constraintsIndex - 1; c >= 0; c --)
+        {
+            C = constraints[c];
+
+            remove_Constraint_From_Constraints(C);
+        }
+    }
+}
+
 void clear_ikChains(int no_delete)
 {
     if (!dialog_lock)
@@ -11106,6 +11174,7 @@ void clear_All()
     if (!dialog_lock)
     {
         clear_ikChains(1);
+        clear_Constraints();
         clear_Deformers();
 
         //clear_Objects();
@@ -11830,7 +11899,7 @@ void change_IK_Stretch()
         ikChain * I = ikChains[currentIK];
         I->stretch = !I->stretch;
 
-        if (I->Deformer != NULL)
+        if (I->Deformer != NULL && !BIND_POSE)
         {
             deformer * D = I->Deformer;
             solve_IK_Chain(I);
@@ -11856,7 +11925,7 @@ void change_IK_Update()
         ikChain * I = ikChains[currentIK];
         I->update = !I->update;
 
-        if (I->Deformer != NULL)
+        if (I->Deformer != NULL && !BIND_POSE)
         {
             deformer * D = I->Deformer;
             solve_IK_Chain(I);
@@ -12631,6 +12700,8 @@ int main(int argc, char * args[])
 
     Button_h_ikch[0].func = &remove_IK;
     Button_h_ikch[1].func = &rename_IK;
+    Button_h_ikch[2].func = &add_IK_Constraint;
+    Button_h_ikch[3].func = &remove_IK_Constraint;
 
     Button_h_subc[0].func = &add_Subcharacter;
     Button_h_subc[1].func = &add_Pose_To_Subcharacter;
@@ -13913,7 +13984,7 @@ int main(int argc, char * args[])
                             }
                             else if (dialog_type == IK_DIALOG && !Edit_Lock)
                             {
-                                h_index = (mouse_x - SIDEBAR * 2) / BUTTON_WIDTH_SHORT;
+                                h_index = (mouse_x - SIDEBAR * 2) / BUTTON_WIDTH_MEDIUM;
                                 if (h_index < H_IKCH_NUM)
                                 {
                                     (*Button_h_ikch[h_index].func)();
