@@ -11013,7 +11013,8 @@ void clear_Constraints()
         {
             C = constraints[c];
 
-            remove_Constraint_From_Constraints(C);
+            free(C->Name);
+            free(C);
         }
     }
 }
@@ -11254,6 +11255,7 @@ void clear_All()
         objectIndex = 1; /*CUBECOMMENT*/
         bonesIndex = 0;
         iksIndex = 0; // IK
+        constraintsIndex = 0;
         subcharacterIndex = 0;
         posesIndex = 0;
         subcharacter_posesIndex = 0;

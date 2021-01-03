@@ -3182,14 +3182,15 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
 
         int condition;
 
-        for (c = constraintsIndex - c_index; c < constraintsIndex; c ++)
+        for (i = iksIndex - i_index; i < iksIndex; i ++)
         {
-            C = constraints[c];
+            I = ikChains[i];
 
             condition = 1;
-            for (i = iksIndex - i_index; i < iksIndex; i ++)
+
+            for (c = constraintsIndex - c_index; c < constraintsIndex; c ++)
             {
-                I = ikChains[i];
+                C = constraints[c];
                 if (C->address == (unsigned)I->C)
                 {
                     condition = 0;
@@ -3201,6 +3202,11 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
             {
                 I->C = NULL;
             }
+        }
+
+        for (c = constraintsIndex - c_index; c < constraintsIndex; c ++)
+        {
+            C = constraints[c];
 
             condition = 0;
 

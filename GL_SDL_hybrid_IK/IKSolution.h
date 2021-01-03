@@ -98,37 +98,6 @@ void scan_For_Locator_Constraints(transformer * T)
     }
 }
 
-void remove_Constraint_From_Constraints(constraint * C)
-{
-    int c, index;
-
-    int condition = 0;
-
-    for (c = 0; c < constraintsIndex; c ++)
-    {
-        if (C == constraints[c])
-        {
-            condition = 1;
-            index = c;
-            break;
-        }
-    }
-
-    if (condition)
-    {
-        constraintsIndex --;
-        for (c = index; c < constraintsIndex; c ++)
-        {
-            constraints[c] = constraints[c + 1];
-            constraints[c]->index = c;
-        }
-        C->IK_goal->Constraint = NULL;
-        C->Locator->Constraint = NULL;
-        free(C->Name);
-        free(C);
-    }
-}
-
 void delete_Constraint(ikChain * I)
 {
     constraint * C;
