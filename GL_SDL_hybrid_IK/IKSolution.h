@@ -98,6 +98,42 @@ void scan_For_Locator_Constraints(transformer * T)
     }
 }
 
+void delete_Pole(ikChain * I)
+{
+    constraint * C;
+
+    int c, index;
+
+    int condition = 0;
+
+    for (c = 0; c < constraintsIndex; c ++)
+    {
+        C = constraints[c];
+
+        if (C == I->Pole)
+        {
+            condition = 1;
+            index = c;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        constraintsIndex --;
+        for (c = index; c < constraintsIndex; c ++)
+        {
+            constraints[c] = constraints[c + 1];
+            constraints[c]->index = c;
+        }
+        I->Pole = NULL;
+        C->IK_goal->Constraint = NULL;
+        C->Locator->Constraint = NULL;
+        free(C->Name);
+        free(C);
+    }
+}
+
 void delete_Constraint(ikChain * I)
 {
     constraint * C;
@@ -131,6 +167,53 @@ void delete_Constraint(ikChain * I)
         C->Locator->Constraint = NULL;
         free(C->Name);
         free(C);
+    }
+}
+
+void init_IK_Pole(ikChain * I)
+{
+    if (transformerIndex < TRANSFORMERS)
+    {
+        constraint * C = malloc(sizeof(constraint));
+
+        if (C != NULL && constraintsIndex < CONSTRAINTS)
+        {
+            C->index = constraintsIndex;
+            constraints[constraintsIndex] = C;
+
+            transformer * T = calloc(1, sizeof(transformer));
+
+            if (T != NULL)
+            {
+                Locators[locatorIndex ++] = T;
+
+                init_transformer(T, &World, "Pole");
+
+                float pos[3];
+
+                pos[0] = (I->A->pos[0] + I->B->pos[0]) / 2.0;
+                pos[1] = (I->A->pos[1] + I->B->pos[1]) / 2.0;
+                pos[2] = (I->A->pos[2] + I->B->pos[2]) / 2.0;
+
+                memcpy(T->pos, pos, sizeof(T->pos));
+
+                T->LocatorSize *= 2;
+
+                C->Name = malloc(STRLEN * sizeof(char));
+                sprintf(C->Name, "ikPole %d", constraintsIndex);
+                C->constraint_type = constraint_pole;
+                I->Pole = C;
+                C->Locator = T;
+                C->IK_goal = I->A;
+                T->Constraint = C;
+                I->A->Constraint = C;
+                constraintsIndex ++;
+            }
+            else
+            {
+                free(C);
+            }
+        }
     }
 }
 
@@ -343,6 +426,7 @@ int init_ikChain(deformer * Deformer)
     I->update = 1;
     I->stretch = 1;
     I->C = NULL;
+    I->Pole = NULL;
 
     iksIndex ++;
     return 1;
@@ -391,7 +475,41 @@ void make_preferred_Axis()
 
 }
 
-void make_Spine(float rotVec_[3][3], float P_vec[3], float rotVec_P[3][3], int order)
+void closest_Point_On_Vec(float polepos[3], float pos_A[3], float P_vec[3], float Pos[3])
+{
+    float vec[3];
+    float len;
+
+    vec[0] = polepos[0] - pos_A[0];
+    vec[1] = polepos[1] - pos_A[1];
+    vec[2] = polepos[2] - pos_A[2];
+
+    len = length_(vec);
+
+    if (len > 0)
+    {
+        vec[0] /= len;
+        vec[1] /= len;
+        vec[2] /= len;
+    }
+
+    float dot = dot_productFF(vec, P_vec);
+
+    if (dot == 0)
+    {
+        Pos[0] = pos_A[0];
+        Pos[1] = pos_A[1];
+        Pos[2] = pos_A[2];
+    }
+    else
+    {
+        Pos[0] = len * dot * P_vec[0] + pos_A[0];
+        Pos[1] = len * dot * P_vec[1] + pos_A[1];
+        Pos[2] = len * dot * P_vec[2] + pos_A[2];
+    }
+}
+
+void make_Spine(ikChain * I, float rotVec_[3][3], float P_vec[3], float rotVec_P[3][3], int order, int bind_pose)
 {
     float x_axis[3];
     float y_axis[3];
@@ -399,44 +517,87 @@ void make_Spine(float rotVec_[3][3], float P_vec[3], float rotVec_P[3][3], int o
 
     //memcpy(rotVec_p, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof rotVec_p);
 
-    /* simulating order yxz
-    where z is aim */
+    if (I->Pole != NULL)
+    {
+        float Pos[3], vec_[3];
 
-    if (order == zxy)
-    {
-        memcpy(rotVec_p[2], rotVec_P[1], sizeof(float[3][3]));
-        memcpy(rotVec_p[0], rotVec_P[0], sizeof(float[3][3]));
-        memcpy(rotVec_p[1], rotVec_P[2], sizeof(float[3][3]));
+        if (bind_pose)
+        {
+            closest_Point_On_Vec(I->Pole->Locator->pos_bind, I->A->pos_bind, P_vec, Pos);
+            vec_[0] = I->Pole->Locator->pos_bind[0] - Pos[0];
+            vec_[1] = I->Pole->Locator->pos_bind[1] - Pos[1];
+            vec_[2] = I->Pole->Locator->pos_bind[2] - Pos[2];
+        }
+        else
+        {
+            closest_Point_On_Vec(I->Pole->Locator->pos, I->A->pos, P_vec, Pos);
+            vec_[0] = I->Pole->Locator->pos[0] - Pos[0];
+            vec_[1] = I->Pole->Locator->pos[1] - Pos[1];
+            vec_[2] = I->Pole->Locator->pos[2] - Pos[2];
+        }
+
+        float d = sqrt(vec_[0] * vec_[0] + vec_[1] * vec_[1] + vec_[2] * vec_[2]);
+
+        if (d > 0)
+        {
+            vec_[0] /= d;
+            vec_[1] /= d;
+            vec_[2] /= d;
+        }
+        else
+        {
+            vec_[0] = 0;
+            vec_[1] = 1.0;
+            vec_[2] = 0;
+        }
+
+        rotVec_p[1][0] = vec_[0];
+        rotVec_p[1][1] = vec_[1];
+        rotVec_p[1][2] = vec_[2];
+
+        cross_Product(P_vec, rotVec_p[1], rotVec_p[0]);
     }
-    else if (order == yxz)
+    else
     {
-        memcpy(rotVec_p[1], rotVec_P[1], sizeof(float[3][3]));
-        memcpy(rotVec_p[0], rotVec_P[0], sizeof(float[3][3]));
-        memcpy(rotVec_p[2], rotVec_P[2], sizeof(float[3][3]));
-    }
-    else if (order == zyx)
-    {
-        memcpy(rotVec_p[2], rotVec_P[1], sizeof(float[3][3]));
-        memcpy(rotVec_p[1], rotVec_P[0], sizeof(float[3][3]));
-        memcpy(rotVec_p[0], rotVec_P[2], sizeof(float[3][3]));
-    }
-    else if (order == xyz)
-    {
-        memcpy(rotVec_p[0], rotVec_P[1], sizeof(float[3][3]));
-        memcpy(rotVec_p[1], rotVec_P[0], sizeof(float[3][3]));
-        memcpy(rotVec_p[2], rotVec_P[2], sizeof(float[3][3]));
-    }
-    else if (order == xzy)
-    {
-        memcpy(rotVec_p[0], rotVec_P[1], sizeof(float[3][3]));
-        memcpy(rotVec_p[2], rotVec_P[0], sizeof(float[3][3]));
-        memcpy(rotVec_p[1], rotVec_P[2], sizeof(float[3][3]));
-    }
-    else if (order == yzx)
-    {
-        memcpy(rotVec_p[1], rotVec_P[1], sizeof(float[3][3]));
-        memcpy(rotVec_p[2], rotVec_P[0], sizeof(float[3][3]));
-        memcpy(rotVec_p[0], rotVec_P[2], sizeof(float[3][3]));
+        /* simulating order yxz
+        where z is aim */
+
+        if (order == zxy)
+        {
+            memcpy(rotVec_p[2], rotVec_P[1], sizeof(float[3][3]));
+            memcpy(rotVec_p[0], rotVec_P[0], sizeof(float[3][3]));
+            memcpy(rotVec_p[1], rotVec_P[2], sizeof(float[3][3]));
+        }
+        else if (order == yxz)
+        {
+            memcpy(rotVec_p[1], rotVec_P[1], sizeof(float[3][3]));
+            memcpy(rotVec_p[0], rotVec_P[0], sizeof(float[3][3]));
+            memcpy(rotVec_p[2], rotVec_P[2], sizeof(float[3][3]));
+        }
+        else if (order == zyx)
+        {
+            memcpy(rotVec_p[2], rotVec_P[1], sizeof(float[3][3]));
+            memcpy(rotVec_p[1], rotVec_P[0], sizeof(float[3][3]));
+            memcpy(rotVec_p[0], rotVec_P[2], sizeof(float[3][3]));
+        }
+        else if (order == xyz)
+        {
+            memcpy(rotVec_p[0], rotVec_P[1], sizeof(float[3][3]));
+            memcpy(rotVec_p[1], rotVec_P[0], sizeof(float[3][3]));
+            memcpy(rotVec_p[2], rotVec_P[2], sizeof(float[3][3]));
+        }
+        else if (order == xzy)
+        {
+            memcpy(rotVec_p[0], rotVec_P[1], sizeof(float[3][3]));
+            memcpy(rotVec_p[2], rotVec_P[0], sizeof(float[3][3]));
+            memcpy(rotVec_p[1], rotVec_P[2], sizeof(float[3][3]));
+        }
+        else if (order == yzx)
+        {
+            memcpy(rotVec_p[1], rotVec_P[1], sizeof(float[3][3]));
+            memcpy(rotVec_p[2], rotVec_P[0], sizeof(float[3][3]));
+            memcpy(rotVec_p[0], rotVec_P[2], sizeof(float[3][3]));
+        }
     }
 
     float Dot_0 = dot_productFF(P_vec, rotVec_p[0]);
@@ -579,7 +740,7 @@ void update_IKchains()
 
             }
 
-            make_Spine(I->rotVec_B, I->P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order);
+            make_Spine(I, I->rotVec_B, I->P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order, 0);
 
             memcpy(I->A->rotVec, I->rotVec_B, sizeof(float[3][3]));
             memcpy(I->A->rotVec_, I->rotVec_B, sizeof(float[3][3]));
@@ -614,7 +775,7 @@ void update_Spine(ikChain * I)
 {
     direction_Pack P;
     P = length_AB(I->A->pos, I->B->pos);
-    make_Spine(I->rotVec_F, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order);
+    make_Spine(I, I->rotVec_F, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order, 0);
 
     memcpy(I->A->rotVec, I->rotVec_F, sizeof(float[3][3]));
     memcpy(I->A->rotVec_, I->rotVec_F, sizeof(float[3][3]));
@@ -1021,8 +1182,8 @@ void solve_IK_Chain(ikChain * I)
 
     invert_Rotation_1(rotVec_I, I->A->parent->rotVec_B);
 
-    make_Spine(I->rotVec_0, I->rotVec_0[2], rotVec_I, I->A->parent->rot_Order);
-    make_Spine(I->rotVec_1, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order);
+    make_Spine(I, I->rotVec_0, I->rotVec_0[2], rotVec_I, I->A->parent->rot_Order, 1);
+    make_Spine(I, I->rotVec_1, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order, 0);
 
     I->rotVec_1[2][0] *= adjust_Proportional;
     I->rotVec_1[2][1] *= adjust_Proportional;
@@ -1165,7 +1326,7 @@ void solve_IK_Chain(ikChain * I)
 
     if (I->update)
     {
-        make_Spine(I->rotVec_F, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order);
+        make_Spine(I, I->rotVec_F, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order, 0);
 
         memcpy(I->A->rotVec, I->rotVec_F, sizeof(float[3][3]));
         memcpy(I->A->rotVec_, I->rotVec_F, sizeof(float[3][3]));

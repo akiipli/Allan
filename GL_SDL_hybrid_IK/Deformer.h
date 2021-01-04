@@ -81,30 +81,12 @@ struct deformer
 void free_Deformer(deformer * D)
 {
     free(D->Name);
-
-    int s, t;
-
-    vert_selection * S;
-    transformer * T;
-
-    for (t = 0; t < D->Transformers_Count; t ++)
-    {
-        T = D->Transformers[t];
-
-        for (s = 0; s < T->Selections_Count; s ++)
-        {
-            S = T->Selections[s];
-            S->Transformer = NULL;
-        }
-        T->Selections_Count = 0;
-    }
-
     free(D->Transformers);
     free(D->Selections);
     free(D->Objects);
     free(D->Bones);
-    free(D->IKchains);
     free(D->Poses);
+    free(D->IKchains);
     free(D->Subcharacters);
     free(D->P);
     free(D);
@@ -1097,7 +1079,7 @@ void remove_IK_Chains_From_Deformer(transformer * T, deformer * D)
 
 void delete_IK_Transformers(ikChain * I);
 
-void remove_ikChain_From_ikChains_(ikChain * I, int no_delete)
+void remove_ikChain_From_ikChains_(ikChain * I)
 {
     int index, i, b;
 
@@ -1133,26 +1115,24 @@ void remove_ikChain_From_ikChains_(ikChain * I, int no_delete)
         I->B->IK = NULL;
         I->B->style = 0;
 
-        if (no_delete)
-        {
 
-        }
-        else
+        if(I->Deformer != NULL)
         {
-            if(I->Deformer != NULL)
-            {
-                //printf("DEFORMER %s\n", I->Deformer->Name);
-                remove_ikChain_From_Deformer(I, I->Deformer);
-            }
-            delete_IK_Transformers(I);
+            //printf("DEFORMER %s\n", I->Deformer->Name);
+            remove_ikChain_From_Deformer(I, I->Deformer);
         }
 
         if (I->C != NULL)
         {
-            I->C->IK_goal->Constraint = NULL;
-            I->C->Locator->Constraint = NULL;
-            free(I->C);
+            delete_Constraint(I);
         }
+
+        if (I->Pole != NULL)
+        {
+            delete_Pole(I);
+        }
+
+        delete_IK_Transformers(I);
 
         free_ikChain(I);
 

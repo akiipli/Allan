@@ -3,6 +3,13 @@
 Author here is:
 Allan Kiipli
 
+6:44 PM 1/4/2021
+IK constraints and poles. When adding pole to IK chain in Bind Mode, move pole to desired location to make up
+IK spine, else spine is undefined when solving outside Bind Mode.
+
+IK constraints must be used with IK goal set to fixed and Stretching in IK List is off.
+In addition rotation can be controlled with pin. This is set in Hierarchys List.
+
 7:55 PM 12/31/2020
 Multirotation is there. Also scale. Multirotation is flexible and works also in Bind Mode.
 It affects Bone A transformers. Also it is constrained to Deformer transformers. Select

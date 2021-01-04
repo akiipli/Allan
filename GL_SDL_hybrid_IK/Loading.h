@@ -605,19 +605,7 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
 
             fgets(buff, BUF_SIZE, fp);
 
-            if (loading_version <= 1000)
-            {
-                sscanf(buff, "%d %d %d %d %d %d %d",
-                        &D->collapsed,
-                        &D->Transformers_Count,
-                        &D->Selections_Count,
-                        &D->Objects_Count,
-                        &D->Bones_Count,
-                        &D->Poses_Count,
-                        &D->IKchains_Count);
-                D->Subcharacters_Count = 0;
-            }
-            else
+            if (loading_version >= 1001)
             {
                 sscanf(buff, "%d %d %d %d %d %d %d %d",
                         &D->collapsed,
@@ -628,6 +616,18 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
                         &D->Poses_Count,
                         &D->IKchains_Count,
                         &D->Subcharacters_Count);
+            }
+            else
+            {
+                sscanf(buff, "%d %d %d %d %d %d %d",
+                        &D->collapsed,
+                        &D->Transformers_Count,
+                        &D->Selections_Count,
+                        &D->Objects_Count,
+                        &D->Bones_Count,
+                        &D->Poses_Count,
+                        &D->IKchains_Count);
+                D->Subcharacters_Count = 0;
             }
 
             D->Transformers = malloc(D->Transformers_Count * sizeof(transformer*));
@@ -965,14 +965,21 @@ int read_ikChains_file(ikChains_In * CHAINS_IN, char * fileName)
                     I->update = 1;
                     I->stretch = 1;
                 }
-                if (loading_version >= 1005)
+                if (loading_version >= 1006)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u %u", (unsigned*)&I->C, (unsigned*)&I->Pole);
+                }
+                else if (loading_version >= 1005)
                 {
                     fgets(buff, BUF_SIZE, fp);
                     sscanf(buff, "%u", (unsigned*)&I->C);
+                    I->Pole = NULL;
                 }
                 else
                 {
                     I->C = NULL;
+                    I->Pole = NULL;
                 }
                 iksIndex ++;
             }
@@ -1505,19 +1512,7 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
 
                 fgets(buff, BUF_SIZE, fp);
 
-                if (loading_version <= 1002)
-                {
-                    sscanf(buff, "%d %d %d %d %d %d %f",
-                            &T->style,
-                            &T->childcount,
-                            &T->collapsed,
-                            &T->rot_Order,
-                            &T->bind_set,
-                            &T->Selections_Count,
-                            &T->LocatorSize);
-                    T->pin = pin_0;
-                }
-                else
+                if (loading_version >= 1003)
                 {
                     sscanf(buff, "%d %d %d %d %d %d %f %d",
                             &T->style,
@@ -1528,6 +1523,18 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                             &T->Selections_Count,
                             &T->LocatorSize,
                             &T->pin);
+                }
+                else
+                {
+                    sscanf(buff, "%d %d %d %d %d %d %f",
+                            &T->style,
+                            &T->childcount,
+                            &T->collapsed,
+                            &T->rot_Order,
+                            &T->bind_set,
+                            &T->Selections_Count,
+                            &T->LocatorSize);
+                    T->pin = pin_0;
                 }
 
                 //T->LocatorSize = LocatorSize;
@@ -3201,6 +3208,28 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
             if (condition)
             {
                 I->C = NULL;
+            }
+        }
+
+        for (i = iksIndex - i_index; i < iksIndex; i ++)
+        {
+            I = ikChains[i];
+
+            condition = 1;
+
+            for (c = constraintsIndex - c_index; c < constraintsIndex; c ++)
+            {
+                C = constraints[c];
+                if (C->address == (unsigned)I->Pole)
+                {
+                    condition = 0;
+                    I->Pole = C;
+                    break;
+                }
+            }
+            if (condition)
+            {
+                I->Pole = NULL;
             }
         }
 

@@ -7591,7 +7591,7 @@ void remove_IK()
         {
             /* remove here */
             ikChain * I = ikChains[currentIK];
-            remove_ikChain_From_ikChains_(I, 0);
+            remove_ikChain_From_ikChains_(I);
             IKIndex --;
             if (IKIndex < 0)
                 IKIndex = 0;
@@ -7919,6 +7919,30 @@ void rename_IK()
     }
 }
 
+void add_IK_Pole()
+{
+    if (BIND_POSE)
+    {
+        if (currentIK >= 0 && currentIK < iksIndex)
+        {
+            set_IK_H_Button(4);
+            printf("add IK Pole\n");
+            ikChain * I = ikChains[currentIK];
+
+            if (I->Pole == NULL)
+            {
+                init_IK_Pole(I);
+                create_Transformers_List();
+            }
+
+            DRAW_UI = 0;
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            draw_Dialog();
+            DRAW_UI = 1;
+        }
+    }
+}
+
 void add_IK_Constraint()
 {
     if (BIND_POSE)
@@ -7937,6 +7961,31 @@ void add_IK_Constraint()
 
             DRAW_UI = 0;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            draw_Dialog();
+            DRAW_UI = 1;
+        }
+    }
+}
+
+void remove_IK_Pole()
+{
+    if (BIND_POSE)
+    {
+        if (currentIK >= 0 && currentIK < iksIndex)
+        {
+            set_IK_H_Button(5);
+            printf("remove IK Pole\n");
+            ikChain * I = ikChains[currentIK];
+
+            if (I->Pole != NULL)
+            {
+                create_Transformers_List();
+                currentLocator = I->Pole->Locator->index;
+
+                delete_Pole(I);
+            }
+
+            DRAW_UI = 0;
             draw_Dialog();
             DRAW_UI = 1;
         }
@@ -10583,6 +10632,39 @@ void init_Action_Begin_Pose(transformer * T)
     create_Action_Begin_Pose(P0);
 }
 
+void start_Rotation()
+{
+    Update_Objects_Count = 0;
+    if (Constraint_Pack.IK != NULL)
+    {
+        if (Constraint_Pack.IK->Deformer != NULL)
+        {
+            if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
+            {
+                rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
+            }
+            else
+            {
+                rotate_collect(T);
+            }
+        }
+    }
+    else
+    {
+        if (T->Deformer != NULL)
+        {
+            if (T->Deformer->Transformers_Count > 0)
+            {
+                rotate_collect(T->Deformer->Transformers[0]);
+            }
+            else
+            {
+                rotate_collect(T);
+            }
+        }
+    }
+}
+
 void start_Movement()
 {
     subdLevel_mem = subdLevel;
@@ -10678,9 +10760,15 @@ void start_Movement()
 
         init_Action_Begin_Pose(T);
 
-        if (Constraint_Pack.IK != NULL)
+        if (!BIND_POSE)
         {
-            continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+            if (Constraint_Pack.IK != NULL)
+            {
+                if (Constraint_Pack.IK->C != NULL)
+                    continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+                else if (Constraint_Pack.IK->Pole != NULL)
+                    continue_Action_Begin_Pose(Constraint_Pack.IK->Pole->IK_goal);
+            }
         }
 
         if (T->Deformer != NULL)
@@ -10825,20 +10913,12 @@ void transform_Objects_And_Render()
                 }
                 else
                 {
-                    Update_Objects_Count = 0;
+                    if (Update_Objects_Count == 0)
+                    {
+                        start_Rotation();
+                    }
                     if (Constraint_Pack.IK != NULL)
                     {
-                        if (Constraint_Pack.IK->Deformer != NULL)
-                        {
-                            if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
-                            {
-                                rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
-                            }
-                            else
-                            {
-                                rotate_collect(T);
-                            }
-                        }
                         rotate_Deformer_Constraint(T);
                     }
                     else
@@ -10846,19 +10926,10 @@ void transform_Objects_And_Render()
 
                         if (T->Deformer != NULL)
                         {
-                            if (T->Deformer->Transformers_Count > 0)
-                            {
-                                rotate_collect(T->Deformer->Transformers[0]);
-                            }
-                            else
-                            {
-                                rotate_collect(T);
-                            }
                             rotate_Deformer(T);
                         }
                         else
                         {
-                            rotate_collect(T);
                             rotate_vertex_groups_D_Init();
                             rotate(T);
                         }
@@ -10991,8 +11062,7 @@ void clear_Deformers()
         for (d = deformerIndex - 1; d >= 0; d --)
         {
             D = deformers[d];
-            delete_Deformer_Poses(D);
-            remove_Deformer(D);
+            free_Deformer(D);
         }
 
         currentDeformer_Node = 0;
@@ -11019,7 +11089,7 @@ void clear_Constraints()
     }
 }
 
-void clear_ikChains(int no_delete)
+void clear_ikChains()
 {
     if (!dialog_lock)
     {
@@ -11030,8 +11100,7 @@ void clear_ikChains(int no_delete)
         for (i = iksIndex - 1; i >= 0; i --)
         {
             I = ikChains[i];
-
-            remove_ikChain_From_ikChains_(I, no_delete);
+            free_ikChain(I);
         }
     }
 }
@@ -11159,43 +11228,23 @@ void delete_Object(int index, int render)
         transform_Objects_And_Render();
 }
 
-void clear_Objects_()
+void clear_Objects()
 {
     if (!dialog_lock)
     {
         printf("clear Objects_\n");
 
         int o;
-
         object * O;
 
         for (o = objectIndex - 1; o > 0; o --) /*CUBECOMMENT*/
         {
 
             O = objects[o];
-
-            free_Transformer(O->T);
-            free(O->T);
-
             free_object(O);
         }
 
         objectIndex = 1;
-    }
-}
-
-void clear_Objects()
-{
-    if (!dialog_lock)
-    {
-        printf("clear Objects\n");
-
-        int i;
-
-        for (i = objectIndex - 1; i > 0; i --) /*CUBECOMMENT*/
-        {
-            delete_Object(i, 0);
-        }
     }
 }
 
@@ -11230,17 +11279,13 @@ void clear_All()
 {
     if (!dialog_lock)
     {
-        clear_ikChains(1);
-        clear_Constraints();
         clear_Deformers();
-
-        //clear_Objects();
-        /* for some reason it fails,
-        substituted with clear_Objects_*/
+        clear_Constraints();
+        clear_ikChains();
 
         clear_Bones();
         clear_Locators();
-        clear_Objects_();
+        clear_Objects();
         free_Subcharacters();
 
         free_poses();
@@ -12760,6 +12805,8 @@ int main(int argc, char * args[])
     Button_h_ikch[1].func = &rename_IK;
     Button_h_ikch[2].func = &add_IK_Constraint;
     Button_h_ikch[3].func = &remove_IK_Constraint;
+    Button_h_ikch[4].func = &add_IK_Pole;
+    Button_h_ikch[5].func = &remove_IK_Pole;
 
     Button_h_subc[0].func = &add_Subcharacter;
     Button_h_subc[1].func = &add_Pose_To_Subcharacter;
@@ -16993,10 +17040,15 @@ int main(int argc, char * args[])
                             bake_position_Children(T);
 
                             init_Action_Begin_Pose(T);
-
-                            if (Constraint_Pack.IK != NULL)
+                            if (!BIND_POSE)
                             {
-                                continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+                                if (Constraint_Pack.IK != NULL)
+                                {
+                                    if (Constraint_Pack.IK->C != NULL)
+                                        continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+                                    else if (Constraint_Pack.IK->Pole != NULL)
+                                        continue_Action_Begin_Pose(Constraint_Pack.IK->Pole->IK_goal);
+                                }
                             }
 
                             if (T->Deformer != NULL && multi_Rotation)
@@ -17018,6 +17070,8 @@ int main(int argc, char * args[])
                                 bake_scale(T);
                                 object_hook = 2;
                             }
+
+                            start_Rotation();
                         }
                     }
                     memcpy(object_Pos, T->pos, sizeof(object_Pos));

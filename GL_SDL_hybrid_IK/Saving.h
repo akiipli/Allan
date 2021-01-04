@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1005;
+int saving_version = 1006;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -829,7 +829,7 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
         fprintf(F, "%f %f\n", I->poleRot, I->P.distance);
         fprintf(F, "%f %f %f\n", I->P.vec[0], I->P.vec[1], I->P.vec[2]);
         fprintf(F, "%d %d\n", I->update, I->stretch);
-        fprintf(F, "%u\n", (unsigned)I->C);
+        fprintf(F, "%u %u\n", (unsigned)I->C, (unsigned)I->Pole);
     }
 
     fprintf(F, "\n");

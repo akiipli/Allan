@@ -245,6 +245,12 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
             sprintf(text, "Constraint");
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
+        if (I->Pole != NULL)
+            sprintf(text, "Pole %s", I->Pole->Locator->Name);
+        else
+            sprintf(text, "Pole");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        idx ++;
     }
     else if (subject != NULL && type == PROPERTIES_BONE)
     {

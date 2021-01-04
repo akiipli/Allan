@@ -56,6 +56,7 @@ float dot_productFF(float[3], float[3]);
 
 #define constraint_none 0
 #define constraint_to_point 1
+#define constraint_pole 2
 
 typedef struct transformer transformer;
 typedef struct object object;
@@ -126,6 +127,7 @@ struct ikChain
     int update;
     int stretch;
     constraint * C;
+    constraint * Pole;
 }
 ;
 

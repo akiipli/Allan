@@ -55,7 +55,7 @@ int LISTLENGTH = 12;
 #define H_BONE_NUM 2
 #define H_MATR_NUM 4
 #define H_ITEM_NUM 1
-#define H_IKCH_NUM 4
+#define H_IKCH_NUM 6
 #define H_SUBC_NUM 5
 #define H_TEXT_NUM 2
 
@@ -3491,6 +3491,8 @@ void draw_IK_Bottom_Line(int width, int height)
     draw_Button_ik_horizontal("Rename", 1, 1);
     draw_Button_ik_horizontal("Add Con.", 2, 1);
     draw_Button_ik_horizontal("Rem Con.", 3, 1);
+    draw_Button_ik_horizontal("Add Pole", 4, 1);
+    draw_Button_ik_horizontal("Rem Pole", 5, 1);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
