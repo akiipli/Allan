@@ -1483,6 +1483,21 @@ void rotate_hierarchy_T(transformer * P, transformer * T)
     }
 }
 
+void collect_selected_T(transformer * T)
+{
+    int c;
+    transformer * C;
+
+    if (T->selected)
+        child_collection[child_collection_count ++] = T;
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        collect_selected_T(C);
+    }
+}
+
 void collect_Children(transformer * T)
 {
     int c;
@@ -1989,9 +2004,6 @@ void bake_position_Children(transformer * T)
     int c;
     transformer * C;
 
-    child_collection_count = 0;
-
-    collect_Children(T);
     for (c = 0; c < child_collection_count; c ++)
     {
         C = child_collection[c];
@@ -2011,9 +2023,6 @@ void bake_pose_Children(transformer * T)
     int c;
     transformer * C;
 
-    child_collection_count = 0;
-
-    collect_Children(T);
     for (c = 0; c < child_collection_count; c ++)
     {
         C = child_collection[c];

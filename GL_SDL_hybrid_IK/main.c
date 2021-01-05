@@ -10752,6 +10752,14 @@ void start_Movement()
             rotate_collect(T);
         }
         printf("Update Objects Count %d\n", Update_Objects_Count);
+
+        child_collection_count = 0;
+
+        if (BIND_POSE)
+        {
+            collect_selected_T(&World);
+        }
+
         collect_Children(T);
 
         bake_position(T);
@@ -17037,6 +17045,10 @@ int main(int argc, char * args[])
                             if (T->Deformer != NULL)
                                 normalize_IK_Spines(T->Deformer);
                             bake_position(T);
+
+                            child_collection_count = 0;
+                            collect_Children(T);
+
                             bake_position_Children(T);
 
                             init_Action_Begin_Pose(T);
