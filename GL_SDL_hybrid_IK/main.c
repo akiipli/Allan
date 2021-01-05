@@ -10925,7 +10925,7 @@ void transform_Objects_And_Render()
                     {
                         start_Rotation();
                     }
-                    if (Constraint_Pack.IK != NULL)
+                    if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
                     {
                         rotate_Deformer_Constraint(T);
                     }
@@ -13299,8 +13299,8 @@ int main(int argc, char * args[])
                                     {
                                         rotate_collect(T);
                                     }
+                                    paste_Deformer(Constraint_Pack.IK->Deformer->Transformers[0]);
                                 }
-                                paste_Deformer(Constraint_Pack.IK->Deformer->Transformers[0]);
                             }
                             else
                             {
