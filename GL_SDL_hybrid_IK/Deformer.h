@@ -1056,6 +1056,7 @@ void remove_ikChain_From_Deformer(ikChain * I, deformer * D)
 
     if (condition)
     {
+        I->Deformer = NULL;
         D->IKchains_Count --;
         for (i = index; i < D->IKchains_Count; i ++)
         {
