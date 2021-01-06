@@ -10733,6 +10733,7 @@ void start_Movement()
         T_pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
 
         Constraint_Pack.IK = NULL;
+        Constraint_Pack.Deformer = NULL;
         scan_For_Locator_Constraints(T);
 
         if (Constraint_Pack.IK != NULL)
@@ -11090,9 +11091,7 @@ void clear_Constraints()
         for (c = constraintsIndex - 1; c >= 0; c --)
         {
             C = constraints[c];
-
-            free(C->Name);
-            free(C);
+            free_Constraint(C);
         }
     }
 }
@@ -11124,8 +11123,7 @@ void clear_Bones()
         for (b = bonesIndex - 1; b >= 0; b --)
         {
             B = bones[b];
-
-            remove_Bone_From_Bones_(B);
+            free_bone(B);
         }
     }
 }
@@ -17037,6 +17035,7 @@ int main(int argc, char * args[])
                         else
                         {
                             Constraint_Pack.IK = NULL;
+                            Constraint_Pack.Deformer = NULL;
                             scan_For_Locator_Constraints(T);
 
                             if (Constraint_Pack.IK != NULL)

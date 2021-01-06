@@ -53,8 +53,7 @@ void free_Constraints()
     for (c = 0; c < constraintsIndex; c ++)
     {
         C = constraints[c];
-        free(C->Name);
-        free(C);
+        free_Constraint(C);
     }
 }
 
@@ -100,13 +99,6 @@ void free_bones()
         B = bones[b];
         free_bone(B);
     }
-}
-
-void free_pose(pose * P)
-{
-    free(P->Name);
-    free(P->TP);
-    free(P);
 }
 
 void free_poses()

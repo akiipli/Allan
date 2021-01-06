@@ -98,6 +98,12 @@ void scan_For_Locator_Constraints(transformer * T)
     }
 }
 
+void free_Constraint(constraint * C)
+{
+    free(C->Name);
+    free(C);
+}
+
 void delete_Pole(ikChain * I)
 {
     constraint * C;
@@ -129,8 +135,7 @@ void delete_Pole(ikChain * I)
         I->Pole = NULL;
         C->IK_goal->Constraint = NULL;
         C->Locator->Constraint = NULL;
-        free(C->Name);
-        free(C);
+        free_Constraint(C);
     }
 }
 
@@ -165,8 +170,7 @@ void delete_Constraint(ikChain * I)
         I->C = NULL;
         C->IK_goal->Constraint = NULL;
         C->Locator->Constraint = NULL;
-        free(C->Name);
-        free(C);
+        free_Constraint(C);
     }
 }
 

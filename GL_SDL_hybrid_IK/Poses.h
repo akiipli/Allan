@@ -50,7 +50,7 @@ struct pose
     int transformers_count;
 };
 
-void free_Pose(pose * P)
+void free_pose(pose * P)
 {
     free(P->Name);
     free(P->TP);
@@ -395,7 +395,7 @@ void remove_Pose_From_Deformer(pose * P)
             poses[p]->index --;
         }
 
-        free_Pose(P);
+        free_pose(P);
     }
     if (index >= D->Poses_Count)
     {
@@ -775,7 +775,7 @@ void remove_Deformer_Pose(pose * P)
             poses[p] = poses[p + 1];
             poses[p]->index = p;
         }
-        free_Pose(P);
+        free_pose(P);
     }
 }
 

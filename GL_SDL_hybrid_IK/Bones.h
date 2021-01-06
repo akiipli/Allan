@@ -1566,42 +1566,6 @@ void remove_Bone_From_Bones(bone * B)
     }
 }
 
-void remove_Bone_From_Bones_(bone * B)
-{
-    //printf("remove Bone From Bones\n");
-
-    int index, b;
-    int condition = 0;
-
-    for (b = 0; b < bonesIndex; b ++)
-    {
-        if (B == bones[b])
-        {
-            index = b;
-            condition = 1;
-            break;
-        }
-    }
-
-    if (condition)
-    {
-        B->A->Bone = NULL;
-        B->B->Bone = NULL;
-
-//        delete_Bone_Transformer(B->A);
-//        delete_Bone_Transformer(B->B);
-
-        free_bone(B);
-
-        bonesIndex --;
-        for (b = index; b < bonesIndex; b ++)
-        {
-            bones[b] = bones[b + 1];
-            bones[b]->index = b;
-        }
-    }
-}
-
 void reset_Bones_Rotation()
 {
     int b;
