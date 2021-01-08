@@ -358,7 +358,7 @@ void paste_Pose_(deformer * D, pose * P)
         memcpy(T->pos, P->TP[t].pos, sizeof(float[3]));
         memcpy(T->pos_, P->TP[t].pos_, sizeof(float[3]));
 
-        T->style = P->TP[t].style;
+        //T->style = P->TP[t].style;
     }
 }
 
