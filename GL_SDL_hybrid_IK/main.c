@@ -11247,6 +11247,8 @@ void clear_Objects()
         {
 
             O = objects[o];
+            free_Transformer(O->T);
+            free(O->T);
             free_object(O);
         }
 

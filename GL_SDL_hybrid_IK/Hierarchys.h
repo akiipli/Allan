@@ -93,7 +93,7 @@ void create_Hierarchys_List()
 {
     transformer * T;
 
-    T = transformers[0];
+    T = &World;
     transformerIndex = 0;
 
     Hierarchys_c = 0;
@@ -121,7 +121,7 @@ void create_Transformers_List()
 {
     transformer * T;
 
-    T = transformers[0];
+    T = &World;
     transformerIndex = 0;
 
     list_transformers_list(T);
