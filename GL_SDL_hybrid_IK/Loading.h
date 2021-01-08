@@ -3237,8 +3237,6 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
         {
             C = constraints[c];
 
-            condition = 0;
-
             for (t = transformerIndex - t_index; t < transformerIndex; t ++)
             {
                 T = transformers[t];
@@ -3246,16 +3244,17 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
                 {
                     C->Locator = T;
                     T->Constraint = C;
-                    condition ++;
+                    break;
                 }
-                else if (T->address == (unsigned)C->IK_goal)
+            }
+
+            for (t = transformerIndex - t_index; t < transformerIndex; t ++)
+            {
+                T = transformers[t];
+                if (T->address == (unsigned)C->IK_goal)
                 {
                     C->IK_goal = T;
                     T->Constraint = C;
-                    condition ++;
-                }
-                if (condition >= 2)
-                {
                     break;
                 }
             }

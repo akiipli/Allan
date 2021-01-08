@@ -11690,8 +11690,8 @@ void save_load_Scene()
 
     create_Transformers_List();
 
-    solve_all_IK_Chains();
-    normalize_all_IK_Spines();
+//    solve_all_IK_Chains();
+//    normalize_all_IK_Spines();
 
     int flip = 0;
 
