@@ -1282,7 +1282,7 @@ void order_deformers_IK_Chains(deformer * D)
 
     int l[1] = {0};
     int counter = 0;
-    int i;
+    int i, d, condition;
 
     ikChain ** IKList = malloc(D->Bones_Count * sizeof(ikChain*));
     ikChain * currentIK = NULL;
@@ -1305,7 +1305,17 @@ void order_deformers_IK_Chains(deformer * D)
     {
         if (counter >= D->IKchains_Count)
             break;
-        if (IKList[i] != IKList[i - 1])
+
+        condition = 1;
+        for (d = 0; d < counter; d ++)
+        {
+            if (IKList[i] == D->IKchains[d])
+            {
+                condition = 0;
+                break;
+            }
+        }
+        if (condition)
             D->IKchains[counter ++] = IKList[i];
     }
 
