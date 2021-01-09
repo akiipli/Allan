@@ -1250,14 +1250,20 @@ void reset_Deformer_rotation(deformer * D)
     memcpy(&D->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof D->rotVec);
 }
 
-void order_IK_Chains(ikChain ** IKList, int l, ikChain * currentIK, transformer * T)
+void order_IK_Chains(ikChain ** IKList, int l[1], ikChain * currentIK, transformer * T)
 {
     int c;
     transformer * C;
 
+    if (currentIK != NULL)
+    {
+        IKList[l[0]] = currentIK;
+        //printf("currentIK %s\n", IKList[l[0]]->Name);
+        l[0] ++;
+    }
+
     if (T->Bone != NULL && T->Bone->IK != NULL && T->Bone->IK != currentIK)
     {
-        IKList[l ++] = T->Bone->IK;
         currentIK = T->Bone->IK;
     }
 
@@ -1274,15 +1280,16 @@ void order_deformers_IK_Chains(deformer * D)
     transformer * T = D->Transformers[0];
     transformer * C;
 
-    int l = 0;
+    int l[1] = {0};
+    int counter = 0;
     int i;
 
-    ikChain ** IKList = malloc(D->IKchains_Count * sizeof(ikChain*));
+    ikChain ** IKList = malloc(D->Bones_Count * sizeof(ikChain*));
     ikChain * currentIK = NULL;
 
     if (T->Bone != NULL && T->Bone->IK != NULL)
     {
-        IKList[l ++] = T->Bone->IK;
+        IKList[l[0] ++] = T->Bone->IK;
         currentIK = T->Bone->IK;
     }
 
@@ -1292,13 +1299,14 @@ void order_deformers_IK_Chains(deformer * D)
         order_IK_Chains(IKList, l, currentIK, C);
     }
 
-    for (i = 0; i < D->IKchains_Count; i ++)
+    D->IKchains[counter ++] = IKList[0];
+
+    for (i = 1; i < l[0]; i ++)
     {
-        if (i >= l - 1)
-        {
+        if (counter >= D->IKchains_Count)
             break;
-        }
-        D->IKchains[i] = IKList[i];
+        if (IKList[i] != IKList[i - 1])
+            D->IKchains[counter ++] = IKList[i];
     }
 
     free(IKList);
@@ -1376,6 +1384,18 @@ void transformer_pin_Preparation(deformer * D)
     {
         T = D->Transformers[t];
         memcpy(&T->rotVec_Pin, T->rotVec_, sizeof T->rotVec_Pin);
+    }
+}
+
+void print_Deformer_IK_Chains(deformer * D)
+{
+    int i;
+    ikChain * I;
+
+    for (i = 0; i < D->IKchains_Count; i ++)
+    {
+        I = D->IKchains[i];
+        printf("Deformer %s %d %s\n", D->Name, i, I->Name);
     }
 }
 

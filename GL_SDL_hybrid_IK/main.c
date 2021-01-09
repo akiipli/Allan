@@ -8394,8 +8394,19 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
             {
                 D = deformers[currentDeformer_Node];
                 if (D != NULL)
+                {
                     remove_Object_From_Deformer(O, D);
                     draw_Dialog();
+                }
+            }
+        }
+        else if (letter == 'i')
+        {
+            if (deformerIndex > 0)
+            {
+                D = deformers[currentDeformer_Node];
+                if (D != NULL)
+                    print_Deformer_IK_Chains(D);
             }
         }
     }

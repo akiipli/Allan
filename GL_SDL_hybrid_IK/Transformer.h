@@ -1832,7 +1832,14 @@ void move_H(transformer * T, float Delta[3])
 
         if (C->Bone != NULL && C->Bone->IK_member > 0)
         {
-            //move_H(C, Delta);
+            move_H(C, Delta);
+        }
+        else if (C->IK != NULL && C->style == ik_start)
+        {
+            C->pos[0] = C->parent->pos[0];
+            C->pos[1] = C->parent->pos[1];
+            C->pos[2] = C->parent->pos[2];
+            move_H(C, Delta);
         }
         else if (C->IK != NULL && C->style == ik_fixed)
         {
