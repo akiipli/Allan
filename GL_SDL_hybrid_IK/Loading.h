@@ -73,6 +73,27 @@ Selection_In;
 typedef struct
 {
     unsigned address;
+    int indices_count;
+    int selectionIndex;
+}
+Object_Selection_In;
+
+typedef struct
+{
+    unsigned address;
+    char Name[STRLEN];
+    int indice;
+    float weight;
+    int indices_count;
+    int polygon_selections;
+    int edge_selections;
+    int vertex_selections;
+}
+Item_Selection_In;
+
+typedef struct
+{
+    unsigned address;
     char Name[STRLEN];
     int textcount;
     int vertcount;
@@ -1650,6 +1671,100 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
     return 1;
 }
 
+int read_Object_Selection_file(Object_Selection_In * OBJ_SEL_IN, char * fileName, int obj_count)
+{
+    object * O;
+    selection * S;
+
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    char * p;
+
+    int s, i, o, indices_count;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Objects Selection\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%u", &OBJ_SEL_IN->selectionIndex);
+
+            object_selections += OBJ_SEL_IN->selectionIndex;
+
+            if (object_selections >= SELECTIONS)
+            {
+                object_selections = SELECTIONS;
+            }
+
+            for (s = Selections_c[0]; s < object_selections; s ++)
+            {
+                S = &object_selection[s];
+
+                fgets(buff, BUF_SIZE, fp);
+                p = strchr(buff, '\n');
+                *p = '\0';
+
+                sprintf(Sels_Names[0][s], "%s", buff);
+                S->Name = Sels_Names[0][s];
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &OBJ_SEL_IN->indices_count);
+
+                if (S->indices != NULL)
+                {
+                    S->indices = realloc(S->indices, OBJ_SEL_IN->indices_count * sizeof(int));
+                }
+                else
+                {
+                    S->indices = malloc(OBJ_SEL_IN->indices_count * sizeof(int));
+                }
+
+                indices_count = 0;
+
+                for (i = 0; i < OBJ_SEL_IN->indices_count; i ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", &OBJ_SEL_IN->address);
+
+                    for (o = objectIndex - obj_count; o < objectIndex; o ++)
+                    {
+                        O = objects[o];
+                        if (O->address == OBJ_SEL_IN->address)
+                        {
+                            S->indices[indices_count ++] = O->index;
+                            break;
+                        }
+                    }
+                }
+                S->indices_count = indices_count;
+            }
+
+            Selections_c[0] = object_selections;
+
+            fclose(fp);
+            return 1;
+        }
+        else
+        {
+            fclose(fp);
+            return 0;
+        }
+    }
+    else
+    {
+        fclose(fp);
+        return 0;
+    }
+}
+
 int read_Selection_file(Selection_In * SEL_IN, char * fileName)
 {
     vert_selection * VS;
@@ -2504,7 +2619,7 @@ int load_Objects(char * path, int VBO)
     return obj_count;
 }
 
-void load_Selections(char * path)
+void load_Selections(char * path, int obj_count)
 {
     char Path[STRLEN];
     DIR * dir;
@@ -2514,6 +2629,7 @@ void load_Selections(char * path)
     char Extension[] = ".txt";
 
     int extension_len = strlen(ext);
+    int result;
 
     if ((dir = opendir(path)) != NULL)
     {
@@ -2526,9 +2642,21 @@ void load_Selections(char * path)
             if (isFile(Path))
             {
                 memcpy(Extension, &ent->d_name[strlen(ent->d_name) - extension_len], extension_len);
-                if (strcmp(Extension, ext) == 0)
+                if (strcmp(ent->d_name, "Objects_Selection.txt") == 0)
                 {
-                    int result = 0;
+                    result = 0;
+                    printf("OBJECTS SELECTION\n");
+                    Object_Selection_In * OBJ_SEL_IN = calloc(1, sizeof(Object_Selection_In));
+                    result = read_Object_Selection_file(OBJ_SEL_IN, Path, obj_count);
+                    if (result)
+                    {
+                        printf("%d\n", OBJ_SEL_IN->selectionIndex);
+                    }
+                    free(OBJ_SEL_IN);
+                }
+                else if (strcmp(Extension, ext) == 0)
+                {
+                    result = 0;
                     //printf("%s\n", Path);
                     Selection_In * SEL_IN = calloc(1, sizeof(Selection_In));
                     result = read_Selection_file(SEL_IN, Path);

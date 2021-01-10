@@ -66,6 +66,7 @@ look for CUBECOMMENT
 #include "ImageLoad.h"
 #include "MathFunctions.h"
 #include "Cameras.h"
+#include "Selections.h"
 #include "Saving.h"
 
 #include "InitializingFunctions.h"
@@ -78,7 +79,6 @@ look for CUBECOMMENT
 #include "Lights.h"
 #include "Rendering.h"
 
-#include "Selections.h"
 #include "Hierarchys.h"
 
 #include "Validators.h"
@@ -9741,7 +9741,7 @@ void parent_Locators()
         P = P->parent;
         parent_transformers[parent_transformers_count ++] = P;
     }
-    for (t = 0; t < transformerIndex; t ++)
+    for (t = CUBEINDEX; t < transformerIndex; t ++)
     {
         T = transformers[t];
         if (T->selected && T != current_T)
@@ -11872,7 +11872,7 @@ void save_load_Scene()
             strcat(Path, scene_files_dir);
             strcat(Path, "/");
             strcat(Path, "Selections");
-            load_Selections(Path);
+            load_Selections(Path, obj_count);
 
             Path[0] = '\0';
             strcat(Path, scene_files_dir);

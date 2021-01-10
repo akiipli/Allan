@@ -368,7 +368,6 @@ void save_Selections(char * selection_files_dir)
     int i, o, s;
 
     object * O;
-
     selection * S;
     vert_selection * VS;
 
@@ -395,6 +394,37 @@ void save_Selections(char * selection_files_dir)
 //    vert_selection;
 
     char n[8];
+
+    if (object_selections > 0)
+    {
+        dirfile[0] = '\0';
+        strcat(dirfile, selection_files_dir);
+        strcat(dirfile, "/");
+        strcat(dirfile, "Objects_Selection.txt");
+
+        FILE * F;
+        F = fopen(dirfile, "w");
+
+        if (F != NULL)
+        {
+            fprintf(F, "Objects Selection\n");
+            fprintf(F, "%d\n", object_selections);
+
+            for (s = 0; s < object_selections; s ++)
+            {
+                S = &object_selection[s];
+                fprintf(F, "%s\n", Sels_Names[0][s]);
+                fprintf(F, "%d\n", S->indices_count);
+                for (i = 0; i < S->indices_count; i ++)
+                {
+                    O = objects[S->indices[i]];
+                    fprintf(F, "%u\n", (unsigned)O);
+                }
+            }
+            fprintf(F, "\n");
+            fclose(F);
+        }
+    }
 
     for (o = 1; o < objectIndex; o ++) /*CUBECOMMENT*/
     {
