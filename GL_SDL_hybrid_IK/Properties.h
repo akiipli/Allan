@@ -47,6 +47,10 @@ int Drag_Shine = 0;
 float Shine;
 float ShineDelta;
 
+int Drag_Displacement = 0;
+float Displacement;
+float DisplacementDelta;
+
 int properties[Y_OFFSET][X_OFFSET];
 
 int left, right, top, bottom;
@@ -173,6 +177,11 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "\tShininess");
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         sprintf(text, "%1.2f", M->Shininess);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+        idx ++;
+        sprintf(text, "\tDisplacem");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%1.2f", M->Displacement);
         draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
         idx ++;
     }

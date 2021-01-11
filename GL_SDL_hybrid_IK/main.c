@@ -13410,6 +13410,10 @@ int main(int argc, char * args[])
                         edgeWeights = 0;
                     }
 
+                    if (Drag_Displacement)
+                    {
+                        Drag_Displacement = 0;
+                    }
                     if (Drag_Shine)
                     {
                         Drag_Shine = 0;
@@ -14268,6 +14272,14 @@ int main(int argc, char * args[])
                                         Drag_Shine = 1;
                                     }
                                 }
+                                else if (!Drag_Displacement && mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 2 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 3)
+                                {
+                                    Drag_X = mouse_x;
+                                    if (h_index == 2)
+                                    {
+                                        Drag_Displacement = 1;
+                                    }
+                                }
                             }
                             else if (dialog_type == IK_DIALOG)
                             {
@@ -14684,7 +14696,7 @@ int main(int argc, char * args[])
                 mouse_button_down = 0;
                 Drag_Dialog = 0;
 
-                if (Drag_Color || Drag_Shine)
+                if (Drag_Color || Drag_Shine || Drag_Displacement)
                 {
                     if (dialog_lock)
                     {
@@ -14710,6 +14722,7 @@ int main(int argc, char * args[])
 
                     Drag_Color = 0;
                     Drag_Shine = 0;
+                    Drag_Displacement = 0;
                 }
 
                 if (drag_rectangle)
@@ -14768,7 +14781,20 @@ int main(int argc, char * args[])
                 mouse_x = event.motion.x;
                 mouse_y = event.motion.y;
 
-                if (Drag_Shine)
+                if (Drag_Displacement)
+                {
+                    DragDelta = mouse_x - Drag_X;
+                    DisplacementDelta = (float)DragDelta / 100.0;
+                    Displacement = Materials[currentMaterial].Displacement;
+                    Displacement += DisplacementDelta;
+                    Displacement = clamp_f(Displacement, 0, 60.0);
+
+                    Materials[currentMaterial].Displacement = Displacement;
+                    update_Materials_List(0, 0);
+
+                    SDL_GL_SwapBuffers();
+                }
+                else if (Drag_Shine)
                 {
                     DragDelta = mouse_x - Drag_X;
                     ShineDelta = (float)DragDelta / 100.0;
