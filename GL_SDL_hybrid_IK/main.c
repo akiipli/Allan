@@ -11590,6 +11590,115 @@ void modify_Texture_Seams(object * O)
 #endif
 }
 
+void replace_Texture()
+{
+#if DEBUG_WITHOUT_IL == 0
+    if (dialog_lock)
+    {
+        Button_h_text[2].color = UI_GRAYD;
+        draw_Textures_Bottom_Line(DIALOG_WIDTH, screen_height);
+        SDL_GL_SwapBuffers();
+    }
+
+    char * fileName;
+    fileName = open_FileName(gHwnd, images_dir, "Open Images");
+
+    replace_bslash_with_fslash(fileName);
+
+    int len_f = strlen(fileName);
+    if (len_f > 1)
+    {
+        int end_of_line = len_f;
+        while (fileName[end_of_line] != '/' && fileName[end_of_line] != '\\')
+        {
+            end_of_line--;
+            if (end_of_line <= 0)
+            {
+                break;
+            }
+        }
+        if (end_of_line > 0)
+        {
+            memcpy(images_dir, fileName, end_of_line + 1);
+            images_dir[end_of_line + 1] = '\0';
+            files_dir = (char *)&images_dir;
+        }
+    }
+    Draw_Bottom_Message("images dir\n");
+
+    if (strlen(fileName) > 1 && TextIndex > 0)
+    {
+        if (strcmp(text, TEXT_TYPE_TEXT) == 0)
+        {
+            printf("replace text\n");
+
+            texture = load_ILU_image(fileName, 0, 0);
+            if (texture != NULL)
+            {
+                sprintf(Text_Names[TextIndex], basename(fileName));
+                sprintf(Text_Names_Full[TextIndex], fileName);
+
+                sprintf(text_Pack[TextIndex].texture_Name, fileName);
+
+                SDL_FreeSurface(Surf_Text[TextIndex]);
+                Surf_Text[TextIndex] = texture;
+                update_TexFrom_Surface(texture, TextIndex);
+            }
+        }
+        else if (strcmp(text, TEXT_TYPE_NORM) == 0)
+        {
+            printf("replace norm\n");
+
+            texture = load_ILU_image(fileName, 1, 0);
+            if (texture != NULL)
+            {
+                sprintf(Norm_Names[TextIndex], basename(fileName));
+                sprintf(Norm_Names_Full[TextIndex], fileName);
+
+                sprintf(norm_Pack[TextIndex].texture_Name, fileName);
+
+                SDL_FreeSurface(Surf_Norm[TextIndex]);
+                Surf_Norm[TextIndex] = texture;
+                update_NormFrom_Surface(texture, TextIndex);
+            }
+        }
+        else if (strcmp(text, TEXT_TYPE_BUMP) == 0)
+        {
+            printf("replace bump\n");
+
+            texture = load_ILU_image(fileName, 0, 1);
+            if (texture != NULL)
+            {
+                sprintf(Bump_Names[TextIndex], basename(fileName));
+                sprintf(Bump_Names_Full[TextIndex], fileName);
+
+                sprintf(bump_Pack[TextIndex].texture_Name, fileName);
+
+                SDL_FreeSurface(Surf_Bump[TextIndex]);
+                Surf_Bump[TextIndex] = texture;
+                update_BumpFrom_Surface(texture, TextIndex);
+            }
+        }
+    }
+
+    if (dialog_lock)
+    {
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        DRAW_UI = 1;
+        draw_Dialog();
+        Button_h_text[2].color = UI_GRAYB;
+    }
+    else
+    {
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+        DRAW_UI = 1;
+    }
+    message = -1;
+#endif
+}
+
 void reload_Texture()
 {
 #if DEBUG_WITHOUT_IL == 0
@@ -12837,6 +12946,7 @@ int main(int argc, char * args[])
 
     Button_h_text[0].func = &reload_Texture;
     Button_h_text[1].func = &reload_All_Textures;
+    Button_h_text[2].func = &replace_Texture;
 
 	for (i = 0; i < EXT_NUM; i ++)
     {

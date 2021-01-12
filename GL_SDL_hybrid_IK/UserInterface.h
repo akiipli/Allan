@@ -57,7 +57,7 @@ int LISTLENGTH = 12;
 #define H_ITEM_NUM 1
 #define H_IKCH_NUM 6
 #define H_SUBC_NUM 5
-#define H_TEXT_NUM 2
+#define H_TEXT_NUM 3
 
 #define TYPE_LENGTH 20
 
@@ -3210,6 +3210,7 @@ void draw_Textures_Bottom_Line(int width, int height)
 
     draw_Button_text_horizontal("Reload", 0, 1);
     draw_Button_text_horizontal("Reload All", 1, 1);
+    draw_Button_text_horizontal("Replace", 2, 1);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
