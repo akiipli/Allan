@@ -842,11 +842,11 @@ int initialize_object(int index,
     O->edge_selections = 0;
     O->vertex_selections = 0;
 
-    O->curves = malloc(OBJECT_CURVES * sizeof(int));
+    O->curves = malloc(OBJECT_CURVES * sizeof(curve*));
     O->curve_count = 0;
-    O->segments = malloc(OBJECT_SEGMENTS * sizeof(int));
+    O->segments = malloc(OBJECT_SEGMENTS * sizeof(curve_segment*));
     O->segment_count = 0;
-    O->cps = malloc(OBJECT_CPS * sizeof(int));
+    O->cps = malloc(OBJECT_CPS * sizeof(cp*));
     O->cps_count = 0;
 
     O->polygon_selection = malloc(0 * sizeof(selection*));
