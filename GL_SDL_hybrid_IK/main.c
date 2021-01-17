@@ -16878,14 +16878,6 @@ int main(int argc, char * args[])
                 {
                     select_Deformer();
                 }
-                else
-                {
-                    if (O->curve_count > 0)
-                    {
-                        remove_Curve(O, O->curves[0]);
-                        print_Object_Curves(O);
-                    }
-                }
             }
             else
             {

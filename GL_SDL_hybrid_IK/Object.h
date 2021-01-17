@@ -19,6 +19,10 @@ Copyright <2018> <Allan Kiipli>
 
 #define INFLUENCES 1
 
+typedef struct cp cp;
+typedef struct curve curve;
+typedef struct curve_segment curve_segment;
+
 typedef struct
 {
     float R;
@@ -471,11 +475,11 @@ struct object
 
     weight_encapsulator * WEncapsulator;
 
-    int * curves;
+    curve ** curves;
     int curve_count;
-    int * segments;
+    curve_segment ** segments;
     int segment_count;
-    int * cps;
+    cp ** cps;
     int cps_count;
 };
 
