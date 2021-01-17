@@ -39,21 +39,24 @@ typedef struct curve_segment curve_segment;
 struct curve_segment
 {
     int index;
+    unsigned address;
+    int selected;
     int level;
     int edge; // edge with level
     int subdivided;
     curve * Curve;
     curve_segment * segment[2]; // if subdivided
     float A[3]; // begin
-    float B[3]; // end
-    float C[3]; // center
+    float B[3]; // center
+    float C[3]; // end
 };
 
-curve_segment * Segments[SEGMENTS];
+curve_segment * segments[SEGMENTS];
 
 struct cp
 {
     int index;
+    unsigned address;
     int selected;
     float pos[3];
     vertex * vert;
@@ -61,11 +64,13 @@ struct cp
     int segment_count;
 };
 
-cp * Cps[CPS];
+cp * cps[CPS];
 
 struct curve
 {
     int index;
+    unsigned address;
+    int selected;
     cp ** cps; // index in objects cps array
     int * cps_continuity; // marks pin_points
     int cps_count;
@@ -74,7 +79,7 @@ struct curve
     int open;
 };
 
-curve * Curves[CURVES];
+curve * curves[CURVES];
 
 void initialize_Cp(cp * CP)
 {
@@ -85,6 +90,22 @@ void initialize_Cp(cp * CP)
     CP->vert = NULL;
     CP->segments = malloc(0 * sizeof(curve_segment*));
     CP->segment_count = 0;
+}
+
+void calculate_Curve_Segment_B(curve * C, int index)
+{
+    curve_segment * S = C->segments[index];
+
+    if (index == 0 && C->segment_count == 1)
+    {
+        S->B[0] = (S->A[0] + S->C[0]) / 2;
+        S->B[1] = (S->A[1] + S->C[1]) / 2;
+        S->B[2] = (S->A[2] + S->C[2]) / 2;
+    }
+    else if (index == 0 && C->segment_count == 2)
+    {
+
+    }
 }
 
 void fill_Curve_Segments_With_Cp_Coordinates(curve * C)
@@ -104,10 +125,10 @@ void fill_Curve_Segments_With_Cp_Coordinates(curve * C)
         S = C->segments[c - 1];
 
         memcpy(S->A, CP0->pos, float_3);
-        memcpy(S->B, CP1->pos, float_3);
-        S->C[0] = (S->A[0] + S->B[0]) / 2;
-        S->C[1] = (S->A[1] + S->B[1]) / 2;
-        S->C[2] = (S->A[2] + S->B[2]) / 2;
+        memcpy(S->C, CP1->pos, float_3);
+        S->B[0] = (S->A[0] + S->C[0]) / 2;
+        S->B[1] = (S->A[1] + S->C[1]) / 2;
+        S->B[2] = (S->A[2] + S->C[2]) / 2;
     }
 
     if (C->open == 0)
@@ -118,10 +139,10 @@ void fill_Curve_Segments_With_Cp_Coordinates(curve * C)
         S = C->segments[C->segment_count - 1];
 
         memcpy(S->A, CP0->pos, float_3);
-        memcpy(S->B, CP1->pos, float_3);
-        S->C[0] = (S->A[0] + S->B[0]) / 2;
-        S->C[1] = (S->A[1] + S->B[1]) / 2;
-        S->C[2] = (S->A[2] + S->B[2]) / 2;
+        memcpy(S->C, CP1->pos, float_3);
+        S->B[0] = (S->A[0] + S->C[0]) / 2;
+        S->B[1] = (S->A[1] + S->C[1]) / 2;
+        S->B[2] = (S->A[2] + S->C[2]) / 2;
     }
 }
 
@@ -270,7 +291,7 @@ int add_Cp(object * O)
     initialize_Cp(CP);
 
     O->cps[O->cps_count ++] = cpsIndex;
-    Cps[cpsIndex] = CP;
+    cps[cpsIndex] = CP;
     CP->index = cpsIndex;
     cpsIndex ++;
     return 1;
@@ -283,6 +304,7 @@ void initialize_Curve(curve * C)
     C->cps_count = 0;
     C->segments = malloc(0 * sizeof(curve_segment*)); // index in objects segments array
     C->segment_count = 0;
+    C->selected = 0;
     C->open = 0;
 }
 
@@ -304,7 +326,7 @@ void remove_Cp(object * O, int index)
 
     if (index < cpsIndex)
     {
-        cp * CP = Cps[index];
+        cp * CP = cps[index];
 
         for (c = 0; c < O->cps_count; c ++)
         {
@@ -331,7 +353,7 @@ void remove_Cp(object * O, int index)
 
                 for (c = 0; c < O0->curve_count; c ++)
                 {
-                    C = Curves[O0->curves[c]];
+                    C = curves[O0->curves[c]];
                     remove_CP_From_Curve(C, CP);
                 }
 
@@ -348,8 +370,8 @@ void remove_Cp(object * O, int index)
 
             for (c = index; c < cpsIndex; c ++)
             {
-                Cps[c] = Cps[c + 1];
-                Cps[c]->index = c;
+                cps[c] = cps[c + 1];
+                cps[c]->index = c;
             }
 
             free(CP); // make free_Cp
@@ -375,7 +397,7 @@ int add_Curve(object * O)
     initialize_Curve(C);
 
     O->curves[O->curve_count ++] = curvesIndex;
-    Curves[curvesIndex] = C;
+    curves[curvesIndex] = C;
     C->index = curvesIndex;
     curvesIndex ++;
     return 1;
@@ -400,7 +422,7 @@ void remove_Curve(object * O, int index)
 
     if (index < curvesIndex)
     {
-        curve * C = Curves[index];
+        curve * C = curves[index];
 
         for (c = 0; c < O->curve_count; c ++)
         {
@@ -437,8 +459,8 @@ void remove_Curve(object * O, int index)
 
             for (c = index; c < curvesIndex; c ++)
             {
-                Curves[c] = Curves[c + 1];
-                Curves[c]->index = c;
+                curves[c] = curves[c + 1];
+                curves[c]->index = c;
             }
 
             free_Curve(C);
@@ -454,7 +476,7 @@ void free_Segments()
 
     for (s = 0; s < segmentIndex; s ++)
     {
-        S = Segments[s];
+        S = segments[s];
         free(S);
     }
 }
@@ -467,7 +489,7 @@ void free_Cps()
 
     for (c = 0; c < cpsIndex; c ++)
     {
-        CP = Cps[c];
+        CP = cps[c];
         free_Cp(CP);
     }
 }
@@ -480,7 +502,7 @@ void free_Curves()
 
     for (c = 0; c < curvesIndex; c ++)
     {
-        C = Curves[c];
+        C = curves[c];
         free_Curve(C);
     }
 }
@@ -503,7 +525,7 @@ void print_Object_Cps(object * O)
 
         for (c = 0; c < O0->cps_count; c ++)
         {
-            printf("%d ", Cps[O0->cps[c]]->index);
+            printf("%d ", cps[O0->cps[c]]->index);
         }
         printf("\n");
     }
@@ -527,7 +549,7 @@ void print_Object_Curves(object * O)
 
         for (c = 0; c < O0->curve_count; c ++)
         {
-            printf("%d ", Curves[O0->curves[c]]->index);
+            printf("%d ", curves[O0->curves[c]]->index);
         }
         printf("\n");
     }

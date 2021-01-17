@@ -17058,6 +17058,7 @@ int main(int argc, char * args[])
             if (mod & KMOD_SHIFT)
             {
                 Osd = !Osd;
+                DRAW_LABELS = Osd;
                 message = -1;
             }
             else if (mod & KMOD_CTRL)

@@ -6708,3 +6708,61 @@ void render_Image(unsigned char * data, camera * C, int width, int height, int L
         V_Mark -= V_step;
     }
 }
+
+void draw_Curve_Segment_Recursive(curve_segment * S, int level)
+{
+    if (S->level == level)
+    {
+        glBegin(GL_LINE_STRIP);
+        glColor4ubv(line_color);
+
+        glVertex3fv(S->A);
+        glVertex3fv(S->B);
+        glVertex3fv(S->C);
+        glEnd();
+    }
+    else if (S->subdivided)
+    {
+        draw_Curve_Segment_Recursive(S->segment[0], level);
+        draw_Curve_Segment_Recursive(S->segment[1], level);
+    }
+}
+
+void render_Curves(int level)
+{
+    glDisable(GL_TEXTURE_2D);
+
+    int c, s;
+    curve * C;
+    curve_segment * S;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+
+        if (C->selected)
+        {
+            glLineWidth(2);
+            line_color = &selected_color[0];
+            glDisable(GL_LIGHTING);
+        }
+        else
+        {
+            glLineWidth(1);
+            line_color = &current_color[0];
+            if (!glIsEnabled(GL_LIGHTING))
+                glEnable(GL_LIGHTING);
+        }
+
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            S = C->segments[s];
+            draw_Curve_Segment_Recursive(S, level);
+        }
+    }
+    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_MULTISAMPLE);
+    glEnable(GL_LIGHTING);
+    glDisable(GL_LINE_STIPPLE);
+    glLineWidth(1);
+}
