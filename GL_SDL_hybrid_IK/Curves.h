@@ -461,7 +461,7 @@ int add_Curve_Segment(curve * C)
 
     //memcpy(CP->pos, (float[3]){1.0, 1.0, 1.0}, float_3);
 
-    memcpy(CP->pos, C->cps[CP->index - 1]->pos, float_3);
+    memcpy(CP->pos, C->cps[C->cps_count - 2]->pos, float_3);
 
     return 1;
 }
