@@ -190,6 +190,7 @@ int Polygon_Mode = 0;
 int Edge_Mode = 0;
 int Vertex_Mode = 0;
 int Bone_Mode = 0;
+int Curve_Mode = 0;
 int selection_Mode = 0;
 
 int mouse_button_down = 0;
@@ -208,6 +209,7 @@ float T_pos[3];
 object * O;
 transformer * T;
 deformer * D;
+curve * C;
 
 int rendermode = POLY_RENDER;
 int POLYS_ID_RENDER = 0;
@@ -220,6 +222,7 @@ float m[4][4];
 
 float Delta[3];
 float Pos[3];
+float C_Pos[3];
 int fixed_goals = 0;
 
 int mouse_x, mouse_y;
@@ -272,6 +275,9 @@ int DRAW_UI = 1;
 int DRAW_LABELS = 1;
 int DRAW_LOCATORS = 0;
 int BONES_MODE = 0;
+int CURVE_MODE = 0;
+
+float Zero[3] = {0.0, 0.0, 0.0};
 
 int strlength(char * text)
 {
@@ -1382,6 +1388,11 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         else
         {
             render_polys_OnScreen(C, wireframe, edgedraw, vertdraw, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
+
+            if (Curve_Mode)
+            {
+                render_Curves();
+            }
         }
     }
     else
@@ -1429,6 +1440,11 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         else
         {
             render_quads_OnScreen(C, wireframe, edgedraw, vertdraw, level, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
+
+            if (Curve_Mode)
+            {
+                render_Curves_(subdLevel);
+            }
         }
     }
 }
@@ -2327,12 +2343,14 @@ void set_Object_Mode()
     Edge_Mode = 0;
     Vertex_Mode = 0;
     Bone_Mode = 0;
+    Curve_Mode = 0;
     vertdraw = 0;
     Button_Mode[0].color = UI_GRAYD;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYB;
+    Button_Mode[5].color = UI_GRAYB;
     SDL_SetCursor(Arrow);
 
     LOCAT_ID_RENDER = DRAW_LOCATORS;
@@ -2347,12 +2365,14 @@ void set_Polygon_Mode()
     Edge_Mode = 0;
     Vertex_Mode = 0;
     Bone_Mode = 0;
+    Curve_Mode = 0;
     vertdraw = 0;
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYD;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYB;
+    Button_Mode[5].color = UI_GRAYB;
     if (add_selection_mode)
         SDL_SetCursor(Arrow_Plus);
     else
@@ -2368,12 +2388,14 @@ void set_Edge_Mode()
     Edge_Mode = 1;
     Vertex_Mode = 0;
     Bone_Mode = 0;
+    Curve_Mode = 0;
     vertdraw = 0;
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYD;
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYB;
+    Button_Mode[5].color = UI_GRAYB;
 
     edgedraw = 1;
 
@@ -2392,12 +2414,14 @@ void set_Vertex_Mode()
     Edge_Mode = 0;
     Vertex_Mode = 1;
     Bone_Mode = 0;
+    Curve_Mode = 0;
     vertdraw = 1;
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYD;
     Button_Mode[4].color = UI_GRAYB;
+    Button_Mode[5].color = UI_GRAYB;
 
     if (add_selection_mode)
         SDL_SetCursor(Arrow_Plus);
@@ -2414,12 +2438,14 @@ void set_Bone_Mode()
     Edge_Mode = 0;
     Vertex_Mode = 0;
     Bone_Mode = 1;
+    Curve_Mode = 0;
     vertdraw = 0;
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYD;
+    Button_Mode[5].color = UI_GRAYB;
 
     if (add_selection_mode)
         SDL_SetCursor(Arrow_Plus);
@@ -2427,6 +2453,32 @@ void set_Bone_Mode()
         SDL_SetCursor(Arrow_Minus);
 
     DRAW_LOCATORS = 1;
+}
+
+void set_Curve_Mode()
+{
+    printf("Curve Mode\n");
+    selection_Mode = 4;
+    Object_Mode = 0;
+    Polygon_Mode = 0;
+    Edge_Mode = 0;
+    Vertex_Mode = 0;
+    Bone_Mode = 0;
+    Curve_Mode = 1;
+    vertdraw = 0;
+    Button_Mode[0].color = UI_GRAYB;
+    Button_Mode[1].color = UI_GRAYB;
+    Button_Mode[2].color = UI_GRAYB;
+    Button_Mode[3].color = UI_GRAYB;
+    Button_Mode[4].color = UI_GRAYB;
+    Button_Mode[5].color = UI_GRAYD;
+
+    if (add_selection_mode)
+        SDL_SetCursor(Arrow_Plus);
+    else
+        SDL_SetCursor(Arrow_Minus);
+
+    DRAW_LOCATORS = 0;
 }
 
 void select_Transformer()
@@ -10330,7 +10382,7 @@ void set_Bind_Mode()
 
         create_Hierarchys_List(); // because of collapsed locators
 
-        Button_Mode[5].color = UI_GRAYD;
+        Button_Mode[6].color = UI_GRAYD;
     }
     else
     {
@@ -10364,7 +10416,7 @@ void set_Bind_Mode()
 
         paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
 
-        Button_Mode[5].color = UI_GRAYB;
+        Button_Mode[6].color = UI_GRAYB;
         Button_Mode[selection_Mode].color = UI_GRAYD;
 
         //set_Object_Mode();
@@ -10687,7 +10739,7 @@ void start_Movement()
     ObjDist = distance(O->T->pos, Camera->T->pos);
     T = Camera->T;
 
-    if ((mod & KMOD_SHIFT) || BONES_MODE)
+    if ((mod & KMOD_SHIFT) || BONES_MODE || CURVE_MODE)
     {
         object_hook = 1;
         MOVEMENT = 1;
@@ -10743,61 +10795,73 @@ void start_Movement()
         T_pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
         T_pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
 
-        Constraint_Pack.IK = NULL;
-        Constraint_Pack.Deformer = NULL;
-        scan_For_Locator_Constraints(T);
-
-        if (Constraint_Pack.IK != NULL)
-            printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
-
-        Update_Objects_Count = 0;
-        if (Constraint_Pack.Deformer != NULL && Constraint_Pack.Deformer->Transformers_Count > 0)
+        if (CURVE_MODE)
         {
-            rotate_collect(Constraint_Pack.Deformer->Transformers[0]);
-        }
-        else if (T->Deformer != NULL && T->Deformer->Transformers_Count > 0)
-        {
-            rotate_collect(T->Deformer->Transformers[0]);
+            if (C != NULL && C->cps_count > 0)
+            {
+                C_Pos[0] = C->cps[C->cps_count - 1]->pos[0];
+                C_Pos[1] = C->cps[C->cps_count - 1]->pos[1];
+                C_Pos[2] = C->cps[C->cps_count - 1]->pos[2];
+            }
         }
         else
         {
-            rotate_collect(T);
-        }
-        printf("Update Objects Count %d\n", Update_Objects_Count);
+            Constraint_Pack.IK = NULL;
+            Constraint_Pack.Deformer = NULL;
+            scan_For_Locator_Constraints(T);
 
-        child_collection_count = 0;
-
-        if (BIND_POSE)
-        {
-            collect_selected_T(&World);
-        }
-
-        collect_Children(T);
-
-        bake_position(T);
-        bake_position_Children(T);
-        bake(T);
-
-        init_Action_Begin_Pose(T);
-
-        if (!BIND_POSE)
-        {
             if (Constraint_Pack.IK != NULL)
-            {
-                if (Constraint_Pack.IK->C != NULL)
-                    continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
-                else if (Constraint_Pack.IK->Pole != NULL)
-                    continue_Action_Begin_Pose(Constraint_Pack.IK->Pole->IK_goal);
-            }
-        }
+                printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
 
-        if (T->Deformer != NULL)
-        {
-            if (T->Deformer->Transformers_Count > 0)
+            Update_Objects_Count = 0;
+            if (Constraint_Pack.Deformer != NULL && Constraint_Pack.Deformer->Transformers_Count > 0)
             {
-                if (T == T->Deformer->Transformers[0])
+                rotate_collect(Constraint_Pack.Deformer->Transformers[0]);
+            }
+            else if (T->Deformer != NULL && T->Deformer->Transformers_Count > 0)
+            {
+                rotate_collect(T->Deformer->Transformers[0]);
+            }
+            else
+            {
+                rotate_collect(T);
+            }
+            printf("Update Objects Count %d\n", Update_Objects_Count);
+
+            child_collection_count = 0;
+
+            if (BIND_POSE)
+            {
+                collect_selected_T(&World);
+            }
+
+            collect_Children(T);
+
+            bake_position(T);
+            bake_position_Children(T);
+            bake(T);
+
+            init_Action_Begin_Pose(T);
+
+            if (!BIND_POSE)
+            {
+                if (Constraint_Pack.IK != NULL)
                 {
-                    fixed_goals = find_fixed_goals(T->Deformer);
+                    if (Constraint_Pack.IK->C != NULL)
+                        continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+                    else if (Constraint_Pack.IK->Pole != NULL)
+                        continue_Action_Begin_Pose(Constraint_Pack.IK->Pole->IK_goal);
+                }
+            }
+
+            if (T->Deformer != NULL)
+            {
+                if (T->Deformer->Transformers_Count > 0)
+                {
+                    if (T == T->Deformer->Transformers[0])
+                    {
+                        fixed_goals = find_fixed_goals(T->Deformer);
+                    }
                 }
             }
         }
@@ -10848,6 +10912,17 @@ void make_Movement()
                 move_T_childs(T, Delta);
                 synthesize_Bone_Alignement_childs(T);
             }
+        }
+    }
+    else if (CURVE_MODE)
+    {
+        if (C != NULL && C->cps_count > 0)
+        {
+            C->cps[C->cps_count - 1]->pos[0] = C_Pos[0] + Delta[0];
+            C->cps[C->cps_count - 1]->pos[1] = C_Pos[1] + Delta[1];
+            C->cps[C->cps_count - 1]->pos[2] = C_Pos[2] + Delta[2];
+
+            update_Curve(C);
         }
     }
     else
@@ -11794,7 +11869,7 @@ void exit_Bind_Mode()
 
     paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
 
-    Button_Mode[5].color = UI_GRAYB;
+    Button_Mode[6].color = UI_GRAYB;
     Button_Mode[selection_Mode].color = UI_GRAYD;
 
     set_Object_Mode();
@@ -12860,7 +12935,8 @@ int main(int argc, char * args[])
     Button_Mode[2].func = &set_Edge_Mode;
     Button_Mode[3].func = &set_Vertex_Mode;
     Button_Mode[4].func = &set_Bone_Mode;
-    Button_Mode[5].func = &set_Bind_Mode;
+    Button_Mode[5].func = &set_Curve_Mode;
+    Button_Mode[6].func = &set_Bind_Mode;
 
     Button_ext[0].func = &set_Button_ext;
     Button_ext[1].func = &set_Button_ext;
@@ -13506,6 +13582,11 @@ int main(int argc, char * args[])
 //                    SDL_GL_SwapBuffers();
 
                     multi_Rotation_Transformers_Count = 0;
+
+                    if (CURVE_MODE)
+                    {
+                        CURVE_MODE = 0;
+                    }
 
                     if (MOVEMENT)
                     {
@@ -17003,9 +17084,47 @@ int main(int argc, char * args[])
                     ALIGN_IS_ON = !ALIGN_IS_ON;
                 }
             }
-            else if (mod & KMOD_ALT)
+            else if (Curve_Mode)
             {
-                //add_Curve(O);
+                int r = 0;
+                if (currentCurve >= 0 && currentCurve < curvesIndex)
+                {
+                    C = curves[currentCurve];
+                    if (C->selected)
+                    {
+                        r = add_Curve_Segment(C);
+                    }
+                    else
+                    {
+                        r = add_New_Curve(Zero, 1);
+                        if (r)
+                        {
+                            currentCurve = curvesIndex - 1;
+                            C = curves[currentCurve];
+                            C->selected = 1;
+                            r = add_Curve_Segment(C);
+                        }
+                    }
+                }
+                else
+                {
+                    r = add_New_Curve(Zero, 1);
+                    if (r)
+                    {
+                        currentCurve = curvesIndex - 1;
+                        C = curves[currentCurve];
+                        C->selected = 1;
+                        r = add_Curve_Segment(C);
+                    }
+                }
+                if (r)
+                {
+                    CURVE_MODE = 1;
+                    Camera_screen_lock = 1;
+                    start_Movement();
+                }
+                else
+                    CURVE_MODE = 0;
                 //print_Object_Curves(O);
             }
             else
@@ -17443,7 +17562,16 @@ int main(int argc, char * args[])
         }
         else if (message == 37)
         {
-            if (Object_Mode)
+            if (Curve_Mode)
+            {
+                if (currentCurve >= 0 && currentCurve < curvesIndex)
+                {
+                    C = curves[currentCurve];
+                    C->open = !C->open;
+                    update_Curve(C);
+                }
+            }
+            else if (Object_Mode)
             {
                 if (mod & KMOD_ALT)
                 {
@@ -17587,6 +17715,11 @@ int main(int argc, char * args[])
             message = -1;
         }
         else if (message == 52)
+        {
+            set_Curve_Mode();
+            message = -1;
+        }
+        else if (message == 53)
         {
             set_Bind_Mode();
             message = -1;

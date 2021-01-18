@@ -32,6 +32,7 @@ similar fashion to edges.
 int curvesIndex = 0;
 int segmentIndex = 0;
 int cpsIndex = 0;
+int currentCurve = 0;
 
 float length(float V[3]);
 size_t float_3 = sizeof(float[3]);
@@ -102,10 +103,11 @@ void calculate_Curve_Segment_B(curve * C, int index)
 
     cp * CP0, * CP1;
     curve_segment * S = C->segments[index];
+    S->level = 0;
     CP0 = C->cps[index];
-    CP1 = C->cps[index + 1];
+    CP1 = C->cps[(index + 1) % C->cps_count];
     continuity0 = C->cps_continuity[index];
-    continuity1 = C->cps_continuity[index + 1];
+    continuity1 = C->cps_continuity[(index + 1) % C->cps_count];
 
     vec[0] = CP0->pos[0] - CP0->B[0];
     vec[1] = CP0->pos[1] - CP0->B[1];
@@ -152,6 +154,16 @@ void calculate_Curve_Segment_B(curve * C, int index)
     S->B[2] = (CP0->C[2] + CP1->A[2]) / 2.0;
 }
 
+void calculate_Curve_Segments(curve * C)
+{
+    int i;
+
+    for (i = 0; i < C->segment_count; i ++)
+    {
+        calculate_Curve_Segment_B(C, i);
+    }
+}
+
 void fill_Curve_Cps_With_Tangents(curve * C)
 {
     int s;
@@ -159,26 +171,17 @@ void fill_Curve_Cps_With_Tangents(curve * C)
     float vec[3], vec0[3];
 
     cp * CP;
-    curve_segment * S, * S0;
+    curve_segment * S0, * S1;
 
-    if (C->segment_count > 0)
+    for (s = 0; s < C->segment_count; s ++)
     {
-        S = C->segments[0];
-        CP = C->cps[0];
+        S0 = C->segments[s];
+        S1 = C->segments[(s + 1) % C->segment_count];
 
-        memcpy(CP->A, S->A, float_3);
-        memcpy(CP->B, S->A, float_3);
-        memcpy(CP->C, S->B, float_3);
-    }
+        CP = C->cps[(s + 1) % C->segment_count];
 
-    for (s = 1; s < C->segment_count; s ++)
-    {
-        S = C->segments[s];
-        CP = C->cps[s];
-
-        S0 = C->segments[s - 1];
         memcpy(CP->A, S0->B, float_3);
-        memcpy(CP->C, S->B, float_3);
+        memcpy(CP->C, S1->B, float_3);
 
         vec[0] = CP->C[0] - CP->A[0];
         vec[1] = CP->C[1] - CP->A[1];
@@ -201,14 +204,21 @@ void fill_Curve_Cps_With_Tangents(curve * C)
         CP->B[2] = CP->A[2] + vec[2] * portion;
     }
 
-    if (C->segment_count > 0)
+    if (C->open)
     {
-        S = C->segments[C->segment_count - 1];
+        S0 = C->segments[0];
+        CP = C->cps[0];
+
+        memcpy(CP->A, S0->A, float_3);
+        memcpy(CP->B, S0->A, float_3);
+        memcpy(CP->C, S0->B, float_3);
+
+        S1 = C->segments[C->segment_count - 2];
         CP = C->cps[C->cps_count - 1];
 
-        memcpy(CP->A, S->B, float_3);
-        memcpy(CP->B, S->C, float_3);
-        memcpy(CP->C, S->C, float_3);
+        memcpy(CP->A, S1->B, float_3);
+        memcpy(CP->B, S1->C, float_3);
+        memcpy(CP->C, S1->C, float_3);
     }
 }
 
@@ -219,26 +229,12 @@ void fill_Curve_Segments_With_Cp_Coordinates(curve * C)
     cp * CP0, * CP1;
     curve_segment * S;
 
-    for (c = 1; c < C->cps_count; c ++)
+    for (c = 0; c < C->cps_count; c ++)
     {
-        CP0 = C->cps[c - 1];
-        CP1 = C->cps[c];
+        CP0 = C->cps[c];
+        CP1 = C->cps[(c + 1) % C->cps_count];
 
-        S = C->segments[c - 1];
-
-        memcpy(S->A, CP0->pos, float_3);
-        memcpy(S->C, CP1->pos, float_3);
-        S->B[0] = (S->A[0] + S->C[0]) / 2;
-        S->B[1] = (S->A[1] + S->C[1]) / 2;
-        S->B[2] = (S->A[2] + S->C[2]) / 2;
-    }
-
-    if (C->open == 0)
-    {
-        CP0 = C->cps[C->cps_count - 1];
-        CP1 = C->cps[0];
-
-        S = C->segments[C->segment_count - 1];
+        S = C->segments[c];
 
         memcpy(S->A, CP0->pos, float_3);
         memcpy(S->C, CP1->pos, float_3);
@@ -346,7 +342,7 @@ int add_Cp_To_Curve(curve * C, cp * CP)
         return 0;
     }
     C->cps[C->cps_count - 1] = CP;
-    C->cps_continuity[C->cps_count - 1] = 1;
+    C->cps_continuity[C->cps_count - 1] = 0.7;
 
     if (C->segment_count > 0)
     {
@@ -414,6 +410,131 @@ void free_Cp(cp * CP)
 {
     free(CP->segments);
     free(CP);
+}
+
+int add_Curve_Segment(curve * C)
+{
+    if (cpsIndex >= CPS)
+    {
+        return 0;
+    }
+
+    if (segmentIndex >= SEGMENTS)
+    {
+        return 0;
+    }
+
+    cp * CP = malloc(sizeof(cp));
+
+    if (CP == NULL) return 0;
+
+    CP->index = cpsIndex;
+    cps[cpsIndex ++] = CP;
+
+    curve_segment * S = malloc(sizeof(curve_segment));
+
+    if (S == NULL) return 0;
+
+    S->level = 0;
+    S->subdivided = 0;
+
+    S->index = segmentIndex;
+    segments[segmentIndex ++] = S;
+
+    C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
+
+    if (C->cps == NULL) return 0;
+
+    C->cps[C->cps_count ++] = CP;
+
+    C->cps_continuity = realloc(C->cps_continuity, (C->cps_count) * sizeof(float));
+
+    if (C->cps_continuity == NULL) return 0;
+
+    C->cps_continuity[C->cps_count - 1] = 0.7;
+
+    C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
+
+    if (C->segments == NULL) return 0;
+
+    C->segments[C->segment_count ++] = S;
+
+    //memcpy(CP->pos, (float[3]){1.0, 1.0, 1.0}, float_3);
+
+    memcpy(CP->pos, C->cps[CP->index - 1]->pos, float_3);
+
+    return 1;
+}
+
+int add_New_Curve(float pos[3], int open)
+{
+    printf("add New Curve\n");
+
+    if (curvesIndex >= CURVES)
+    {
+        return 0;
+    }
+
+    curve * C = malloc(sizeof(curve));
+    if (C == NULL)
+    {
+        return 0;
+    }
+
+    initialize_Curve(C);
+    curves[curvesIndex] = C;
+    C->index = curvesIndex;
+    curvesIndex ++;
+
+    if (cpsIndex >= CPS)
+    {
+        return 0;
+    }
+
+    cp * CP = malloc(sizeof(cp));
+
+    if (CP == NULL) return 0;
+
+    CP->index = cpsIndex;
+    cps[cpsIndex ++] = CP;
+
+    memcpy(CP->pos, pos, float_3);
+
+    C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
+
+    if (C->cps == NULL) return 0;
+
+    C->cps[C->cps_count ++] = CP;
+
+    C->cps_continuity = realloc(C->cps_continuity, (C->cps_count) * sizeof(float));
+
+    if (C->cps_continuity == NULL) return 0;
+
+    C->cps_continuity[C->cps_count - 1] = 0.7;
+
+    C->open = open;
+
+    if (segmentIndex >= SEGMENTS)
+    {
+        return 0;
+    }
+
+    curve_segment * S = malloc(sizeof(curve_segment));
+
+    if (S == NULL) return 0;
+
+    S->level = 0;
+    S->subdivided = 0;
+
+    S->index = segmentIndex;
+    segments[segmentIndex ++] = S;
+
+    C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
+    if (C->segments == NULL) return 0;
+
+    C->segments[C->segment_count ++] = S;
+
+    return 1;
 }
 
 int add_Curve(object * O)
@@ -533,6 +654,13 @@ void print_Object_Curves(object * O)
         }
         printf("\n");
     }
+}
+
+void update_Curve(curve * C)
+{
+    fill_Curve_Segments_With_Cp_Coordinates(C);
+    fill_Curve_Cps_With_Tangents(C);
+    calculate_Curve_Segments(C);
 }
 
 #endif // CURVES_H_INCLUDED
