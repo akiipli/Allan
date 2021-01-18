@@ -17119,6 +17119,7 @@ int main(int argc, char * args[])
                 }
                 if (r)
                 {
+                    update_Curve(C);
                     CURVE_MODE = 1;
                     Camera_screen_lock = 1;
                     start_Movement();

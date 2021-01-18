@@ -167,8 +167,8 @@ void calculate_Curve_Segments(curve * C)
 void fill_Curve_Cps_With_Tangents(curve * C)
 {
     int s;
-    float len, len0, portion;
-    float vec[3], vec0[3];
+    float len0, len1, portion;
+    float vec[3], vec0[3], vec1[3];
 
     cp * CP;
     curve_segment * S0, * S1;
@@ -191,13 +191,17 @@ void fill_Curve_Cps_With_Tangents(curve * C)
         vec0[1] = CP->pos[1] - CP->A[1];
         vec0[2] = CP->pos[2] - CP->A[2];
 
-        len = length(vec);
-        len0 = length(vec0);
+        vec1[0] = CP->pos[0] - CP->C[0];
+        vec1[1] = CP->pos[1] - CP->C[1];
+        vec1[2] = CP->pos[2] - CP->C[2];
 
-        if (len > 0)
-            portion = len0 / len;
-        else
-            portion = 0;
+        len0 = length(vec0);
+        len1 = length(vec1);
+
+//        if ((len0 + len1) > 0)
+            portion = len0 / (len0 + len1);
+//        else
+//            portion = 0;
 
         CP->B[0] = CP->A[0] + vec[0] * portion;
         CP->B[1] = CP->A[1] + vec[1] * portion;
