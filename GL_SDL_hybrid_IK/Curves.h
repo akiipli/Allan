@@ -754,6 +754,14 @@ int add_Curve_Segment(curve * C)
 
     memcpy(CP->pos, C->cps[C->cps_count - 2]->pos, float_3);
 
+    C->cps[C->cps_count - 2]->segments[1] = S;
+    C->cps[C->cps_count - 2]->segment_count = 2;
+
+    CP->segments = malloc(2 * sizeof(curve_segment *));
+    CP->segment_count = 1;
+    CP->segments[0] = S;
+    CP->selected = 0;
+
     return 1;
 }
 
@@ -790,6 +798,7 @@ int add_New_Curve(float pos[3], int open)
     cps[cpsIndex ++] = CP;
 
     memcpy(CP->pos, pos, float_3);
+    CP->selected = 0;
 
     C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
 
@@ -824,6 +833,10 @@ int add_New_Curve(float pos[3], int open)
     if (C->segments == NULL) return 0;
 
     C->segments[C->segment_count ++] = S;
+
+    CP->segments = malloc(2 * sizeof(curve_segment *));
+    CP->segment_count = 1;
+    CP->segments[0] = S;
 
     return 1;
 }

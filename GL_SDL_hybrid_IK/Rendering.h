@@ -6822,3 +6822,32 @@ void render_Curves_(int level)
     glDisable(GL_LINE_STIPPLE);
     glLineWidth(1);
 }
+
+void render_Cps()
+{
+    glPointSize(3);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_LIGHTING);
+    glBegin(GL_POINTS);
+    glColor4ubv(vert_color);
+
+    int c;
+    cp * CP;
+
+    for (c = 0; c < cpsIndex; c ++)
+    {
+        CP = cps[c];
+        if (CP->selected)
+        {
+            glColor4ubv(selected_vert_color);
+        }
+        else
+        {
+            glColor4ubv(vert_color);
+        }
+        glVertex3fv(CP->pos);
+    }
+    glEnd();
+    glEnable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
+}

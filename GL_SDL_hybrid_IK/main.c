@@ -1393,6 +1393,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
             if (Curve_Mode)
             {
                 render_Curves();
+                render_Cps();
             }
         }
     }
@@ -1445,6 +1446,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
             if (Curve_Mode)
             {
                 render_Curves_(subdLevel);
+                render_Cps();
             }
         }
     }
