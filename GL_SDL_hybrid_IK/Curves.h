@@ -37,6 +37,8 @@ int currentCurve = 0;
 float length(float V[3]);
 size_t float_3 = sizeof(float[3]);
 
+float continuity0 = 0.3;
+
 struct curve_segment
 {
     int index;
@@ -226,6 +228,28 @@ void fill_Curve_Cps_With_Tangents(curve * C)
     }
 }
 
+void fill_Curve_Segments_Tips_With_Cp_Coordinates(curve * C)
+{
+    int c;
+
+    cp * CP0, * CP1;
+    curve_segment * S;
+
+    for (c = 0; c < C->cps_count; c ++)
+    {
+        CP0 = C->cps[c];
+        CP1 = C->cps[(c + 1) % C->cps_count];
+
+        S = C->segments[c];
+
+        memcpy(S->A, CP0->pos, float_3);
+        memcpy(S->C, CP1->pos, float_3);
+//        S->B[0] = (S->A[0] + S->C[0]) / 2;
+//        S->B[1] = (S->A[1] + S->C[1]) / 2;
+//        S->B[2] = (S->A[2] + S->C[2]) / 2;
+    }
+}
+
 void fill_Curve_Segments_With_Cp_Coordinates(curve * C)
 {
     int c;
@@ -245,6 +269,252 @@ void fill_Curve_Segments_With_Cp_Coordinates(curve * C)
         S->B[0] = (S->A[0] + S->C[0]) / 2;
         S->B[1] = (S->A[1] + S->C[1]) / 2;
         S->B[2] = (S->A[2] + S->C[2]) / 2;
+    }
+}
+
+void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, curve_segment * S1, int level, int start_open, int end_open)
+{
+    if (level >= S->level)
+    {
+        curve_segment * S_0, * S_1, * S_2, * S_3;
+
+        float len0, len1, portion;
+        float vec[3], vec0[3], vec1[3];
+
+        float A[3];
+        float B[3];
+        float C[3];
+
+        float A1[3];
+        float B1[3];
+        float C1[3];
+
+        if (start_open)
+        {
+            C[0] = (S->A[0] + S->C[0]) / 2;
+            C[1] = (S->A[1] + S->C[1]) / 2;
+            C[2] = (S->A[2] + S->C[2]) / 2;
+        }
+        else
+        {
+            memcpy(A, S0->A, float_3);
+            memcpy(C, S->C, float_3);
+
+            vec[0] = C[0] - A[0];
+            vec[1] = C[1] - A[1];
+            vec[2] = C[2] - A[2];
+
+            vec0[0] = S->A[0] - A[0];
+            vec0[1] = S->A[1] - A[1];
+            vec0[2] = S->A[2] - A[2];
+
+            vec1[0] = S->A[0] - C[0];
+            vec1[1] = S->A[1] - C[1];
+            vec1[2] = S->A[2] - C[2];
+
+            len0 = length(vec0);
+            len1 = length(vec1);
+
+    //        if ((len0 + len1) > 0)
+                portion = len0 / (len0 + len1);
+    //        else
+    //            portion = 0;
+
+            B[0] = A[0] + vec[0] * portion;
+            B[1] = A[1] + vec[1] * portion;
+            B[2] = A[2] + vec[2] * portion;
+
+            ////
+
+            vec[0] = S->A[0] - B[0];
+            vec[1] = S->A[1] - B[1];
+            vec[2] = S->A[2] - B[2];
+
+            C[0] += vec[0];
+            C[1] += vec[1];
+            C[2] += vec[2];
+
+            C[0] -= S->A[0];
+            C[1] -= S->A[1];
+            C[2] -= S->A[2];
+
+            C[0] *= continuity0;
+            C[1] *= continuity0;
+            C[2] *= continuity0;
+
+            C[0] += S->A[0];
+            C[1] += S->A[1];
+            C[2] += S->A[2];
+        }
+
+        ////
+
+        if (end_open)
+        {
+            A1[0] = (S->A[0] + S->C[0]) / 2;
+            A1[1] = (S->A[1] + S->C[1]) / 2;
+            A1[2] = (S->A[2] + S->C[2]) / 2;
+        }
+        else
+        {
+            memcpy(A1, S->A, float_3);
+            memcpy(C1, S1->C, float_3);
+
+            vec[0] = C1[0] - A1[0];
+            vec[1] = C1[1] - A1[1];
+            vec[2] = C1[2] - A1[2];
+
+            vec0[0] = S->C[0] - A1[0];
+            vec0[1] = S->C[1] - A1[1];
+            vec0[2] = S->C[2] - A1[2];
+
+            vec1[0] = S->C[0] - C1[0];
+            vec1[1] = S->C[1] - C1[1];
+            vec1[2] = S->C[2] - C1[2];
+
+            len0 = length(vec0);
+            len1 = length(vec1);
+
+    //        if ((len0 + len1) > 0)
+                portion = len0 / (len0 + len1);
+    //        else
+    //            portion = 0;
+
+            B1[0] = A1[0] + vec[0] * portion;
+            B1[1] = A1[1] + vec[1] * portion;
+            B1[2] = A1[2] + vec[2] * portion;
+
+            ////
+
+            vec[0] = S->C[0] - B1[0];
+            vec[1] = S->C[1] - B1[1];
+            vec[2] = S->C[2] - B1[2];
+
+            A1[0] += vec[0];
+            A1[1] += vec[1];
+            A1[2] += vec[2];
+
+            A1[0] -= S->C[0];
+            A1[1] -= S->C[1];
+            A1[2] -= S->C[2];
+
+            A1[0] *= continuity0;
+            A1[1] *= continuity0;
+            A1[2] *= continuity0;
+
+            A1[0] += S->C[0];
+            A1[1] += S->C[1];
+            A1[2] += S->C[2];
+        }
+
+        ////
+
+        S->B[0] = (C[0] + A1[0]) / 2.0;
+        S->B[1] = (C[1] + A1[1]) / 2.0;
+        S->B[2] = (C[2] + A1[2]) / 2.0;
+
+        if (S0->subdivided && S->subdivided && S1->subdivided && level >= S->level + 1)
+        {
+            S_0 = S0->segment[1];
+            S_1 = S->segment[0];
+            S_2 = S->segment[1];
+            S_3 = S1->segment[0];
+
+            memcpy(S_1->A, S->A, float_3);
+            memcpy(S_1->C, S->B, float_3);
+
+            memcpy(S_2->A, S->B, float_3);
+            memcpy(S_2->C, S->C, float_3);
+
+            if (start_open)
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 1, 0);
+            else
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 0, 0);
+            if (end_open)
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 1);
+            else
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 0);
+        }
+    }
+}
+
+void fill_Curve_Segments_With_Coordinates(curve * C, int level)
+{
+    int s;
+    curve_segment * S, * S0, * S1;
+
+    for (s = 0; s < C->segment_count; s ++)
+    {
+        S = C->segments[s];
+        if (s - 1 < 0)
+            S0 = C->segments[C->segment_count - 1];
+        else
+            S0 = C->segments[s - 1];
+        if (s + 1 >= C->segment_count)
+            S1 = C->segments[0];
+        else
+            S1 = C->segments[s + 1];
+        if (level >= S->level)
+        {
+            if (C->open && s == 0)
+            {
+                fill_Curve_Segment_With_Coordinates(S, S0, S1, level, 1, 0);
+            }
+            else if (C->open && s == C->segment_count - 2)
+            {
+                fill_Curve_Segment_With_Coordinates(S, S0, S1, level, 0, 1);
+            }
+            else
+            {
+                fill_Curve_Segment_With_Coordinates(S, S0, S1, level, 0, 0);
+            }
+        }
+    }
+}
+
+void subdivide_Curve_Segment(curve_segment * S, int level)
+{
+    if (!S->subdivided && level > S->level)
+    {
+        curve_segment * S0, * S1;
+
+        S0 = malloc(sizeof(curve_segment));
+        S1 = malloc(sizeof(curve_segment));
+
+        if (S0 && S1)
+        {
+            S0->index = segmentIndex;
+            S0->level = S->level + 1;
+            S0->subdivided = 0;
+            segments[segmentIndex ++] = S0;
+
+            S1->index = segmentIndex;
+            S1->level = S->level + 1;
+            S1->subdivided = 0;
+            segments[segmentIndex ++] = S1;
+
+            S->subdivided = 1;
+            S->segment[0] = S0;
+            S->segment[1] = S1;
+        }
+    }
+
+    if (S->subdivided && level > S->level + 1)
+    {
+        subdivide_Curve_Segment(S->segment[0], level);
+        subdivide_Curve_Segment(S->segment[1], level);
+    }
+}
+
+void subdivide_Curve_Segments(curve * C, int level)
+{
+    int s;
+    curve_segment * S;
+
+    for (s = 0; s < C->segment_count; s ++)
+    {
+        S = C->segments[s];
+        subdivide_Curve_Segment(S, level);
     }
 }
 
@@ -660,11 +930,37 @@ void print_Object_Curves(object * O)
     }
 }
 
-void update_Curve(curve * C)
+void update_Curve(curve * C, int level)
 {
-    fill_Curve_Segments_With_Cp_Coordinates(C);
-    fill_Curve_Cps_With_Tangents(C);
-    calculate_Curve_Segments(C);
+    fill_Curve_Segments_Tips_With_Cp_Coordinates(C);
+    fill_Curve_Segments_With_Coordinates(C, level);
+//    fill_Curve_Segments_With_Cp_Coordinates(C);
+//    fill_Curve_Cps_With_Tangents(C);
+//    calculate_Curve_Segments(C);
+}
+
+void subdivide_Curves(int level)
+{
+    int c;
+    curve * C;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+        subdivide_Curve_Segments(C, level);
+    }
+}
+
+void update_Curves(int level)
+{
+    int c;
+    curve * C;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+        update_Curve(C, level);
+    }
 }
 
 #endif // CURVES_H_INCLUDED

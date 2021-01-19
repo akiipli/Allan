@@ -10922,7 +10922,7 @@ void make_Movement()
             C->cps[C->cps_count - 1]->pos[1] = C_Pos[1] + Delta[1];
             C->cps[C->cps_count - 1]->pos[2] = C_Pos[2] + Delta[2];
 
-            update_Curve(C);
+            update_Curve(C, subdLevel);
         }
     }
     else
@@ -16347,6 +16347,13 @@ int main(int argc, char * args[])
             }
 
             printf("level quads %d %d\n", subdLevel, O->quadcount_[subdLevel]);
+
+            //
+            subdivide_Curves(subdLevel);
+            update_Curves(subdLevel);
+            update_Curves(subdLevel);
+            //
+
             UPDATE_COLORS = 1;
             message = -10;
         }
@@ -17119,7 +17126,8 @@ int main(int argc, char * args[])
                 }
                 if (r)
                 {
-                    update_Curve(C);
+                    subdivide_Curve_Segments(C, subdLevel);
+                    update_Curve(C, subdLevel);
                     CURVE_MODE = 1;
                     Camera_screen_lock = 1;
                     start_Movement();
@@ -17569,7 +17577,7 @@ int main(int argc, char * args[])
                 {
                     C = curves[currentCurve];
                     C->open = !C->open;
-                    update_Curve(C);
+                    update_Curve(C, subdLevel);
                 }
             }
             else if (Object_Mode)
