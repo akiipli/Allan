@@ -29,6 +29,8 @@ similar fashion to edges.
 #define OBJECT_CPS 10000
 #define OBJECT_SEGMENTS 10000
 
+#define CP_CONTINUITY 0.66
+
 int curvesIndex = 0;
 int segmentIndex = 0;
 int cpsIndex = 0;
@@ -37,7 +39,21 @@ int currentCurve = 0;
 float length(float V[3]);
 size_t float_3 = sizeof(float[3]);
 
-float continuity0 = 0.3;
+float cp_continuity[SUBD];
+
+void init_cp_continuity()
+{
+    int l;
+    float v = 0.3; // for subdivided segments it is safe to use A and C points in Segments.
+                   // Thus B is not used and we scale tangents down significantly.
+    float i = v / SUBD;
+
+    for (l = 0; l < SUBD; l ++)
+    {
+        cp_continuity[l] = v;
+        v -= i;
+    }
+}
 
 struct curve_segment
 {
@@ -274,10 +290,11 @@ void fill_Curve_Segments_With_Cp_Coordinates(curve * C)
 
 void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, curve_segment * S1, int level, int start_open, int end_open)
 {
-    if (level >= S->level)
-    {
-        curve_segment * S_0, * S_1, * S_2, * S_3;
+    curve_segment * S_0, * S_1, * S_2, * S_3;
 
+    if (level >= S->level && S->level > 0) // level 0 is filled with Coordinates and Tangents in update Curve, also segments
+                                           // level 0 continuity is controlled with curves continuity arrays.
+    {
         float len0, len1, portion;
         float vec[3], vec0[3], vec1[3];
 
@@ -338,9 +355,9 @@ void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, 
             C[1] -= S->A[1];
             C[2] -= S->A[2];
 
-            C[0] *= continuity0;
-            C[1] *= continuity0;
-            C[2] *= continuity0;
+            C[0] *= cp_continuity[S->level];
+            C[1] *= cp_continuity[S->level];
+            C[2] *= cp_continuity[S->level];
 
             C[0] += S->A[0];
             C[1] += S->A[1];
@@ -398,9 +415,9 @@ void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, 
             A1[1] -= S->C[1];
             A1[2] -= S->C[2];
 
-            A1[0] *= continuity0;
-            A1[1] *= continuity0;
-            A1[2] *= continuity0;
+            A1[0] *= cp_continuity[S->level];
+            A1[1] *= cp_continuity[S->level];
+            A1[2] *= cp_continuity[S->level];
 
             A1[0] += S->C[0];
             A1[1] += S->C[1];
@@ -412,29 +429,29 @@ void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, 
         S->B[0] = (C[0] + A1[0]) / 2.0;
         S->B[1] = (C[1] + A1[1]) / 2.0;
         S->B[2] = (C[2] + A1[2]) / 2.0;
+    }
 
-        if (S0->subdivided && S->subdivided && S1->subdivided && level >= S->level + 1)
-        {
-            S_0 = S0->segment[1];
-            S_1 = S->segment[0];
-            S_2 = S->segment[1];
-            S_3 = S1->segment[0];
+    if (S0->subdivided && S->subdivided && S1->subdivided && level >= S->level + 1)
+    {
+        S_0 = S0->segment[1];
+        S_1 = S->segment[0];
+        S_2 = S->segment[1];
+        S_3 = S1->segment[0];
 
-            memcpy(S_1->A, S->A, float_3);
-            memcpy(S_1->C, S->B, float_3);
+        memcpy(S_1->A, S->A, float_3);
+        memcpy(S_1->C, S->B, float_3);
 
-            memcpy(S_2->A, S->B, float_3);
-            memcpy(S_2->C, S->C, float_3);
+        memcpy(S_2->A, S->B, float_3);
+        memcpy(S_2->C, S->C, float_3);
 
-            if (start_open)
-                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 1, 0);
-            else
-                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 0, 0);
-            if (end_open)
-                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 1);
-            else
-                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 0);
-        }
+        if (start_open)
+            fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 1, 0);
+        else
+            fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 0, 0);
+        if (end_open)
+            fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 1);
+        else
+            fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 0);
     }
 }
 
@@ -784,7 +801,7 @@ int add_New_Curve(float pos[3], int open)
 
     if (C->cps_continuity == NULL) return 0;
 
-    C->cps_continuity[C->cps_count - 1] = 0.7;
+    C->cps_continuity[C->cps_count - 1] = CP_CONTINUITY;
 
     C->open = open;
 
@@ -932,11 +949,12 @@ void print_Object_Curves(object * O)
 
 void update_Curve(curve * C, int level)
 {
-    fill_Curve_Segments_Tips_With_Cp_Coordinates(C);
+    fill_Curve_Segments_With_Cp_Coordinates(C);
+    fill_Curve_Cps_With_Tangents(C);
+    calculate_Curve_Segments(C);
+
+    //fill_Curve_Segments_Tips_With_Cp_Coordinates(C);
     fill_Curve_Segments_With_Coordinates(C, level);
-//    fill_Curve_Segments_With_Cp_Coordinates(C);
-//    fill_Curve_Cps_With_Tangents(C);
-//    calculate_Curve_Segments(C);
 }
 
 void subdivide_Curves(int level)

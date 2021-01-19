@@ -677,6 +677,7 @@ int init()
     init_properties();
 
     init_Action_Begin_Transformers();
+    init_cp_continuity();
 
     SHADERS = init_shaders_();
     if (SHADERS)
