@@ -2461,7 +2461,7 @@ void set_Bone_Mode()
 void set_Curve_Mode()
 {
     printf("Curve Mode\n");
-    selection_Mode = 4;
+    selection_Mode = 5;
     Object_Mode = 0;
     Polygon_Mode = 0;
     Edge_Mode = 0;
@@ -17530,6 +17530,14 @@ int main(int argc, char * args[])
                 for (b = 0; b < bonesIndex; b ++)
                 {
                     bones[b]->selected = 0;
+                }
+            }
+            else if (Curve_Mode)
+            {
+                int c;
+                for (c = 0; c < cpsIndex; c ++)
+                {
+                    cps[c]->selected = 0;
                 }
             }
 

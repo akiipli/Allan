@@ -15,6 +15,7 @@ Copyright <2018> <Allan Kiipli>
 #define EDGES 2
 #define VERTS 3
 #define BONEZ 4
+#define POINT 5
 
 // to do: migrate pixels to GL
 // make ray traced rendering progressive
@@ -1352,7 +1353,33 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
     }
     else
     {
-        if (sel_type == BONEZ)
+        if (sel_type == POINT)
+        {
+            int c;
+            cp * CP;
+            for (c = 0; c < cpsIndex; c ++)
+            {
+                CP = cps[c];
+                point[0] = CP->pos[0];
+                point[1] = CP->pos[1];
+                point[2] = CP->pos[2];
+                result = point_on_screen_GLU(point, coords);
+                if (result)
+                {
+                    if (coords[0] > R->x
+                        && coords[0] < R->x + R->w
+                        && coords[1] > R->y
+                        && coords[1] < R->y + R->h)
+                    {
+                        if (sel_add)
+                            CP->selected = 1;
+                        else
+                            CP->selected = 0;
+                    }
+                }
+            }
+        }
+        else if (sel_type == BONEZ)
         {
             if (draw_locators)
             {
