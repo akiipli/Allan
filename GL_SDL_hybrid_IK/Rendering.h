@@ -15,7 +15,8 @@ Copyright <2018> <Allan Kiipli>
 #define EDGES 2
 #define VERTS 3
 #define BONEZ 4
-#define POINT 5
+#define CURVE 5
+#define CURVE_CP 6
 
 // to do: migrate pixels to GL
 // make ray traced rendering progressive
@@ -1353,7 +1354,36 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
     }
     else
     {
-        if (sel_type == POINT)
+        if (sel_type == CURVE)
+        {
+            int c;
+            curve * C;
+            for (c = 0; c < curvesIndex; c ++)
+            {
+                C = curves[c];
+                if (C->cps_count > 1)
+                {
+                    point[0] = (C->cps[0]->pos[0] + C->cps[C->cps_count - 1]->pos[0]) / 2.0;
+                    point[1] = (C->cps[0]->pos[1] + C->cps[C->cps_count - 1]->pos[1]) / 2.0;
+                    point[2] = (C->cps[0]->pos[2] + C->cps[C->cps_count - 1]->pos[2]) / 2.0;
+                    result = point_on_screen_GLU(point, coords);
+                    if (result)
+                    {
+                        if (coords[0] > R->x
+                            && coords[0] < R->x + R->w
+                            && coords[1] > R->y
+                            && coords[1] < R->y + R->h)
+                        {
+                            if (sel_add)
+                                C->selected = 1;
+                            else
+                                C->selected = 0;
+                        }
+                    }
+                }
+            }
+        }
+        else if (sel_type == CURVE_CP)
         {
             int c;
             cp * CP;

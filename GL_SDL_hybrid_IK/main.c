@@ -782,6 +782,22 @@ void assert_Object_Selection()
     }
 }
 
+void assert_Curve_Selection()
+{
+    int c;
+    curve * C;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+
+        if (C->selected)
+        {
+            currentCurve = C->index;
+        }
+    }
+}
+
 void assert_Locators_Selection()
 {
     int t;
@@ -2339,21 +2355,30 @@ void assign_Selection(object * O, int sel)
 
 void set_Object_Mode()
 {
-    // printf("Object Mode\n");
-    selection_Mode = 0;
+    if (Curve_Mode)
+    {
+        printf("Curve Mode\n");
+        selection_Mode = 5;
+    }
+    else
+    {
+        printf("Object Mode\n");
+        selection_Mode = 0;
+        vertdraw = 0;
+    }
+
     Object_Mode = 1;
     Polygon_Mode = 0;
     Edge_Mode = 0;
     Vertex_Mode = 0;
     Bone_Mode = 0;
-    Curve_Mode = 0;
-    vertdraw = 0;
+
     Button_Mode[0].color = UI_GRAYD;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYB;
-    Button_Mode[5].color = UI_GRAYB;
+
     SDL_SetCursor(Arrow);
 
     LOCAT_ID_RENDER = DRAW_LOCATORS;
@@ -2361,21 +2386,30 @@ void set_Object_Mode()
 
 void set_Polygon_Mode()
 {
-    printf("Polygon Mode\n");
-    selection_Mode = 1;
+    if (Curve_Mode)
+    {
+        printf("Curve Mode\n");
+        selection_Mode = 5;
+    }
+    else
+    {
+        printf("Polygon Mode\n");
+        selection_Mode = 1;
+        vertdraw = 0;
+    }
+
     Object_Mode = 0;
     Polygon_Mode = 1;
     Edge_Mode = 0;
     Vertex_Mode = 0;
     Bone_Mode = 0;
-    Curve_Mode = 0;
-    vertdraw = 0;
+
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYD;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYB;
-    Button_Mode[5].color = UI_GRAYB;
+
     if (add_selection_mode)
         SDL_SetCursor(Arrow_Plus);
     else
@@ -2384,21 +2418,29 @@ void set_Polygon_Mode()
 
 void set_Edge_Mode()
 {
-    printf("Edge Mode\n");
-    selection_Mode = 2;
+    if (Curve_Mode)
+    {
+        printf("Curve Mode\n");
+        selection_Mode = 5;
+    }
+    else
+    {
+        printf("Edge Mode\n");
+        selection_Mode = 2;
+        vertdraw = 0;
+    }
+
     Object_Mode = 0;
     Polygon_Mode = 0;
     Edge_Mode = 1;
     Vertex_Mode = 0;
     Bone_Mode = 0;
-    Curve_Mode = 0;
-    vertdraw = 0;
+
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYD;
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYB;
-    Button_Mode[5].color = UI_GRAYB;
 
     edgedraw = 1;
 
@@ -2410,21 +2452,29 @@ void set_Edge_Mode()
 
 void set_Vertex_Mode()
 {
-    printf("Vertex Mode\n");
-    selection_Mode = 3;
+    if (Curve_Mode)
+    {
+        printf("Curve Vertex Mode\n");
+        selection_Mode = 6;
+    }
+    else
+    {
+        printf("Vertex Mode\n");
+        selection_Mode = 3;
+        vertdraw = 1;
+    }
+
     Object_Mode = 0;
     Polygon_Mode = 0;
     Edge_Mode = 0;
     Vertex_Mode = 1;
     Bone_Mode = 0;
-    Curve_Mode = 0;
-    vertdraw = 1;
+
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYB;
     Button_Mode[2].color = UI_GRAYB;
     Button_Mode[3].color = UI_GRAYD;
     Button_Mode[4].color = UI_GRAYB;
-    Button_Mode[5].color = UI_GRAYB;
 
     if (add_selection_mode)
         SDL_SetCursor(Arrow_Plus);
@@ -2460,28 +2510,42 @@ void set_Bone_Mode()
 
 void set_Curve_Mode()
 {
-    printf("Curve Mode\n");
-    selection_Mode = 5;
-    Object_Mode = 0;
-    Polygon_Mode = 0;
-    Edge_Mode = 0;
-    Vertex_Mode = 0;
-    Bone_Mode = 0;
-    Curve_Mode = 1;
-    vertdraw = 0;
-    Button_Mode[0].color = UI_GRAYB;
-    Button_Mode[1].color = UI_GRAYB;
-    Button_Mode[2].color = UI_GRAYB;
-    Button_Mode[3].color = UI_GRAYB;
-    Button_Mode[4].color = UI_GRAYB;
-    Button_Mode[5].color = UI_GRAYD;
+    if (Curve_Mode)
+    {
+        Curve_Mode = 0;
+        Button_Mode[5].color = UI_GRAYB;
 
-    if (add_selection_mode)
-        SDL_SetCursor(Arrow_Plus);
+        if (Object_Mode)
+            set_Object_Mode();
+        else if (Polygon_Mode)
+            set_Polygon_Mode();
+        else if (Edge_Mode)
+            set_Edge_Mode();
+        else if (Vertex_Mode)
+            set_Vertex_Mode();
+        else if (Bone_Mode)
+            set_Bone_Mode();
+    }
     else
-        SDL_SetCursor(Arrow_Minus);
+    {
+        printf("Curve Mode\n");
+        if (Vertex_Mode)
+            selection_Mode = 6; // CURVE_CP
+        else
+            selection_Mode = 5; // CURVE
+        Curve_Mode = 1;
+        Bone_Mode = 0;
+        vertdraw = 0;
+        Button_Mode[4].color = UI_GRAYB;
+        Button_Mode[5].color = UI_GRAYD;
 
-    DRAW_LOCATORS = 0;
+        if (add_selection_mode)
+            SDL_SetCursor(Arrow_Plus);
+        else
+            SDL_SetCursor(Arrow_Minus);
+
+        DRAW_LOCATORS = 0;
+    }
 }
 
 void select_Transformer()
@@ -14930,6 +14994,10 @@ int main(int argc, char * args[])
                     {
                         assert_Locators_Selection();
                     }
+                    else if (Curve_Mode)
+                    {
+                        assert_Curve_Selection();
+                    }
                     else if (Object_Mode)
                     {
                         assert_Object_Selection();
@@ -17476,6 +17544,25 @@ int main(int argc, char * args[])
                     T->selected = 0;
                 }
             }
+            else if (Curve_Mode)
+            {
+                if (selection_Mode == 6) // CURVE_CP
+                {
+                    int c;
+                    for (c = 0; c < cpsIndex; c ++)
+                    {
+                        cps[c]->selected = 0;
+                    }
+                }
+                else
+                {
+                    int c;
+                    for (c = 0; c < curvesIndex; c ++)
+                    {
+                        curves[c]->selected = 0;
+                    }
+                }
+            }
             else if (Object_Mode)
             {
                 deselect_Objects();
@@ -17530,14 +17617,6 @@ int main(int argc, char * args[])
                 for (b = 0; b < bonesIndex; b ++)
                 {
                     bones[b]->selected = 0;
-                }
-            }
-            else if (Curve_Mode)
-            {
-                int c;
-                for (c = 0; c < cpsIndex; c ++)
-                {
-                    cps[c]->selected = 0;
                 }
             }
 
