@@ -31,10 +31,15 @@ similar fashion to edges.
 
 #define CP_CONTINUITY 0.66
 
+int selected_curves[CURVES];
+int selected_curves_count = 0;
 int curvesIndex = 0;
 int segmentIndex = 0;
+int selected_cps[CPS];
+int selected_cps_count = 0;
 int cpsIndex = 0;
 int currentCurve = 0;
+int currentCp = 0;
 
 float length(float V[3]);
 size_t float_3 = sizeof(float[3]);
@@ -95,6 +100,7 @@ struct curve
     int selected;
     cp ** cps; // index in objects cps array
     float * cps_continuity; // marks pin_points
+    float * cps_continuity_init;
     int cps_count;
     curve_segment ** segments; // index in objects segments array
     int segment_count;
@@ -288,7 +294,9 @@ void fill_Curve_Segments_With_Cp_Coordinates(curve * C)
     }
 }
 
-void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, curve_segment * S1, int level, int start_open, int end_open)
+void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, curve_segment * S1,
+                    int level, int start_open, int end_open,
+                    int start_segment, int end_segment, float start_segment_continuity, float end_segment_continuity)
 {
     curve_segment * S_0, * S_1, * S_2, * S_3;
 
@@ -355,9 +363,19 @@ void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, 
             C[1] -= S->A[1];
             C[2] -= S->A[2];
 
-            C[0] *= cp_continuity[S->level];
-            C[1] *= cp_continuity[S->level];
-            C[2] *= cp_continuity[S->level];
+            if (start_segment)
+            {
+                C[0] *= start_segment_continuity;
+                C[1] *= start_segment_continuity;
+                C[2] *= start_segment_continuity;
+            }
+            else
+            {
+                C[0] *= cp_continuity[S->level];
+                C[1] *= cp_continuity[S->level];
+                C[2] *= cp_continuity[S->level];
+            }
+
 
             C[0] += S->A[0];
             C[1] += S->A[1];
@@ -415,9 +433,18 @@ void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, 
             A1[1] -= S->C[1];
             A1[2] -= S->C[2];
 
-            A1[0] *= cp_continuity[S->level];
-            A1[1] *= cp_continuity[S->level];
-            A1[2] *= cp_continuity[S->level];
+            if (end_segment)
+            {
+                A1[0] *= end_segment_continuity;
+                A1[1] *= end_segment_continuity;
+                A1[2] *= end_segment_continuity;
+            }
+            else
+            {
+                A1[0] *= cp_continuity[S->level];
+                A1[1] *= cp_continuity[S->level];
+                A1[2] *= cp_continuity[S->level];
+            }
 
             A1[0] += S->C[0];
             A1[1] += S->C[1];
@@ -444,14 +471,50 @@ void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, 
         memcpy(S_2->A, S->B, float_3);
         memcpy(S_2->C, S->C, float_3);
 
-        if (start_open)
-            fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 1, 0);
+        if (S->level == 0)
+        {
+            if (start_open)
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 1, 0, 1, 0, start_segment_continuity, end_segment_continuity);
+            else
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 0, 0, 1, 0, start_segment_continuity, end_segment_continuity);
+            if (end_open)
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 1, 0, 1, start_segment_continuity, end_segment_continuity);
+            else
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 0, 0, 1, start_segment_continuity, end_segment_continuity);
+        }
+        else if (start_segment)
+        {
+            if (start_open)
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 1, 0, 1, 0, start_segment_continuity, end_segment_continuity);
+            else
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 0, 0, 1, 0, start_segment_continuity, end_segment_continuity);
+            if (end_open)
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 1, 0, 0, start_segment_continuity, end_segment_continuity);
+            else
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 0, 0, 0, start_segment_continuity, end_segment_continuity);
+        }
+        else if (end_segment)
+        {
+            if (start_open)
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 1, 0, 0, 0, start_segment_continuity, end_segment_continuity);
+            else
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 0, 0, 0, 0, start_segment_continuity, end_segment_continuity);
+            if (end_open)
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 1, 0, 1, start_segment_continuity, end_segment_continuity);
+            else
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 0, 0, 1, start_segment_continuity, end_segment_continuity);
+        }
         else
-            fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 0, 0);
-        if (end_open)
-            fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 1);
-        else
-            fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 0);
+        {
+            if (start_open)
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 1, 0, 0, 0, start_segment_continuity, end_segment_continuity);
+            else
+                fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 0, 0, 0, 0, start_segment_continuity, end_segment_continuity);
+            if (end_open)
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 1, 0, 0, start_segment_continuity, end_segment_continuity);
+            else
+                fill_Curve_Segment_With_Coordinates(S_2, S_1, S_3, level, 0, 0, 0, 0, start_segment_continuity, end_segment_continuity);
+        }
     }
 }
 
@@ -460,30 +523,48 @@ void fill_Curve_Segments_With_Coordinates(curve * C, int level)
     int s;
     curve_segment * S, * S0, * S1;
 
+    float start_segment_continuity;
+    float end_segment_continuity;
+
     for (s = 0; s < C->segment_count; s ++)
     {
         S = C->segments[s];
+
+        start_segment_continuity = C->cps_continuity[s] * 0.5;
+
         if (s - 1 < 0)
+        {
             S0 = C->segments[C->segment_count - 1];
+        }
         else
+        {
             S0 = C->segments[s - 1];
+        }
+
         if (s + 1 >= C->segment_count)
+        {
             S1 = C->segments[0];
+            end_segment_continuity = C->cps_continuity[0] * 0.5;
+        }
         else
+        {
             S1 = C->segments[s + 1];
+            end_segment_continuity = C->cps_continuity[s + 1] * 0.5;
+        }
+
         if (level >= S->level)
         {
             if (C->open && s == 0)
             {
-                fill_Curve_Segment_With_Coordinates(S, S0, S1, level, 1, 0);
+                fill_Curve_Segment_With_Coordinates(S, S0, S1, level, 1, 0, 0, 0, start_segment_continuity, end_segment_continuity);
             }
             else if (C->open && s == C->segment_count - 2)
             {
-                fill_Curve_Segment_With_Coordinates(S, S0, S1, level, 0, 1);
+                fill_Curve_Segment_With_Coordinates(S, S0, S1, level, 0, 1, 0, 0, start_segment_continuity, end_segment_continuity);
             }
             else
             {
-                fill_Curve_Segment_With_Coordinates(S, S0, S1, level, 0, 0);
+                fill_Curve_Segment_With_Coordinates(S, S0, S1, level, 0, 0, 0, 0, start_segment_continuity, end_segment_continuity);
             }
         }
     }
@@ -690,6 +771,7 @@ void initialize_Curve(curve * C)
 {
     C->cps = malloc(0 * sizeof(cp*)); // index in objects cps array
     C->cps_continuity = malloc(0 * sizeof(float)); // marks pin_points
+    C->cps_continuity_init = malloc(0 * sizeof(float)); // marks init pin_points
     C->cps_count = 0;
     C->segments = malloc(0 * sizeof(curve_segment*)); // index in objects segments array
     C->segment_count = 0;
@@ -993,6 +1075,139 @@ void update_Curves(int level)
     {
         C = curves[c];
         update_Curve(C, level);
+    }
+}
+
+void update_selected_Curves(int level)
+{
+    int c;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        update_Curve(C, level);
+    }
+}
+
+void snap_back_Cp_Weights()
+{
+    printf("\nsnap back Cp Weights\n");
+
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->selected)
+            {
+                C->cps_continuity[p] = C->cps_continuity_init[p];
+            }
+        }
+    }
+}
+
+void finish_adjusting_Cp_Weights()
+{
+    printf("\nfinish adjusting Cp Weights\n");
+
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->selected)
+            {
+                C->cps_continuity_init[p] = C->cps_continuity[p];
+            }
+        }
+    }
+}
+
+void adjust_Selected_Cp_Weights(float w)
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->selected)
+            {
+                C->cps_continuity[p] = C->cps_continuity_init[p] + w;
+                if (C->cps_continuity[p] < 0)
+                {
+                    C->cps_continuity[p] = 0.0;
+                }
+                else if (C->cps_continuity[p] > 1.0)
+                {
+                    C->cps_continuity[p] = 1.0;
+                }
+            }
+        }
+    }
+}
+
+int init_continuity_For_Selected_Curves()
+{
+    int r = 1;
+    int c;
+
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        C->cps_continuity_init = realloc(C->cps_continuity_init, C->cps_count * sizeof(float));
+
+        if (C->cps_continuity_init != NULL)
+        {
+            memcpy(C->cps_continuity_init, C->cps_continuity, C->cps_count * sizeof(float));
+        }
+        else
+        {
+            r = 0;
+            break;
+        }
+    }
+    return r;
+}
+
+void clear_Selected_Cp_Weights()
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->selected)
+            {
+                C->cps_continuity[p] = CP_CONTINUITY;
+            }
+        }
     }
 }
 

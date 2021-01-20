@@ -147,6 +147,7 @@ int MOVEMENT = 0;
 int wireframe = 0;
 int edgedraw = 0;
 int edgeWeights = 0;
+int cpWeights = 0;
 int vertdraw = 0;
 int tripsRender = 0;
 int splitview = 0;
@@ -782,10 +783,31 @@ void assert_Object_Selection()
     }
 }
 
+void assert_Cp_Selection()
+{
+    int c;
+    cp * CP;
+
+    selected_cps_count = 0;
+
+    for (c = 0; c < cpsIndex; c ++)
+    {
+        CP = cps[c];
+
+        if (CP->selected)
+        {
+            selected_cps[selected_cps_count ++] = c;
+            currentCp = CP->index;
+        }
+    }
+}
+
 void assert_Curve_Selection()
 {
     int c;
     curve * C;
+
+    selected_curves_count = 0;
 
     for (c = 0; c < curvesIndex; c ++)
     {
@@ -793,6 +815,7 @@ void assert_Curve_Selection()
 
         if (C->selected)
         {
+            selected_curves[selected_curves_count ++] = c;
             currentCurve = C->index;
         }
     }
@@ -13477,7 +13500,14 @@ int main(int argc, char * args[])
                 }
                 else if (event.button.button == SDL_BUTTON_RIGHT)
                 {
-                    if (edgeWeights)
+                    if (cpWeights)
+                    {
+                        snap_back_Cp_Weights();
+                        cpWeights = 0;
+
+                        update_selected_Curves(subdLevel);
+                    }
+                    else if (edgeWeights)
                     {
                         snap_back_Edges_Weights();
                         snap_back_Verts_Weights();
@@ -13659,6 +13689,12 @@ int main(int argc, char * args[])
                     {
                         if (T->Deformer != NULL)
                             normalize_IK_Spines(T->Deformer);
+                    }
+
+                    if (cpWeights)
+                    {
+                        finish_adjusting_Cp_Weights();
+                        cpWeights = 0;
                     }
 
                     if (edgeWeights)
@@ -14996,7 +15032,10 @@ int main(int argc, char * args[])
                     }
                     else if (Curve_Mode)
                     {
-                        assert_Curve_Selection();
+                        if (selection_Mode == CURVE)
+                            assert_Curve_Selection();
+                        else if (selection_Mode == CURVE_CP)
+                            assert_Cp_Selection();
                     }
                     else if (Object_Mode)
                     {
@@ -15163,6 +15202,15 @@ int main(int argc, char * args[])
                             }
                         }
                     }
+                }
+                else if (cpWeights)
+                {
+                    float x_offset = mouse_x - Camera->origin_2d[0];
+                    float x = (float)x_offset / ((float)screen_width / 4.0);
+
+                    adjust_Selected_Cp_Weights(x);
+                    update_selected_Curves(subdLevel);
+                    message = -1;
                 }
                 else if (edgeWeights)
                 {
@@ -16872,27 +16920,65 @@ int main(int argc, char * args[])
         {
             if (mod & KMOD_SHIFT)
             {
-                edgeWeights = !edgeWeights;
-                if (edgeWeights)
+                if (Curve_Mode)
                 {
-                    SDL_GetMouseState(&mouse_x, &mouse_y);
-                    printf("mouse at %d, %d\n", mouse_x, mouse_y);
+                    cpWeights = !cpWeights;
+                    if (cpWeights)
+                    {
+                        SDL_GetMouseState(&mouse_x, &mouse_y);
+                        printf("mouse at %d, %d\n", mouse_x, mouse_y);
 
-                    subdLevel_mem = subdLevel;
+                        subdLevel_mem = subdLevel;
 
-                    Camera = find_View(mouse_x, mouse_y, splitview);
-                    Camera->origin_2d[0] = mouse_x;
-                    Camera->origin_2d[1] = mouse_y;
+                        Camera = find_View(mouse_x, mouse_y, splitview);
+                        Camera->origin_2d[0] = mouse_x;
+                        Camera->origin_2d[1] = mouse_y;
+
+                        assert_Curve_Selection();
+                        int r = init_continuity_For_Selected_Curves();
+                        if (!r)
+                        {
+                            cpWeights = 0;
+                        }
+                    }
+                    else
+                    {
+                        finish_adjusting_Cp_Weights();
+                        update_selected_Curves(subdLevel);
+                    }
                 }
                 else
                 {
-                    finish_adjusting_Edges_Weights();
-                    finish_adjusting_Verts_Weights();
+                    edgeWeights = !edgeWeights;
+                    if (edgeWeights)
+                    {
+                        SDL_GetMouseState(&mouse_x, &mouse_y);
+                        printf("mouse at %d, %d\n", mouse_x, mouse_y);
+
+                        subdLevel_mem = subdLevel;
+
+                        Camera = find_View(mouse_x, mouse_y, splitview);
+                        Camera->origin_2d[0] = mouse_x;
+                        Camera->origin_2d[1] = mouse_y;
+                    }
+                    else
+                    {
+                        finish_adjusting_Edges_Weights();
+                        finish_adjusting_Verts_Weights();
+                    }
                 }
             }
             else if (mod & KMOD_CTRL)
             {
-                clear_Selected_Edges_Weights();
+                if (Curve_Mode)
+                {
+                    clear_Selected_Cp_Weights();
+                    update_selected_Curves(subdLevel);
+                }
+                else
+                {
+                    clear_Selected_Edges_Weights();
+                }
             }
             else if (mod & KMOD_ALT)
             {
