@@ -10852,29 +10852,42 @@ void start_Movement()
             if (Camera == &Camera_Front)
             {
                 D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Front.h_view, Camera_Front.v_view);
-                ObjDist = distance(T->pos, Camera_Front.T->pos);
+                //ObjDist = distance(T->pos, Camera_Front.T->pos);
             }
             else if  (Camera == &Camera_Top)
             {
                 D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width / 2, screen_height / 2, Camera_Top.h_view, Camera_Top.v_view);
-                ObjDist = distance(T->pos, Camera_Top.T->pos);
+                //ObjDist = distance(T->pos, Camera_Top.T->pos);
             }
             else if  (Camera == &Camera_Left)
             {
                 D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Left.h_view, Camera_Left.v_view);
-                ObjDist = distance(T->pos, Camera_Left.T->pos);
+                //ObjDist = distance(T->pos, Camera_Left.T->pos);
             }
             else if (Camera == &Camera_Persp)
             {
                 D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera_Persp.h_view, Camera_Persp.v_view);
-                ObjDist = distance(T->pos, Camera_Persp.T->pos);
+                //ObjDist = distance(T->pos, Camera_Persp.T->pos);
             }
         }
         else
         {
             D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
+            //ObjDist = distance(T->pos, Camera->T->pos);
+        }
+
+        if (CURVE_MODE)
+        {
+            if (C != NULL && C->cps_count > 0)
+            {
+                ObjDist = distance(C->cps[C->cps_count - 1]->pos, Camera->T->pos);
+            }
+        }
+        else
+        {
             ObjDist = distance(T->pos, Camera->T->pos);
         }
+
         D.x = -D.x;
         //D.y = -D.y;
         D.z = -D.z;
