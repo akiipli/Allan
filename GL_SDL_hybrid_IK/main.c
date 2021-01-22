@@ -10904,6 +10904,8 @@ void start_Movement()
     Camera->origin_2d[0] = mouse_x;
     Camera->origin_2d[1] = mouse_y;
 
+    find_Camera_Objects();
+
     ObjDist = distance(O->T->pos, Camera->T->pos);
     T = Camera->T;
 
@@ -10998,6 +11000,7 @@ void start_Movement()
 //                printf("CAMERA LEFT ID %d %f\n", Camera->ID, ObjDist);
 //            }
 
+
             glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
             drag_plane_Render(CamDist, Camera, ObjDist, 1);
 
@@ -11005,10 +11008,16 @@ void start_Movement()
 //            printf("B %f %f %f\n", Drag_Plane.B[0], Drag_Plane.B[1], Drag_Plane.B[2]);
 //            printf("C %f %f %f\n", Drag_Plane.C[0], Drag_Plane.C[1], Drag_Plane.C[2]);
 //            printf("D %f %f %f\n", Drag_Plane.D[0], Drag_Plane.D[1], Drag_Plane.D[2]);
-//
-//            printf("winZ %f\n", winZ);
 
             glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+
+            if (winZ == 0)
+            {
+                printf("GREAT LENGTHS I GO, but for some reason winZ is %f. Center cursor and try again.\n", winZ);
+            }
+
+            printf("winZ %f\n", winZ);
+
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
@@ -11302,7 +11311,8 @@ void transform_Objects_And_Render()
         }
     }
 
-    find_Camera_Objects();
+    if (!MOVEMENT)
+        find_Camera_Objects();
 
     //printf("O rot %f %f %f\n\n", O->T->rot[0], O->T->rot[1], O->T->rot[2]);
 
