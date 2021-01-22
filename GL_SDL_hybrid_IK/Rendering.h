@@ -829,6 +829,31 @@ void find_objects_in_frame(camera * C)
 
 }
 
+direction unproject_screen_point(GLfloat winX, GLfloat winY, GLfloat winZ)
+{
+    direction D;
+
+    GLdouble coords[3];
+    GLint viewport[4];
+    GLdouble modelview[16];
+    GLdouble projection[16];
+
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    gluUnProject(winX, winY, winZ, modelview, projection, viewport, &coords[0], &coords[1], &coords[2]);
+
+    D.x = coords[0];
+    D.y = coords[1];
+    D.z = coords[2];
+
+    //printf("UNPROJECT %f %f %f winZ %f\n", D.x, D.y, D.z, winZ);
+
+    return D;
+}
+
 direction screen_point_to_vector(int x, int y, int hres, int vres, float h_view, float v_view)
 {
     direction D;
@@ -4624,6 +4649,27 @@ void render_polys_OnScreen_Shadows(camera * C, int currentObject, int mode, int 
             }
         }
     }
+}
+
+void render_Depth_Drag_Plane()
+{
+    glEnable(GL_DEPTH_TEST);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
+
+    glBegin(GL_QUADS);
+
+    glVertex3fv(Drag_Plane.A);
+    glVertex3fv(Drag_Plane.B);
+    glVertex3fv(Drag_Plane.C);
+    glVertex3fv(Drag_Plane.D);
+
+    glEnd();
 }
 
 void render_polys_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw, int currentObject, int rendermode, int Selection_Mode, int update_colors, int update_uv, int elem)

@@ -300,7 +300,206 @@ void SceneShadowMap_render(camera * C, int width, int height, int subdLevel, int
     glUseProgram(0);
 }
 
-GLuint depthTex;
+GLuint depthFBO;
+GLuint depthTex, drag_texture;
+
+#define D_plane 300
+float drag_depth_Width = 600;
+float drag_depth_Height = 400;
+//float Drag_Plane[4][3] = {{-D_plane, D_plane, 1}, {-D_plane, -D_plane, 1}, {D_plane, -D_plane, 1}, {D_plane, D_plane, 1}};
+GLfloat winX, winY, winZ;
+
+struct
+{
+    float A[3], A_[3];
+    float B[3], B_[3];
+    float C[3], C_[3];
+    float D[3], D_[3];
+}
+Drag_Plane;
+
+void init_Drag_Plane(float width, float height)
+{
+    memcpy(Drag_Plane.A_, (float[3]){-D_plane, D_plane, 1}, sizeof(float[3]));
+    memcpy(Drag_Plane.B_, (float[3]){-D_plane, -D_plane, 1}, sizeof(float[3]));
+    memcpy(Drag_Plane.C_, (float[3]){D_plane, -D_plane, 1}, sizeof(float[3]));
+    memcpy(Drag_Plane.D_, (float[3]){D_plane, D_plane, 1}, sizeof(float[3]));
+
+    drag_depth_Width = width;
+    drag_depth_Height = height;
+}
+
+void render_Depth_Drag_Plane();
+
+void rotate_Drag_Plane(camera * C)
+{
+    direction D1;
+    rotate_Vertex_I(C->T->rotVec_, Drag_Plane.A_[0], Drag_Plane.A_[1], Drag_Plane.A_[2], &D1);
+    memcpy(Drag_Plane.A, &D1, sizeof(float[3]));
+    rotate_Vertex_I(C->T->rotVec_, Drag_Plane.B_[0], Drag_Plane.B_[1], Drag_Plane.B_[2], &D1);
+    memcpy(Drag_Plane.B, &D1, sizeof(float[3]));
+    rotate_Vertex_I(C->T->rotVec_, Drag_Plane.C_[0], Drag_Plane.C_[1], Drag_Plane.C_[2], &D1);
+    memcpy(Drag_Plane.C, &D1, sizeof(float[3]));
+    rotate_Vertex_I(C->T->rotVec_, Drag_Plane.D_[0], Drag_Plane.D_[1], Drag_Plane.D_[2], &D1);
+    memcpy(Drag_Plane.D, &D1, sizeof(float[3]));
+}
+
+void translate_Drag_Plane(camera * C)
+{
+    Drag_Plane.A[0] += C->T->pos[0];
+    Drag_Plane.A[1] += C->T->pos[1];
+    Drag_Plane.A[2] += C->T->pos[2];
+    Drag_Plane.B[0] += C->T->pos[0];
+    Drag_Plane.B[1] += C->T->pos[1];
+    Drag_Plane.B[2] += C->T->pos[2];
+    Drag_Plane.C[0] += C->T->pos[0];
+    Drag_Plane.C[1] += C->T->pos[1];
+    Drag_Plane.C[2] += C->T->pos[2];
+    Drag_Plane.D[0] += C->T->pos[0];
+    Drag_Plane.D[1] += C->T->pos[1];
+    Drag_Plane.D[2] += C->T->pos[2];
+}
+
+void Drag_Plane_render_action()
+{
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
+
+    render_Depth_Drag_Plane();
+
+    glCullFace(GL_BACK);
+}
+
+void Drag_Plane_transforms(float ObjDist, camera * C)
+{
+    Drag_Plane.A_[2] = ObjDist;
+    Drag_Plane.B_[2] = ObjDist;
+    Drag_Plane.C_[2] = ObjDist;
+    Drag_Plane.D_[2] = ObjDist;
+
+    rotate_Drag_Plane(C);
+    translate_Drag_Plane(C);
+}
+/*
+void Drag_Plane_render(float ObjDist, camera * C)
+{
+    Drag_Plane.A_[2] = ObjDist;
+    Drag_Plane.B_[2] = ObjDist;
+    Drag_Plane.C_[2] = ObjDist;
+    Drag_Plane.D_[2] = ObjDist;
+
+    rotate_Drag_Plane(C);
+    translate_Drag_Plane(C);
+
+    GLint params[4];
+    glGetIntegerv(GL_SCISSOR_BOX, params);
+    glScissor(SIDEBAR, BOTTOM_LINE, drag_depth_Width, drag_depth_Height);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glViewport(SIDEBAR, BOTTOM_LINE, drag_depth_Width, drag_depth_Height);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
+
+    render_Depth_Drag_Plane();
+
+    glCullFace(GL_BACK);
+    glScissor(params[0], params[1], params[2], params[3]);
+}
+*/
+int resize_Depth_Buffer(float width, float height)
+{
+    int r = 0;
+
+    drag_depth_Width = width;
+    drag_depth_Height = height;
+
+    glDeleteTextures(1, &drag_texture);
+    glGenTextures(1, &drag_texture);
+    glBindTexture(GL_TEXTURE_2D, drag_texture);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, drag_depth_Width, drag_depth_Height);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, drag_texture);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                           GL_TEXTURE_2D, drag_texture, 0);
+
+    GLenum drawBuffers[] = {GL_NONE};
+    glDrawBuffers(1, drawBuffers);
+
+    GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+    if( result == GL_FRAMEBUFFER_COMPLETE)
+    {
+        printf("Depth Framebuffer is complete.\n");
+        r = 1;
+    }
+    else
+    {
+        printf("Depth Framebuffer is not complete.\n");
+        r = 0;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER,0);
+
+    return r;
+}
+
+int setup_Depth_Buffer()
+{
+    int r = 0;
+
+    glGenTextures(1, &drag_texture);
+    glBindTexture(GL_TEXTURE_2D, drag_texture);
+    //glTexImage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, drag_depth_Width, drag_depth_Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, drag_depth_Width, drag_depth_Height);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, drag_texture);
+
+    glGenFramebuffers(1, &depthFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                           GL_TEXTURE_2D, drag_texture, 0);
+
+    GLenum drawBuffers[] = {GL_NONE};
+    glDrawBuffers(1, drawBuffers);
+
+    GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+    if( result == GL_FRAMEBUFFER_COMPLETE)
+    {
+        printf("Depth Framebuffer is complete.\n");
+        r = 1;
+    }
+    else
+    {
+        printf("Depth Framebuffer is not complete.\n");
+        r = 0;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER,0);
+
+    return r;
+}
 
 int setupFBO()
 {

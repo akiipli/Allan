@@ -41,8 +41,8 @@ look for CUBECOMMENT
 #include <IL/ilut.h>
 #endif
 
-#define SCREEN_WIDTH 300
-#define SCREEN_HEIGHT 200
+#define SCREEN_WIDTH 600
+#define SCREEN_HEIGHT 400
 #define SCREEN_BPP 32
 
 #include "Transformer.h"
@@ -698,6 +698,8 @@ int init()
         if (SHADOWS)
             setMatrices();
     }
+    DRAG_BUFFER = setup_Depth_Buffer();
+    init_Drag_Plane(screen_width, screen_height);
 
     THUMBNAILS = setup_Material_Thumbnail_FBO();
     printf("THUMBNAILS %d\n", THUMBNAILS);
@@ -720,6 +722,7 @@ void cleanup()
     glDeleteTextures(Normals_c, Normals);
     glDeleteTextures(Bumps_c, Bumps);
     glDeleteTextures(Materials_c, Material_Textures);
+
     int t;
     for (t = 0; t < Surf_Text_c; t++)
         SDL_FreeSurface(Surf_Text[t]);
@@ -731,6 +734,8 @@ void cleanup()
         SDL_FreeSurface(Material_Thumbnail_Surfaces[t]);
     disable_VBO();
     glDeleteTextures(1, &font_tex);
+    glDeleteTextures(1, &drag_texture);
+    glDeleteTextures(1, &depthTex);
 //    if (fonts_on)
 //        glDeleteProgram(T_program[1][0]);
 	for (i = 0; i < EXT_NUM; i ++)
@@ -1938,6 +1943,76 @@ void Draw_Ui()
     display_bottom_message(bottom_message, screen_width, screen_height);
 }
 
+void drag_plane_Render(float CamDist, camera * Cam, float ObjDist, int plane_trans)
+{
+    glScissor(SIDEBAR, BOTTOM_LINE, drag_depth_Width, drag_depth_Height);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    if (splitview)
+    {
+//        glMatrixMode(GL_PROJECTION);
+//        glPushMatrix();
+
+        if (Cam->ID == CAMERA_FRONT)
+        {
+            glViewport(SIDEBAR, BOTTOM_LINE, screen_width/2, screen_height/2); // down left, front view
+
+            update_camera_front(&Camera_Front, CamDist);
+
+            if (plane_trans)
+                Drag_Plane_transforms(ObjDist, &Camera_Front);
+
+            Drag_Plane_render_action();
+        }
+        else if (Cam->ID == CAMERA_LEFT)
+        {
+            glViewport(screen_width/2 + SIDEBAR, BOTTOM_LINE, screen_width/2, screen_height/2); // down right, left view
+
+            update_camera_left(&Camera_Left, CamDist);
+
+            if (plane_trans)
+                Drag_Plane_transforms(ObjDist, &Camera_Left);
+
+            Drag_Plane_render_action();
+        }
+        else if (Cam->ID == CAMERA_TOP)
+        {
+            glViewport(SIDEBAR, screen_height/2 + BOTTOM_LINE, screen_width/2, screen_height/2); // top left, top view
+
+            update_camera_top(&Camera_Top, CamDist);
+
+            if (plane_trans)
+                Drag_Plane_transforms(ObjDist, &Camera_Top);
+
+            Drag_Plane_render_action();
+        }
+        else if (Cam->ID == CAMERA_PERSPECTIVE)
+        {
+            glViewport(screen_width/2 + SIDEBAR, screen_height/2 + BOTTOM_LINE, screen_width/2, screen_height/2); // top right, perspective view
+
+            update_camera_persp(&Camera_Persp, CamDist);
+
+            if (plane_trans)
+                Drag_Plane_transforms(ObjDist, &Camera_Persp);
+
+            Drag_Plane_render_action();
+        }
+
+//        glPopMatrix();
+    }
+    else
+    {
+        glViewport(SIDEBAR, BOTTOM_LINE, screen_width, screen_height);
+        update_camera(Camera, CamDist);
+
+        if (plane_trans)
+            Drag_Plane_transforms(ObjDist, Camera);
+
+        Drag_Plane_render_action();
+    }
+}
+
 void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, int Swap, int Level)
 {
     if (!drag_rectangle && (rendermode != ID_RENDER) && SHADERS && SHADOWS)
@@ -2127,6 +2202,8 @@ void update_Resize_Event()
 
         screen_width = event.resize.w - SIDEBAR;
         screen_height = event.resize.h - BOTTOM_LINE;
+
+        DRAG_BUFFER = resize_Depth_Buffer(screen_width, screen_height);
 
         if (screen_height % 2) screen_height ++;
 
@@ -10888,15 +10965,68 @@ void start_Movement()
             ObjDist = distance(T->pos, Camera->T->pos);
         }
 
-        D.x = -D.x;
-        //D.y = -D.y;
-        D.z = -D.z;
-        rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-        float Dir_vec[3] = {0, 0, 1};
-        float dot = dot_productN((normal*)&D, Dir_vec);
-        T_pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-        T_pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-        T_pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+
+        if (DRAG_BUFFER)
+        {
+            D.x = -D.x;
+            //D.y = -D.y;
+            D.z = -D.z;
+            rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
+            float Dir_vec[3] = {0, 0, 1};
+            float dot = dot_productN((normal*)&D, Dir_vec);
+
+
+
+            ObjDist *= dot;
+            //Drag_Plane_transforms(ObjDist, Camera);
+
+//            if (Camera->ID == CAMERA_PERSPECTIVE)
+//            {
+//                printf("CAMERA PERSPECTIVE ID %d %f\n", Camera->ID, ObjDist);
+//            }
+//            else if (Camera->ID == CAMERA_TOP)
+//            {
+//                printf("CAMERA TOP ID %d %f\n", Camera->ID, ObjDist);
+//            }
+//            else if (Camera->ID == CAMERA_FRONT)
+//            {
+//                printf("CAMERA FRONT ID %d %f\n", Camera->ID, ObjDist);
+//            }
+//            else if (Camera->ID == CAMERA_LEFT)
+//            {
+//                printf("CAMERA LEFT ID %d %f\n", Camera->ID, ObjDist);
+//            }
+
+            glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+            drag_plane_Render(CamDist, Camera, ObjDist, 1);
+
+//            printf("A %f %f %f\n", Drag_Plane.A[0], Drag_Plane.A[1], Drag_Plane.A[2]);
+//            printf("B %f %f %f\n", Drag_Plane.B[0], Drag_Plane.B[1], Drag_Plane.B[2]);
+//            printf("C %f %f %f\n", Drag_Plane.C[0], Drag_Plane.C[1], Drag_Plane.C[2]);
+//            printf("D %f %f %f\n", Drag_Plane.D[0], Drag_Plane.D[1], Drag_Plane.D[2]);
+//
+//            printf("winZ %f\n", winZ);
+
+            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
+
+            T_pos[0] = D.x;
+            T_pos[1] = D.y;
+            T_pos[2] = D.z;
+        }
+        else
+        {
+            D.x = -D.x;
+            //D.y = -D.y;
+            D.z = -D.z;
+            rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
+            float Dir_vec[3] = {0, 0, 1};
+            float dot = dot_productN((normal*)&D, Dir_vec);
+            T_pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
+            T_pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
+            T_pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+        }
 
         if (CURVE_MODE)
         {
@@ -13581,59 +13711,6 @@ int main(int argc, char * args[])
                         T->pos[1] = object_Pos[1];
                         T->pos[2] = object_Pos[2];
 
-                        if (BIND_POSE)
-                        {
-                            Update_Objects_Count = 0;
-
-                            paste_Action_Begin();
-                            rotate_bind(T);
-                        }
-                        else if (object_hook)
-                        {
-                            Update_Objects_Count = 0;
-
-                            paste_Action_Begin();
-
-                            if (Constraint_Pack.IK != NULL)
-                            {
-                                if (Constraint_Pack.IK->Deformer != NULL)
-                                {
-                                    if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
-                                    {
-                                        rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
-                                    }
-                                    else
-                                    {
-                                        rotate_collect(T);
-                                    }
-                                    paste_Deformer(Constraint_Pack.IK->Deformer->Transformers[0]);
-                                }
-                            }
-                            else
-                            {
-
-                                if (T->Deformer != NULL)
-                                {
-                                    if (T->Deformer->Transformers_Count > 0)
-                                    {
-                                        rotate_collect(T->Deformer->Transformers[0]);
-                                    }
-                                    else
-                                    {
-                                        rotate_collect(T);
-                                    }
-                                    paste_Deformer(T);
-                                }
-                                else
-                                {
-                                    rotate_collect(T);
-                                    rotate_vertex_groups_D_Init();
-                                    rotate_P(T);
-                                }
-                            }
-                            update_rotate_bounding_box();
-                        }
-
                         if (camera_rotate || camera_z_move)
                         {
                             if (camera_z_move)
@@ -13644,6 +13721,61 @@ int main(int argc, char * args[])
                             rotate_Camera(&Camera_Top, CamDist);
                             rotate_Camera(&Camera_Front, CamDist);
                             rotate_Camera(&Camera_Left, CamDist);
+                        }
+                        else
+                        {
+                            if (BIND_POSE)
+                            {
+                                Update_Objects_Count = 0;
+
+                                paste_Action_Begin();
+                                rotate_bind(T);
+                            }
+                            else if (object_hook)
+                            {
+                                Update_Objects_Count = 0;
+
+                                paste_Action_Begin();
+
+                                if (Constraint_Pack.IK != NULL)
+                                {
+                                    if (Constraint_Pack.IK->Deformer != NULL)
+                                    {
+                                        if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
+                                        {
+                                            rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
+                                        }
+                                        else
+                                        {
+                                            rotate_collect(T);
+                                        }
+                                        paste_Deformer(Constraint_Pack.IK->Deformer->Transformers[0]);
+                                    }
+                                }
+                                else
+                                {
+
+                                    if (T->Deformer != NULL)
+                                    {
+                                        if (T->Deformer->Transformers_Count > 0)
+                                        {
+                                            rotate_collect(T->Deformer->Transformers[0]);
+                                        }
+                                        else
+                                        {
+                                            rotate_collect(T);
+                                        }
+                                        paste_Deformer(T);
+                                    }
+                                    else
+                                    {
+                                        rotate_collect(T);
+                                        rotate_vertex_groups_D_Init();
+                                        rotate_P(T);
+                                    }
+                                }
+                                update_rotate_bounding_box();
+                            }
                         }
 
                         multi_Rotation_Transformers_Count = 0;
@@ -15285,18 +15417,33 @@ int main(int argc, char * args[])
                             {
                                 if (object_hook)
                                 {
-                                    direction D1;
-                                    D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width / 2, screen_height / 2, Camera_Top.h_view, Camera_Top.v_view);
-                                    D.x = -D.x;
-                                    //D.y = -D.y;
-                                    D.z = -D.z;
-                                    rotate_Vertex_I(Camera_Top.T->rotVec, D.x, D.y, D.z, &D1);
-                                    float Dir_vec[3] = {0, 0, 1};
-                                    float dot = dot_productN((normal*)&D, Dir_vec);
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width / 2 && mouse_y > 0 && mouse_y < screen_height / 2)
+                                    {
+                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                    Pos[0] = Camera_Top.T->pos[0] + D1.x * (ObjDist / dot);
-                                    Pos[1] = Camera_Top.T->pos[1] + D1.y * (ObjDist / dot);
-                                    Pos[2] = Camera_Top.T->pos[2] + D1.z * (ObjDist / dot);
+                                        Pos[0] = D.x;
+                                        Pos[1] = D.y;
+                                        Pos[2] = D.z;
+                                    }
+                                    else
+                                    {
+                                        direction D1;
+                                        D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width / 2, screen_height / 2, Camera_Top.h_view, Camera_Top.v_view);
+                                        D.x = -D.x;
+                                        //D.y = -D.y;
+                                        D.z = -D.z;
+                                        rotate_Vertex_I(Camera_Top.T->rotVec, D.x, D.y, D.z, &D1);
+                                        float Dir_vec[3] = {0, 0, 1};
+                                        float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                        Pos[0] = Camera_Top.T->pos[0] + D1.x * (ObjDist / dot);
+                                        Pos[1] = Camera_Top.T->pos[1] + D1.y * (ObjDist / dot);
+                                        Pos[2] = Camera_Top.T->pos[2] + D1.z * (ObjDist / dot);
+                                    }
 
                                     Delta[0] = Pos[0] - T_pos[0];
                                     Delta[1] = Pos[1] - T_pos[1];
@@ -15373,18 +15520,33 @@ int main(int argc, char * args[])
                             {
                                 if (object_hook)
                                 {
-                                    direction D1;
-                                    D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Front.h_view, Camera_Front.v_view);
-                                    D.x = -D.x;
-                                    //D.y = -D.y;
-                                    D.z = -D.z;
-                                    rotate_Vertex_I(Camera_Front.T->rotVec, D.x, D.y, D.z, &D1);
-                                    float Dir_vec[3] = {0, 0, 1};
-                                    float dot = dot_productN((normal*)&D, Dir_vec);
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width / 2 && mouse_y > screen_height / 2 && mouse_y < screen_height)
+                                    {
+                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                    Pos[0] = Camera_Front.T->pos[0] + D1.x * (ObjDist / dot);
-                                    Pos[1] = Camera_Front.T->pos[1] + D1.y * (ObjDist / dot);
-                                    Pos[2] = Camera_Front.T->pos[2] + D1.z * (ObjDist / dot);
+                                        Pos[0] = D.x;
+                                        Pos[1] = D.y;
+                                        Pos[2] = D.z;
+                                    }
+                                    else
+                                    {
+                                        direction D1;
+                                        D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Front.h_view, Camera_Front.v_view);
+                                        D.x = -D.x;
+                                        //D.y = -D.y;
+                                        D.z = -D.z;
+                                        rotate_Vertex_I(Camera_Front.T->rotVec, D.x, D.y, D.z, &D1);
+                                        float Dir_vec[3] = {0, 0, 1};
+                                        float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                        Pos[0] = Camera_Front.T->pos[0] + D1.x * (ObjDist / dot);
+                                        Pos[1] = Camera_Front.T->pos[1] + D1.y * (ObjDist / dot);
+                                        Pos[2] = Camera_Front.T->pos[2] + D1.z * (ObjDist / dot);
+                                    }
 
                                     Delta[0] = Pos[0] - T_pos[0];
                                     Delta[1] = Pos[1] - T_pos[1];
@@ -15461,18 +15623,33 @@ int main(int argc, char * args[])
                             {
                                 if (object_hook)
                                 {
-                                    direction D1;
-                                    D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Left.h_view, Camera_Left.v_view);
-                                    D.x = -D.x;
-                                    //D.y = -D.y;
-                                    D.z = -D.z;
-                                    rotate_Vertex_I(Camera_Left.T->rotVec, D.x, D.y, D.z, &D1);
-                                    float Dir_vec[3] = {0, 0, 1};
-                                    float dot = dot_productN((normal*)&D, Dir_vec);
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width && mouse_y > screen_height / 2 && mouse_y < screen_height)
+                                    {
+                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                    Pos[0] = Camera_Left.T->pos[0] + D1.x * (ObjDist / dot);
-                                    Pos[1] = Camera_Left.T->pos[1] + D1.y * (ObjDist / dot);
-                                    Pos[2] = Camera_Left.T->pos[2] + D1.z * (ObjDist / dot);
+                                        Pos[0] = D.x;
+                                        Pos[1] = D.y;
+                                        Pos[2] = D.z;
+                                    }
+                                    else
+                                    {
+                                        direction D1;
+                                        D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Left.h_view, Camera_Left.v_view);
+                                        D.x = -D.x;
+                                        //D.y = -D.y;
+                                        D.z = -D.z;
+                                        rotate_Vertex_I(Camera_Left.T->rotVec, D.x, D.y, D.z, &D1);
+                                        float Dir_vec[3] = {0, 0, 1};
+                                        float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                        Pos[0] = Camera_Left.T->pos[0] + D1.x * (ObjDist / dot);
+                                        Pos[1] = Camera_Left.T->pos[1] + D1.y * (ObjDist / dot);
+                                        Pos[2] = Camera_Left.T->pos[2] + D1.z * (ObjDist / dot);
+                                    }
 
                                     Delta[0] = Pos[0] - T_pos[0];
                                     Delta[1] = Pos[1] - T_pos[1];
@@ -15551,18 +15728,33 @@ int main(int argc, char * args[])
                                 {
                                     if (Camera->ortho)
                                     {
-                                        direction D1;
-                                        D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera->h_view, Camera->v_view);
-                                        D.x = -D.x;
-                                        //D.y = -D.y;
-                                        D.z = -D.z;
-                                        rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-                                        float Dir_vec[3] = {0, 0, 1};
-                                        float dot = dot_productN((normal*)&D, Dir_vec);
+                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < screen_width && mouse_y > 0 && mouse_y < screen_height / 2)
+                                        {
+                                            glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+                                            drag_plane_Render(CamDist, Camera, ObjDist, 0);
+                                            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+                                            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                                            D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                        Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-                                        Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-                                        Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                            Pos[0] = D.x;
+                                            Pos[1] = D.y;
+                                            Pos[2] = D.z;
+                                        }
+                                        else
+                                        {
+                                            direction D1;
+                                            D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera->h_view, Camera->v_view);
+                                            D.x = -D.x;
+                                            //D.y = -D.y;
+                                            D.z = -D.z;
+                                            rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
+                                            float Dir_vec[3] = {0, 0, 1};
+                                            float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                            Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
+                                            Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
+                                            Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                        }
 
                                         Delta[0] = Pos[0] - T_pos[0];
                                         Delta[1] = Pos[1] - T_pos[1];
@@ -15593,18 +15785,33 @@ int main(int argc, char * args[])
                                     }
                                     else
                                     {
-                                        direction D1;
-                                        D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera->h_view, Camera->v_view);
-                                        D.x = -D.x;
-                                        //D.y = -D.y;
-                                        D.z = -D.z;
-                                        rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-                                        float Dir_vec[3] = {0, 0, 1};
-                                        float dot = dot_productN((normal*)&D, Dir_vec);
+                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width && mouse_y > 0 && mouse_y < screen_height / 2)
+                                        {
+                                            glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+                                            drag_plane_Render(CamDist, Camera, ObjDist, 0);
+                                            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+                                            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                                            D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                        Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-                                        Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-                                        Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                            Pos[0] = D.x;
+                                            Pos[1] = D.y;
+                                            Pos[2] = D.z;
+                                        }
+                                        else
+                                        {
+                                            direction D1;
+                                            D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera->h_view, Camera->v_view);
+                                            D.x = -D.x;
+                                            //D.y = -D.y;
+                                            D.z = -D.z;
+                                            rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
+                                            float Dir_vec[3] = {0, 0, 1};
+                                            float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                            Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
+                                            Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
+                                            Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                        }
 
                                         Delta[0] = Pos[0] - T_pos[0];
                                         Delta[1] = Pos[1] - T_pos[1];
@@ -15708,18 +15915,33 @@ int main(int argc, char * args[])
                             {
                                 if (Camera->ortho)
                                 {
-                                    direction D1;
-                                    direction D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
-                                    D.x = -D.x;
-                                    //D.y = -D.y;
-                                    D.z = -D.z;
-                                    rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-                                    float Dir_vec[3] = {0, 0, 1};
-                                    float dot = dot_productN((normal*)&D, Dir_vec);
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < screen_width && mouse_y > 0 && mouse_y < screen_height)
+                                    {
+                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                    Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-                                    Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-                                    Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                        Pos[0] = D.x;
+                                        Pos[1] = D.y;
+                                        Pos[2] = D.z;
+                                    }
+                                    else
+                                    {
+                                        direction D1;
+                                        direction D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
+                                        D.x = -D.x;
+                                        //D.y = -D.y;
+                                        D.z = -D.z;
+                                        rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
+                                        float Dir_vec[3] = {0, 0, 1};
+                                        float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                        Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
+                                        Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
+                                        Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                    }
 
                                     Delta[0] = Pos[0] - T_pos[0];
                                     Delta[1] = Pos[1] - T_pos[1];
@@ -15750,18 +15972,33 @@ int main(int argc, char * args[])
                                 }
                                 else
                                 {
-                                    direction D1;
-                                    direction D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
-                                    D.x = -D.x;
-                                    //D.y = -D.y;
-                                    D.z = -D.z;
-                                    rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-                                    float Dir_vec[3] = {0, 0, 1};
-                                    float dot = dot_productN((normal*)&D, Dir_vec);
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < screen_width && mouse_y > 0 && mouse_y < screen_height)
+                                    {
+                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                    Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-                                    Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-                                    Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                        Pos[0] = D.x;
+                                        Pos[1] = D.y;
+                                        Pos[2] = D.z;
+                                    }
+                                    else
+                                    {
+                                        direction D1;
+                                        direction D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
+                                        D.x = -D.x;
+                                        //D.y = -D.y;
+                                        D.z = -D.z;
+                                        rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
+                                        float Dir_vec[3] = {0, 0, 1};
+                                        float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                        Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
+                                        Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
+                                        Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                    }
 
                                     Delta[0] = Pos[0] - T_pos[0];
                                     Delta[1] = Pos[1] - T_pos[1];

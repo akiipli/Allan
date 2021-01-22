@@ -11,6 +11,7 @@ int saving_version = 1006;
 
 int NIGHT = 0;
 int SHADOWS = 0;
+int DRAG_BUFFER = 0;
 float Reflect = 1;
 int currentTheme = 0;
 
