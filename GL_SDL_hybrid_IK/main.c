@@ -699,7 +699,7 @@ int init()
             setMatrices();
     }
 
-    init_Drag_Plane(screen_width, screen_height);
+    init_Drag_Plane(SCREEN_WIDTH, SCREEN_HEIGHT);
     DRAG_BUFFER = setup_Depth_Buffer();
 
     THUMBNAILS = setup_Material_Thumbnail_FBO();
@@ -735,8 +735,19 @@ void cleanup()
         SDL_FreeSurface(Material_Thumbnail_Surfaces[t]);
     disable_VBO();
     glDeleteTextures(1, &font_tex);
-    glDeleteTextures(1, &drag_texture);
-    glDeleteTextures(1, &depthTex);
+
+    if (SHADOWS)
+    {
+        glDeleteTextures(1, &depthTex);
+        glDeleteFramebuffers(1, &shadowFBO);
+    }
+
+    if (DRAG_BUFFER)
+    {
+        glDeleteTextures(1, &drag_texture);
+        glDeleteFramebuffers(1, &depthFBO);
+    }
+
 //    if (fonts_on)
 //        glDeleteProgram(T_program[1][0]);
 	for (i = 0; i < EXT_NUM; i ++)
@@ -2204,7 +2215,7 @@ void update_Resize_Event()
         screen_width = event.resize.w - SIDEBAR;
         screen_height = event.resize.h - BOTTOM_LINE;
 
-        DRAG_BUFFER = resize_Depth_Buffer(screen_width, screen_height);
+        DRAG_BUFFER = resize_Depth_Buffer(event.resize.w, event.resize.h);
 
         if (screen_height % 2) screen_height ++;
 
@@ -11010,11 +11021,6 @@ void start_Movement()
 //            printf("D %f %f %f\n", Drag_Plane.D[0], Drag_Plane.D[1], Drag_Plane.D[2]);
 
             glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-
-            if (winZ == 0)
-            {
-                printf("GREAT LENGTHS I GO, but for some reason winZ is %f. Center cursor and try again.\n", winZ);
-            }
 
             printf("winZ %f\n", winZ);
 
