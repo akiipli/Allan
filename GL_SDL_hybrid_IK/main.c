@@ -698,8 +698,9 @@ int init()
         if (SHADOWS)
             setMatrices();
     }
-    DRAG_BUFFER = setup_Depth_Buffer();
+
     init_Drag_Plane(screen_width, screen_height);
+    DRAG_BUFFER = setup_Depth_Buffer();
 
     THUMBNAILS = setup_Material_Thumbnail_FBO();
     printf("THUMBNAILS %d\n", THUMBNAILS);

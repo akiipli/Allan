@@ -303,9 +303,9 @@ void SceneShadowMap_render(camera * C, int width, int height, int subdLevel, int
 GLuint depthFBO;
 GLuint depthTex, drag_texture;
 
-#define D_plane 300
-float drag_depth_Width = 600;
-float drag_depth_Height = 400;
+#define D_plane 3000
+float drag_depth_Width;
+float drag_depth_Height;
 //float Drag_Plane[4][3] = {{-D_plane, D_plane, 1}, {-D_plane, -D_plane, 1}, {D_plane, -D_plane, 1}, {D_plane, D_plane, 1}};
 GLfloat winX, winY, winZ;
 
