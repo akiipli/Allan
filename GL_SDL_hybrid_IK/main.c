@@ -15429,6 +15429,10 @@ int main(int argc, char * args[])
                                         Pos[1] = D.y;
                                         Pos[2] = D.z;
                                     }
+                                    else if (DRAG_BUFFER)
+                                    {
+
+                                    }
                                     else
                                     {
                                         direction D1;
@@ -15532,6 +15536,10 @@ int main(int argc, char * args[])
                                         Pos[1] = D.y;
                                         Pos[2] = D.z;
                                     }
+                                    else if (DRAG_BUFFER)
+                                    {
+
+                                    }
                                     else
                                     {
                                         direction D1;
@@ -15623,7 +15631,7 @@ int main(int argc, char * args[])
                             {
                                 if (object_hook)
                                 {
-                                    if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width && mouse_y > screen_height / 2 && mouse_y < screen_height)
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > screen_height / 2 && mouse_y < screen_height)
                                     {
                                         glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
                                         drag_plane_Render(CamDist, Camera, ObjDist, 0);
@@ -15634,6 +15642,10 @@ int main(int argc, char * args[])
                                         Pos[0] = D.x;
                                         Pos[1] = D.y;
                                         Pos[2] = D.z;
+                                    }
+                                    else if (DRAG_BUFFER)
+                                    {
+
                                     }
                                     else
                                     {
@@ -15728,7 +15740,7 @@ int main(int argc, char * args[])
                                 {
                                     if (Camera->ortho)
                                     {
-                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width && mouse_y > 0 && mouse_y < screen_height / 2)
+                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height / 2)
                                         {
                                             glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
                                             drag_plane_Render(CamDist, Camera, ObjDist, 0);
@@ -15739,6 +15751,10 @@ int main(int argc, char * args[])
                                             Pos[0] = D.x;
                                             Pos[1] = D.y;
                                             Pos[2] = D.z;
+                                        }
+                                        else if (DRAG_BUFFER)
+                                        {
+
                                         }
                                         else
                                         {
@@ -15785,7 +15801,7 @@ int main(int argc, char * args[])
                                     }
                                     else
                                     {
-                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width && mouse_y > 0 && mouse_y < screen_height / 2)
+                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height / 2)
                                         {
                                             glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
                                             drag_plane_Render(CamDist, Camera, ObjDist, 0);
@@ -15796,6 +15812,10 @@ int main(int argc, char * args[])
                                             Pos[0] = D.x;
                                             Pos[1] = D.y;
                                             Pos[2] = D.z;
+                                        }
+                                        else if (DRAG_BUFFER)
+                                        {
+
                                         }
                                         else
                                         {
@@ -15915,7 +15935,7 @@ int main(int argc, char * args[])
                             {
                                 if (Camera->ortho)
                                 {
-                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width && mouse_y > 0 && mouse_y < screen_height)
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height)
                                     {
                                         glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
                                         drag_plane_Render(CamDist, Camera, ObjDist, 0);
@@ -15926,6 +15946,10 @@ int main(int argc, char * args[])
                                         Pos[0] = D.x;
                                         Pos[1] = D.y;
                                         Pos[2] = D.z;
+                                    }
+                                    else if (DRAG_BUFFER)
+                                    {
+
                                     }
                                     else
                                     {
@@ -15972,7 +15996,7 @@ int main(int argc, char * args[])
                                 }
                                 else
                                 {
-                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width && mouse_y > 0 && mouse_y < screen_height)
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height)
                                     {
                                         glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
                                         drag_plane_Render(CamDist, Camera, ObjDist, 0);
@@ -15983,6 +16007,10 @@ int main(int argc, char * args[])
                                         Pos[0] = D.x;
                                         Pos[1] = D.y;
                                         Pos[2] = D.z;
+                                    }
+                                    else if (DRAG_BUFFER)
+                                    {
+
                                     }
                                     else
                                     {
