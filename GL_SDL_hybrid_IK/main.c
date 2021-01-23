@@ -10982,12 +10982,8 @@ void start_Movement()
 
         if (DRAG_BUFFER)
         {
-            D.x = -D.x;
-            //D.y = -D.y;
-            D.z = -D.z;
-            rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-            float Dir_vec[3] = {0, 0, 1};
-            float dot = dot_productN((normal*)&D, Dir_vec);
+            direction_Pack Dir = length_AB(Camera->T->pos, T->pos);
+            float dot = dot_productFF(Dir.vec, Camera->T->rotVec[2]);
 
 
 

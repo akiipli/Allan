@@ -138,7 +138,11 @@ void update_camera_persp(camera * C, float CamDist)
     }
     else
     {
-        gluPerspective(C->v_view * (180.0 / pi), C->h_v_ratio, persp_Near, persp_Far);
+        float angle = atan(C->v_view / 2.0);
+        float R = sqrt((C->v_view / 2.0) + 1.0);
+        float v_angle = angle * 2.0 * R;
+        //printf("Camera v_view, v_angle %f, %f\n", C->v_view, v_angle);
+        gluPerspective(v_angle * (180.0 / pi), C->h_v_ratio, persp_Near, persp_Far);
         gluLookAt(C->T->pos[0], C->T->pos[1], C->T->pos[2], C->T->target[0], C->T->target[1], C->T->target[2], C->T->rotVec_[1][0], C->T->rotVec_[1][1], C->T->rotVec_[1][2]);
     }
 //    GLdouble m[4][4];
@@ -189,7 +193,10 @@ void update_camera_front(camera * C, float CamDist)
     }
     else
     {
-        gluPerspective(C->v_view * (180.0 / pi), C->h_v_ratio, persp_Near, persp_Far);
+        float angle = atan(C->v_view / 2.0);
+        float R = sqrt((C->v_view / 2.0) + 1.0);
+        float v_angle = angle * 2.0 * R;
+        gluPerspective(v_angle * (180.0 / pi), C->h_v_ratio, persp_Near, persp_Far);
         gluLookAt(C->T->pos[0], C->T->pos[1], C->T->pos[2], C->T->target[0], C->T->target[1], C->T->target[2], C->T->rotVec_[1][0], C->T->rotVec_[1][1], C->T->rotVec_[1][2]);
     }
 }
@@ -206,7 +213,10 @@ void update_camera_left(camera * C, float CamDist)
     }
     else
     {
-        gluPerspective(C->v_view * (180.0 / pi), C->h_v_ratio, persp_Near, persp_Far);
+        float angle = atan(C->v_view / 2.0);
+        float R = sqrt((C->v_view / 2.0) + 1.0);
+        float v_angle = angle * 2.0 * R;
+        gluPerspective(v_angle * (180.0 / pi), C->h_v_ratio, persp_Near, persp_Far);
         gluLookAt(C->T->pos[0], C->T->pos[1], C->T->pos[2], C->T->target[0], C->T->target[1], C->T->target[2], C->T->rotVec_[1][0], C->T->rotVec_[1][1], C->T->rotVec_[1][2]);
     }
 }
@@ -223,7 +233,10 @@ void update_camera_top(camera * C, float CamDist)
     }
     else
     {
-        gluPerspective(C->v_view * (180.0 / pi), C->h_v_ratio, persp_Near, persp_Far);
+        float angle = atan(C->v_view / 2.0);
+        float R = sqrt((C->v_view / 2.0) + 1.0);
+        float v_angle = angle * 2.0 * R;
+        gluPerspective(v_angle * (180.0 / pi), C->h_v_ratio, persp_Near, persp_Far);
         gluLookAt(C->T->pos[0], C->T->pos[1], C->T->pos[2], C->T->target[0], C->T->target[1], C->T->target[2], C->T->rotVec_[1][0], C->T->rotVec_[1][1], C->T->rotVec_[1][2]);
     }
 }
