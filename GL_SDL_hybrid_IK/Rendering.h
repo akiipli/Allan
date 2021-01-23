@@ -856,12 +856,24 @@ direction unproject_screen_point(GLfloat winX, GLfloat winY, GLfloat winZ)
 
 direction screen_point_to_vector(int x, int y, int hres, int vres, float h_view, float v_view)
 {
+    float angle_v = atan(v_view / 2.0);
+    float R_v = sqrt((v_view / 2.0) + 1.0);
+    float v_angle = angle_v * 2.0 * R_v;
+
+    v_angle = (v_angle + v_view) / 2.0;
+
+//    float angle_h = atan(h_view / 2.0);
+//    float R_h = sqrt((h_view / 2.0) + 1.0);
+//    float h_angle = angle_h * 2.0 * R_h;
+//
+//    h_angle = (h_angle + h_view) / 2.0;
+
     direction D;
 
     float H_Mark = h_view / 2.0;
-    float V_Mark = v_view / 2.0;
+    float V_Mark = v_angle / 2.0;
     float H_step = h_view / (float)hres;
-    float V_step = v_view / (float)vres;
+    float V_step = v_angle / (float)vres;
     H_Mark -= H_step / 2.0;
     V_Mark -= V_step / 2.0;
     H_Mark += pi;

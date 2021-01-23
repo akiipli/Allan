@@ -11035,9 +11035,19 @@ void start_Movement()
             rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
             float Dir_vec[3] = {0, 0, 1};
             float dot = dot_productN((normal*)&D, Dir_vec);
-            T_pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-            T_pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-            T_pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+
+            if (Camera->ortho)
+            {
+                T_pos[0] = Camera->T->pos[0] + D1.x * (ObjDist * dot);
+                T_pos[1] = Camera->T->pos[1] + D1.y * (ObjDist * dot);
+                T_pos[2] = Camera->T->pos[2] + D1.z * (ObjDist * dot);
+            }
+            else
+            {
+                T_pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
+                T_pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
+                T_pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+            }
         }
 
         if (CURVE_MODE)
