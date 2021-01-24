@@ -41,6 +41,8 @@ int cpsIndex = 0;
 int currentCurve = 0;
 int currentCp = 0;
 
+int cp_Manipulation = 0;
+
 float length(float V[3]);
 size_t float_3 = sizeof(float[3]);
 
@@ -83,6 +85,7 @@ struct cp
     unsigned address;
     int selected;
     float pos[3];
+    float Pos[3];
     vertex * vert;
     curve_segment ** segments;
     int segment_count;
@@ -1206,6 +1209,75 @@ void clear_Selected_Cp_Weights()
             if (CP->selected)
             {
                 C->cps_continuity[p] = CP_CONTINUITY;
+            }
+        }
+    }
+}
+
+void transfer_pos_To_Cp_Pos()
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->selected)
+            {
+                CP->Pos[0] = CP->pos[0];
+                CP->Pos[1] = CP->pos[1];
+                CP->Pos[2] = CP->pos[2];
+            }
+        }
+    }
+}
+
+void move_Cps_To_Delta(float Delta[3])
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->selected)
+            {
+                CP->pos[0] = CP->Pos[0] + Delta[0];
+                CP->pos[1] = CP->Pos[1] + Delta[1];
+                CP->pos[2] = CP->Pos[2] + Delta[2];
+            }
+        }
+    }
+}
+
+void snap_back_Cps_To_Pos()
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->selected)
+            {
+                CP->pos[0] = CP->Pos[0];
+                CP->pos[1] = CP->Pos[1];
+                CP->pos[2] = CP->Pos[2];
             }
         }
     }

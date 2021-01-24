@@ -14,7 +14,6 @@ Copyright <2018> <Allan Kiipli>
 #define ik_fixed 5
 
 float MIN_SCALE = 1 / 1000000;
-int SCALE = 0;
 
 float LocatorSize = 1;
 int locatorIndex = 0;

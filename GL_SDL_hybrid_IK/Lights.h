@@ -15,7 +15,8 @@ char Hint[STRLEN];
 
 void init_Hint()
 {
-    sprintf(Hint, "Light theme:%d Alt+U\nNight:%d Alt+N Shadows:%d Alt+S\n\nELEMENT ARRAYS: %d\n", currentTheme, NIGHT, SHADOWS, ELEMENT_ARRAYS);
+    sprintf(Hint, "Light theme:%d Alt+U\nNight:%d Alt+N Shadows:%d Alt+S\n\nELEMENT ARRAYS: %d",
+            currentTheme, NIGHT, SHADOWS, ELEMENT_ARRAYS);
 }
 
 GLuint lightHandle, fogHandle, materialSHandle3;

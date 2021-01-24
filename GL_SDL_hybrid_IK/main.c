@@ -17,6 +17,10 @@ look for CUBECOMMENT
 
 /*CORRECT IT*/
 
+int ROTATION = 0;
+int MOVEMENT = 0;
+int SCALE = 0;
+
 #define CUBEINDEX 7
 
 #define DEBUG_WITHOUT_IL 0 //  change this to 1
@@ -141,8 +145,6 @@ int altDown = 0;
 int UPDATEDRAG = 0;
 int UPDATE_SELECTIONS = 1;
 int UPDATE_DEFORMERS = 0;
-int ROTATION = 0;
-int MOVEMENT = 0;
 
 int wireframe = 0;
 int edgedraw = 0;
@@ -211,6 +213,7 @@ object * O;
 transformer * T;
 deformer * D;
 curve * C;
+cp * CP;
 
 int rendermode = POLY_RENDER;
 int POLYS_ID_RENDER = 0;
@@ -434,7 +437,7 @@ void make_osd(object * O)
 
     if (subdLevel >= 0)
     {
-        p += sprintf(&osd_font[p], "tune:u\tuv:Shift-u\n");
+        p += sprintf(&osd_font[p], "u uv:Shift-u\n");
     }
 
     if (O->subdlevel < subdLevel)
@@ -10924,6 +10927,17 @@ void start_Movement()
     {
         object_hook = 1;
         MOVEMENT = 1;
+        init_Hint();
+
+        if (Curve_Mode)
+        {
+            if (!CURVE_MODE)
+            {
+                cp_Manipulation = 1;
+                assert_Curve_Selection();
+                assert_Cp_Selection();
+            }
+        }
 
         if (DRAW_LOCATORS)
         {
@@ -10943,70 +10957,53 @@ void start_Movement()
             if (Camera == &Camera_Front)
             {
                 D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Front.h_view, Camera_Front.v_view);
-                //ObjDist = distance(T->pos, Camera_Front.T->pos);
             }
             else if  (Camera == &Camera_Top)
             {
                 D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width / 2, screen_height / 2, Camera_Top.h_view, Camera_Top.v_view);
-                //ObjDist = distance(T->pos, Camera_Top.T->pos);
             }
             else if  (Camera == &Camera_Left)
             {
                 D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Left.h_view, Camera_Left.v_view);
-                //ObjDist = distance(T->pos, Camera_Left.T->pos);
             }
             else if (Camera == &Camera_Persp)
             {
                 D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera_Persp.h_view, Camera_Persp.v_view);
-                //ObjDist = distance(T->pos, Camera_Persp.T->pos);
             }
         }
         else
         {
             D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
-            //ObjDist = distance(T->pos, Camera->T->pos);
         }
 
-        if (CURVE_MODE)
+        float TT_pos[3];
+
+        memcpy(TT_pos, T->pos, sizeof(TT_pos));
+
+        if (Curve_Mode && cp_Manipulation)
+        {
+            if (currentCp > 0 && currentCp < cpsIndex)
+            {
+                CP = cps[currentCp];
+                memcpy(TT_pos, CP->pos, sizeof(TT_pos));
+            }
+        }
+        else if (CURVE_MODE)
         {
             if (C != NULL && C->cps_count > 0)
             {
-                ObjDist = distance(C->cps[C->cps_count - 1]->pos, Camera->T->pos);
+                memcpy(TT_pos, C->cps[C->cps_count - 1]->pos, sizeof(TT_pos));
             }
         }
-        else
-        {
-            ObjDist = distance(T->pos, Camera->T->pos);
-        }
 
+        ObjDist = distance(TT_pos, Camera->T->pos);
 
         if (DRAG_BUFFER)
         {
-            direction_Pack Dir = length_AB(Camera->T->pos, T->pos);
+            direction_Pack Dir = length_AB(Camera->T->pos, TT_pos);
             float dot = dot_productFF(Dir.vec, Camera->T->rotVec[2]);
 
-
-
             ObjDist *= dot;
-            //Drag_Plane_transforms(ObjDist, Camera);
-
-//            if (Camera->ID == CAMERA_PERSPECTIVE)
-//            {
-//                printf("CAMERA PERSPECTIVE ID %d %f\n", Camera->ID, ObjDist);
-//            }
-//            else if (Camera->ID == CAMERA_TOP)
-//            {
-//                printf("CAMERA TOP ID %d %f\n", Camera->ID, ObjDist);
-//            }
-//            else if (Camera->ID == CAMERA_FRONT)
-//            {
-//                printf("CAMERA FRONT ID %d %f\n", Camera->ID, ObjDist);
-//            }
-//            else if (Camera->ID == CAMERA_LEFT)
-//            {
-//                printf("CAMERA LEFT ID %d %f\n", Camera->ID, ObjDist);
-//            }
-
 
             glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
             drag_plane_Render(CamDist, Camera, ObjDist, 1);
@@ -11050,7 +11047,11 @@ void start_Movement()
             }
         }
 
-        if (CURVE_MODE)
+        if (Curve_Mode && cp_Manipulation)
+        {
+            transfer_pos_To_Cp_Pos();
+        }
+        else if (CURVE_MODE)
         {
             if (C != NULL && C->cps_count > 0)
             {
@@ -11168,6 +11169,11 @@ void make_Movement()
                 synthesize_Bone_Alignement_childs(T);
             }
         }
+    }
+    else if (Curve_Mode && cp_Manipulation)
+    {
+        move_Cps_To_Delta(Delta);
+        update_selected_Curves(subdLevel);
     }
     else if (CURVE_MODE)
     {
@@ -13681,123 +13687,134 @@ int main(int argc, char * args[])
                     }
                     else if (Camera_screen_lock)
                     {
-                        if (camera_rotate)
+                        if (Curve_Mode && cp_Manipulation)
                         {
-                            T = Camera->T;
-                        }
-                        else if (object_hook)
-                        {
-                            if (BIND_POSE)
-                            {
-                                T = transformers[currentLocator];
-                                if (MOVEMENT)
-                                {
-                                    bake_pose(T);
-                                    bake_pose_Children(T);
+                            snap_back_Cps_To_Pos();
+                            cp_Manipulation = 0;
 
-                                    if (BONES_MODE || T->Bone != NULL)
-                                    {
-                                        synthesize_Bone_Alignement(T->Bone);
-                                        if (T->Bone->B == T)
-                                        {
-                                            synthesize_Bone_Alignement_childs(T);
-                                        }
-                                    }
-                                }
-                            }
-                            else if (DRAW_LOCATORS)
-                            {
-                                T = transformers[currentLocator];
-                                bake_pose_Children(T);
-                            }
-                            else
-                            {
-                                T = objects[currentObject]->T;
-                                bake_pose_Children(T);
-                            }
+                            update_selected_Curves(subdLevel);
+                            update_selected_Curves(subdLevel);
                         }
                         else
                         {
-                            T = Camera->T;
-                        }
-
-                        T->rot[0] = object_Rot[0];
-                        T->rot[1] = object_Rot[1];
-                        T->rot[2] = object_Rot[2];
-                        T->scl[0] = object_Scl[0];
-                        T->scl[1] = object_Scl[1];
-                        T->scl[2] = object_Scl[2];
-                        T->target[0] = target_Pos[0];
-                        T->target[1] = target_Pos[1];
-                        T->target[2] = target_Pos[2];
-                        T->pos[0] = object_Pos[0];
-                        T->pos[1] = object_Pos[1];
-                        T->pos[2] = object_Pos[2];
-
-                        if (camera_rotate || camera_z_move)
-                        {
-                            if (camera_z_move)
+                            if (camera_rotate)
                             {
-                                CamDist = CamDist_mem;
-                            }
-                            rotate_Camera(&Camera_Persp, CamDist);
-                            rotate_Camera(&Camera_Top, CamDist);
-                            rotate_Camera(&Camera_Front, CamDist);
-                            rotate_Camera(&Camera_Left, CamDist);
-                        }
-                        else
-                        {
-                            if (BIND_POSE)
-                            {
-                                Update_Objects_Count = 0;
-
-                                paste_Action_Begin();
-                                rotate_bind(T);
+                                T = Camera->T;
                             }
                             else if (object_hook)
                             {
-                                Update_Objects_Count = 0;
-
-                                paste_Action_Begin();
-
-                                if (Constraint_Pack.IK != NULL)
+                                if (BIND_POSE)
                                 {
-                                    if (Constraint_Pack.IK->Deformer != NULL)
+                                    T = transformers[currentLocator];
+                                    if (MOVEMENT)
                                     {
-                                        if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
+                                        bake_pose(T);
+                                        bake_pose_Children(T);
+
+                                        if (BONES_MODE || T->Bone != NULL)
                                         {
-                                            rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
+                                            synthesize_Bone_Alignement(T->Bone);
+                                            if (T->Bone->B == T)
+                                            {
+                                                synthesize_Bone_Alignement_childs(T);
+                                            }
                                         }
-                                        else
-                                        {
-                                            rotate_collect(T);
-                                        }
-                                        paste_Deformer(Constraint_Pack.IK->Deformer->Transformers[0]);
                                     }
+                                }
+                                else if (DRAW_LOCATORS)
+                                {
+                                    T = transformers[currentLocator];
+                                    bake_pose_Children(T);
                                 }
                                 else
                                 {
+                                    T = objects[currentObject]->T;
+                                    bake_pose_Children(T);
+                                }
+                            }
+                            else
+                            {
+                                T = Camera->T;
+                            }
 
-                                    if (T->Deformer != NULL)
+                            T->rot[0] = object_Rot[0];
+                            T->rot[1] = object_Rot[1];
+                            T->rot[2] = object_Rot[2];
+                            T->scl[0] = object_Scl[0];
+                            T->scl[1] = object_Scl[1];
+                            T->scl[2] = object_Scl[2];
+                            T->target[0] = target_Pos[0];
+                            T->target[1] = target_Pos[1];
+                            T->target[2] = target_Pos[2];
+                            T->pos[0] = object_Pos[0];
+                            T->pos[1] = object_Pos[1];
+                            T->pos[2] = object_Pos[2];
+
+                            if (camera_rotate || camera_z_move)
+                            {
+                                if (camera_z_move)
+                                {
+                                    CamDist = CamDist_mem;
+                                }
+                                rotate_Camera(&Camera_Persp, CamDist);
+                                rotate_Camera(&Camera_Top, CamDist);
+                                rotate_Camera(&Camera_Front, CamDist);
+                                rotate_Camera(&Camera_Left, CamDist);
+                            }
+                            else
+                            {
+                                if (BIND_POSE)
+                                {
+                                    Update_Objects_Count = 0;
+
+                                    paste_Action_Begin();
+                                    rotate_bind(T);
+                                }
+                                else if (object_hook)
+                                {
+                                    Update_Objects_Count = 0;
+
+                                    paste_Action_Begin();
+
+                                    if (Constraint_Pack.IK != NULL)
                                     {
-                                        if (T->Deformer->Transformers_Count > 0)
+                                        if (Constraint_Pack.IK->Deformer != NULL)
                                         {
-                                            rotate_collect(T->Deformer->Transformers[0]);
+                                            if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
+                                            {
+                                                rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
+                                            }
+                                            else
+                                            {
+                                                rotate_collect(T);
+                                            }
+                                            paste_Deformer(Constraint_Pack.IK->Deformer->Transformers[0]);
+                                        }
+                                    }
+                                    else
+                                    {
+
+                                        if (T->Deformer != NULL)
+                                        {
+                                            if (T->Deformer->Transformers_Count > 0)
+                                            {
+                                                rotate_collect(T->Deformer->Transformers[0]);
+                                            }
+                                            else
+                                            {
+                                                rotate_collect(T);
+                                            }
+                                            paste_Deformer(T);
                                         }
                                         else
                                         {
                                             rotate_collect(T);
+                                            rotate_vertex_groups_D_Init();
+                                            rotate_P(T);
                                         }
-                                        paste_Deformer(T);
                                     }
-                                    else
-                                    {
-                                        rotate_collect(T);
-                                        rotate_vertex_groups_D_Init();
-                                        rotate_P(T);
-                                    }
+                                    update_rotate_bounding_box();
                                 }
-                                update_rotate_bounding_box();
                             }
                         }
 
@@ -13847,6 +13864,11 @@ int main(int argc, char * args[])
 //                    SDL_GL_SwapBuffers();
 
                     multi_Rotation_Transformers_Count = 0;
+
+                    if (cp_Manipulation)
+                    {
+                        cp_Manipulation = 0;
+                    }
 
                     if (CURVE_MODE)
                     {
@@ -16909,6 +16931,7 @@ int main(int argc, char * args[])
             else if (mod & KMOD_SHIFT)
             {
                 ROTATION = 1;
+                init_Hint();
 
                 if (DRAW_LOCATORS)
                 {
@@ -17800,12 +17823,14 @@ int main(int argc, char * args[])
                             if (mod & KMOD_SHIFT)
                             {
                                 ROTATION = 1;
+                                init_Hint();
                                 bake(T);
                                 object_hook = 3;
                             }
                             else
                             {
                                 SCALE = 1;
+                                init_Hint();
                                 bake_scale(T);
                                 object_hook = 2;
                             }
