@@ -6825,13 +6825,28 @@ void render_Image(unsigned char * data, camera * C, int width, int height, int L
     }
 }
 
+void draw_Curve_Segment_Recursive_ID(curve_segment * S, int level)
+{
+    if (S->level == level)
+    {
+        glBegin(GL_LINE_STRIP);
+        glVertex3fv(S->A);
+        glVertex3fv(S->B);
+        glVertex3fv(S->C);
+        glEnd();
+    }
+    else if (S->subdivided)
+    {
+        draw_Curve_Segment_Recursive_ID(S->segment[0], level);
+        draw_Curve_Segment_Recursive_ID(S->segment[1], level);
+    }
+}
+
 void draw_Curve_Segment_Recursive(curve_segment * S, int level)
 {
     if (S->level == level)
     {
         glBegin(GL_LINE_STRIP);
-        glColor4ubv(line_color);
-
         glVertex3fv(S->A);
         glVertex3fv(S->B);
         glVertex3fv(S->C);
@@ -6842,6 +6857,60 @@ void draw_Curve_Segment_Recursive(curve_segment * S, int level)
         draw_Curve_Segment_Recursive(S->segment[0], level);
         draw_Curve_Segment_Recursive(S->segment[1], level);
     }
+}
+
+void render_Curves_ID()
+{
+    int M0 = 255 * 255 * 255;
+    int M1 = 255 * 255;
+
+    float R, G, B, A;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DITHER);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_MULTISAMPLE);
+
+    int c, p, idx, idx0, idx1, idx2;
+    curve * C;
+    cp * CP;
+
+    glLineWidth(1);
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+
+        idx = C->index;
+
+        R = (float)(idx / M0) / (float)255;
+        idx0 = idx % M0;
+        G = (float)(idx0 / M1) / (float)255;
+        idx1 = idx0 % M1;
+        B = (float)(idx1 / 255) / (float)255;
+        idx2 = idx1 % 255;
+        A = (float)(idx2) / (float)255;
+
+        glColor4f(R, G, B, A);
+
+        if (C->open)
+            glBegin(GL_LINE_STRIP);
+        else
+            glBegin(GL_LINE_LOOP);
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            glVertex3fv(CP->pos);
+        }
+        glEnd();
+    }
+
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DITHER);
+    glEnable(GL_LIGHTING);
 }
 
 void render_Curves()
@@ -6888,6 +6957,67 @@ void render_Curves()
     glLineWidth(1);
 }
 
+void render_Curves_ID_(int level)
+{
+    int M0 = 255 * 255 * 255;
+    int M1 = 255 * 255;
+
+    float R, G, B, A;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DITHER);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_MULTISAMPLE);
+
+    int c, s, idx, idx0, idx1, idx2;
+
+    curve * C;
+    curve_segment * S;
+
+    glLineWidth(1);
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+
+        idx = C->index;
+
+        R = (float)(idx / M0) / (float)255;
+        idx0 = idx % M0;
+        G = (float)(idx0 / M1) / (float)255;
+        idx1 = idx0 % M1;
+        B = (float)(idx1 / 255) / (float)255;
+        idx2 = idx1 % 255;
+        A = (float)(idx2) / (float)255;
+
+        glColor4f(R, G, B, A);
+
+        if (C->open)
+        {
+            for (s = 0; s < C->segment_count - 1; s ++)
+            {
+                S = C->segments[s];
+                draw_Curve_Segment_Recursive_ID(S, level);
+            }
+        }
+        else
+        {
+            for (s = 0; s < C->segment_count; s ++)
+            {
+                S = C->segments[s];
+                draw_Curve_Segment_Recursive_ID(S, level);
+            }
+        }
+    }
+
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DITHER);
+    glEnable(GL_LIGHTING);
+}
+
 void render_Curves_(int level)
 {
     glDisable(GL_TEXTURE_2D);
@@ -6914,6 +7044,8 @@ void render_Curves_(int level)
                 glEnable(GL_LIGHTING);
         }
 
+        glColor4ubv(line_color);
+
         if (C->open)
         {
             for (s = 0; s < C->segment_count - 1; s ++)
@@ -6939,6 +7071,58 @@ void render_Curves_(int level)
     glLineWidth(1);
 }
 
+void render_Cps_ID()
+{
+    int M0 = 255 * 255 * 255;
+    int M1 = 255 * 255;
+
+    float R, G, B, A;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DITHER);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_MULTISAMPLE);
+
+    glPointSize(6);
+    glColor4f(1, 1, 1, 1);
+    glBegin(GL_POINTS);
+
+    int c, p, idx, idx0, idx1, idx2;
+    curve * C;
+    cp * CP;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+        if (C->selected)
+        {
+            for (p = 0; p < C->cps_count; p ++)
+            {
+                CP = C->cps[p];
+                idx = CP->index;
+
+                R = (float)(idx / M0) / (float)255;
+                idx0 = idx % M0;
+                G = (float)(idx0 / M1) / (float)255;
+                idx1 = idx0 % M1;
+                B = (float)(idx1 / 255) / (float)255;
+                idx2 = idx1 % 255;
+                A = (float)(idx2) / (float)255;
+
+                glColor4f(R, G, B, A);
+                glVertex3fv(CP->pos);
+            }
+        }
+    }
+    glEnd();
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DITHER);
+    glEnable(GL_LIGHTING);
+}
+
 void render_Cps()
 {
     glPointSize(3);
@@ -6947,22 +7131,33 @@ void render_Cps()
     glBegin(GL_POINTS);
     glColor4ubv(vert_color);
 
-    int c;
+    int c, p;
+
+    curve * C;
     cp * CP;
 
-    for (c = 0; c < cpsIndex; c ++)
+    for (c = 0; c < curvesIndex; c ++)
     {
-        CP = cps[c];
-        if (CP->selected)
+        C = curves[c];
+
+        if (C->selected)
         {
-            glColor4ubv(selected_vert_color);
+            for (p = 0; p < C->cps_count; p ++)
+            {
+                CP = C->cps[p];
+                if (CP->selected)
+                {
+                    glColor4ubv(selected_vert_color);
+                }
+                else
+                {
+                    glColor4ubv(vert_color);
+                }
+                glVertex3fv(CP->pos);
+            }
         }
-        else
-        {
-            glColor4ubv(vert_color);
-        }
-        glVertex3fv(CP->pos);
     }
+
     glEnd();
     glEnable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);

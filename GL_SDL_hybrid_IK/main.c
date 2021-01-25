@@ -221,6 +221,8 @@ int EDGES_ID_RENDER = 0;
 int VERTS_ID_RENDER = 0;
 int LOCAT_ID_RENDER = 0;
 int BONES_ID_RENDER = 0;
+int CPS_ID_RENDER = 0;
+int CURVE_ID_RENDER = 0;
 
 float m[4][4];
 
@@ -1421,6 +1423,14 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
                 render_uv_view(C, currentObject, NormalMode, BumpMode);
             }
         }
+        else if (CURVE_ID_RENDER)
+        {
+            render_Curves_ID();
+        }
+        else if (CPS_ID_RENDER)
+        {
+            render_Cps_ID();
+        }
         else if (VERTS_ID_RENDER)
         {
             render_poly_Verts_ID(C, O);
@@ -1473,6 +1483,14 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
             {
                 render_uv_view_(C, currentObject, level, NormalMode, BumpMode);
             }
+        }
+        else if (CURVE_ID_RENDER)
+        {
+            render_Curves_ID_(level);
+        }
+        else if (CPS_ID_RENDER)
+        {
+            render_Cps_ID();
         }
         else if (VERTS_ID_RENDER)
         {
@@ -10931,11 +10949,19 @@ void start_Movement()
 
         if (Curve_Mode)
         {
+            assert_Curve_Selection();
+            assert_Cp_Selection();
+
             if (!CURVE_MODE)
             {
-                cp_Manipulation = 1;
-                assert_Curve_Selection();
-                assert_Cp_Selection();
+                if (Vertex_Mode)
+                {
+                    cp_Manipulation = 1;
+                }
+                else
+                {
+                    curve_Manipulation = 1;
+                }
             }
         }
 
@@ -10980,7 +11006,18 @@ void start_Movement()
 
         memcpy(TT_pos, T->pos, sizeof(TT_pos));
 
-        if (Curve_Mode && cp_Manipulation)
+        if (Curve_Mode && curve_Manipulation)
+        {
+            if (selected_curves_count > 0)
+            {
+                C = curves[currentCurve];
+                if (C != NULL && C->cps_count > 0)
+                {
+                    memcpy(TT_pos, C->cps[C->cps_count - 1]->pos, sizeof(TT_pos));
+                }
+            }
+        }
+        else if (Curve_Mode && cp_Manipulation)
         {
             if (currentCp > 0 && currentCp < cpsIndex)
             {
@@ -11050,6 +11087,10 @@ void start_Movement()
         if (Curve_Mode && cp_Manipulation)
         {
             transfer_pos_To_Cp_Pos();
+        }
+        else if (Curve_Mode && curve_Manipulation)
+        {
+            remember_Curves_Cp_pos();
         }
         else if (CURVE_MODE)
         {
@@ -11173,6 +11214,11 @@ void make_Movement()
     else if (Curve_Mode && cp_Manipulation)
     {
         move_Cps_To_Delta(Delta);
+        update_selected_Curves(subdLevel);
+    }
+    else if (Curve_Mode && curve_Manipulation)
+    {
+        move_Curve_Cps_To_Delta(Delta);
         update_selected_Curves(subdLevel);
     }
     else if (CURVE_MODE)
@@ -13687,7 +13733,15 @@ int main(int argc, char * args[])
                     }
                     else if (Camera_screen_lock)
                     {
-                        if (Curve_Mode && cp_Manipulation)
+                        if (Curve_Mode && curve_Manipulation)
+                        {
+                            snap_back_Curve_Cps_To_Pos();
+                            curve_Manipulation = 0;
+
+                            update_selected_Curves(subdLevel);
+                            update_selected_Curves(subdLevel);
+                        }
+                        else if (Curve_Mode && cp_Manipulation)
                         {
                             snap_back_Cps_To_Pos();
                             cp_Manipulation = 0;
@@ -13864,6 +13918,11 @@ int main(int argc, char * args[])
 //                    SDL_GL_SwapBuffers();
 
                     multi_Rotation_Transformers_Count = 0;
+
+                    if (curve_Manipulation)
+                    {
+                        curve_Manipulation = 0;
+                    }
 
                     if (cp_Manipulation)
                     {
@@ -14876,7 +14935,16 @@ int main(int argc, char * args[])
                         DRAW_UI = 0;
                         if (Object_Mode)
                         {
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                            if (Curve_Mode)
+                            {
+                                CURVE_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                CURVE_ID_RENDER = 0;
+                            }
+                            else
+                            {
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                            }
                         }
                         else if (LOCAT_ID_RENDER && Object_Mode)
                         {
@@ -14884,9 +14952,18 @@ int main(int argc, char * args[])
                         }
                         else if (Vertex_Mode)
                         {
-                            VERTS_ID_RENDER = 1;
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                            VERTS_ID_RENDER = 0;
+                            if (Curve_Mode)
+                            {
+                                CPS_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                CPS_ID_RENDER = 0;
+                            }
+                            else
+                            {
+                                VERTS_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                VERTS_ID_RENDER = 0;
+                            }
                         }
                         else if (Edge_Mode)
                         {
@@ -14925,7 +15002,24 @@ int main(int argc, char * args[])
                         for (p = 0; p < 81; p ++)
                         {
                             o = pixel_id[p_index[p]];
-                            if (Object_Mode && LOCAT_ID_RENDER && o < transformerIndex && o >= 0)
+                            if (Object_Mode && Curve_Mode)
+                            {
+                                if (o > -1 && o < curvesIndex)
+                                {
+                                    C = curves[o];
+
+                                    if (add_selection_mode)
+                                    {
+                                        C->selected = 1;
+                                    }
+                                    else
+                                    {
+                                        C->selected = 0;
+                                    }
+                                    break;
+                                }
+                            }
+                            else if (Object_Mode && LOCAT_ID_RENDER && o < transformerIndex && o >= 0)
                             {
                                 T = transformers[o];
                                 if (T->IK != NULL && T->style == ik_start)
@@ -15064,57 +15158,80 @@ int main(int argc, char * args[])
                             }
                             else if (Vertex_Mode)
                             {
-                                uv * UV;
-                                vertex * V;
-                                if (Camera->uv_draw)
+                                if (Curve_Mode)
                                 {
-                                    if (o > -1 && o < O->textcount)
+                                    cp * CP;
+
+                                    if (o > -1 && o < cpsIndex)
                                     {
-                                        UV = &O->uvtex[o / ARRAYSIZE][o % ARRAYSIZE];
-                                        printf("uv vertex id %d\n", o);
+                                        CP = cps[o];
+
+                                        printf("cp vertex id %d\n", o);
                                         if (add_selection_mode)
                                         {
-                                            UV->selected = 1;
+                                            CP->selected = 1;
                                         }
                                         else
                                         {
-                                            UV->selected = 0;
-                                        }
-                                        idx = UV->vert;
-                                        if (idx > -1 && idx < O->vertcount)
-                                        {
-                                            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                            V->selected = UV->selected;
+                                            CP->selected = 0;
                                         }
                                         break;
                                     }
                                 }
                                 else
                                 {
-                                    if (o > -1 && o < O->vertcount)
+                                    uv * UV;
+                                    vertex * V;
+                                    if (Camera->uv_draw)
                                     {
-                                        V = &O->verts[o / ARRAYSIZE][o % ARRAYSIZE];
-                                        printf("vertex id %d\n", o);
-                                        if (add_selection_mode)
+                                        if (o > -1 && o < O->textcount)
                                         {
-                                            V->selected = 1;
-                                            O->last_selected_verts[0] = O->last_selected_verts[1];
-                                            O->last_selected_verts[1] = V->index;
-                                        }
-                                        else
-                                        {
-                                            V->selected = 0;
-                                        }
-                                        for (u = 0; u < V->uv_vertcount; u ++)
-                                        {
-                                            idx = V->uv_verts[u];
-                                            if (idx > -1 && idx < O->textcount)
+                                            UV = &O->uvtex[o / ARRAYSIZE][o % ARRAYSIZE];
+                                            printf("uv vertex id %d\n", o);
+                                            if (add_selection_mode)
                                             {
-                                                UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                                UV->selected = V->selected;
+                                                UV->selected = 1;
                                             }
+                                            else
+                                            {
+                                                UV->selected = 0;
+                                            }
+                                            idx = UV->vert;
+                                            if (idx > -1 && idx < O->vertcount)
+                                            {
+                                                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                V->selected = UV->selected;
+                                            }
+                                            break;
                                         }
-                                        break;
+                                    }
+                                    else
+                                    {
+                                        if (o > -1 && o < O->vertcount)
+                                        {
+                                            V = &O->verts[o / ARRAYSIZE][o % ARRAYSIZE];
+                                            printf("vertex id %d\n", o);
+                                            if (add_selection_mode)
+                                            {
+                                                V->selected = 1;
+                                                O->last_selected_verts[0] = O->last_selected_verts[1];
+                                                O->last_selected_verts[1] = V->index;
+                                            }
+                                            else
+                                            {
+                                                V->selected = 0;
+                                            }
+                                            for (u = 0; u < V->uv_vertcount; u ++)
+                                            {
+                                                idx = V->uv_verts[u];
+                                                if (idx > -1 && idx < O->textcount)
+                                                {
+                                                    UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                    UV->selected = V->selected;
+                                                }
+                                            }
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -15258,6 +15375,10 @@ int main(int argc, char * args[])
                 }
                 else
                 {
+                    if (Curve_Mode)
+                    {
+                        assert_Curve_Selection();
+                    }
                     if (DRAW_LOCATORS)
                     {
                         assert_Locators_Selection();
@@ -16277,7 +16398,16 @@ int main(int argc, char * args[])
                     DRAW_UI = 0;
                     if (Object_Mode)
                     {
-                        poly_Render(0, 0, splitview, CamDist, 0, level);
+                        if (Curve_Mode)
+                        {
+                            CURVE_ID_RENDER = 1;
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                            CURVE_ID_RENDER = 0;
+                        }
+                        else
+                        {
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                        }
                     }
                     else if (LOCAT_ID_RENDER && Object_Mode)
                     {
@@ -16285,9 +16415,18 @@ int main(int argc, char * args[])
                     }
                     else if (Vertex_Mode)
                     {
-                        VERTS_ID_RENDER = 1;
-                        poly_Render(0, 0, splitview, CamDist, 0, level);
-                        VERTS_ID_RENDER = 0;
+                        if (Curve_Mode)
+                        {
+                            CPS_ID_RENDER = 1;
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                            CPS_ID_RENDER = 0;
+                        }
+                        else
+                        {
+                            VERTS_ID_RENDER = 1;
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                            VERTS_ID_RENDER = 0;
+                        }
                     }
                     else if (Edge_Mode)
                     {
@@ -16325,7 +16464,24 @@ int main(int argc, char * args[])
                     for (p = 0; p < 81; p ++)
                     {
                         o = pixel_id[p_index[p]];
-                        if (Object_Mode && LOCAT_ID_RENDER && o < transformerIndex && o >= 0)
+                        if (Object_Mode && Curve_Mode)
+                        {
+                            if (o > -1 && o < curvesIndex)
+                            {
+                                C = curves[o];
+
+                                if (add_selection_mode)
+                                {
+                                    C->selected = 1;
+                                }
+                                else
+                                {
+                                    C->selected = 0;
+                                }
+                                break;
+                            }
+                        }
+                        else if (Object_Mode && LOCAT_ID_RENDER && o < transformerIndex && o >= 0)
                         {
                             T = transformers[o];
                             if (add_selection_mode)
@@ -16445,55 +16601,78 @@ int main(int argc, char * args[])
                         }
                         else if (Vertex_Mode)
                         {
-                            uv * UV;
-                            vertex * V;
-                            if (Camera->uv_draw)
+                            if (Curve_Mode)
                             {
-                                if (o > -1 && o < O->textcount)
+                                cp * CP;
+
+                                if (o > -1 && o < cpsIndex)
                                 {
-                                    UV = &O->uvtex[o / ARRAYSIZE][o % ARRAYSIZE];
+                                    CP = cps[o];
+
+                                    printf("cp vertex id %d\n", o);
                                     if (add_selection_mode)
                                     {
-                                        UV->selected = 1;
+                                        CP->selected = 1;
                                     }
                                     else
                                     {
-                                        UV->selected = 0;
-                                    }
-                                    idx = UV->vert;
-                                    if (idx > -1 && idx < O->vertcount)
-                                    {
-                                        V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                        V->selected = UV->selected;
+                                        CP->selected = 0;
                                     }
                                     break;
                                 }
                             }
                             else
                             {
-                                if (o > -1 && o < O->vertcount)
+                                uv * UV;
+                                vertex * V;
+                                if (Camera->uv_draw)
                                 {
-                                    V = &O->verts[o / ARRAYSIZE][o % ARRAYSIZE];
-                                    if (add_selection_mode)
+                                    if (o > -1 && o < O->textcount)
                                     {
-                                        V->selected = 1;
-                                        O->last_selected_verts[0] = O->last_selected_verts[1];
-                                        O->last_selected_verts[1] = V->index;
-                                    }
-                                    else
-                                    {
-                                        V->selected = 0;
-                                    }
-                                    for (u = 0; u < V->uv_vertcount; u ++)
-                                    {
-                                        idx = V->uv_verts[u];
-                                        if (idx > -1 && idx < O->textcount)
+                                        UV = &O->uvtex[o / ARRAYSIZE][o % ARRAYSIZE];
+                                        if (add_selection_mode)
                                         {
-                                            UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                            UV->selected = V->selected;
+                                            UV->selected = 1;
                                         }
+                                        else
+                                        {
+                                            UV->selected = 0;
+                                        }
+                                        idx = UV->vert;
+                                        if (idx > -1 && idx < O->vertcount)
+                                        {
+                                            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                            V->selected = UV->selected;
+                                        }
+                                        break;
                                     }
-                                    break;
+                                }
+                                else
+                                {
+                                    if (o > -1 && o < O->vertcount)
+                                    {
+                                        V = &O->verts[o / ARRAYSIZE][o % ARRAYSIZE];
+                                        if (add_selection_mode)
+                                        {
+                                            V->selected = 1;
+                                            O->last_selected_verts[0] = O->last_selected_verts[1];
+                                            O->last_selected_verts[1] = V->index;
+                                        }
+                                        else
+                                        {
+                                            V->selected = 0;
+                                        }
+                                        for (u = 0; u < V->uv_vertcount; u ++)
+                                        {
+                                            idx = V->uv_verts[u];
+                                            if (idx > -1 && idx < O->textcount)
+                                            {
+                                                UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                UV->selected = V->selected;
+                                            }
+                                        }
+                                        break;
+                                    }
                                 }
                             }
                         }
