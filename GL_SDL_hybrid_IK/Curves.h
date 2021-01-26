@@ -1345,4 +1345,114 @@ void snap_back_Cps_To_Pos()
     }
 }
 
+void find_Cps_action_Center()
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    Action_Center->pos[0] = 0;
+    Action_Center->pos[1] = 0;
+    Action_Center->pos[2] = 0;
+
+    int counter = 0;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->selected)
+            {
+                counter ++;
+                Action_Center->pos[0] += CP->pos[0];
+                Action_Center->pos[1] += CP->pos[1];
+                Action_Center->pos[2] += CP->pos[2];
+            }
+        }
+    }
+
+    if (counter > 0)
+    {
+        Action_Center->pos[0] /= counter;
+        Action_Center->pos[1] /= counter;
+        Action_Center->pos[2] /= counter;
+    }
+}
+
+void find_Curves_action_Center()
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    Action_Center->pos[0] = 0;
+    Action_Center->pos[1] = 0;
+    Action_Center->pos[2] = 0;
+
+    int counter = 0;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            counter ++;
+            Action_Center->pos[0] += CP->pos[0];
+            Action_Center->pos[1] += CP->pos[1];
+            Action_Center->pos[2] += CP->pos[2];
+        }
+    }
+
+    if (counter > 0)
+    {
+        Action_Center->pos[0] /= counter;
+        Action_Center->pos[1] /= counter;
+        Action_Center->pos[2] /= counter;
+    }
+}
+
+void update_Selected_Cps_Positions()
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->selected)
+            {
+                rotate_center(CP->Pos, Action_Center->rotVec, Action_Center->pos, CP->pos);
+            }
+        }
+    }
+}
+
+void update_Selected_Curves_Cps_Positions()
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            rotate_center(CP->Pos, Action_Center->rotVec, Action_Center->pos, CP->pos);
+        }
+    }
+}
+
 #endif // CURVES_H_INCLUDED

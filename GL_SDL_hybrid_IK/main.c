@@ -774,6 +774,7 @@ void cleanup()
     free(Action_Begin_Transformers);
     free(Action_Begin_Pose->TP);
     free(Action_Begin_Pose);
+    free(Action_Center);
 
     if (SHADERS)
     {
@@ -10897,32 +10898,58 @@ void init_Action_Begin_Pose(transformer * T)
 
 void start_Rotation()
 {
-    Update_Objects_Count = 0;
-    if (Constraint_Pack.IK != NULL)
+    if (Curve_Mode)
     {
-        if (Constraint_Pack.IK->Deformer != NULL)
+        if (Vertex_Mode)
         {
-            if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
-            {
-                rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
-            }
-            else
-            {
-                rotate_collect(T);
-            }
+            cp_Manipulation = 1;
+            /* collect selected Cps and find center point */
+            find_Cps_action_Center();
+            transfer_pos_To_Cp_Pos();
         }
+        else
+        {
+            curve_Manipulation = 1;
+            /* collect selected Curves and find center point */
+            find_Curves_action_Center();
+            remember_Curves_Cp_pos();
+        }
+        Action_Center->scl_vec[0] = 1;
+        Action_Center->scl_vec[1] = 1;
+        Action_Center->scl_vec[2] = 1;
+        Action_Center->rot[0] = 0;
+        Action_Center->rot[1] = 0;
+        Action_Center->rot[2] = 0;
     }
     else
     {
-        if (T->Deformer != NULL)
+        Update_Objects_Count = 0;
+        if (Constraint_Pack.IK != NULL)
         {
-            if (T->Deformer->Transformers_Count > 0)
+            if (Constraint_Pack.IK->Deformer != NULL)
             {
-                rotate_collect(T->Deformer->Transformers[0]);
+                if (Constraint_Pack.IK->Deformer->Transformers_Count > 0)
+                {
+                    rotate_collect(Constraint_Pack.IK->Deformer->Transformers[0]);
+                }
+                else
+                {
+                    rotate_collect(T);
+                }
             }
-            else
+        }
+        else
+        {
+            if (T->Deformer != NULL)
             {
-                rotate_collect(T);
+                if (T->Deformer->Transformers_Count > 0)
+                {
+                    rotate_collect(T->Deformer->Transformers[0]);
+                }
+                else
+                {
+                    rotate_collect(T);
+                }
             }
         }
     }
@@ -11290,125 +11317,142 @@ void transform_Objects_And_Render()
 
 //            O->T->rot[1] -= pi60; // profiling
 
-
-    if (DRAW_LOCATORS)
+    if (Curve_Mode && (ROTATION || SCALE))
     {
-        if (T != &World && !BONES_MODE)
-        {
-            if (ROTATION || SCALE)
-            {
-                if (BIND_POSE)
-                {
-                    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
-                    {
-                        int t;
-                        for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
-                        {
-                            T_m = multi_Rotation_Transformers[t];
-                            rotate_bind(T_m);
-                        }
-                    }
-                    else
-                    {
-                        rotate_bind(T);
-                    }
-                }
-                else
-                {
-                    if (Update_Objects_Count == 0)
-                    {
-                        start_Rotation();
-                    }
-                    if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
-                    {
-                        rotate_Deformer_Constraint(T);
-                    }
-                    else
-                    {
+        memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
+        rotate_T(Action_Center);
 
-                        if (T->Deformer != NULL)
-                        {
-                            rotate_Deformer(T);
-                        }
-                        else
-                        {
-                            rotate_vertex_groups_D_Init();
-                            rotate(T);
-                        }
-                    }
-                    update_rotate_bounding_box();
-                }
-            }
-            else
-            {
-                if (BIND_POSE)
-                    rotate_bind(T);
-                else
-                {
-                    if (T->Deformer != NULL)
-                    {
-                        //solve_IK_Chains(T->Deformer);
-                    }
-                    else
-                    {
-                        rotate_T(T);
-                    }
-                }
-            }
+        if (Vertex_Mode)
+        {
+            update_Selected_Cps_Positions();
         }
+        else
+        {
+            update_Selected_Curves_Cps_Positions();
+        }
+        update_selected_Curves(subdLevel);
     }
     else
     {
-        if (ROTATION)
+        if (DRAW_LOCATORS)
         {
-            if (BIND_POSE)
-                rotate_bind(O->T);
-            else
-                rotate(O->T);
-        }
-        else
-        {
-            if (BIND_POSE)
-                rotate_bind(O->T);
-            else
-                rotate_T(O->T);
-        }
-    }
-
-    if (!MOVEMENT)
-        find_Camera_Objects();
-
-    //printf("O rot %f %f %f\n\n", O->T->rot[0], O->T->rot[1], O->T->rot[2]);
-
-    int o;
-
-    object * O0;
-
-    for (o = 0; o < Camera->object_count; o++)
-    {
-        i = Camera->objects[o];
-        O0 = objects[i];
-
-        if (subdLevel < 0)
-        {
-            if (BIND_POSE || !O0->binding)
-                rotate_verts(O0, *O0->T);
-        }
-        else
-        {
-            // now deformations sake subdivision is live
-            // however bounding box radius is not necessary, maybe leave it out
-            if (O0->deforms)
+            if (T != &World && !BONES_MODE)
             {
-                if (BIND_POSE || !O0->binding)
-                    rotate_verts(O0, *O0->T);
-                tune_subdivide_post_transformed(O0, subdLevel);
+                if (ROTATION || SCALE)
+                {
+                    if (BIND_POSE)
+                    {
+                        if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+                        {
+                            int t;
+                            for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
+                            {
+                                T_m = multi_Rotation_Transformers[t];
+                                rotate_bind(T_m);
+                            }
+                        }
+                        else
+                        {
+                            rotate_bind(T);
+                        }
+                    }
+                    else
+                    {
+                        if (Update_Objects_Count == 0)
+                        {
+                            start_Rotation();
+                        }
+                        if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
+                        {
+                            rotate_Deformer_Constraint(T);
+                        }
+                        else
+                        {
+
+                            if (T->Deformer != NULL)
+                            {
+                                rotate_Deformer(T);
+                            }
+                            else
+                            {
+                                rotate_vertex_groups_D_Init();
+                                rotate(T);
+                            }
+                        }
+                        update_rotate_bounding_box();
+                    }
+                }
+                else
+                {
+                    if (BIND_POSE)
+                        rotate_bind(T);
+                    else
+                    {
+                        if (T->Deformer != NULL)
+                        {
+                            //solve_IK_Chains(T->Deformer);
+                        }
+                        else
+                        {
+                            rotate_T(T);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (ROTATION)
+            {
+                if (BIND_POSE)
+                    rotate_bind(O->T);
+                else
+                    rotate(O->T);
             }
             else
             {
-                rotate_verts(O0, *O0->T);
-                rotate_verts_(O0, *O0->T, 0);
-                rotate_verts_(O0, *O0->T, subdLevel);
+                if (BIND_POSE)
+                    rotate_bind(O->T);
+                else
+                    rotate_T(O->T);
+            }
+        }
+
+        if (!MOVEMENT)
+            find_Camera_Objects();
+
+        //printf("O rot %f %f %f\n\n", O->T->rot[0], O->T->rot[1], O->T->rot[2]);
+
+        int o;
+
+        object * O0;
+
+        for (o = 0; o < Camera->object_count; o++)
+        {
+            i = Camera->objects[o];
+            O0 = objects[i];
+
+            if (subdLevel < 0)
+            {
+                if (BIND_POSE || !O0->binding)
+                    rotate_verts(O0, *O0->T);
+            }
+            else
+            {
+                // now deformations sake subdivision is live
+                // however bounding box radius is not necessary, maybe leave it out
+                if (O0->deforms)
+                {
+                    if (BIND_POSE || !O0->binding)
+                        rotate_verts(O0, *O0->T);
+                    tune_subdivide_post_transformed(O0, subdLevel);
+                }
+                else
+                {
+                    rotate_verts(O0, *O0->T);
+                    rotate_verts_(O0, *O0->T, 0);
+                    rotate_verts_(O0, *O0->T, subdLevel);
+                }
             }
         }
     }
@@ -12887,7 +12931,22 @@ void Exit()
 
 void make_Rotation_Persp(float delta_y, float delta_1, float delta_2)
 {
-    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    if (Curve_Mode)
+    {
+        if (Axis_lock)
+        {
+            Action_Center->rot[0] = 0;
+            Action_Center->rot[1] = 0;
+            Action_Center->rot[2] = 0;
+            Action_Center->rot[Axis_lock - 1] = delta_1;
+        }
+        else
+        {
+            Action_Center->rot[0] = delta_y;
+            Action_Center->rot[1] = delta_2;
+        }
+    }
+    else if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
     {
         int t;
         for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
@@ -12919,14 +12978,29 @@ void make_Rotation_Persp(float delta_y, float delta_1, float delta_2)
         else
         {
             T->rot[0] = object_Rot[0] + delta_y;
-            T->rot[1] = object_Rot[1] - delta_2;
+            T->rot[1] = object_Rot[1] + delta_2;
         }
     }
 }
 
 void make_Rotation_Left(float delta_y, float delta_x)
 {
-    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    if (Curve_Mode)
+    {
+        if (Axis_lock)
+        {
+            Action_Center->rot[0] = 0;
+            Action_Center->rot[1] = 0;
+            Action_Center->rot[2] = 0;
+            Action_Center->rot[Axis_lock - 1] = delta_x;
+        }
+        else
+        {
+            Action_Center->rot[1] = delta_x;
+            Action_Center->rot[2] = -delta_y;
+        }
+    }
+    else if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
     {
         int t;
         for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
@@ -12965,7 +13039,22 @@ void make_Rotation_Left(float delta_y, float delta_x)
 
 void make_Rotation_Front(float delta_y, float delta_x)
 {
-    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    if (Curve_Mode)
+    {
+        if (Axis_lock)
+        {
+            Action_Center->rot[0] = 0;
+            Action_Center->rot[1] = 0;
+            Action_Center->rot[2] = 0;
+            Action_Center->rot[Axis_lock - 1] = delta_x;
+        }
+        else
+        {
+            Action_Center->rot[0] = delta_y;
+            Action_Center->rot[1] = delta_x;
+        }
+    }
+    else if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
     {
         int t;
         for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
@@ -13004,7 +13093,22 @@ void make_Rotation_Front(float delta_y, float delta_x)
 
 void make_Rotation_Top(float delta_y, float delta_x)
 {
-    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    if (Curve_Mode)
+    {
+        if (Axis_lock)
+        {
+            Action_Center->rot[0] = 0;
+            Action_Center->rot[1] = 0;
+            Action_Center->rot[2] = 0;
+            Action_Center->rot[Axis_lock - 1] = delta_x;
+        }
+        else
+        {
+            Action_Center->rot[0] = delta_y;
+            Action_Center->rot[2] = - delta_x;
+        }
+    }
+    else if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
     {
         int t;
         for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
@@ -13043,7 +13147,23 @@ void make_Rotation_Top(float delta_y, float delta_x)
 
 void make_Scale(float delta)
 {
-    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    if (Curve_Mode)
+    {
+        if (Axis_lock)
+        {
+            Action_Center->scl_vec[0] = 1;
+            Action_Center->scl_vec[1] = 1;
+            Action_Center->scl_vec[2] = 1;
+            Action_Center->scl_vec[Axis_lock - 1] = 1 + delta;
+        }
+        else
+        {
+            Action_Center->scl_vec[0] = 1 + delta;
+            Action_Center->scl_vec[1] = 1 + delta;
+            Action_Center->scl_vec[2] = 1 + delta;
+        }
+    }
+    else if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
     {
         int t;
         for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
@@ -13084,7 +13204,23 @@ void make_Scale(float delta)
 
 void make_Scale_Persp(float delta_1, float delta_2)
 {
-    if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
+    if (Curve_Mode)
+    {
+        if (Axis_lock)
+        {
+            Action_Center->scl_vec[0] = 1;
+            Action_Center->scl_vec[1] = 1;
+            Action_Center->scl_vec[2] = 1;
+            Action_Center->scl_vec[Axis_lock - 1] = 1 + delta_1;
+        }
+        else
+        {
+            Action_Center->scl_vec[0] = 1 + delta_2;
+            Action_Center->scl_vec[1] = 1 + delta_2;
+            Action_Center->scl_vec[2] = 1 + delta_2;
+        }
+    }
+    else if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
     {
         int t;
         for (t = 0; t < multi_Rotation_Transformers_Count; t ++)
@@ -13173,6 +13309,8 @@ int main(int argc, char * args[])
     Camera = &Camera_Persp;
 
     memset(loaded_objects, 0, sizeof(loaded_objects));
+
+    init_Action_Center();
 
     subdLevel = create_Objects();
 

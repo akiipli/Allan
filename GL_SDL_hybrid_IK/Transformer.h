@@ -251,6 +251,9 @@ float object_Scl_[TRANSFORMERS][3];
 transformer ** Action_Begin_Transformers;
 int Action_Begin_Transformers_Count;
 
+transformer * Action_Center; /* this transformer is not listed in transformers hierarchy */
+                             /* its function is to aid cps manipulation when transforming them */
+
 void add_Child(transformer * T, transformer * parent)
 {
     int c;
@@ -352,6 +355,19 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         T->pin = 0;
         T->Constraint = NULL;
     }
+}
+
+void init_Action_Center()
+{
+    transformer * T = calloc(1, sizeof(transformer));
+    Action_Center = T;
+    memcpy(&T->scl, (float[3]) {1.0, 1.0, 1.0}, sizeof T->scl);
+    memcpy(&T->scl_vec, (float[3]) {1.0, 1.0, 1.0}, sizeof T->scl_vec);
+    memcpy(&T->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec);
+    memcpy(&T->rotVec_, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_);
+    memcpy(&T->rotVec_I, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_I);
+    memcpy(&T->rotVec_B, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_B);
+    memcpy(&T->rotVec_Pin, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof T->rotVec_Pin);
 }
 
 float length1(float V[3])
