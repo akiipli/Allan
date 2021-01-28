@@ -16334,36 +16334,93 @@ int main(int argc, char * args[])
                                     }
                                     else if (Axis_lock == 1)
                                     {
-                                        if (VIEWS_FLIPPED)
+                                        if (Camera == &Camera_Top)
                                         {
-                                            if (x_offset > 0)
-                                                Delta[Axis_lock - 1] = -Magnitude;
+                                            if (VIEWS_FLIPPED)
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
                                             else
-                                                Delta[Axis_lock - 1] = Magnitude;
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
                                         }
                                         else
                                         {
-                                            if (x_offset > 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
+                                            if (VIEWS_FLIPPED)
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                            }
                                             else
-                                                Delta[Axis_lock - 1] = -Magnitude;
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
                                         }
                                     }
                                     else
                                     {
-                                        if (VIEWS_FLIPPED)
+                                        if (Camera == &Camera_Top)
                                         {
-                                            if (x_offset > 0)
-                                                Delta[Axis_lock - 1] = -Magnitude;
+                                            if (VIEWS_FLIPPED)
+                                            {
+                                                if (y_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
                                             else
-                                                Delta[Axis_lock - 1] = Magnitude;
+                                            {
+                                                if (y_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
+                                        }
+                                        else if (Camera == &Camera_Left)
+                                        {
+                                            if (VIEWS_FLIPPED)
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
+                                            else
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                            }
                                         }
                                         else
                                         {
-                                            if (x_offset > 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
+                                            if (VIEWS_FLIPPED)
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                            }
                                             else
-                                                Delta[Axis_lock - 1] = -Magnitude;
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
                                         }
                                     }
                                 }
