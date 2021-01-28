@@ -2301,7 +2301,8 @@ void update_Resize_Event()
         screen_width = event.resize.w - SIDEBAR;
         screen_height = event.resize.h - BOTTOM_LINE;
 
-        DRAG_BUFFER = resize_Depth_Buffer(event.resize.w, event.resize.h);
+        if(DRAG_BUFFER)
+            DRAG_BUFFER = resize_Depth_Buffer(event.resize.w, event.resize.h);
 
         if (screen_height % 2) screen_height ++;
 
@@ -15834,10 +15835,20 @@ int main(int argc, char * args[])
                                         Delta[2] = 0;
                                         if (Axis_lock == 3)
                                         {
-                                            if (y_offset > 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
+                                            if (VIEWS_FLIPPED)
+                                            {
+                                                if (y_offset > 0)
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                            }
                                             else
-                                                Delta[Axis_lock - 1] = -Magnitude;
+                                            {
+                                                if (y_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
                                         }
                                         else
                                         {
@@ -15899,11 +15910,6 @@ int main(int argc, char * args[])
                                 {
                                     if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width / 2 && mouse_y > screen_height / 2 && mouse_y < screen_height)
                                     {
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
                                         drag_plane_View_Update(CamDist, Camera);
                                         winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
                                         D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
@@ -15951,10 +15957,20 @@ int main(int argc, char * args[])
                                         }
                                         else
                                         {
-                                            if (x_offset > 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
+                                            if (VIEWS_FLIPPED)
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                            }
                                             else
-                                                Delta[Axis_lock - 1] = -Magnitude;
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
                                         }
                                     }
                                     make_Movement();
@@ -16009,11 +16025,6 @@ int main(int argc, char * args[])
                                 {
                                     if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > screen_height / 2 && mouse_y < screen_height)
                                     {
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
                                         drag_plane_View_Update(CamDist, Camera);
                                         winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
                                         D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
@@ -16059,12 +16070,29 @@ int main(int argc, char * args[])
                                             else
                                                 Delta[Axis_lock - 1] = -Magnitude;
                                         }
+                                        else if (Axis_lock == 3)
+                                        {
+                                            if (VIEWS_FLIPPED)
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
+                                            else
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                            }
+                                        }
                                         else
                                         {
                                             if (x_offset > 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
-                                            else
                                                 Delta[Axis_lock - 1] = -Magnitude;
+                                            else
+                                                Delta[Axis_lock - 1] = Magnitude;
                                         }
                                     }
                                     make_Movement();
@@ -16117,123 +16145,61 @@ int main(int argc, char * args[])
                             {
                                 if (object_hook)
                                 {
-                                    if (Camera->ortho)
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height / 2)
                                     {
-                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height / 2)
-                                        {
-//                                            glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-//                                            drag_plane_Render(CamDist, Camera, ObjDist, 0);
-//                                            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-//                                            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                                        drag_plane_View_Update(CamDist, Camera);
+                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
+                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                            drag_plane_View_Update(CamDist, Camera);
-                                            winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
-                                            D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
+                                        Pos[0] = D.x;
+                                        Pos[1] = D.y;
+                                        Pos[2] = D.z;
+                                    }
+                                    else if (DRAG_BUFFER)
+                                    {
 
-                                            Pos[0] = D.x;
-                                            Pos[1] = D.y;
-                                            Pos[2] = D.z;
-                                        }
-                                        else if (DRAG_BUFFER)
-                                        {
-
-                                        }
-                                        else
-                                        {
-                                            direction D1;
-                                            D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera->h_view, Camera->v_view);
-                                            D.x = -D.x;
-                                            //D.y = -D.y;
-                                            D.z = -D.z;
-                                            rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-                                            float Dir_vec[3] = {0, 0, 1};
-                                            float dot = dot_productN((normal*)&D, Dir_vec);
-
-                                            Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-                                            Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-                                            Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
-                                        }
-
-                                        Delta[0] = Pos[0] - T_pos[0];
-                                        Delta[1] = Pos[1] - T_pos[1];
-                                        Delta[2] = Pos[2] - T_pos[2];
-
-                                        if (Axis_lock)
-                                        {
-                                            Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
-                                            Delta[0] = 0;
-                                            Delta[1] = 0;
-                                            Delta[2] = 0;
-                                            if (Axis_lock == 2)
-                                            {
-                                                if (y_offset < 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                            }
-                                            else
-                                            {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                            }
-                                        }
-                                        make_Movement();
                                     }
                                     else
                                     {
-                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height / 2)
+                                        direction D1;
+                                        D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera->h_view, Camera->v_view);
+                                        D.x = -D.x;
+                                        //D.y = -D.y;
+                                        D.z = -D.z;
+                                        rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
+                                        float Dir_vec[3] = {0, 0, 1};
+                                        float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                        Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
+                                        Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
+                                        Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                    }
+
+                                    Delta[0] = Pos[0] - T_pos[0];
+                                    Delta[1] = Pos[1] - T_pos[1];
+                                    Delta[2] = Pos[2] - T_pos[2];
+
+                                    if (Axis_lock)
+                                    {
+                                        Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
+                                        Delta[0] = 0;
+                                        Delta[1] = 0;
+                                        Delta[2] = 0;
+                                        if (Axis_lock == 2)
                                         {
-//                                            glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-//                                            drag_plane_Render(CamDist, Camera, ObjDist, 0);
-//                                            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-//                                            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-                                            drag_plane_View_Update(CamDist, Camera);
-                                            winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
-                                            D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
-
-                                            Pos[0] = D.x;
-                                            Pos[1] = D.y;
-                                            Pos[2] = D.z;
-                                        }
-                                        else if (DRAG_BUFFER)
-                                        {
-
+                                            if (y_offset < 0)
+                                                Delta[Axis_lock - 1] = Magnitude;
+                                            else
+                                                Delta[Axis_lock - 1] = -Magnitude;
                                         }
                                         else
                                         {
-                                            direction D1;
-                                            D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera->h_view, Camera->v_view);
-                                            D.x = -D.x;
-                                            //D.y = -D.y;
-                                            D.z = -D.z;
-                                            rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-                                            float Dir_vec[3] = {0, 0, 1};
-                                            float dot = dot_productN((normal*)&D, Dir_vec);
-
-                                            Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-                                            Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-                                            Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
-                                        }
-
-                                        Delta[0] = Pos[0] - T_pos[0];
-                                        Delta[1] = Pos[1] - T_pos[1];
-                                        Delta[2] = Pos[2] - T_pos[2];
-
-                                        if (Axis_lock)
-                                        {
-                                            Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
-                                            Delta[0] = 0;
-                                            Delta[1] = 0;
-                                            Delta[2] = 0;
-                                            if (Axis_lock == 2)
+                                            if (VIEWS_FLIPPED)
                                             {
-                                                if (y_offset < 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
+                                                if (x_offset > 0)
                                                     Delta[Axis_lock - 1] = -Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = Magnitude;
                                             }
                                             else
                                             {
@@ -16243,8 +16209,8 @@ int main(int argc, char * args[])
                                                     Delta[Axis_lock - 1] = -Magnitude;
                                             }
                                         }
-                                        make_Movement();
                                     }
+                                    make_Movement();
                                 }
                                 else
                                 {
@@ -16318,123 +16284,62 @@ int main(int argc, char * args[])
                         {
                             if (object_hook)
                             {
-                                if (Camera->ortho)
+                                if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height)
                                 {
-                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height)
-                                    {
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                                    drag_plane_View_Update(CamDist, Camera);
+                                    winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
+                                    D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                        drag_plane_View_Update(CamDist, Camera);
-                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
-                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
+                                    Pos[0] = D.x;
+                                    Pos[1] = D.y;
+                                    Pos[2] = D.z;
+                                }
+                                else if (DRAG_BUFFER)
+                                {
 
-                                        Pos[0] = D.x;
-                                        Pos[1] = D.y;
-                                        Pos[2] = D.z;
-                                    }
-                                    else if (DRAG_BUFFER)
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        direction D1;
-                                        direction D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
-                                        D.x = -D.x;
-                                        //D.y = -D.y;
-                                        D.z = -D.z;
-                                        rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-                                        float Dir_vec[3] = {0, 0, 1};
-                                        float dot = dot_productN((normal*)&D, Dir_vec);
-
-                                        Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-                                        Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-                                        Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
-                                    }
-
-                                    Delta[0] = Pos[0] - T_pos[0];
-                                    Delta[1] = Pos[1] - T_pos[1];
-                                    Delta[2] = Pos[2] - T_pos[2];
-
-                                    if (Axis_lock)
-                                    {
-                                        Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
-                                        Delta[0] = 0;
-                                        Delta[1] = 0;
-                                        Delta[2] = 0;
-                                        if (Axis_lock == 2)
-                                        {
-                                            if (y_offset < 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
-                                            else
-                                                Delta[Axis_lock - 1] = -Magnitude;
-                                        }
-                                        else
-                                        {
-                                            if (x_offset > 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
-                                            else
-                                                Delta[Axis_lock - 1] = -Magnitude;
-                                        }
-                                    }
-                                    make_Movement();
                                 }
                                 else
                                 {
-                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height)
+                                    direction D1;
+                                    direction D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
+                                    D.x = -D.x;
+                                    //D.y = -D.y;
+                                    D.z = -D.z;
+                                    rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
+                                    float Dir_vec[3] = {0, 0, 1};
+                                    float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                    Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
+                                    Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
+                                    Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                }
+
+                                Delta[0] = Pos[0] - T_pos[0];
+                                Delta[1] = Pos[1] - T_pos[1];
+                                Delta[2] = Pos[2] - T_pos[2];
+
+                                if (Axis_lock)
+                                {
+                                    Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
+                                    Delta[0] = 0;
+                                    Delta[1] = 0;
+                                    Delta[2] = 0;
+
+                                    if (Axis_lock == 2)
                                     {
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-                                        drag_plane_View_Update(CamDist, Camera);
-                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
-                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
-
-                                        Pos[0] = D.x;
-                                        Pos[1] = D.y;
-                                        Pos[2] = D.z;
+                                        if (y_offset < 0)
+                                            Delta[Axis_lock - 1] = Magnitude;
+                                        else
+                                            Delta[Axis_lock - 1] = -Magnitude;
                                     }
-                                    else if (DRAG_BUFFER)
+                                    else if (Axis_lock == 1)
                                     {
-
-                                    }
-                                    else
-                                    {
-                                        direction D1;
-                                        direction D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
-                                        D.x = -D.x;
-                                        //D.y = -D.y;
-                                        D.z = -D.z;
-                                        rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-                                        float Dir_vec[3] = {0, 0, 1};
-                                        float dot = dot_productN((normal*)&D, Dir_vec);
-
-                                        Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-                                        Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-                                        Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
-                                    }
-
-                                    Delta[0] = Pos[0] - T_pos[0];
-                                    Delta[1] = Pos[1] - T_pos[1];
-                                    Delta[2] = Pos[2] - T_pos[2];
-
-                                    if (Axis_lock)
-                                    {
-                                        Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
-                                        Delta[0] = 0;
-                                        Delta[1] = 0;
-                                        Delta[2] = 0;
-                                        if (Axis_lock == 2)
+                                        if (VIEWS_FLIPPED)
                                         {
-                                            if (y_offset < 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
-                                            else
+                                            if (x_offset > 0)
                                                 Delta[Axis_lock - 1] = -Magnitude;
+                                            else
+                                                Delta[Axis_lock - 1] = Magnitude;
                                         }
                                         else
                                         {
@@ -16444,8 +16349,25 @@ int main(int argc, char * args[])
                                                 Delta[Axis_lock - 1] = -Magnitude;
                                         }
                                     }
-                                    make_Movement();
+                                    else
+                                    {
+                                        if (VIEWS_FLIPPED)
+                                        {
+                                            if (x_offset > 0)
+                                                Delta[Axis_lock - 1] = -Magnitude;
+                                            else
+                                                Delta[Axis_lock - 1] = Magnitude;
+                                        }
+                                        else
+                                        {
+                                            if (x_offset > 0)
+                                                Delta[Axis_lock - 1] = Magnitude;
+                                            else
+                                                Delta[Axis_lock - 1] = -Magnitude;
+                                        }
+                                    }
                                 }
+                                make_Movement();
                             }
                             else
                             {
