@@ -411,7 +411,7 @@ void Drag_Plane_render(float ObjDist, camera * C)
 }
 */
 
-GLfloat * Windepth;
+GLfloat * Windepth = NULL;
 
 int resize_Depth_Buffer(float width, float height)
 {
@@ -421,6 +421,9 @@ int resize_Depth_Buffer(float width, float height)
     drag_depth_Height = height;
 
     Windepth = realloc(Windepth, drag_depth_Width * drag_depth_Height * sizeof(GLfloat));
+
+    if (!Windepth)
+        return 0;
 
     glDeleteTextures(1, &drag_texture);
     glGenTextures(1, &drag_texture);
@@ -467,6 +470,9 @@ int setup_Depth_Buffer()
     int r = 0;
 
     Windepth = malloc(drag_depth_Width * drag_depth_Height * sizeof(GLfloat));
+
+    if (!Windepth)
+        return 0;
 
     glGenTextures(1, &drag_texture);
     glBindTexture(GL_TEXTURE_2D, drag_texture);

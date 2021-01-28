@@ -753,6 +753,9 @@ void cleanup()
         glDeleteFramebuffers(1, &depthFBO);
     }
 
+    if (Windepth)
+        free(Windepth);
+
 //    if (fonts_on)
 //        glDeleteProgram(T_program[1][0]);
 	for (i = 0; i < EXT_NUM; i ++)
