@@ -2045,6 +2045,67 @@ void drag_plane_Render(float CamDist, camera * Cam, float ObjDist, int plane_tra
 
         Drag_Plane_render_action();
     }
+
+    glBindTexture(GL_TEXTURE_2D, drag_texture);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, Windepth);
+
+//    glReadPixels(0, 0, drag_depth_Width, drag_depth_Height, GL_DEPTH_COMPONENT, GL_FLOAT, Windepth);
+
+//    int w, h;
+//
+//    for (h = 0; h < drag_depth_Height; h += 50)
+//    {
+//        for (w = 0; w < drag_depth_Width; w += 50)
+//        {
+//            printf("%f ", Windepth[h * (int)drag_depth_Width + w]);
+//        }
+//        printf("\n");
+//    }
+}
+
+void drag_plane_View_Update(float CamDist, camera * Cam)
+{
+    glScissor(SIDEBAR, BOTTOM_LINE, drag_depth_Width, drag_depth_Height);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    if (splitview)
+    {
+//        glMatrixMode(GL_PROJECTION);
+//        glPushMatrix();
+
+        if (Cam->ID == CAMERA_FRONT)
+        {
+            glViewport(SIDEBAR, BOTTOM_LINE, screen_width/2, screen_height/2); // down left, front view
+
+            update_camera_front(&Camera_Front, CamDist);
+        }
+        else if (Cam->ID == CAMERA_LEFT)
+        {
+            glViewport(screen_width/2 + SIDEBAR, BOTTOM_LINE, screen_width/2, screen_height/2); // down right, left view
+
+            update_camera_left(&Camera_Left, CamDist);
+        }
+        else if (Cam->ID == CAMERA_TOP)
+        {
+            glViewport(SIDEBAR, screen_height/2 + BOTTOM_LINE, screen_width/2, screen_height/2); // top left, top view
+
+            update_camera_top(&Camera_Top, CamDist);
+        }
+        else if (Cam->ID == CAMERA_PERSPECTIVE)
+        {
+            glViewport(screen_width/2 + SIDEBAR, screen_height/2 + BOTTOM_LINE, screen_width/2, screen_height/2); // top right, perspective view
+
+            update_camera_persp(&Camera_Persp, CamDist);
+        }
+
+//        glPopMatrix();
+    }
+    else
+    {
+        glViewport(SIDEBAR, BOTTOM_LINE, screen_width, screen_height);
+        update_camera(Camera, CamDist);
+    }
 }
 
 void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, int Swap, int Level)
@@ -2677,8 +2738,6 @@ void set_Curve_Mode()
             SDL_SetCursor(Arrow_Plus);
         else
             SDL_SetCursor(Arrow_Minus);
-
-        DRAW_LOCATORS = 0;
     }
 }
 
@@ -10974,7 +11033,7 @@ void start_Movement()
         MOVEMENT = 1;
         init_Hint();
 
-        if (Curve_Mode)
+        if (Curve_Mode && !BONES_MODE)
         {
             assert_Curve_Selection();
             assert_Cp_Selection();
@@ -11033,7 +11092,7 @@ void start_Movement()
 
         memcpy(TT_pos, T->pos, sizeof(TT_pos));
 
-        if (Curve_Mode && curve_Manipulation)
+        if (Curve_Mode && curve_Manipulation && !BONES_MODE)
         {
             if (selected_curves_count > 0)
             {
@@ -11044,7 +11103,7 @@ void start_Movement()
                 }
             }
         }
-        else if (Curve_Mode && cp_Manipulation)
+        else if (Curve_Mode && cp_Manipulation && !BONES_MODE)
         {
             if (currentCp > 0 && currentCp < cpsIndex)
             {
@@ -11077,7 +11136,11 @@ void start_Movement()
 //            printf("C %f %f %f\n", Drag_Plane.C[0], Drag_Plane.C[1], Drag_Plane.C[2]);
 //            printf("D %f %f %f\n", Drag_Plane.D[0], Drag_Plane.D[1], Drag_Plane.D[2]);
 
-            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+//            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+//
+//            printf("winZ %f\n", winZ);
+
+            winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
 
             printf("winZ %f\n", winZ);
 
@@ -15723,10 +15786,13 @@ int main(int argc, char * args[])
                                 {
                                     if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width / 2 && mouse_y > 0 && mouse_y < screen_height / 2)
                                     {
-                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                                        drag_plane_View_Update(CamDist, Camera);
+                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
                                         D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
                                         Pos[0] = D.x;
@@ -15830,10 +15896,13 @@ int main(int argc, char * args[])
                                 {
                                     if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width / 2 && mouse_y > screen_height / 2 && mouse_y < screen_height)
                                     {
-                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                                        drag_plane_View_Update(CamDist, Camera);
+                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
                                         D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
                                         Pos[0] = D.x;
@@ -15937,10 +16006,13 @@ int main(int argc, char * args[])
                                 {
                                     if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > screen_height / 2 && mouse_y < screen_height)
                                     {
-                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                                        drag_plane_View_Update(CamDist, Camera);
+                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
                                         D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
                                         Pos[0] = D.x;
@@ -16046,10 +16118,13 @@ int main(int argc, char * args[])
                                     {
                                         if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height / 2)
                                         {
-                                            glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-                                            drag_plane_Render(CamDist, Camera, ObjDist, 0);
-                                            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-                                            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//                                            glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+//                                            drag_plane_Render(CamDist, Camera, ObjDist, 0);
+//                                            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+//                                            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                                            drag_plane_View_Update(CamDist, Camera);
+                                            winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
                                             D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
                                             Pos[0] = D.x;
@@ -16107,10 +16182,13 @@ int main(int argc, char * args[])
                                     {
                                         if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height / 2)
                                         {
-                                            glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-                                            drag_plane_Render(CamDist, Camera, ObjDist, 0);
-                                            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-                                            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//                                            glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+//                                            drag_plane_Render(CamDist, Camera, ObjDist, 0);
+//                                            glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+//                                            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                                            drag_plane_View_Update(CamDist, Camera);
+                                            winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
                                             D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
                                             Pos[0] = D.x;
@@ -16241,10 +16319,13 @@ int main(int argc, char * args[])
                                 {
                                     if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height)
                                     {
-                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                                        drag_plane_View_Update(CamDist, Camera);
+                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
                                         D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
                                         Pos[0] = D.x;
@@ -16302,10 +16383,13 @@ int main(int argc, char * args[])
                                 {
                                     if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height)
                                     {
-                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                                        drag_plane_View_Update(CamDist, Camera);
+                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
                                         D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
                                         Pos[0] = D.x;
