@@ -15298,7 +15298,8 @@ int main(int argc, char * args[])
                                     if (add_selection_mode)
                                     {
                                         C->selected = 1;
-                                        selected_curves[selected_curves_count ++] = o;
+                                        if (selected_curves_count < CURVES)
+                                            selected_curves[selected_curves_count ++] = o;
                                     }
                                     else
                                     {
@@ -15458,7 +15459,8 @@ int main(int argc, char * args[])
                                         if (add_selection_mode)
                                         {
                                             CP->selected = 1;
-                                            selected_cps[selected_cps_count ++] = o;
+                                            if (selected_cps_count < CPS)
+                                                selected_cps[selected_cps_count ++] = o;
                                         }
                                         else
                                         {
@@ -16764,7 +16766,8 @@ int main(int argc, char * args[])
                                 if (add_selection_mode)
                                 {
                                     C->selected = 1;
-                                    selected_curves[selected_curves_count ++] = o;
+                                    if (selected_curves_count < CURVES)
+                                        selected_curves[selected_curves_count ++] = o;
                                 }
                                 else
                                 {
@@ -16905,7 +16908,8 @@ int main(int argc, char * args[])
                                     if (add_selection_mode)
                                     {
                                         CP->selected = 1;
-                                        selected_cps[selected_cps_count ++] = o;
+                                        if (selected_cps_count < CPS)
+                                            selected_cps[selected_cps_count ++] = o;
                                     }
                                     else
                                     {
@@ -18062,7 +18066,8 @@ int main(int argc, char * args[])
                             currentCurve = curvesIndex - 1;
                             C = curves[currentCurve];
                             C->selected = 1;
-                            selected_curves[selected_curves_count ++] = C->index;
+                            if (selected_curves_count < CURVES)
+                                selected_curves[selected_curves_count ++] = C->index;
                             r = add_Curve_Segment(C);
                         }
                     }
@@ -18075,7 +18080,8 @@ int main(int argc, char * args[])
                         currentCurve = curvesIndex - 1;
                         C = curves[currentCurve];
                         C->selected = 1;
-                        selected_curves[selected_curves_count ++] = C->index;
+                        if (selected_curves_count < CURVES)
+                            selected_curves[selected_curves_count ++] = C->index;
                         r = add_Curve_Segment(C);
                     }
                 }

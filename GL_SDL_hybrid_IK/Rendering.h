@@ -1414,7 +1414,8 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                             if (sel_add)
                             {
                                 C->selected = 1;
-                                selected_curves[selected_curves_count ++] = C->index;
+                                if (selected_curves_count < CURVES)
+                                    selected_curves[selected_curves_count ++] = C->index;
                             }
                             else
                             {
@@ -1446,7 +1447,8 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                         if (sel_add)
                         {
                             CP->selected = 1;
-                            selected_cps[selected_cps_count ++] = CP->index;
+                            if (selected_cps_count < CPS)
+                                selected_cps[selected_cps_count ++] = CP->index;
                         }
                         else
                         {
