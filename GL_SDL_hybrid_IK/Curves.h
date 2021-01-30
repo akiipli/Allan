@@ -33,6 +33,8 @@ similar fashion to edges.
 
 int selected_curves[CURVES];
 int selected_curves_count = 0;
+int selected_curves0[CURVES];
+int selected_curves_count0 = 0;
 int curvesIndex = 0;
 int segmentIndex = 0;
 int selected_cps[CPS];

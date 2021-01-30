@@ -1412,9 +1412,14 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                             && coords[1] < R->y + R->h)
                         {
                             if (sel_add)
+                            {
                                 C->selected = 1;
+                                selected_curves[selected_curves_count ++] = C->index;
+                            }
                             else
+                            {
                                 C->selected = 0;
+                            }
                         }
                     }
                 }

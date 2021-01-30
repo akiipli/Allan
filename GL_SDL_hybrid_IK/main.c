@@ -869,6 +869,47 @@ void assert_Cp_Selection()
     }
 }
 
+void ordered_Curve_Selection()
+{
+    int s, p, condition;
+    curve * C;
+
+    selected_curves_count0 = 0;
+
+    for (s = selected_curves_count - 1; s >= 0; s --)
+    {
+        C = curves[selected_curves[s]];
+
+        if (C->selected)
+        {
+            condition = 1;
+            for (p = 0; p < selected_curves_count0; p ++)
+            {
+                if (selected_curves0[p] == selected_curves[s])
+                {
+                    condition = 0;
+                    break;
+                }
+            }
+            if (condition)
+                selected_curves0[selected_curves_count0 ++] = selected_curves[s];
+        }
+    }
+
+    selected_curves_count = 0;
+
+    for (s = selected_curves_count0 - 1; s >= 0; s --)
+    {
+        selected_curves[selected_curves_count ++] = selected_curves0[s];
+        printf("%d ", selected_curves0[s]);
+    }
+
+    printf("\n");
+
+    if (selected_curves_count > 0)
+        currentCurve = selected_curves[selected_curves_count - 1];
+}
+
 void assert_Curve_Selection()
 {
     int c;
@@ -11080,7 +11121,7 @@ void start_Movement()
 
         if (Curve_Mode && !BONES_MODE)
         {
-            assert_Curve_Selection();
+            //assert_Curve_Selection();
             //ordered_Cp_Selection();
 
             if (!CURVE_MODE)
@@ -15257,6 +15298,7 @@ int main(int argc, char * args[])
                                     if (add_selection_mode)
                                     {
                                         C->selected = 1;
+                                        selected_curves[selected_curves_count ++] = o;
                                     }
                                     else
                                     {
@@ -15587,7 +15629,7 @@ int main(int argc, char * args[])
                     else if (Curve_Mode)
                     {
                         if (selection_Mode == CURVE)
-                            assert_Curve_Selection();
+                            ordered_Curve_Selection();
                         else if (selection_Mode == CURVE_CP)
                             ordered_Cp_Selection();
                     }
@@ -15625,7 +15667,7 @@ int main(int argc, char * args[])
                     if (Curve_Mode)
                     {
                         if (selection_Mode == CURVE)
-                            assert_Curve_Selection();
+                            ordered_Curve_Selection();
                         else if (selection_Mode == CURVE_CP)
                             ordered_Cp_Selection();
                     }
@@ -16722,6 +16764,7 @@ int main(int argc, char * args[])
                                 if (add_selection_mode)
                                 {
                                     C->selected = 1;
+                                    selected_curves[selected_curves_count ++] = o;
                                 }
                                 else
                                 {
@@ -17687,7 +17730,7 @@ int main(int argc, char * args[])
                         Camera->origin_2d[0] = mouse_x;
                         Camera->origin_2d[1] = mouse_y;
 
-                        assert_Curve_Selection();
+                        ordered_Curve_Selection();
                         int r = init_continuity_For_Selected_Curves();
                         if (!r)
                         {
@@ -18019,6 +18062,7 @@ int main(int argc, char * args[])
                             currentCurve = curvesIndex - 1;
                             C = curves[currentCurve];
                             C->selected = 1;
+                            selected_curves[selected_curves_count ++] = C->index;
                             r = add_Curve_Segment(C);
                         }
                     }
@@ -18031,11 +18075,13 @@ int main(int argc, char * args[])
                         currentCurve = curvesIndex - 1;
                         C = curves[currentCurve];
                         C->selected = 1;
+                        selected_curves[selected_curves_count ++] = C->index;
                         r = add_Curve_Segment(C);
                     }
                 }
                 if (r)
                 {
+                    ordered_Curve_Selection();
                     subdivide_Curve_Segments(C, subdLevel);
                     update_Curve(C, subdLevel);
                     CURVE_MODE = 1;
