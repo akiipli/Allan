@@ -809,6 +809,47 @@ void assert_Object_Selection()
     }
 }
 
+void ordered_Cp_Selection()
+{
+    int s, p, condition;
+    cp * CP;
+
+    selected_cps_count0 = 0;
+
+    for (s = selected_cps_count - 1; s >= 0; s --)
+    {
+        CP = cps[selected_cps[s]];
+
+        if (CP->selected)
+        {
+            condition = 1;
+            for (p = 0; p < selected_cps_count0; p ++)
+            {
+                if (selected_cps0[p] == selected_cps[s])
+                {
+                    condition = 0;
+                    break;
+                }
+            }
+            if (condition)
+                selected_cps0[selected_cps_count0 ++] = selected_cps[s];
+        }
+    }
+
+    selected_cps_count = 0;
+
+    for (s = selected_cps_count0 - 1; s >= 0; s --)
+    {
+        selected_cps[selected_cps_count ++] = selected_cps0[s];
+        printf("%d ", selected_cps0[s]);
+    }
+
+    printf("\n");
+
+    if (selected_cps_count > 0)
+        currentCp = selected_cps[selected_cps_count - 1];
+}
+
 void assert_Cp_Selection()
 {
     int c;
@@ -11040,7 +11081,7 @@ void start_Movement()
         if (Curve_Mode && !BONES_MODE)
         {
             assert_Curve_Selection();
-            assert_Cp_Selection();
+            ordered_Cp_Selection();
 
             if (!CURVE_MODE)
             {
@@ -15375,6 +15416,7 @@ int main(int argc, char * args[])
                                         if (add_selection_mode)
                                         {
                                             CP->selected = 1;
+                                            selected_cps[selected_cps_count ++] = o;
                                         }
                                         else
                                         {
@@ -15582,7 +15624,10 @@ int main(int argc, char * args[])
                 {
                     if (Curve_Mode)
                     {
-                        assert_Curve_Selection();
+                        if (selection_Mode == CURVE)
+                            assert_Curve_Selection();
+                        else if (selection_Mode == CURVE_CP)
+                            ordered_Cp_Selection();
                     }
                     if (DRAW_LOCATORS)
                     {
@@ -16817,6 +16862,7 @@ int main(int argc, char * args[])
                                     if (add_selection_mode)
                                     {
                                         CP->selected = 1;
+                                        selected_cps[selected_cps_count ++] = o;
                                     }
                                     else
                                     {

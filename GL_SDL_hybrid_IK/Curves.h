@@ -29,7 +29,7 @@ similar fashion to edges.
 #define OBJECT_CPS 10000
 #define OBJECT_SEGMENTS 10000
 
-#define CP_CONTINUITY 0.66
+#define CP_CONTINUITY 0.5
 
 int selected_curves[CURVES];
 int selected_curves_count = 0;
@@ -37,6 +37,8 @@ int curvesIndex = 0;
 int segmentIndex = 0;
 int selected_cps[CPS];
 int selected_cps_count = 0;
+int selected_cps0[CPS];
+int selected_cps_count0 = 0;
 int cpsIndex = 0;
 int currentCurve = 0;
 int currentCp = 0;
