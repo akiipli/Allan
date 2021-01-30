@@ -1439,9 +1439,14 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                         && coords[1] < R->y + R->h)
                     {
                         if (sel_add)
+                        {
                             CP->selected = 1;
+                            selected_cps[selected_cps_count ++] = CP->index;
+                        }
                         else
+                        {
                             CP->selected = 0;
+                        }
                     }
                 }
             }

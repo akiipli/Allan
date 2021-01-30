@@ -11081,7 +11081,7 @@ void start_Movement()
         if (Curve_Mode && !BONES_MODE)
         {
             assert_Curve_Selection();
-            ordered_Cp_Selection();
+            //ordered_Cp_Selection();
 
             if (!CURVE_MODE)
             {
@@ -15589,7 +15589,7 @@ int main(int argc, char * args[])
                         if (selection_Mode == CURVE)
                             assert_Curve_Selection();
                         else if (selection_Mode == CURVE_CP)
-                            assert_Cp_Selection();
+                            ordered_Cp_Selection();
                     }
                     else if (Object_Mode)
                     {
