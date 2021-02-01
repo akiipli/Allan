@@ -841,10 +841,10 @@ void ordered_Verts_Selection()
     for (s = selected_verts_count0 - 1; s >= 0; s --)
     {
         selected_verts[selected_verts_count ++] = selected_verts0[s];
-        //printf("%d ", selected_verts0[s]->index);
+//        printf("%d ", selected_verts0[s]->index);
     }
 
-    //printf("\n");
+//    printf("\n");
 
     if (selected_verts_count > 0)
         currentVert = selected_verts[selected_verts_count - 1];
@@ -18505,6 +18505,7 @@ int main(int argc, char * args[])
                     {
                         cps[c]->selected = 0;
                     }
+                    selected_cps_count = 0;
                 }
                 else
                 {
@@ -18513,6 +18514,7 @@ int main(int argc, char * args[])
                     {
                         curves[c]->selected = 0;
                     }
+                    selected_curves_count = 0;
                 }
             }
             else if (Object_Mode)
@@ -18562,6 +18564,7 @@ int main(int argc, char * args[])
                     clear_Verts_Selection(O);
                     assert_Element_Selection(O);
                 }
+                selected_verts_count = 0;
             }
             else if (Bone_Mode)
             {
