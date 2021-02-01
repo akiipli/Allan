@@ -809,6 +809,47 @@ void assert_Object_Selection()
     }
 }
 
+void ordered_Verts_Selection()
+{
+    int s, p, condition;
+    vertex * V;
+
+    selected_verts_count0 = 0;
+
+    for (s = selected_verts_count - 1; s >= 0; s --)
+    {
+        V = selected_verts[s];
+
+        if (V->selected)
+        {
+            condition = 1;
+            for (p = 0; p < selected_verts_count0; p ++)
+            {
+                if (selected_verts0[p] == selected_verts[s])
+                {
+                    condition = 0;
+                    break;
+                }
+            }
+            if (condition)
+                selected_verts0[selected_verts_count0 ++] = selected_verts[s];
+        }
+    }
+
+    selected_verts_count = 0;
+
+    for (s = selected_verts_count0 - 1; s >= 0; s --)
+    {
+        selected_verts[selected_verts_count ++] = selected_verts0[s];
+        //printf("%d ", selected_verts0[s]->index);
+    }
+
+    //printf("\n");
+
+    if (selected_verts_count > 0)
+        currentVert = selected_verts[selected_verts_count - 1];
+}
+
 void ordered_Cp_Selection()
 {
     int s, p, condition;
@@ -15492,6 +15533,8 @@ int main(int argc, char * args[])
                                             {
                                                 V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
                                                 V->selected = UV->selected;
+                                                if (V->selected && selected_verts_count < CPS)
+                                                    selected_verts[selected_verts_count ++] = V;
                                             }
                                             break;
                                         }
@@ -15507,6 +15550,8 @@ int main(int argc, char * args[])
                                                 V->selected = 1;
                                                 O->last_selected_verts[0] = O->last_selected_verts[1];
                                                 O->last_selected_verts[1] = V->index;
+                                                if (selected_verts_count < CPS)
+                                                    selected_verts[selected_verts_count ++] = V;
                                             }
                                             else
                                             {
@@ -15648,7 +15693,12 @@ int main(int argc, char * args[])
                                 load_id_colors(selected_objects, selected_object_count, l, OBJECT_COLORS);
                             load_id_colors_Fan(selected_objects, selected_object_count, OBJECT_COLORS);
                         }
+                        else if (Vertex_Mode)
+                        {
+                            ordered_Verts_Selection();
+                        }
                         assert_Element_Selection();
+
                     }
 
                     drag_rectangle = 0;
@@ -15673,6 +15723,11 @@ int main(int argc, char * args[])
                         else if (selection_Mode == CURVE_CP)
                             ordered_Cp_Selection();
                     }
+                    else if (Vertex_Mode)
+                    {
+                        ordered_Verts_Selection();
+                    }
+
                     if (DRAW_LOCATORS)
                     {
                         assert_Locators_Selection();
@@ -16940,6 +16995,8 @@ int main(int argc, char * args[])
                                         {
                                             V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
                                             V->selected = UV->selected;
+                                            if (V->selected && selected_verts_count < CPS)
+                                                selected_verts[selected_verts_count ++] = V;
                                         }
                                         break;
                                     }
@@ -16954,6 +17011,8 @@ int main(int argc, char * args[])
                                             V->selected = 1;
                                             O->last_selected_verts[0] = O->last_selected_verts[1];
                                             O->last_selected_verts[1] = V->index;
+                                            if (selected_verts_count < CPS)
+                                                selected_verts[selected_verts_count ++] = V;
                                         }
                                         else
                                         {

@@ -1303,6 +1303,8 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                             {
                                 UV->selected = 1;
                                 V->selected = 1;
+                                if (selected_verts_count < CPS)
+                                    selected_verts[selected_verts_count ++] = V;
                             }
                             else
                             {
@@ -1556,17 +1558,17 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
             vertex * V, * V0;
             uv * UV;
 
-            object * O;
+            object * O0;
 
             aim vertAim;
             normal vertnormal;
 
             for (o = 0; o < Objects_count; o ++)
             {
-                O = objects[Objects[o]];
-                for (v = 0; v < O->vertcount; v ++)
+                O0 = objects[Objects[o]];
+                for (v = 0; v < O0->vertcount; v ++)
                 {
-                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                    V = &O0->verts[v / ARRAYSIZE][v % ARRAYSIZE];
 
                     V0 = V;
 
@@ -1617,15 +1619,21 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                             && coords[1] < R->y + R->h)
                         {
                             if (sel_add)
+                            {
                                 V0->selected = 1;
+                                if (selected_verts_count < CPS && O == O0)
+                                    selected_verts[selected_verts_count ++] = V0;
+                            }
                             else
+                            {
                                 V0->selected = 0;
+                            }
                             for (u = 0; u < V0->uv_vertcount; u ++)
                             {
                                 idx = V0->uv_verts[u];
-                                if (idx > -1 && idx < O->textcount)
+                                if (idx > -1 && idx < O0->textcount)
                                 {
-                                    UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                    UV = &O0->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
                                     UV->selected = V0->selected;
                                 }
                             }

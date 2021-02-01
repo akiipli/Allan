@@ -41,6 +41,14 @@ int selected_cps[CPS];
 int selected_cps_count = 0;
 int selected_cps0[CPS];
 int selected_cps_count0 = 0;
+
+vertex * selected_verts[CPS];
+int selected_verts_count = 0;
+vertex * selected_verts0[CPS];
+int selected_verts_count0 = 0;
+
+vertex * currentVert;
+
 int cpsIndex = 0;
 int currentCurve = 0;
 int currentCp = 0;
