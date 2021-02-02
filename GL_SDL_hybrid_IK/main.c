@@ -820,7 +820,7 @@ void ordered_Verts_Selection()
     {
         V = selected_verts[s];
 
-        if (V->selected)
+        if (V->selected && V->O == O)
         {
             condition = 1;
             for (p = 0; p < selected_verts_count0; p ++)
@@ -1586,7 +1586,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         {
             render_polys_OnScreen(C, wireframe, edgedraw, vertdraw, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
 
-            if (Curve_Mode)
+            if (Curve_Mode || Vertex_Mode)
             {
                 render_Curves();
                 render_Cps();
@@ -1647,7 +1647,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         {
             render_quads_OnScreen(C, wireframe, edgedraw, vertdraw, level, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
 
-            if (Curve_Mode)
+            if (Curve_Mode || Vertex_Mode)
             {
                 render_Curves_(subdLevel);
                 render_Cps();
@@ -17598,6 +17598,28 @@ int main(int argc, char * args[])
             else if (mod & KMOD_SHIFT)
             {
                 transfer_Deformers_rotVec(T);
+            }
+            else if (mod & KMOD_CTRL)
+            {
+                if (Vertex_Mode)
+                {
+                    if (currentObject >= 0 && currentObject < objectIndex)
+                    {
+                        O = objects[currentObject];
+                        printf("%s\n", O->Name);
+                        if (selected_verts_count > 1)
+                        {
+                            int r = create_Object_Curve(O);
+                            if (r && subdLevel > -1)
+                            {
+                                curve * C = curves[curvesIndex - 1];
+                                subdivide_Curve_Segments(C, subdLevel);
+                                update_Curve(C, subdLevel);
+                                update_Curve(C, subdLevel);
+                            }
+                        }
+                    }
+                }
             }
             else
             {

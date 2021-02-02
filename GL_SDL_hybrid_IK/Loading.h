@@ -2141,6 +2141,7 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
             for (i = 0; i < O->vertcount; i ++)
             {
                 V = &O->verts[i / ARRAYSIZE][i % ARRAYSIZE];
+                V->O = O;
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%*s %d %d %d", &V->index, &V->edgecount, &V->uv_vertcount);
                 fgets(buff, BUF_SIZE, fp);

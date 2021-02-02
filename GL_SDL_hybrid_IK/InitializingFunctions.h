@@ -1019,6 +1019,7 @@ void init_object_verts(object * O, int start, float * Coords, int * Edges, int E
     for(i = start; i < O->vertcount; i ++)
     {
         vertex * V = &O->verts[i / ARRAYSIZE][i % ARRAYSIZE];
+        V->O = O;
         V->index = i;
         V->visible = 0;
         V->selected = 0;

@@ -123,6 +123,7 @@ struct vertex
     normal N;
 
     cp * control_point;
+    object * O;
 };
 
 void print_vertex(vertex * V)
@@ -172,6 +173,8 @@ void print_triangle(triangle * T)
     printf(" boxt  %f %f %f %f\n", T->B.x, T->B.y, T->B.z, T->B.radius);
 }
 
+typedef struct curve_segment curve_segment;
+
 typedef struct
 {
     int index;
@@ -193,6 +196,8 @@ typedef struct
     float Mx; // polys mean center
     float My;
     float Mz;
+
+    curve_segment * S;
 }
 edge;
 
@@ -274,6 +279,8 @@ typedef struct
     normal N;
     box_3d B;
     box_2d B2;
+
+    float Center[3]; // for curve based subdivision, normally it equals mean center
 }
 quadrant;
 
@@ -322,6 +329,8 @@ typedef struct
     normal N;
     box_3d B;
     box_2d B2;
+
+    float Center[3]; // for curve based subdivision, normally it equals mean center
 }
 polygon;
 

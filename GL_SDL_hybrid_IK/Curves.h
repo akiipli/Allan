@@ -1467,4 +1467,129 @@ void update_Selected_Curves_Cps_Positions()
     }
 }
 
+int create_Object_Curve(object * O)
+{
+    printf("create Object Curve\n");
+
+    /* collect selected verts and connecting E0 edges */
+
+    int v, e, idx, n, s, r;
+
+    r = 0;
+
+    edge * E, * E0;
+    vertex * V;
+
+    vertex ** V_candidates = malloc(selected_verts_count * sizeof(vertex*));
+    edge ** E_candidates = malloc(selected_verts_count * sizeof(edge*));
+
+    if (V_candidates == NULL || E_candidates == NULL)
+    {
+        return 0;
+    }
+
+    int canditates_count = 0;
+    int curve_closed = 0;
+
+    for (v = 0; v < selected_verts_count; v ++)
+    {
+        V = selected_verts[v];
+        E0 = NULL;
+
+        if (V->O == O)
+        {
+            printf("%d ", V->index);
+
+            for (e = 0; e < V->edgecount; e ++)
+            {
+                idx = V->edges[e];
+                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                if (E->verts[0] == V->index)
+                {
+                    n = E->verts[1];
+                }
+                else if (E->verts[1] == V->index)
+                {
+                    n = E->verts[0];
+                }
+                printf("E:%d ", n);
+                if (n == selected_verts[(v + 1) % selected_verts_count]->index)
+                {
+                    E0 = E;
+                    printf("edge %d", E0->index);
+                    break;
+                }
+            }
+        }
+
+        printf("\n");
+
+        if (E0 == NULL)
+        {
+            break;
+        }
+        else
+        {
+            V_candidates[canditates_count] = V;
+            E_candidates[canditates_count ++] = E0;
+            if (v == selected_verts_count - 1)
+            {
+                curve_closed = 1;
+                printf("Curve closed\n");
+            }
+        }
+    }
+
+    if (canditates_count > 1)
+    {
+        printf("Curve validates %d\n", curve_closed);
+
+        float pos[3];
+
+        pos[0] = V_candidates[0]->Tx;
+        pos[1] = V_candidates[0]->Ty;
+        pos[2] = V_candidates[0]->Tz;
+
+        r = add_New_Curve(pos, !curve_closed);
+
+        if (r)
+        {
+            curve * C = curves[curvesIndex - 1];
+
+            printf("canditates count %d\n", canditates_count);
+            printf("curve cps count %d\n", C->cps_count);
+
+            for (s = 1; s < canditates_count; s ++)
+            {
+                r = add_Curve_Segment(C);
+                if (r)
+                {
+                    pos[0] = V_candidates[s]->Tx;
+                    pos[1] = V_candidates[s]->Ty;
+                    pos[2] = V_candidates[s]->Tz;
+
+                    memcpy(C->cps[C->cps_count - 1]->pos, pos, sizeof(float[3]));
+                }
+            }
+            if (!curve_closed)
+            {
+                r = add_Curve_Segment(C);
+                if (r)
+                {
+                    pos[0] = V->Tx;
+                    pos[1] = V->Ty;
+                    pos[2] = V->Tz;
+
+                    memcpy(C->cps[C->cps_count - 1]->pos, pos, sizeof(float[3]));
+                }
+            }
+        }
+    }
+
+    free(V_candidates);
+    free(E_candidates);
+
+    return r;
+}
+
 #endif // CURVES_H_INCLUDED
