@@ -1932,4 +1932,128 @@ void select_CP_Segments_Edges(cp * CP, int select)
     }
 }
 
+direction_Pack length_AB(float A[3], float B[3]);
+
+int add_Next_Vertex_To_Selected(object * O)
+{
+    int r = 0;
+
+    int e, idx;
+
+    vertex * V0, * V1, * N0, * N1, * N2;
+    edge * E, * E0;
+
+    direction_Pack P0, P1;
+
+    float pos0[3];
+    float pos1[3];
+
+    V0 = selected_verts[selected_verts_count - 2];
+    V1 = selected_verts[selected_verts_count - 1];
+
+    N0 = NULL;
+    N2 = NULL;
+
+    float angle, angle_max;
+
+    angle_max = -1;
+
+    for (e = 0; e < V0->edgecount; e ++)
+    {
+        idx = V0->edges[e];
+        E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+        if (E->verts[0] == V0->index)
+        {
+            if (E->verts[1] == V1->index)
+            {
+                pos0[0] = V0->x;
+                pos0[1] = V0->y;
+                pos0[2] = V0->z;
+
+                pos1[0] = V1->x;
+                pos1[1] = V1->y;
+                pos1[2] = V1->z;
+
+                P0 = length_AB(pos0, pos1);
+
+                N0 = V1;
+                E0 = E;
+
+                break;
+            }
+        }
+        else if (E->verts[1] == V0->index)
+        {
+            if (E->verts[0] == V1->index)
+            {
+                pos0[0] = V0->x;
+                pos0[1] = V0->y;
+                pos0[2] = V0->z;
+
+                pos1[0] = V1->x;
+                pos1[1] = V1->y;
+                pos1[2] = V1->z;
+
+                P0 = length_AB(pos0, pos1);
+
+                N0 = V1;
+                E0 = E;
+
+                break;
+            }
+        }
+    }
+
+    if (N0 != NULL)
+    {
+        for (e = 0; e < N0->edgecount; e ++)
+        {
+            idx = N0->edges[e];
+            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            if (E != E0)
+            {
+                if (E->verts[0] == N0->index)
+                {
+                    idx = E->verts[1];
+                }
+                else
+                {
+                    idx = E->verts[0];
+                }
+
+                N1 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                pos0[0] = N0->x;
+                pos0[1] = N0->y;
+                pos0[2] = N0->z;
+
+                pos1[0] = N1->x;
+                pos1[1] = N1->y;
+                pos1[2] = N1->z;
+
+                P1 = length_AB(pos0, pos1);
+
+                angle = dot_productFF(P0.vec, P1.vec);
+                if (angle >= angle_max)
+                {
+                    N2 = N1;
+                    angle_max = angle;
+                }
+            }
+        }
+
+        if (N2 != NULL)
+        {
+            N2->selected = 1;
+            selected_verts[selected_verts_count ++] = N2;
+
+            r = 1;
+        }
+    }
+
+    return r;
+}
+
 #endif // CURVES_H_INCLUDED

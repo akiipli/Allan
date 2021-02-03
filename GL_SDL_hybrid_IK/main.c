@@ -809,7 +809,7 @@ void assert_Object_Selection()
     }
 }
 
-void ordered_Verts_Selection()
+void ordered_Verts_Selection(object * O)
 {
     int s, p, condition;
     vertex * V;
@@ -11986,6 +11986,7 @@ void clear_All()
         selected_transformer_count = 0;
         selected_objects[0] = 0;
         selected_object_count = 0;
+        selected_verts_count = 0;
 
         object_selections = 0;
         reinit_selections();
@@ -15705,7 +15706,7 @@ int main(int argc, char * args[])
                         }
                         else if (Vertex_Mode)
                         {
-                            ordered_Verts_Selection();
+                            ordered_Verts_Selection(O);
                         }
                         assert_Element_Selection();
 
@@ -15735,7 +15736,7 @@ int main(int argc, char * args[])
                     }
                     else if (Vertex_Mode)
                     {
-                        ordered_Verts_Selection();
+                        ordered_Verts_Selection(O);
                     }
 
                     if (DRAW_LOCATORS)
@@ -17151,6 +17152,23 @@ int main(int argc, char * args[])
                     handle_UP(0);
                 }
             }
+            else if (DRAW_LOCATORS)
+            {
+                if (!Camera_screen_lock)
+                    select_Parent_Locator();
+            }
+            else if (Vertex_Mode)
+            {
+                if (selected_verts_count > 1)
+                {
+                    int r = add_Next_Vertex_To_Selected(O);
+                    if (r)
+                    {
+                        ordered_Verts_Selection(O);
+                        assert_Element_Selection_(O);
+                    }
+                }
+            }
             else if (mod & KMOD_CTRL)
             {
                 Camera->T->rot[0] += pi30;
@@ -17158,11 +17176,6 @@ int main(int argc, char * args[])
             else if (mod & KMOD_SHIFT)
             {
                 O->T->pos[1] += 0.5;
-            }
-            else if (DRAW_LOCATORS)
-            {
-                if (!Camera_screen_lock)
-                    select_Parent_Locator();
             }
             else
             {
@@ -17628,12 +17641,23 @@ int main(int argc, char * args[])
                         if (selected_verts_count > 1)
                         {
                             int r = create_Object_Curve(O);
-                            if (r && subdLevel > -1)
+
+                            if (r)
                             {
                                 curve * C = curves[curvesIndex - 1];
-                                subdivide_Curve_Segments(C, subdLevel);
-                                update_Curve(C, subdLevel);
-                                update_Curve(C, subdLevel);
+
+                                C->selected = 1;
+                                if (selected_curves_count < CURVES)
+                                    selected_curves[selected_curves_count ++] = C->index;
+
+                                ordered_Curve_Selection();
+
+                                if (subdLevel > -1)
+                                {
+                                    subdivide_Curve_Segments(C, subdLevel);
+                                    update_Curve(C, subdLevel);
+                                    update_Curve(C, subdLevel);
+                                }
                             }
                         }
                     }
