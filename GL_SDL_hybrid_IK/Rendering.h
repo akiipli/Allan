@@ -4897,11 +4897,16 @@ void render_polys_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw
                     if (E->selected)
                     {
                         glDisable(GL_LIGHTING);
+//                        if (O->selected)
+//                            glLineWidth(2);
+//                        else
+//                            glLineWidth(1);
                         line_color = &selected_edge_color[0];
                     }
                     else if (!glIsEnabled(GL_LIGHTING))
                     {
                         glEnable(GL_LIGHTING);
+//                        glLineWidth(1);
                         line_color = Line_Color;
                     }
                     draw_Edge(O, E, C, wireframe, E->B.Tradius);
@@ -6644,11 +6649,16 @@ void render_quads_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw
                     if (E->selected)
                     {
                         glDisable(GL_LIGHTING);
+//                        if (O->selected)
+//                            glLineWidth(2);
+//                        else
+//                            glLineWidth(1);
                         line_color = &selected_edge_color[0];
                     }
                     else if (!glIsEnabled(GL_LIGHTING))
                     {
                         glEnable(GL_LIGHTING);
+//                        glLineWidth(1);
                         line_color = Line_Color;
                     }
                     idx = E->edges[0];

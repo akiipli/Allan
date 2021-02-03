@@ -1239,6 +1239,8 @@ void free_Cps()
     for (c = 0; c < cpsIndex; c ++)
     {
         CP = cps[c];
+        if (CP->segments != NULL)
+            free(CP->segments);
         free_Cp(CP);
     }
 }

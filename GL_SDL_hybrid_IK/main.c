@@ -11884,6 +11884,13 @@ void clear_Objects()
     }
 }
 
+void clear_Curves()
+{
+    free_Curves();
+    free_Cps();
+    free_Segments();
+}
+
 void free_deleted_objects()
 {
     int o;
@@ -11922,6 +11929,8 @@ void clear_All()
         clear_Bones();
         clear_Locators();
         clear_Objects();
+        clear_Curves();
+
         free_Subcharacters();
 
         free_poses();
@@ -11940,6 +11949,9 @@ void clear_All()
         subcharacterIndex = 0;
         posesIndex = 0;
         subcharacter_posesIndex = 0;
+        curvesIndex = 0;
+        cpsIndex = 0;
+        segmentIndex = 0;
 
         PoseIndex = 0;
         posesCount = 0;
@@ -11987,6 +11999,8 @@ void clear_All()
         selected_objects[0] = 0;
         selected_object_count = 0;
         selected_verts_count = 0;
+        selected_cps_count = 0;
+        selected_curves_count = 0;
 
         object_selections = 0;
         reinit_selections();
