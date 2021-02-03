@@ -15502,10 +15502,20 @@ int main(int argc, char * args[])
                                             CP->selected = 1;
                                             if (selected_cps_count < CPS)
                                                 selected_cps[selected_cps_count ++] = o;
+                                            if (CP->vert != NULL)
+                                            {
+                                                CP->vert->selected = 1;
+                                                select_CP_Segments_Edges(CP, 1);
+                                            }
                                         }
                                         else
                                         {
                                             CP->selected = 0;
+                                            if (CP->vert != NULL)
+                                            {
+                                                CP->vert->selected = 0;
+                                                select_CP_Segments_Edges(CP, 0);
+                                            }
                                         }
                                         break;
                                     }
@@ -16965,10 +16975,18 @@ int main(int argc, char * args[])
                                         CP->selected = 1;
                                         if (selected_cps_count < CPS)
                                             selected_cps[selected_cps_count ++] = o;
+                                        if (CP->vert != NULL)
+                                        {
+                                            CP->vert->selected = 1;
+                                        }
                                     }
                                     else
                                     {
                                         CP->selected = 0;
+                                        if (CP->vert != NULL)
+                                        {
+                                            CP->vert->selected = 0;
+                                        }
                                     }
                                     break;
                                 }

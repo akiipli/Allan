@@ -81,7 +81,7 @@ struct curve_segment
     unsigned address;
     int selected;
     int level;
-    int edge; // edge with level
+    edge * E; // edge with level
     int subdivided;
     curve * Curve;
     curve_segment * segment[2]; // if subdivided
@@ -830,6 +830,7 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
         CP->segments = NULL;
 
         V->control_point = CP;
+        CP->vert = V;
     }
 
     curve_segment * S;
@@ -851,6 +852,7 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
 
         S->level = 0;
         S->subdivided = 0;
+        S->E = NULL;
 
         segments[segmentIndex ++] = S;
     }
@@ -934,6 +936,7 @@ int add_Curve_Segment(curve * C)
     CP->index = cpsIndex;
     cps[cpsIndex ++] = CP;
     CP->segments = NULL;
+    CP->vert = NULL;
 
     curve_segment * S = malloc(sizeof(curve_segment));
 
@@ -941,6 +944,7 @@ int add_Curve_Segment(curve * C)
 
     S->level = 0;
     S->subdivided = 0;
+    S->E = NULL;
 
     segments[segmentIndex ++] = S;
 
@@ -1023,6 +1027,7 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
         memcpy(CP->pos, pos, float_3);
 
         V->control_point = CP;
+        CP->vert = V;
     }
 
     CP->selected = 0;
@@ -1060,6 +1065,7 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
 
         S->level = 0;
         S->subdivided = 0;
+        S->E = NULL;
 
         segments[segmentIndex ++] = S;
     }
@@ -1131,6 +1137,7 @@ int add_New_Curve(float pos[3], int open)
     CP->index = cpsIndex;
     cps[cpsIndex ++] = CP;
     CP->segments = NULL;
+    CP->vert = NULL;
 
     memcpy(CP->pos, pos, float_3);
     CP->selected = 0;
@@ -1160,6 +1167,7 @@ int add_New_Curve(float pos[3], int open)
 
     S->level = 0;
     S->subdivided = 0;
+    S->E = NULL;
 
     segments[segmentIndex ++] = S;
 
@@ -1810,6 +1818,7 @@ int create_Object_Curve(object * O)
                 segments[segmentIndex ++] = S;
 
                 E->S = S;
+                S->E = E;
             }
         }
 
@@ -1845,6 +1854,7 @@ int create_Object_Curve(object * O)
                         segments[segmentIndex ++] = S;
 
                         E->S = S;
+                        S->E = E;
                     }
                 }
 
@@ -1869,6 +1879,8 @@ int create_Object_Curve(object * O)
                 }
 
                 curve_segment * S = malloc(sizeof(curve_segment));
+
+                S->E = NULL; // find this edge
 
                 if (S == NULL) return 0;
 
@@ -1901,6 +1913,23 @@ int create_Object_Curve(object * O)
     free(E_candidates);
 
     return r;
+}
+
+void select_CP_Segments_Edges(cp * CP, int select)
+{
+    int s;
+
+    curve_segment * S;
+
+    for (s = 0; s < CP->segment_count; s ++)
+    {
+        S = CP->segments[s];
+
+        if (S != NULL && S->E != NULL)
+        {
+            S->E->selected = select;
+        }
+    }
 }
 
 #endif // CURVES_H_INCLUDED
