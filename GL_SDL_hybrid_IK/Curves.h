@@ -801,6 +801,120 @@ void free_Cp(cp * CP)
     free(CP);
 }
 
+int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
+{
+    if (cpsIndex >= CPS)
+    {
+        return 0;
+    }
+
+    if (segmentIndex >= SEGMENTS)
+    {
+        return 0;
+    }
+
+    cp * CP;
+
+    if (V->control_point != NULL)
+    {
+        CP = V->control_point;
+    }
+    else
+    {
+        CP = malloc(sizeof(cp));
+
+        if (CP == NULL) return 0;
+
+        CP->index = cpsIndex;
+        cps[cpsIndex ++] = CP;
+        CP->segments = NULL;
+
+        V->control_point = CP;
+    }
+
+    curve_segment * S;
+
+    if (V->control_point != NULL)
+    {
+        S = segments[segmentIndex - 1];
+    }
+    else
+    {
+        if (segmentIndex >= SEGMENTS)
+        {
+            return 0;
+        }
+
+        S = malloc(sizeof(curve_segment));
+
+        if (S == NULL) return 0;
+
+        S->level = 0;
+        S->subdivided = 0;
+
+        segments[segmentIndex ++] = S;
+    }
+
+    C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
+
+    if (C->cps == NULL) return 0;
+
+    C->cps[C->cps_count ++] = CP;
+
+    C->cps_continuity = realloc(C->cps_continuity, (C->cps_count) * sizeof(float));
+
+    if (C->cps_continuity == NULL) return 0;
+
+    C->cps_continuity[C->cps_count - 1] = 0.7;
+
+    C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
+
+    if (C->segments == NULL) return 0;
+
+    S->index = C->segment_count; // Segment index is Curve based, not global segments
+
+    C->segments[C->segment_count ++] = S;
+
+    //memcpy(CP->pos, (float[3]){1.0, 1.0, 1.0}, float_3);
+
+    memcpy(CP->pos, C->cps[C->cps_count - 2]->pos, float_3);
+
+    if (C->cps[C->cps_count - 2]->vert == NULL)
+    {
+        C->cps[C->cps_count - 2]->segments[1] = S;
+        C->cps[C->cps_count - 2]->segment_count = 2;
+    }
+
+    if (V->control_point != NULL)
+    {
+        if (CP->segments == NULL)
+            CP->segments = malloc(V->edgecount * sizeof(curve_segment*));
+        else
+            CP->segments = realloc(CP->segments, V->edgecount * sizeof(curve_segment*));
+        CP->segment_count = V->edgecount;
+
+        int e, idx;
+        edge * E;
+
+        for (e = 0; e < V->edgecount; e ++)
+        {
+            idx = V->edges[e];
+            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            CP->segments[e] = E->S;
+        }
+    }
+    else
+    {
+        CP->segments = malloc(2 * sizeof(curve_segment *));
+        CP->segment_count = 1;
+        CP->segments[0] = S;
+    }
+
+    CP->selected = 0;
+
+    return 1;
+}
+
 int add_Curve_Segment(curve * C)
 {
     if (cpsIndex >= CPS)
@@ -819,6 +933,7 @@ int add_Curve_Segment(curve * C)
 
     CP->index = cpsIndex;
     cps[cpsIndex ++] = CP;
+    CP->segments = NULL;
 
     curve_segment * S = malloc(sizeof(curve_segment));
 
@@ -864,6 +979,126 @@ int add_Curve_Segment(curve * C)
     return 1;
 }
 
+int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
+{
+    printf("add New Curve\n");
+
+    if (curvesIndex >= CURVES)
+    {
+        return 0;
+    }
+
+    curve * C = malloc(sizeof(curve));
+    if (C == NULL)
+    {
+        return 0;
+    }
+
+    initialize_Curve(C);
+    curves[curvesIndex] = C;
+    C->index = curvesIndex;
+    curvesIndex ++;
+
+    if (cpsIndex >= CPS)
+    {
+        return 0;
+    }
+
+    cp * CP;
+
+    if (V->control_point != NULL)
+    {
+        CP = V->control_point;
+    }
+    else
+    {
+        CP = malloc(sizeof(cp));
+
+        if (CP == NULL) return 0;
+
+        CP->index = cpsIndex;
+        cps[cpsIndex ++] = CP;
+        CP->segments = NULL;
+
+        memcpy(CP->pos, pos, float_3);
+
+        V->control_point = CP;
+    }
+
+    CP->selected = 0;
+
+    C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
+
+    if (C->cps == NULL) return 0;
+
+    C->cps[C->cps_count ++] = CP;
+
+    C->cps_continuity = realloc(C->cps_continuity, (C->cps_count) * sizeof(float));
+
+    if (C->cps_continuity == NULL) return 0;
+
+    C->cps_continuity[C->cps_count - 1] = CP_CONTINUITY;
+
+    C->open = open;
+
+    curve_segment * S;
+
+    if (V->control_point != NULL)
+    {
+        S = segments[segmentIndex - 1];
+    }
+    else
+    {
+        if (segmentIndex >= SEGMENTS)
+        {
+            return 0;
+        }
+
+        S = malloc(sizeof(curve_segment));
+
+        if (S == NULL) return 0;
+
+        S->level = 0;
+        S->subdivided = 0;
+
+        segments[segmentIndex ++] = S;
+    }
+
+    C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
+    if (C->segments == NULL) return 0;
+
+    S->index = C->segment_count; // Segment index is Curve based, not global segments
+
+    C->segments[C->segment_count ++] = S;
+
+    if (V->control_point != NULL)
+    {
+        if (CP->segments == NULL)
+            CP->segments = malloc(V->edgecount * sizeof(curve_segment*));
+        else
+            CP->segments = realloc(CP->segments, V->edgecount * sizeof(curve_segment*));
+        CP->segment_count = V->edgecount;
+
+        int e, idx;
+        edge * E;
+
+        for (e = 0; e < V->edgecount; e ++)
+        {
+            idx = V->edges[e];
+            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            CP->segments[e] = E->S;
+        }
+    }
+    else
+    {
+        CP->segments = malloc(2 * sizeof(curve_segment *));
+        CP->segment_count = 1;
+        CP->segments[0] = S;
+    }
+
+    return 1;
+}
+
 int add_New_Curve(float pos[3], int open)
 {
     printf("add New Curve\n");
@@ -895,6 +1130,7 @@ int add_New_Curve(float pos[3], int open)
 
     CP->index = cpsIndex;
     cps[cpsIndex ++] = CP;
+    CP->segments = NULL;
 
     memcpy(CP->pos, pos, float_3);
     CP->selected = 0;
@@ -1478,7 +1714,7 @@ int create_Object_Curve(object * O)
     r = 0;
 
     edge * E, * E0;
-    vertex * V;
+    vertex * V, * V0;
 
     vertex ** V_candidates = malloc(selected_verts_count * sizeof(vertex*));
     edge ** E_candidates = malloc(selected_verts_count * sizeof(edge*));
@@ -1493,22 +1729,22 @@ int create_Object_Curve(object * O)
 
     for (v = 0; v < selected_verts_count; v ++)
     {
-        V = selected_verts[v];
+        V0 = selected_verts[v];
         E0 = NULL;
 
-        if (V->O == O)
+        if (V0->O == O)
         {
-            printf("%d ", V->index);
+            printf("%d ", V0->index);
 
-            for (e = 0; e < V->edgecount; e ++)
+            for (e = 0; e < V0->edgecount; e ++)
             {
-                idx = V->edges[e];
+                idx = V0->edges[e];
                 E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                if (E->verts[0] == V->index)
+                if (E->verts[0] == V0->index)
                 {
                     n = E->verts[1];
                 }
-                else if (E->verts[1] == V->index)
+                else if (E->verts[1] == V0->index)
                 {
                     n = E->verts[0];
                 }
@@ -1524,13 +1760,13 @@ int create_Object_Curve(object * O)
 
         printf("\n");
 
-        if (E0 == NULL)
+        if (E0 == NULL || E0->S != NULL)
         {
             break;
         }
         else
         {
-            V_candidates[canditates_count] = V;
+            V_candidates[canditates_count] = V0;
             E_candidates[canditates_count ++] = E0;
             if (v == selected_verts_count - 1)
             {
@@ -1546,34 +1782,73 @@ int create_Object_Curve(object * O)
 
         float pos[3];
 
-        pos[0] = V_candidates[0]->Tx;
-        pos[1] = V_candidates[0]->Ty;
-        pos[2] = V_candidates[0]->Tz;
+        V = V_candidates[0];
+        E = E_candidates[0];
 
-        r = add_New_Curve(pos, !curve_closed);
+        pos[0] = V->Tx;
+        pos[1] = V->Ty;
+        pos[2] = V->Tz;
+
+        for (e = 0; e < V->edgecount; e ++)
+        {
+            idx = V->edges[e];
+            E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            if (E == E0)
+            {
+                if (segmentIndex >= SEGMENTS)
+                {
+                    return 0;
+                }
+
+                curve_segment * S = malloc(sizeof(curve_segment));
+
+                if (S == NULL) return 0;
+
+                S->level = 0;
+                S->subdivided = 0;
+
+                segments[segmentIndex ++] = S;
+
+                E->S = S;
+            }
+        }
+
+        r = add_New_Curve_To_Verts(pos, !curve_closed, V_candidates[0], O);
 
         if (r)
         {
             curve * C = curves[curvesIndex - 1];
 
-            printf("canditates count %d\n", canditates_count);
-            printf("curve cps count %d\n", C->cps_count);
-
             for (s = 1; s < canditates_count; s ++)
             {
-                r = add_Curve_Segment(C);
-                if (r)
-                {
-                    pos[0] = V_candidates[s]->Tx;
-                    pos[1] = V_candidates[s]->Ty;
-                    pos[2] = V_candidates[s]->Tz;
+                V = V_candidates[s];
+                E = E_candidates[s];
 
-                    memcpy(C->cps[C->cps_count - 1]->pos, pos, sizeof(float[3]));
+                for (e = 0; e < V->edgecount; e ++)
+                {
+                    idx = V->edges[e];
+                    E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    if (E == E0)
+                    {
+                        if (segmentIndex >= SEGMENTS)
+                        {
+                            return 0;
+                        }
+
+                        curve_segment * S = malloc(sizeof(curve_segment));
+
+                        if (S == NULL) return 0;
+
+                        S->level = 0;
+                        S->subdivided = 0;
+
+                        segments[segmentIndex ++] = S;
+
+                        E->S = S;
+                    }
                 }
-            }
-            if (!curve_closed)
-            {
-                r = add_Curve_Segment(C);
+
+                r = add_Curve_Segment_To_Verts(C, V, O);
                 if (r)
                 {
                     pos[0] = V->Tx;
@@ -1583,6 +1858,42 @@ int create_Object_Curve(object * O)
                     memcpy(C->cps[C->cps_count - 1]->pos, pos, sizeof(float[3]));
                 }
             }
+
+            if (!curve_closed)
+            {
+                V = V0;
+
+                if (segmentIndex >= SEGMENTS)
+                {
+                    return 0;
+                }
+
+                curve_segment * S = malloc(sizeof(curve_segment));
+
+                if (S == NULL) return 0;
+
+                S->level = 0;
+                S->subdivided = 0;
+
+                segments[segmentIndex ++] = S;
+
+
+                r = add_Curve_Segment_To_Verts(C, V, O);
+                if (r)
+                {
+                    pos[0] = V->Tx;
+                    pos[1] = V->Ty;
+                    pos[2] = V->Tz;
+
+                    memcpy(C->cps[C->cps_count - 1]->pos, pos, sizeof(float[3]));
+                }
+            }
+
+            printf("canditates count %d\n", canditates_count);
+            printf("curve cps count %d\n", C->cps_count);
+
+            /* associate segments with edges */
+            /* for each vertex solve potential cp problem if it has another curve there */
         }
     }
 
