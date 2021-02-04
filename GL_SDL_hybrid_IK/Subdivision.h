@@ -1259,6 +1259,9 @@ void tune_In_Subdivision_Shape_transformed(object * O)
         }
     }
 
+    int curveinvolvement;
+    float poly_offset[3];
+
     if (O->curve_count > 0)
     {
         for (p = 0; p < O->polycount; p ++)
@@ -1301,10 +1304,35 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             idx = O->vertcount + O->edgecount + p;
             V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
 
-            V->Tx = P->center[0] / (float)V->edgecount;
-            V->Ty = P->center[1] / (float)V->edgecount;
-            V->Tz = P->center[2] / (float)V->edgecount;
+            curveinvolvement = 0;
 
+            for (e = 0; e < P->edgecount; e ++)
+            {
+                idx = P->edges[e];
+                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                if (E->S != NULL)
+                {
+                    curveinvolvement = 1;
+                    break;
+                }
+            }
+
+            if (curveinvolvement)
+            {
+                V->Tx = P->center[0] / (float)V->edgecount;
+                V->Ty = P->center[1] / (float)V->edgecount;
+                V->Tz = P->center[2] / (float)V->edgecount;
+
+                /* poly offset lifts or sinks poly center */
+
+                poly_offset[0] = V->Tx - P->B.Tx;
+                poly_offset[1] = V->Ty - P->B.Ty;
+                poly_offset[2] = V->Tz - P->B.Tz;
+
+                V->Tx += poly_offset[0];
+                V->Ty += poly_offset[1];
+                V->Tz += poly_offset[2];
+            }
         }
     }
 
