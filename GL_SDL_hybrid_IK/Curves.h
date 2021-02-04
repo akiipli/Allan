@@ -35,6 +35,8 @@ int selected_curves[CURVES];
 int selected_curves_count = 0;
 int selected_curves0[CURVES];
 int selected_curves_count0 = 0;
+int connected_curves[CURVES];
+int connected_curves_count = 0;
 int curvesIndex = 0;
 int segmentIndex = 0;
 int selected_cps[CPS];
@@ -933,6 +935,7 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
     if (C->segments == NULL) return 0;
 
     C->segments[C->segment_count ++] = S;
+    S->Curve = C;
 
     //memcpy(CP->pos, (float[3]){1.0, 1.0, 1.0}, float_3);
 
@@ -1022,6 +1025,7 @@ int add_Curve_Segment(curve * C)
     if (C->segments == NULL) return 0;
 
     C->segments[C->segment_count ++] = S;
+    S->Curve = C;
 
     //memcpy(CP->pos, (float[3]){1.0, 1.0, 1.0}, float_3);
 
@@ -1058,6 +1062,12 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
     curves[curvesIndex] = C;
     C->index = curvesIndex;
     curvesIndex ++;
+
+    if (O->curve_count < OBJECT_CURVES)
+    {
+        O->curves[O->curve_count ++] = C;
+    }
+
     C->O = O;
 
     if (cpsIndex >= CPS)
@@ -1131,6 +1141,7 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
     if (C->segments == NULL) return 0;
 
     C->segments[C->segment_count ++] = S;
+    S->Curve = C;
 
     if (V->control_point != NULL)
     {
@@ -1230,6 +1241,7 @@ int add_New_Curve(float pos[3], int open)
     if (C->segments == NULL) return 0;
 
     C->segments[C->segment_count ++] = S;
+    S->Curve = C;
 
     CP->segments = malloc(2 * sizeof(curve_segment *));
     CP->segment_count = 1;
@@ -1390,6 +1402,66 @@ void update_Curves(int level)
     for (c = 0; c < curvesIndex; c ++)
     {
         C = curves[c];
+        update_Curve(C, level);
+    }
+}
+
+void find_connected_Curves()
+{
+    int s, c, p, t, condition;
+
+    cp * CP;
+    curve * C, * C0;
+    curve_segment * S;
+
+    connected_curves_count = 0;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+
+            for (s = 0; s < CP->segment_count; s ++)
+            {
+                S = CP->segments[s];
+
+                condition = 1;
+
+                if (S == NULL)
+                {
+
+                }
+                else if (S->Curve != NULL && S->Curve->selected == 0)
+                {
+                    for (t = 0; t < connected_curves_count; t ++)
+                    {
+                        C0 = curves[connected_curves[t]];
+                        if (C0 == S->Curve)
+                        {
+                            condition = 0;
+                            break;
+                        }
+                    }
+                    if (condition)
+                        connected_curves[connected_curves_count ++] = S->Curve->index;
+                }
+            }
+        }
+    }
+}
+
+void update_connected_Curves(int level)
+{
+    int c;
+
+    curve * C;
+
+    for (c = 0; c < connected_curves_count; c ++)
+    {
+        C = curves[connected_curves[c]];
         update_Curve(C, level);
     }
 }

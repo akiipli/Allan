@@ -280,7 +280,7 @@ typedef struct
     box_3d B;
     box_2d B2;
 
-    float Center[3]; // for curve based subdivision, normally it equals mean center
+    float center[3]; // for curve based subdivision, normally it equals mean center
 }
 quadrant;
 
@@ -330,7 +330,7 @@ typedef struct
     box_3d B;
     box_2d B2;
 
-    float Center[3]; // for curve based subdivision, normally it equals mean center
+    float center[3]; // for curve based subdivision, normally it equals mean center
 }
 polygon;
 

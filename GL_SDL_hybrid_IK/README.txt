@@ -3,6 +3,14 @@
 Author here is:
 Allan Kiipli
 
+11:12 PM 2/4/2021
+Steps taken to integrate curves.
+Pick verts in order and press Ctrl + P. This creates a curve for the current object. It must connect edgeflow.
+Further one can manipulate cps, scale selected curves, cps and objects subdivided shape should follow.
+
+Also independent curves can be drawn that dont belong to the objects. This can be done in Curves Mode pressing A
+and moving with mouse. Then clikcing.
+
 6:44 PM 1/4/2021
 IK constraints and poles. When adding pole to IK chain in Bind Mode, move pole to desired location to make up
 IK spine, else spine is undefined when solving outside Bind Mode.

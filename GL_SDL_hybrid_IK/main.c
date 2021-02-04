@@ -11086,6 +11086,8 @@ void start_Rotation()
 {
     if (Curve_Mode)
     {
+        find_connected_Curves();
+
         if (Vertex_Mode)
         {
             cp_Manipulation = 1;
@@ -11164,6 +11166,8 @@ void start_Movement()
         {
             //assert_Curve_Selection();
             //ordered_Cp_Selection();
+
+            find_connected_Curves();
 
             if (!CURVE_MODE)
             {
@@ -11432,11 +11436,17 @@ void make_Movement()
     {
         move_Cps_To_Delta(Delta);
         update_selected_Curves(subdLevel);
+
+        update_connected_Curves(subdLevel);
+
+        /* update also connected curves */
     }
     else if (Curve_Mode && curve_Manipulation)
     {
         move_Curve_Cps_To_Delta(Delta);
         update_selected_Curves(subdLevel);
+
+        update_connected_Curves(subdLevel);
     }
     else if (CURVE_MODE)
     {
@@ -11472,6 +11482,22 @@ void make_Movement()
                     }
                 }
             }
+        }
+    }
+}
+
+void update_selected_Curve_Objects(int level)
+{
+    int c;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+
+        if (C->O != NULL && C->O->deforms)
+        {
+            tune_subdivide_post_transformed(C->O, level);
         }
     }
 }
@@ -11521,6 +11547,8 @@ void transform_Objects_And_Render()
             update_Selected_Curves_Cps_Positions();
         }
         update_selected_Curves(subdLevel);
+        update_connected_Curves(subdLevel);
+        update_selected_Curve_Objects(subdLevel);
     }
     else
     {
@@ -14083,6 +14111,7 @@ int main(int argc, char * args[])
 
                             update_selected_Curves(subdLevel);
                             update_selected_Curves(subdLevel);
+                            update_connected_Curves(subdLevel);
                         }
                         else if (Curve_Mode && cp_Manipulation)
                         {
@@ -14091,6 +14120,7 @@ int main(int argc, char * args[])
 
                             update_selected_Curves(subdLevel);
                             update_selected_Curves(subdLevel);
+                            update_connected_Curves(subdLevel);
                         }
                         else
                         {

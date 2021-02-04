@@ -1190,9 +1190,9 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
     //O->vertcount_[L] = O->vertcount + O->edgecount + O->polycount;
 
-    int v, e, idx;
+    int v, e, idx, p;
 
-    polygon * P0, * P1;
+    polygon * P, * P0, * P1;
     vertex * V, * V0;
     edge * E;
 
@@ -1207,9 +1207,17 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
         if (E->S != NULL)
         {
-            V->Tx = E->S->B[0];
-            V->Ty = E->S->B[1];
-            V->Tz = E->S->B[2];
+            Mx = E->S->B[0];
+            My = E->S->B[1];
+            Mz = E->S->B[2];
+
+            V->Tx = Mx;
+            V->Ty = My;
+            V->Tz = Mz;
+
+            E->Mx = Mx;
+            E->My = My;
+            E->Mz = Mz;
         }
         else if (E->polycount > 1)
         {
@@ -1248,6 +1256,55 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             E->Mx = E->B.Tx;
             E->My = E->B.Ty;
             E->Mz = E->B.Tz;
+        }
+    }
+
+    if (O->curve_count > 0)
+    {
+        for (p = 0; p < O->polycount; p ++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+            P->center[0] = 0;
+            P->center[1] = 0;
+            P->center[2] = 0;
+        }
+
+        for (e = 0; e < O->edgecount; e ++) // find edge polys and center verts
+        {
+            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+            idx = E->polys[0];
+            P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            P0->center[0] += E->Mx;
+            P0->center[1] += E->My;
+            P0->center[2] += E->Mz;
+
+
+            if (E->polycount > 1)
+            {
+                //idx = O->vertcount + O->edgecount + E->polys[1];
+                //V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+
+                idx = E->polys[1];
+                P1 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                P1->center[0] += E->Mx;
+                P1->center[1] += E->My;
+                P1->center[2] += E->Mz;
+            }
+        }
+
+        for (p = 0; p < O->polycount; p ++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+            idx = O->vertcount + O->edgecount + p;
+            V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+
+            V->Tx = P->center[0] / (float)V->edgecount;
+            V->Ty = P->center[1] / (float)V->edgecount;
+            V->Tz = P->center[2] / (float)V->edgecount;
+
         }
     }
 
