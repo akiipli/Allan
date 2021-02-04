@@ -853,7 +853,7 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
         S->level = 0;
         S->subdivided = 0;
         S->E = NULL;
-
+        S->index = segmentIndex;
         segments[segmentIndex ++] = S;
     }
 
@@ -872,8 +872,6 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
 
     if (C->segments == NULL) return 0;
-
-    S->index = C->segment_count; // Segment index is Curve based, not global segments
 
     C->segments[C->segment_count ++] = S;
 
@@ -945,7 +943,7 @@ int add_Curve_Segment(curve * C)
     S->level = 0;
     S->subdivided = 0;
     S->E = NULL;
-
+    S->index = segmentIndex;
     segments[segmentIndex ++] = S;
 
     C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
@@ -963,8 +961,6 @@ int add_Curve_Segment(curve * C)
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
 
     if (C->segments == NULL) return 0;
-
-    S->index = C->segment_count; // Segment index is Curve based, not global segments
 
     C->segments[C->segment_count ++] = S;
 
@@ -1066,14 +1062,12 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
         S->level = 0;
         S->subdivided = 0;
         S->E = NULL;
-
+        S->index = segmentIndex;
         segments[segmentIndex ++] = S;
     }
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
     if (C->segments == NULL) return 0;
-
-    S->index = C->segment_count; // Segment index is Curve based, not global segments
 
     C->segments[C->segment_count ++] = S;
 
@@ -1168,13 +1162,11 @@ int add_New_Curve(float pos[3], int open)
     S->level = 0;
     S->subdivided = 0;
     S->E = NULL;
-
+    S->index = segmentIndex;
     segments[segmentIndex ++] = S;
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
     if (C->segments == NULL) return 0;
-
-    S->index = C->segment_count; // Segment index is Curve based, not global segments
 
     C->segments[C->segment_count ++] = S;
 
@@ -1816,7 +1808,7 @@ int create_Object_Curve(object * O)
 
                 S->level = 0;
                 S->subdivided = 0;
-
+                S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
 
                 E->S = S;
@@ -1852,7 +1844,7 @@ int create_Object_Curve(object * O)
 
                         S->level = 0;
                         S->subdivided = 0;
-
+                        S->index = segmentIndex;
                         segments[segmentIndex ++] = S;
 
                         E->S = S;
@@ -1888,7 +1880,7 @@ int create_Object_Curve(object * O)
 
                 S->level = 0;
                 S->subdivided = 0;
-
+                S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
 
 

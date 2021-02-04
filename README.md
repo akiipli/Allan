@@ -1,4 +1,23 @@
 # Allan
+
+---
+
+1:58 PM 2/4/2021 task memo, if ever
+
+Steps for Trips Code for the curve integration into subdivision system.
+
+When curves are created and subdivided to current subdivision level they need to associate corresponding
+subdivided segments to subdivided edges. The ordering logic differs for segments and edges. Therefore
+specialized function need to do it. It may not be in Object subdivision function. This function takes
+curve by curve, follows its segments for given subdivision level and matches them up with associated
+subdivided edges.
+
+Also when initializing new members in Object.h for vertex and edge types they need to be set to NULL to
+carry out logic in subdivision tuning functions.
+
+Also saving and loading for curves, cps and segments. Associating them with object verts and edges while 
+saving and when loading.
+
 ---
 
 Note: I have suspended GL_SDL_hybrid,

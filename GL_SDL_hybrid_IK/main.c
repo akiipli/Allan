@@ -16984,7 +16984,7 @@ int main(int argc, char * args[])
                                 {
                                     CP = cps[o];
 
-                                    printf("cp vertex id %d\n", o);
+                                    //printf("cp vertex id %d\n", o);
                                     if (add_selection_mode)
                                     {
                                         CP->selected = 1;
