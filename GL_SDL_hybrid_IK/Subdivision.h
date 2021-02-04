@@ -1205,7 +1205,13 @@ void tune_In_Subdivision_Shape_transformed(object * O)
         E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
         V = &O->verts_[0][(e + c_v) / ARRAYSIZE][(e + c_v) % ARRAYSIZE]; // edge vertex
 
-        if (E->polycount > 1)
+        if (E->S != NULL)
+        {
+            V->Tx = E->S->B[0];
+            V->Ty = E->S->B[1];
+            V->Tz = E->S->B[2];
+        }
+        else if (E->polycount > 1)
         {
             idx = E->polys[0];
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1259,94 +1265,80 @@ void tune_In_Subdivision_Shape_transformed(object * O)
         V = &O->verts_[0][v / ARRAYSIZE][v % ARRAYSIZE]; // new level 0 cage vertexes
         V0 = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE]; // old level -1 cage vertexes
 
-        // first we scan surroundings and find distance to it as collapsed
-
-        Fx = Fy = Fz = 0.0;
-        Ex = Ey = Ez = 0.0;
-        Ex_o = Ey_o = Ez_o = 0.0;
-        Ex_w = Ey_w = Ez_w = 0.0;
-
-        openedge = 0;
-        edgeweight = 0;
-
-        // create logic for open edges
-
-        edgecount = V0->edgecount;
-
-        for(e = 0; e < V0->edgecount; e ++)
+        if (V0->control_point != NULL)
         {
-            idx = V0->edges[e];
-            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-            if (E->polycount == 1)
-            {
-                openedge ++;
-                Ex_o += E->B.Tx;
-                Ey_o += E->B.Ty;
-                Ez_o += E->B.Tz;
-            }
-            else if (E->weight != 0)
-            {
-                edgeweight ++;
-                Ex_w += E->B.Tx;
-                Ey_w += E->B.Ty;
-                Ez_w += E->B.Tz;
-            }
-
-            Fx += E->Mx;
-            Fy += E->My;
-            Fz += E->Mz;
-
-            Ex += E->B.Tx;
-            Ey += E->B.Ty;
-            Ez += E->B.Tz;
-        }
-
-        if (openedge)
-        {
-            Ex_o /= openedge;
-            Ey_o /= openedge;
-            Ez_o /= openedge;
-
-            Tx = V->Tx;
-            Ty = V->Ty;
-            Tz = V->Tz;
-
-            V->Tx = (Ex_o + V->Tx) / 2.0;
-            V->Ty = (Ey_o + V->Ty) / 2.0;
-            V->Tz = (Ez_o + V->Tz) / 2.0;
-        }
-        else if (edgeweight)
-        {
-            Ex_w /= edgeweight;
-            Ey_w /= edgeweight;
-            Ez_w /= edgeweight;
-
-            V->Tx = (Ex_w + V->Tx) / 2.0;
-            V->Ty = (Ey_w + V->Ty) / 2.0;
-            V->Tz = (Ez_w + V->Tz) / 2.0;
+            V->Tx = V0->control_point->pos[0];
+            V->Ty = V0->control_point->pos[1];
+            V->Tz = V0->control_point->pos[2];
         }
         else
         {
-            Fx /= edgecount;
-            Fy /= edgecount;
-            Fz /= edgecount;
+            // first we scan surroundings and find distance to it as collapsed
 
-            Ex /= edgecount;
-            Ey /= edgecount;
-            Ez /= edgecount;
+            Fx = Fy = Fz = 0.0;
+            Ex = Ey = Ez = 0.0;
+            Ex_o = Ey_o = Ez_o = 0.0;
+            Ex_w = Ey_w = Ez_w = 0.0;
 
-            V->Tx = (Fx + 2.0 * Ex + (V->edgecount - 3) * V->Tx) / edgecount;
-            V->Ty = (Fy + 2.0 * Ey + (V->edgecount - 3) * V->Ty) / edgecount;
-            V->Tz = (Fz + 2.0 * Ez + (V->edgecount - 3) * V->Tz) / edgecount;
-        }
-        if (V0->weight != 0 && edgeweight)
-        {
+            openedge = 0;
+            edgeweight = 0;
+
+            // create logic for open edges
+
+            edgecount = V0->edgecount;
+
+            for(e = 0; e < V0->edgecount; e ++)
+            {
+                idx = V0->edges[e];
+                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (E->polycount == 1)
+                {
+                    openedge ++;
+                    Ex_o += E->B.Tx;
+                    Ey_o += E->B.Ty;
+                    Ez_o += E->B.Tz;
+                }
+                else if (E->weight != 0)
+                {
+                    edgeweight ++;
+                    Ex_w += E->B.Tx;
+                    Ey_w += E->B.Ty;
+                    Ez_w += E->B.Tz;
+                }
+
+                Fx += E->Mx;
+                Fy += E->My;
+                Fz += E->Mz;
+
+                Ex += E->B.Tx;
+                Ey += E->B.Ty;
+                Ez += E->B.Tz;
+            }
+
             if (openedge)
             {
-                V->Tx = Tx * V0->weight + V->Tx * (1 - V0->weight);
-                V->Ty = Ty * V0->weight + V->Ty * (1 - V0->weight);
-                V->Tz = Tz * V0->weight + V->Tz * (1 - V0->weight);
+                Ex_o /= openedge;
+                Ey_o /= openedge;
+                Ez_o /= openedge;
+
+                Tx = V->Tx;
+                Ty = V->Ty;
+                Tz = V->Tz;
+
+                V->Tx = (Ex_o + V->Tx) / 2.0;
+                V->Ty = (Ey_o + V->Ty) / 2.0;
+                V->Tz = (Ez_o + V->Tz) / 2.0;
+            }
+            else if (edgeweight)
+            {
+                Ex_w /= edgeweight;
+                Ey_w /= edgeweight;
+                Ez_w /= edgeweight;
+
+                V->Tx = (Ex_w + V->Tx) / 2.0;
+                V->Ty = (Ey_w + V->Ty) / 2.0;
+                V->Tz = (Ez_w + V->Tz) / 2.0;
             }
             else
             {
@@ -1358,13 +1350,36 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 Ey /= edgecount;
                 Ez /= edgecount;
 
-                Tx = (Fx + 2.0 * Ex + (V->edgecount - 3) * V->Tx) / edgecount;
-                Ty = (Fy + 2.0 * Ey + (V->edgecount - 3) * V->Ty) / edgecount;
-                Tz = (Fz + 2.0 * Ez + (V->edgecount - 3) * V->Tz) / edgecount;
+                V->Tx = (Fx + 2.0 * Ex + (V->edgecount - 3) * V->Tx) / edgecount;
+                V->Ty = (Fy + 2.0 * Ey + (V->edgecount - 3) * V->Ty) / edgecount;
+                V->Tz = (Fz + 2.0 * Ez + (V->edgecount - 3) * V->Tz) / edgecount;
+            }
+            if (V0->weight != 0 && edgeweight)
+            {
+                if (openedge)
+                {
+                    V->Tx = Tx * V0->weight + V->Tx * (1 - V0->weight);
+                    V->Ty = Ty * V0->weight + V->Ty * (1 - V0->weight);
+                    V->Tz = Tz * V0->weight + V->Tz * (1 - V0->weight);
+                }
+                else
+                {
+                    Fx /= edgecount;
+                    Fy /= edgecount;
+                    Fz /= edgecount;
 
-                V->Tx = V->Tx * V0->weight + Tx * (1 - V0->weight);
-                V->Ty = V->Ty * V0->weight + Ty * (1 - V0->weight);
-                V->Tz = V->Tz * V0->weight + Tz * (1 - V0->weight);
+                    Ex /= edgecount;
+                    Ey /= edgecount;
+                    Ez /= edgecount;
+
+                    Tx = (Fx + 2.0 * Ex + (V->edgecount - 3) * V->Tx) / edgecount;
+                    Ty = (Fy + 2.0 * Ey + (V->edgecount - 3) * V->Ty) / edgecount;
+                    Tz = (Fz + 2.0 * Ez + (V->edgecount - 3) * V->Tz) / edgecount;
+
+                    V->Tx = V->Tx * V0->weight + Tx * (1 - V0->weight);
+                    V->Ty = V->Ty * V0->weight + Ty * (1 - V0->weight);
+                    V->Tz = V->Tz * V0->weight + Tz * (1 - V0->weight);
+                }
             }
         }
     }
@@ -1611,6 +1626,7 @@ int object_Subdivide_Quads(object * O, int L)
         V->visible = 0;
         V->weight = 0;
         V->weight_init = 0;
+        V->control_point = NULL;
     }
 
     for (t = 0; t < O->textcount_[L]; t ++)
@@ -1636,6 +1652,7 @@ int object_Subdivide_Quads(object * O, int L)
         E->subdivs = 0;
         E->edges[0] = -1;
         E->edges[1] = -1;
+        E->S = NULL;
     }
 
     for (e = 0; e < O->uvedcount_[L]; e ++)
@@ -2206,6 +2223,7 @@ int object_Subdivide(object * O, int L)
         V->visible = 0;
         V->weight = 0;
         V->weight_init = 0;
+        V->control_point = NULL;
     }
 
     for (t = 0; t < O->textcount_[L]; t ++)
@@ -2231,6 +2249,7 @@ int object_Subdivide(object * O, int L)
         E->subdivs = 0;
         E->edges[0] = -1;
         E->edges[1] = -1;
+        E->S = NULL;
     }
 
     for (e = 0; e < O->uvedcount_[L]; e ++)

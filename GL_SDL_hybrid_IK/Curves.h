@@ -121,6 +121,7 @@ struct curve
     curve_segment ** segments; // index in objects segments array
     int segment_count;
     int open;
+    object * O;
 };
 
 curve * curves[CURVES];
@@ -586,10 +587,12 @@ void fill_Curve_Segments_With_Coordinates(curve * C, int level)
     }
 }
 
-void subdivide_Curve_Segment(curve_segment * S, int level)
+void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object * O, edge * E)
 {
     if (!S->subdivided && level > S->level)
     {
+        int idx;
+        edge * E0, * E1;
         curve_segment * S0, * S1;
 
         S0 = malloc(sizeof(curve_segment));
@@ -610,25 +613,80 @@ void subdivide_Curve_Segment(curve_segment * S, int level)
             S->subdivided = 1;
             S->segment[0] = S0;
             S->segment[1] = S1;
+
+            if (O != NULL && E != NULL && S->E != NULL)
+            {
+                /* assign subdivided edges to subdivided segments */
+                /* detect if edge runs against curve */
+
+                idx = E->edges[0];
+                E0 = &O->edges_[S->level + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                idx = E->edges[1];
+                E1 = &O->edges_[S->level + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (counter)
+                {
+                    S0->E = E1;
+                    E1->S = S0;
+                    S1->E = E0;
+                    E0->S = S1;
+                }
+                else
+                {
+                    S0->E = E0;
+                    E0->S = S0;
+                    S1->E = E1;
+                    E1->S = S1;
+                }
+            }
         }
     }
 
     if (S->subdivided && level > S->level + 1)
     {
-        subdivide_Curve_Segment(S->segment[0], level);
-        subdivide_Curve_Segment(S->segment[1], level);
+        subdivide_Curve_Segment(S->segment[0], level, counter, O, S->segment[0]->E);
+        subdivide_Curve_Segment(S->segment[1], level, counter, O, S->segment[1]->E);
     }
 }
 
 void subdivide_Curve_Segments(curve * C, int level)
 {
-    int s;
+    int s, idx, counter;
+
+    cp * CP;
+    edge * E = NULL;
+    vertex * V;
     curve_segment * S;
 
     for (s = 0; s < C->segment_count; s ++)
     {
         S = C->segments[s];
-        subdivide_Curve_Segment(S, level);
+        CP = C->cps[s];
+
+        counter = 0;
+
+        if (C->O != NULL && S->E != NULL && CP->vert != NULL)
+        {
+            E = S->E;
+            if (E->subdivs)
+            {
+                idx = E->verts[0];
+                V = &C->O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                if (V == CP->vert)
+                {
+                    counter = 0;
+                }
+                else
+                {
+                    counter = 1;
+                }
+            }
+        }
+        else
+        {
+            E = NULL;
+        }
+        subdivide_Curve_Segment(S, level, counter, C->O, E);
     }
 }
 
@@ -793,6 +851,7 @@ void initialize_Curve(curve * C)
     C->segment_count = 0;
     C->selected = 0;
     C->open = 0;
+    C->O = NULL;
 }
 
 void free_Cp(cp * CP)
@@ -995,9 +1054,11 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
     }
 
     initialize_Curve(C);
+
     curves[curvesIndex] = C;
     C->index = curvesIndex;
     curvesIndex ++;
+    C->O = O;
 
     if (cpsIndex >= CPS)
     {
@@ -1197,6 +1258,7 @@ int add_Curve(object * O)
     O->curves[O->curve_count ++] = C;
     curves[curvesIndex] = C;
     C->index = curvesIndex;
+    C->O = O;
     curvesIndex ++;
     return 1;
 }
