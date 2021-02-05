@@ -1983,12 +1983,33 @@ void clean_Edge_Segment_Recursive(object * O, edge * E, int L, int l)
     }
 }
 
+void disconnect_Curve_Form_Object(curve * C)
+{
+    int p, s;
+
+    curve_segment * S;
+    cp * CP;
+
+    for (p = 0; p < C->cps_count; p ++)
+    {
+        CP = C->cps[p];
+        CP->vert = NULL;
+    }
+
+    for (s = 0; s < C->segment_count; s ++)
+    {
+        S = C->segments[s];
+        S->E = NULL;
+    }
+}
+
 void clean_Object_Curves(object * O)
 {
     O->curve_count = 0;
 
-    int e, v;
+    int e, v, c;
 
+    curve * C;
     edge * E;
     vertex * V;
 
@@ -2005,6 +2026,12 @@ void clean_Object_Curves(object * O)
     {
         V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
         V->control_point = NULL;
+    }
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+        disconnect_Curve_Form_Object(C);
     }
 }
 

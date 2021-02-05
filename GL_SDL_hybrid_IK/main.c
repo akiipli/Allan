@@ -17697,7 +17697,7 @@ int main(int argc, char * args[])
             {
                 if (Vertex_Mode)
                 {
-                    if (currentObject >= 0 && currentObject < objectIndex)
+                    if (currentObject > 0 && currentObject < objectIndex) // Cube is ignored, true patriots don't ignore him, but rush forward
                     {
                         O = objects[currentObject];
                         printf("%s\n", O->Name);

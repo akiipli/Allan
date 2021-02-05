@@ -3194,9 +3194,9 @@ void load_Curves(char * path, int obj_count)
         }
     }
 
-    if (obj_count && c_index && s_index && p_index)
+    if (c_index && s_index && p_index)
     {
-        int c, o, s, t, p, e, v;
+        int c, o, s, t, p, e, v, condition;
 
         vertex * V;
         edge * E;
@@ -3211,6 +3211,8 @@ void load_Curves(char * path, int obj_count)
         {
             C = curves[c];
 
+            condition = 1;
+
             for (o = objectIndex - obj_count; o < objectIndex; o ++)
             {
                 O = objects[o];
@@ -3218,10 +3220,16 @@ void load_Curves(char * path, int obj_count)
                 if (O->address == (unsigned)C->O)
                 {
                     C->O = O;
+                    condition = 0;
                     if (O->curve_count < OBJECT_CURVES)
                         O->curves[O->curve_count ++] = C;
                     break;
                 }
+            }
+
+            if (condition)
+            {
+                C->O = NULL;
             }
         }
 

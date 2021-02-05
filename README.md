@@ -1,6 +1,9 @@
 # Allan
 
 ---
+Curves are making progress.
+Do not use cube to place curves, import obj files for this.
+---
 
 1:58 PM 2/4/2021 task memo, if ever
 
