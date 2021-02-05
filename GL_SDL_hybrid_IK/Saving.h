@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1006;
+int saving_version = 1007;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -37,6 +37,7 @@ void init_scene_extensions()
     sprintf(scene_extensions[5], "Surfaces");
     sprintf(scene_extensions[6], "Subcharacters");
     sprintf(scene_extensions[7], "SubcharacterP");
+    sprintf(scene_extensions[8], "Curves");
 
     sprintf(scene_files_dir, "%s", "c:/Trips Code/Scenes IK");
 
@@ -274,6 +275,119 @@ void save_version(char * scene_folder)
         fprintf(F, "\n");
         fclose(F);
     }
+}
+
+int save_Curves(char * curves_files_dir)
+{
+    char dirfile[STRLEN];
+
+    int c, p, s;
+
+    curve_segment * S;
+    curve * C;
+    cp * CP;
+
+    dirfile[0] = '\0';
+    strcat(dirfile, curves_files_dir);
+    strcat(dirfile, "/");
+
+    strcat(dirfile, "Curves");
+    strcat(dirfile, ".txt");
+
+    FILE * F;
+    F = fopen(dirfile, "w");
+    if (F == NULL) return 0;
+
+    fprintf(F, "Curves\n");
+    fprintf(F, "%d\n", curvesIndex);
+
+    int curve_segment_count = 0;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+        fprintf(F, "%u\n", (unsigned)C);
+        fprintf(F, "%d\n", C->cps_count);
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            fprintf(F, "%u\n", (unsigned)CP);
+            fprintf(F, "%f\n", C->cps_continuity[p]);
+        }
+        fprintf(F, "%d\n", C->segment_count);
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            curve_segment_count ++;
+            S = C->segments[s];
+            fprintf(F, "%u\n", (unsigned)S);
+        }
+        fprintf(F, "%d\n", C->open);
+        fprintf(F, "%u\n", (unsigned)C->O);
+    }
+    fprintf(F, "\n");
+    fclose(F);
+
+    dirfile[0] = '\0';
+    strcat(dirfile, curves_files_dir);
+    strcat(dirfile, "/");
+
+    strcat(dirfile, "Segments");
+    strcat(dirfile, ".txt");
+
+    F = fopen(dirfile, "w");
+    if (F == NULL) return 0;
+
+    fprintf(F, "Segments\n");
+    fprintf(F, "%d\n", curve_segment_count);
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            S = C->segments[s];
+            fprintf(F, "%u\n", (unsigned)S);
+            fprintf(F, "%d\n", S->level);
+            fprintf(F, "%d\n", 0); // S->subdivided
+            fprintf(F, "%u\n", (unsigned)S->Curve);
+            fprintf(F, "%u %u\n", (unsigned)S->segment[0], (unsigned)S->segment[1]);
+            fprintf(F, "%f %f %f\n", S->A[0], S->A[1], S->A[2]);
+            fprintf(F, "%f %f %f\n", S->B[0], S->B[1], S->B[2]);
+            fprintf(F, "%f %f %f\n", S->C[0], S->C[1], S->C[2]);
+        }
+    }
+    fprintf(F, "\n");
+    fclose(F);
+
+    dirfile[0] = '\0';
+    strcat(dirfile, curves_files_dir);
+    strcat(dirfile, "/");
+
+    strcat(dirfile, "Cps");
+    strcat(dirfile, ".txt");
+
+    F = fopen(dirfile, "w");
+    if (F == NULL) return 0;
+
+    fprintf(F, "Cps\n");
+    fprintf(F, "%d\n", cpsIndex);
+
+    for (p = 0; p < cpsIndex; p ++)
+    {
+        CP = cps[p];
+        fprintf(F, "%u\n", (unsigned)CP);
+        fprintf(F, "%f %f %f\n", CP->pos[0], CP->pos[1], CP->pos[2]);
+        fprintf(F, "%d\n", CP->segment_count);
+        for (s = 0; s < CP->segment_count; s ++)
+        {
+            S = CP->segments[s];
+            fprintf(F, "%u\n", (unsigned)S);
+        }
+    }
+    fprintf(F, "\n");
+    fclose(F);
+
+    return 1;
 }
 
 void save_Objects(char * object_files_dir)

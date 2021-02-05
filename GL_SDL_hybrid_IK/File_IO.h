@@ -159,6 +159,7 @@ void print_vertex_f(FILE * F, vertex * V)
     fprintf(F, " uvvrs");
     for(i = 0; i < V->uv_vertcount; i++) fprintf(F, " %d", V->uv_verts[i]);
     fprintf(F, "\n");
+    fprintf(F, "%u\n", (unsigned)V->control_point);
 
 //    int index;
 //    int visible;
@@ -226,6 +227,7 @@ void print_edge_f(FILE * F, edge * E)
     fprintf(F, "\n uveds");
     for(i = 0; i < E->uv_edcount; i++) fprintf(F, " %d", E->uv_edges[i]);
     fprintf(F, "\n");
+    fprintf(F, "%u\n", (unsigned)E->S);
 
 //    int index;
 //    int visible;

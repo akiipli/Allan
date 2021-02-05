@@ -1037,6 +1037,7 @@ void init_object_verts(object * O, int start, float * Coords, int * Edges, int E
         {
             V->edges[j] = Edges[c_e++ % E_LEN];
         }
+        V->control_point = NULL;
         //init_vertex(i, &O->verts[i / ARRAYSIZE][i % ARRAYSIZE], &V);
     }
 }
@@ -1106,6 +1107,7 @@ void init_object_edges(object * O, int start, int * Idx_V, int * e_polys, int * 
         vertex * V0 = &O->verts[E->verts[0] / ARRAYSIZE][E->verts[0] % ARRAYSIZE];
         vertex * V1 = &O->verts[E->verts[1] / ARRAYSIZE][E->verts[1] % ARRAYSIZE];
         boxt_2(&E->B, V0, V1, 1);
+        E->S = NULL;
     }
 }
 

@@ -12016,7 +12016,7 @@ void clear_All()
         currentLocator = CUBEINDEX - 1;
         currentPose = 0;
         O = objects[currentObject];
-        O->selected = 0;
+        O->selected = 1;
         T = transformers[currentLocator];
         O->T->Bone = NULL;
         O->T->childcount = 0;
@@ -12025,7 +12025,7 @@ void clear_All()
 
         selected_transformer_count = 0;
         selected_objects[0] = 0;
-        selected_object_count = 0;
+        selected_object_count = 1;
         selected_verts_count = 0;
         selected_cps_count = 0;
         selected_curves_count = 0;
@@ -12034,6 +12034,8 @@ void clear_All()
         reinit_selections();
 
         clear_Items();
+
+        clean_Object_Curves(O);
     }
 }
 
@@ -12571,6 +12573,13 @@ void save_load_Scene()
             strcat(Path, "/");
             strcat(Path, "SubcharacterP");
             save_Subcharacter_Poses(Path);
+
+            Path[0] = '\0';
+            strcat(Path, scene_files_dir);
+            strcat(Path, "/");
+            strcat(Path, "Curves");
+            save_Curves(Path);
+
         }
 
         if (flip)
@@ -12679,6 +12688,15 @@ void save_load_Scene()
             strcat(Path, "/");
             strcat(Path, "Poses");
             pose_count = load_Poses(Path);
+
+            if (loading_version >= 1007)
+            {
+                Path[0] = '\0';
+                strcat(Path, scene_files_dir);
+                strcat(Path, "/");
+                strcat(Path, "Curves");
+                load_Curves(Path, obj_count);
+            }
 
             assign_Poses(pose_count, defr_count);
 
@@ -13630,6 +13648,7 @@ int main(int argc, char * args[])
     Button_scene_ext[5].func = &set_Button_scene_ext;
     Button_scene_ext[6].func = &set_Button_scene_ext;
     Button_scene_ext[7].func = &set_Button_scene_ext;
+    Button_scene_ext[8].func = &set_Button_scene_ext;
 
     Button_item[0].func = &set_Button_item;
     Button_item[1].func = &set_Button_item;

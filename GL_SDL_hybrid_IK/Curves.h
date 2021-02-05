@@ -606,11 +606,15 @@ void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object *
             S0->level = S->level + 1;
             S0->subdivided = 0;
             segments[segmentIndex ++] = S0;
+            S0->E = NULL;
+            S0->Curve = S->Curve;
 
             S1->index = segmentIndex;
             S1->level = S->level + 1;
             S1->subdivided = 0;
             segments[segmentIndex ++] = S1;
+            S1->E = NULL;
+            S1->Curve = S->Curve;
 
             S->subdivided = 1;
             S->segment[0] = S0;

@@ -59,6 +59,24 @@ Locators_In;
 
 typedef struct
 {
+    int cpsIndex;
+}
+Cps_In;
+
+typedef struct
+{
+    int curvesIndex;
+}
+Curves_In;
+
+typedef struct
+{
+    int segmentIndex;
+}
+Segments_In;
+
+typedef struct
+{
     unsigned address;
     char Name[STRLEN];
     int indice;
@@ -102,6 +120,7 @@ typedef struct
     int edgecount;
     int uvedcount;
     int polycount;
+    int curvcount;
 }
 Object_In;
 
@@ -1468,6 +1487,269 @@ int read_Surfaces_file(char * fileName, int obj_count)
     return 1;
 }
 
+int read_Cps_file(Cps_In * CP_IN, char * fileName)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    int s, p;
+
+    cp * CP;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Cps\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &CP_IN->cpsIndex);
+
+            for (p = 0; p < CP_IN->cpsIndex; p ++)
+            {
+                if (cpsIndex >= CPS)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                CP = calloc(1, sizeof(cp));
+
+                if (CP == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                cps[cpsIndex] = CP;
+                CP->index = cpsIndex;
+                cpsIndex ++;
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &CP->address);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &CP->pos[0], &CP->pos[1], &CP->pos[2]);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &CP->segment_count);
+
+                CP->segments = malloc(CP->segment_count * sizeof(curve_segment*));
+                if (CP->segments == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                for (s = 0; s < CP->segment_count; s ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&CP->segments[s]);
+                }
+            }
+        }
+        else
+        {
+            fclose(fp);
+            return 0;
+        }
+    }
+
+    fclose(fp);
+    return 1;
+}
+
+int read_Segments_file(Segments_In * SEG_IN, char * fileName)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    int s;
+
+    curve_segment * S;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Segments\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &SEG_IN->segmentIndex);
+
+            for (s = 0; s < SEG_IN->segmentIndex; s ++)
+            {
+                if (segmentIndex >= SEGMENTS)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                S = calloc(1, sizeof(curve_segment));
+
+                if (S == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                segments[segmentIndex] = S;
+                S->index = segmentIndex;
+                segmentIndex ++;
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &S->address);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &S->level);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &S->subdivided);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&S->Curve);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u %u", (unsigned*)&S->segment[0], (unsigned*)&S->segment[1]);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &S->A[0], &S->A[1], &S->A[2]);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &S->B[0], &S->B[1], &S->B[2]);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &S->C[0], &S->C[1], &S->C[2]);
+            }
+        }
+        else
+        {
+            fclose(fp);
+            return 0;
+        }
+    }
+
+    fclose(fp);
+    return 1;
+}
+
+int read_Curves_file(Curves_In * CURV_IN, char * fileName)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    int c, p, s;
+
+    curve * C;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Curves\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &CURV_IN->curvesIndex);
+
+            for (c = 0; c < CURV_IN->curvesIndex; c ++)
+            {
+                if (curvesIndex >= CURVES)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                C = calloc(1, sizeof(curve));
+
+                if (C == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                curves[curvesIndex] = C;
+                C->index = curvesIndex;
+                curvesIndex ++;
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &C->address);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &C->cps_count);
+
+                C->cps = malloc(C->cps_count * sizeof(cp*));
+                if (C->cps == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                C->cps_continuity = malloc(C->cps_count * sizeof(float));
+                if (C->cps_continuity == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                for (p = 0; p < C->cps_count; p ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&C->cps[p]);
+
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f", &C->cps_continuity[p]);
+                }
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &C->segment_count);
+
+                C->segments = malloc(C->segment_count * sizeof(curve_segment*));
+                if (C->segments == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                for (s = 0; s < C->segment_count; s ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&C->segments[s]);
+                }
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &C->open);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&C->O);
+            }
+        }
+        else
+        {
+            fclose(fp);
+            return 0;
+        }
+    }
+
+    fclose(fp);
+    return 1;
+}
+
 int read_Locators_file(Locators_In * LOC_IN, char * fileName)
 {
     FILE * fp;
@@ -2058,6 +2340,7 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
             fgets(buff, BUF_SIZE, fp);
             sscanf(buff, "%u", &OB_IN->address);
             fgets(buff, BUF_SIZE, fp);
+
             sscanf(buff, "%d %d %d %d %d %d %d",
             &OB_IN->textcount,
             &OB_IN->vertcount,
@@ -2066,8 +2349,6 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
             &OB_IN->edgecount,
             &OB_IN->uvedcount,
             &OB_IN->polycount);
-
-
 
             // init O here
             int result = init_object(objectIndex, OB_IN->textcount, OB_IN->vertcount, OB_IN->icolcount, OB_IN->tripcount, OB_IN->edgecount, OB_IN->uvedcount, OB_IN->polycount, 0);
@@ -2193,48 +2474,16 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
                         }
                     }
                 }
-
-                //printf("DIAGNOS %d %d\n", j, V->uv_vertcount);
-
-//                fprintf(F, "vert %d %d %d\n",
-//                V->index,
-//                V->edgecount,
-//                V->uv_vertcount);
-//                fprintf(F, " weight %f\n", V->weight);
-//                fprintf(F, " coord %f %f %f\n", V->x, V->y, V->z);
-//                int i;
-//                fprintf(F, " edges");
-//                for(i = 0; i < V->edgecount; i++) fprintf(F, " %d", V->edges[i]);
-//                fprintf(F, "\n");
-//                fprintf(F, " uvvrs");
-//                for(i = 0; i < V->uv_vertcount; i++) fprintf(F, " %d", V->uv_verts[i]);
-//                fprintf(F, "\n");
+                if (loading_version >= 1007)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&V->control_point);
+                }
+                else
+                {
+                    V->control_point = NULL;
+                }
             }
-
-//            triangle * T;
-//
-//            for (i = 0; i < O->tripcount; i ++)
-//            {
-//                T = &O->trips[i / ARRAYSIZE][i % ARRAYSIZE];
-//                fgets(buff, BUF_SIZE, fp);
-//                sscanf(buff, "%*s %d %d %d", &T->index, &T->poly, &T->surface);
-//                fgets(buff, BUF_SIZE, fp);
-//                sscanf(buff, "%*s %d %d %d", &T->verts[0], &T->verts[1], &T->verts[2]);
-//                fgets(buff, BUF_SIZE, fp);
-//                sscanf(buff, "%*s %d %d %d", &T->texts[0], &T->texts[1], &T->texts[2]);
-//                fgets(buff, BUF_SIZE, fp);
-//
-////                fprintf(F, "trip %d %d %d",
-////                T->index,
-////                T->poly,
-////                T->surface);
-////                int i;
-////                fprintf(F, "\n verts");
-////                for(i = 0; i < 3; i++) fprintf(F, " %d", T->verts[i]);
-////                fprintf(F, "\n texts");
-////                for(i = 0; i < 3; i++) fprintf(F, " %d", T->texts[i]);
-////                fprintf(F, "\n");
-//            }
 
             edge * E;
 
@@ -2254,21 +2503,15 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%*s %d %d", &E->uv_edges[0], &E->uv_edges[1]);
 
-//                fprintf(F, "edge %d %d %d\n",
-//                E->index,
-//                E->uv_edcount,
-//                E->polycount);
-//                fprintf(F, " weight %f\n", E->weight);
-//                int i;
-//                fprintf(F, " verts");
-//                for(i = 0; i < 2; i++) fprintf(F, " %d", E->verts[i]);
-//                fprintf(F, "\n polys");
-//                for(i = 0; i < E->polycount; i++) fprintf(F, " %d", E->polys[i]);
-//                fprintf(F, "\n slots");
-//                for(i = 0; i < E->polycount; i++) fprintf(F, " %d", E->slots[i]);
-//                fprintf(F, "\n uveds");
-//                for(i = 0; i < E->uv_edcount; i++) fprintf(F, " %d", E->uv_edges[i]);
-//                fprintf(F, "\n");
+                if (loading_version >= 1007)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&E->S);
+                }
+                else
+                {
+                    E->S = NULL;
+                }
             }
 
             uv_edge * UVE;
@@ -2884,6 +3127,232 @@ void null_Loaded_Addresses(int t_index, int obj_count, int b_index, int i_index)
     {
         I = ikChains[i];
         I->address = 0;
+    }
+}
+
+void load_Curves(char * path, int obj_count)
+{
+    char Path[STRLEN];
+    DIR * dir;
+    struct dirent * ent;
+
+    int result;
+    int c_index = 0;
+    int s_index = 0;
+    int p_index = 0;
+
+    if ((dir = opendir(path)) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            Path[0] = '\0';
+            strcat(Path, path);
+            strcat(Path, "/");
+            strcat(Path, ent->d_name);
+            if (isFile(Path))
+            {
+                if (strcmp(ent->d_name, "Curves.txt") == 0)
+                {
+                    result = 0;
+                    printf("CURVES\n");
+                    Curves_In * CURVES_IN = calloc(1, sizeof(Curves_In));
+                    result = read_Curves_file(CURVES_IN, Path);
+                    if (result)
+                    {
+                        printf("%d\n", CURVES_IN->curvesIndex);
+                        c_index = CURVES_IN->curvesIndex;
+                    }
+                    free(CURVES_IN);
+                }
+                else if (strcmp(ent->d_name, "Segments.txt") == 0)
+                {
+                    result = 0;
+                    printf("SEGMENTS\n");
+                    Segments_In * SEGMENTS_IN = calloc(1, sizeof(Segments_In));
+                    result = read_Segments_file(SEGMENTS_IN, Path);
+                    if (result)
+                    {
+                        printf("%d\n", SEGMENTS_IN->segmentIndex);
+                        s_index = SEGMENTS_IN->segmentIndex;
+                    }
+                    free(SEGMENTS_IN);
+                }
+                else if (strcmp(ent->d_name, "Cps.txt") == 0)
+                {
+                    result = 0;
+                    printf("CPS\n");
+                    Cps_In * CPS_IN = calloc(1, sizeof(Cps_In));
+                    result = read_Cps_file(CPS_IN, Path);
+                    if (result)
+                    {
+                        printf("%d\n", CPS_IN->cpsIndex);
+                        p_index = CPS_IN->cpsIndex;
+                    }
+                    free(CPS_IN);
+                }
+            }
+        }
+    }
+
+    if (obj_count && c_index && s_index && p_index)
+    {
+        int c, o, s, t, p, e, v;
+
+        vertex * V;
+        edge * E;
+        curve_segment * S, * S0;
+        cp * CP, * CP0;
+        curve * C;
+        object * O;
+
+        /* make object and curve association */
+
+        for (c = curvesIndex - c_index; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+
+            for (o = objectIndex - obj_count; o < objectIndex; o ++)
+            {
+                O = objects[o];
+
+                if (O->address == (unsigned)C->O)
+                {
+                    C->O = O;
+                    if (O->curve_count < OBJECT_CURVES)
+                        O->curves[O->curve_count ++] = C;
+                    break;
+                }
+            }
+        }
+
+        /* make curve and segment association */
+
+        for (c = curvesIndex - c_index; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+
+            for (t = 0; t < C->segment_count; t ++)
+            {
+                S0 = C->segments[t];
+
+                for (s = segmentIndex - s_index; s < segmentIndex; s ++)
+                {
+                    S = segments[s];
+
+                    if (S->address == (unsigned)S0)
+                    {
+                        C->segments[t] = S;
+                        S->Curve = C;
+                        break;
+                    }
+                }
+            }
+        }
+
+        /* make curve cps associations */
+
+        for (c = curvesIndex - c_index; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+
+            for (t = 0; t < C->cps_count; t ++)
+            {
+                CP0 = C->cps[t];
+
+                for (p = cpsIndex - p_index; p < cpsIndex; p ++)
+                {
+                    CP = cps[p];
+
+                    if (CP->address == (unsigned)CP0)
+                    {
+                        C->cps[t] = CP;
+                        break;
+                    }
+                }
+            }
+        }
+
+        /* for each curve associate its object edges with its segments */
+
+        for (c = curvesIndex - c_index; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+
+            if (C->O != NULL)
+            {
+                for (e = 0; e < C->O->edgecount; e ++)
+                {
+                    E = &C->O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+                    for (s = 0; s < C->segment_count; s ++)
+                    {
+                        S = C->segments[s];
+
+                        if (S->address == (unsigned)E->S)
+                        {
+                            E->S = S;
+                            S->E = E;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        /* associate curves cps with their object vertex */
+
+        for (c = curvesIndex - c_index; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+
+            if (C->O != NULL)
+            {
+                for (v = 0; v < C->O->vertcount; v ++)
+                {
+                    V = &C->O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                    for (p = 0; p < C->cps_count; p ++)
+                    {
+                        CP = C->cps[p];
+
+                        if (CP->address == (unsigned)V->control_point)
+                        {
+                            V->control_point = CP;
+                            CP->vert = V;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        /* associate cp segments */
+
+        for (c = curvesIndex - c_index; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+
+            for (t = 0; t < C->cps_count; t ++)
+            {
+                CP = C->cps[t];
+
+                for (p = 0; p < CP->segment_count; p ++)
+                {
+                    S0 = CP->segments[p];
+
+                    for (s = segmentIndex - s_index; s < segmentIndex; s ++)
+                    {
+                        S = segments[s];
+
+                        if (S->address == (unsigned)S0)
+                        {
+                            CP->segments[p] = S;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -3522,7 +3991,7 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
         }
     }
 
-    null_Loaded_Addresses(t_index, obj_count, b_index, i_index);
+    //null_Loaded_Addresses(t_index, obj_count, b_index, i_index);
 }
 
 void assign_Poses(int pose_count, int defr_count)

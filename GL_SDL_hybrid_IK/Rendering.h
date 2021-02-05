@@ -1949,6 +1949,65 @@ int draw_Edge_ID_recursive(camera * C, object * O, edge * E, int L, int l)
     return 0;
 }
 
+void clean_Edge_Segment_Recursive(object * O, edge * E, int L, int l)
+{
+    if (L > l)
+    {
+
+    }
+    else
+    {
+        E->S = NULL;
+
+        L ++;
+        if (L >= SUBD)
+        {
+
+        }
+        else
+        {
+            int idx;
+
+            edge * E0;
+
+            if (E->subdivs)
+            {
+                idx = E->edges[0];
+                E0 = &O->edges_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                clean_Edge_Segment_Recursive(O, E0, L, l);
+                idx = E->edges[1];
+                E0 = &O->edges_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                clean_Edge_Segment_Recursive(O, E0, L, l);
+            }
+        }
+    }
+}
+
+void clean_Object_Curves(object * O)
+{
+    O->curve_count = 0;
+
+    int e, v;
+
+    edge * E;
+    vertex * V;
+
+    for (e = 0; e < O->edgecount; e ++)
+    {
+        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+        if (E->S != NULL)
+        {
+            clean_Edge_Segment_Recursive(O, E, 0, O->subdlevel);
+        }
+    }
+
+    for (v = 0; v < O->vertcount; v ++)
+    {
+        V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+        V->control_point = NULL;
+    }
+}
+
 int draw_Edge_recursive(object * O, edge * E, int L, int l, camera * C, int wireframe, float edge_length)
 {
     if (L > l) return 0;
