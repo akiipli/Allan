@@ -2302,7 +2302,7 @@ void delete_Curve(curve * C)
                 for (s = 0; s < CP->segment_count; s ++)
                 {
                     S = CP->segments[s];
-                    if (S->E != NULL)
+                    if (S != NULL && S->E != NULL)
                     {
                         condition = 0;
                         break;
