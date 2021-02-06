@@ -302,6 +302,7 @@ int save_Curves(char * curves_files_dir)
     fprintf(F, "%d\n", curvesIndex);
 
     int curve_segment_count = 0;
+    int cps_count = 0;
 
     for (c = 0; c < curvesIndex; c ++)
     {
@@ -310,6 +311,7 @@ int save_Curves(char * curves_files_dir)
         fprintf(F, "%d\n", C->cps_count);
         for (p = 0; p < C->cps_count; p ++)
         {
+            cps_count ++;
             CP = C->cps[p];
             fprintf(F, "%u\n", (unsigned)CP);
             fprintf(F, "%f\n", C->cps_continuity[p]);
@@ -370,18 +372,22 @@ int save_Curves(char * curves_files_dir)
     if (F == NULL) return 0;
 
     fprintf(F, "Cps\n");
-    fprintf(F, "%d\n", cpsIndex);
+    fprintf(F, "%d\n", cps_count);
 
-    for (p = 0; p < cpsIndex; p ++)
+    for (c = 0; c < curvesIndex; c ++)
     {
-        CP = cps[p];
-        fprintf(F, "%u\n", (unsigned)CP);
-        fprintf(F, "%f %f %f\n", CP->pos[0], CP->pos[1], CP->pos[2]);
-        fprintf(F, "%d\n", CP->segment_count);
-        for (s = 0; s < CP->segment_count; s ++)
+        C = curves[c];
+        for (p = 0; p < C->cps_count; p ++)
         {
-            S = CP->segments[s];
-            fprintf(F, "%u\n", (unsigned)S);
+            CP = C->cps[p];
+            fprintf(F, "%u\n", (unsigned)CP);
+            fprintf(F, "%f %f %f\n", CP->pos[0], CP->pos[1], CP->pos[2]);
+            fprintf(F, "%d\n", CP->segment_count);
+            for (s = 0; s < CP->segment_count; s ++)
+            {
+                S = CP->segments[s];
+                fprintf(F, "%u\n", (unsigned)S);
+            }
         }
     }
     fprintf(F, "\n");

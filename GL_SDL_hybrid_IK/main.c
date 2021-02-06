@@ -17359,7 +17359,14 @@ int main(int argc, char * args[])
         }
         else if (message == 6)
         {
-            if (mod & KMOD_CTRL)
+            if (Curve_Mode)
+            {
+                if (currentCurve >= 0 && currentCurve < curvesIndex)
+                {
+                    delete_Curve(curves[currentCurve]);
+                }
+            }
+            else if (mod & KMOD_CTRL)
                 Camera->T->rot[2] -= pi30;
             else if (mod & KMOD_SHIFT)
                 O->T->pos[2] += 0.5;

@@ -2188,4 +2188,171 @@ int add_Next_Vertex_To_Selected(object * O)
     return r;
 }
 
+void clean_Edge_Segment_Recursive(object * O, edge * E, int L, int l)
+{
+    if (L > l)
+    {
+
+    }
+    else
+    {
+        E->S = NULL;
+
+        L ++;
+        if (L >= SUBD)
+        {
+
+        }
+        else
+        {
+            int idx;
+
+            edge * E0;
+
+            if (E->subdivs)
+            {
+                idx = E->edges[0];
+                E0 = &O->edges_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                clean_Edge_Segment_Recursive(O, E0, L, l);
+                idx = E->edges[1];
+                E0 = &O->edges_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                clean_Edge_Segment_Recursive(O, E0, L, l);
+            }
+        }
+    }
+}
+
+void disconnect_Curve_Form_Object(curve * C)
+{
+    int p, s;
+
+    curve_segment * S;
+    cp * CP;
+
+    for (p = 0; p < C->cps_count; p ++)
+    {
+        CP = C->cps[p];
+        CP->vert = NULL;
+    }
+
+    for (s = 0; s < C->segment_count; s ++)
+    {
+        S = C->segments[s];
+        S->E = NULL;
+    }
+}
+
+void clean_Object_Curves(object * O)
+{
+    O->curve_count = 0;
+
+    int e, v, c;
+
+    curve * C;
+    edge * E;
+    vertex * V;
+
+    for (e = 0; e < O->edgecount; e ++)
+    {
+        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+        if (E->S != NULL)
+        {
+            clean_Edge_Segment_Recursive(O, E, 0, O->subdlevel);
+        }
+    }
+
+    for (v = 0; v < O->vertcount; v ++)
+    {
+        V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+        V->control_point = NULL;
+    }
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+        disconnect_Curve_Form_Object(C);
+    }
+}
+
+void delete_Curve(curve * C)
+{
+    int c, s, p;
+
+    object * O = C->O;
+    curve_segment * S;
+    cp * CP;
+
+    int condition, index;
+
+    if (O != NULL)
+    {
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            S = C->segments[s];
+
+            if (S->E != NULL)
+            {
+                clean_Edge_Segment_Recursive(O, S->E, 0, O->subdlevel);
+            }
+        }
+
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+
+            if (CP->vert != NULL)
+            {
+                CP->vert->control_point = NULL;
+            }
+        }
+
+        condition = 0;
+
+        for (c = 0; c < O->curve_count; c ++)
+        {
+            if (O->curves[c] == C)
+            {
+                index = c;
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            O->curve_count --;
+
+            for (c = index; c < O->curve_count; c ++)
+            {
+                O->curves[c] = O->curves[c + 1];
+            }
+        }
+    }
+
+    condition = 0;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        if (curves[c] == C)
+        {
+            index = c;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        curvesIndex --;
+
+        for (c = index; c < curvesIndex; c ++)
+        {
+            curves[c] = curves[c + 1];
+            curves[c]->index = c;
+        }
+
+        free_Curve(C);
+    }
+}
+
 #endif // CURVES_H_INCLUDED
