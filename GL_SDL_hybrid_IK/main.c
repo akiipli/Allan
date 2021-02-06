@@ -15570,6 +15570,8 @@ int main(int argc, char * args[])
                                             {
                                                 CP->vert->selected = 1;
                                                 select_CP_Segments_Edges(CP, 1);
+                                                if (selected_verts_count < CPS)
+                                                    selected_verts[selected_verts_count ++] = CP->vert;
                                             }
                                         }
                                         else
@@ -15795,7 +15797,10 @@ int main(int argc, char * args[])
                         if (selection_Mode == CURVE)
                             ordered_Curve_Selection();
                         else if (selection_Mode == CURVE_CP)
+                        {
                             ordered_Cp_Selection();
+                            ordered_Verts_Selection(O);
+                        }
                     }
                     else if (Vertex_Mode)
                     {

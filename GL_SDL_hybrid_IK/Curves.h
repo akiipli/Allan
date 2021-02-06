@@ -896,6 +896,10 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
 
         V->control_point = CP;
         CP->vert = V;
+
+        CP->pos[0] = V->Tx;
+        CP->pos[1] = V->Ty;
+        CP->pos[2] = V->Tz;
     }
 
     curve_segment * S;
@@ -942,8 +946,6 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
     S->Curve = C;
 
     //memcpy(CP->pos, (float[3]){1.0, 1.0, 1.0}, float_3);
-
-    memcpy(CP->pos, C->cps[C->cps_count - 2]->pos, float_3);
 
     if (C->cps[C->cps_count - 2]->vert == NULL)
     {
@@ -1991,14 +1993,6 @@ int create_Object_Curve(object * O)
                 }
 
                 r = add_Curve_Segment_To_Verts(C, V, O);
-                if (r)
-                {
-                    pos[0] = V->Tx;
-                    pos[1] = V->Ty;
-                    pos[2] = V->Tz;
-
-                    memcpy(C->cps[C->cps_count - 1]->pos, pos, sizeof(float[3]));
-                }
             }
 
             if (!curve_closed)
@@ -2196,6 +2190,7 @@ void clean_Edge_Segment_Recursive(object * O, edge * E, int L, int l)
     }
     else
     {
+        E->S->E = NULL;
         E->S = NULL;
 
         L ++;
@@ -2302,7 +2297,22 @@ void delete_Curve(curve * C)
 
             if (CP->vert != NULL)
             {
-                CP->vert->control_point = NULL;
+                condition = 1;
+
+                for (s = 0; s < CP->segment_count; s ++)
+                {
+                    S = CP->segments[s];
+                    if (S->E != NULL)
+                    {
+                        condition = 0;
+                        break;
+                    }
+                }
+
+                if (condition)
+                {
+                    CP->vert->control_point = NULL;
+                }
             }
         }
 
