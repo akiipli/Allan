@@ -57,6 +57,7 @@ int currentCp = 0;
 
 int cp_Manipulation = 0;
 int curve_Manipulation = 0;
+int rotate_Curves_With_Object = 0;
 
 float length(float V[3]);
 size_t float_3 = sizeof(float[3]);
@@ -1472,6 +1473,18 @@ void update_connected_Curves(int level)
     }
 }
 
+void update_object_Curves(object * O, int level)
+{
+    int c;
+    curve * C;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+        update_Curve(C, level);
+    }
+}
+
 void update_selected_Curves(int level)
 {
     int c;
@@ -1605,6 +1618,46 @@ void clear_Selected_Cp_Weights()
     }
 }
 
+void transfer_Delta_To_Object_Cps(object * O, float Delta[3])
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            CP->pos[0] = CP->Pos[0] + Delta[0];
+            CP->pos[1] = CP->Pos[1] + Delta[1];
+            CP->pos[2] = CP->Pos[2] + Delta[2];
+        }
+    }
+}
+
+void remember_Object_Curves_pos(object * O)
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            CP->Pos[0] = CP->pos[0];
+            CP->Pos[1] = CP->pos[1];
+            CP->Pos[2] = CP->pos[2];
+        }
+    }
+}
+
 void remember_Curves_Cp_pos()
 {
     int c, p;
@@ -1705,6 +1758,27 @@ void snap_back_Curve_Cps_To_Pos()
         for (p = 0; p < C->cps_count; p ++)
         {
             CP = C->cps[p];
+            CP->pos[0] = CP->Pos[0];
+            CP->pos[1] = CP->Pos[1];
+            CP->pos[2] = CP->Pos[2];
+        }
+    }
+}
+
+void snap_back_Object_Cps_To_Pos(object * O)
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+
             CP->pos[0] = CP->Pos[0];
             CP->pos[1] = CP->Pos[1];
             CP->pos[2] = CP->Pos[2];
@@ -1823,6 +1897,24 @@ void update_Selected_Cps_Positions()
             {
                 rotate_center(CP->Pos, Action_Center->rotVec, Action_Center->pos, CP->pos);
             }
+        }
+    }
+}
+
+void update_Object_Curves_Cps_Positions(object * O)
+{
+    int c, p;
+
+    cp * CP;
+    curve * C;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            rotate_center(CP->Pos, Action_Center->rotVec, Action_Center->pos, CP->pos);
         }
     }
 }

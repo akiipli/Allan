@@ -254,6 +254,16 @@ int Action_Begin_Transformers_Count;
 transformer * Action_Center; /* this transformer is not listed in transformers hierarchy */
                              /* its function is to aid cps manipulation when transforming them */
 
+void reset_Action_Center()
+{
+    Action_Center->scl_vec[0] = 1;
+    Action_Center->scl_vec[1] = 1;
+    Action_Center->scl_vec[2] = 1;
+    Action_Center->rot[0] = 0;
+    Action_Center->rot[1] = 0;
+    Action_Center->rot[2] = 0;
+}
+
 void add_Child(transformer * T, transformer * parent)
 {
     int c;

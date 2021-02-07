@@ -20,6 +20,7 @@ look for CUBECOMMENT
 int ROTATION = 0;
 int MOVEMENT = 0;
 int SCALE = 0;
+int RESET = 0;
 
 #define CUBEINDEX 7
 
@@ -1586,7 +1587,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         {
             render_polys_OnScreen(C, wireframe, edgedraw, vertdraw, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
 
-            if (Curve_Mode || Vertex_Mode)
+            if (!BIND_POSE)
             {
                 render_Curves();
                 render_Cps();
@@ -1647,7 +1648,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         {
             render_quads_OnScreen(C, wireframe, edgedraw, vertdraw, level, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
 
-            if (Curve_Mode || Vertex_Mode)
+            if (!BIND_POSE)
             {
                 render_Curves_(subdLevel);
                 render_Cps();
@@ -11102,15 +11103,32 @@ void start_Rotation()
             find_Curves_action_Center();
             remember_Curves_Cp_pos();
         }
-        Action_Center->scl_vec[0] = 1;
-        Action_Center->scl_vec[1] = 1;
-        Action_Center->scl_vec[2] = 1;
-        Action_Center->rot[0] = 0;
-        Action_Center->rot[1] = 0;
-        Action_Center->rot[2] = 0;
+        Action_Center->rot_Order = yxz;
+        reset_Action_Center();
     }
     else
     {
+        if (O->curve_count > 0)
+        {
+            /* since cp positions are not stored in original pose */
+            if (T->rot[0] == 0 && T->rot[1] == 0 && T->rot[2] == 0)
+            {
+                rotate_Curves_With_Object = 1;
+            }
+
+            remember_Object_Curves_pos(O);
+
+            Action_Center->rot_Order = T->rot_Order;
+            Action_Center->pos[0] = T->pos[0];
+            Action_Center->pos[1] = T->pos[1];
+            Action_Center->pos[2] = T->pos[2];
+            reset_Action_Center();
+
+            /* store T Inverse */
+
+            //invert_Rotation_1(Action_Center->rotVec_I, T->rotVec_);
+        }
+
         Update_Objects_Count = 0;
         if (Constraint_Pack.IK != NULL)
         {
@@ -11191,6 +11209,10 @@ void start_Movement()
         else
         {
             T = O->T;
+            if (O->curve_count > 0)
+            {
+                remember_Object_Curves_pos(O);
+            }
         }
 
         direction D1;
@@ -11393,6 +11415,7 @@ void start_Movement()
     {
         object_hook = 0;
         ROTATION = 0;
+        rotate_Curves_With_Object = 0;
         MOVEMENT = 0;
         altDown = 0;
         SCALE = 0;
@@ -11468,6 +11491,12 @@ void make_Movement()
         else
         {
             move_(T, Delta);
+        }
+
+        if (O->curve_count > 0)
+        {
+            transfer_Delta_To_Object_Cps(O, Delta);
+            update_object_Curves(O, subdLevel);
         }
 
         if (T->Deformer != NULL)
@@ -11633,6 +11662,36 @@ void transform_Objects_And_Render()
                     rotate_bind(O->T);
                 else
                     rotate_T(O->T);
+            }
+
+            if (ROTATION)
+            {
+                if (rotate_Curves_With_Object)
+                {
+                    if (RESET)
+                    {
+                        RESET = 0;
+                    }
+                    else
+                    {
+                        memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
+                        rotate_T(Action_Center);
+                    }
+
+                    update_Object_Curves_Cps_Positions(O);
+                    update_object_Curves(O, subdLevel);
+                }
+            }
+            else if (SCALE)
+            {
+                if (O->curve_count > 0)
+                {
+                    memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
+                    rotate_T(Action_Center);
+
+                    update_Object_Curves_Cps_Positions(O);
+                    update_object_Curves(O, subdLevel);
+                }
             }
         }
 
@@ -13219,6 +13278,22 @@ void make_Rotation_Persp(float delta_y, float delta_1, float delta_2)
     }
     else
     {
+        if (O->curve_count > 0)
+        {
+            if (Axis_lock)
+            {
+                Action_Center->rot[0] = 0;
+                Action_Center->rot[1] = 0;
+                Action_Center->rot[2] = 0;
+                Action_Center->rot[Axis_lock - 1] = delta_1;
+            }
+            else
+            {
+                Action_Center->rot[0] = delta_y;
+                Action_Center->rot[1] = delta_2;
+            }
+        }
+
         if (Axis_lock)
         {
             T->rot[0] = object_Rot[0];
@@ -13273,6 +13348,22 @@ void make_Rotation_Left(float delta_y, float delta_x)
     }
     else
     {
+        if (O->curve_count > 0)
+        {
+            if (Axis_lock)
+            {
+                Action_Center->rot[0] = 0;
+                Action_Center->rot[1] = 0;
+                Action_Center->rot[2] = 0;
+                Action_Center->rot[Axis_lock - 1] = delta_x;
+            }
+            else
+            {
+                Action_Center->rot[1] = delta_x;
+                Action_Center->rot[2] = -delta_y;
+            }
+        }
+
         if (Axis_lock)
         {
             T->rot[0] = object_Rot[0];
@@ -13327,6 +13418,22 @@ void make_Rotation_Front(float delta_y, float delta_x)
     }
     else
     {
+        if (O->curve_count > 0)
+        {
+            if (Axis_lock)
+            {
+                Action_Center->rot[0] = 0;
+                Action_Center->rot[1] = 0;
+                Action_Center->rot[2] = 0;
+                Action_Center->rot[Axis_lock - 1] = delta_x;
+            }
+            else
+            {
+                Action_Center->rot[0] = delta_y;
+                Action_Center->rot[1] = delta_x;
+            }
+        }
+
         if (Axis_lock)
         {
             T->rot[0] = object_Rot[0];
@@ -13381,6 +13488,22 @@ void make_Rotation_Top(float delta_y, float delta_x)
     }
     else
     {
+        if (O->curve_count > 0)
+        {
+            if (Axis_lock)
+            {
+                Action_Center->rot[0] = 0;
+                Action_Center->rot[1] = 0;
+                Action_Center->rot[2] = 0;
+                Action_Center->rot[Axis_lock - 1] = delta_x;
+            }
+            else
+            {
+                Action_Center->rot[0] = delta_y;
+                Action_Center->rot[2] = - delta_x;
+            }
+        }
+
         if (Axis_lock)
         {
             T->rot[0] = object_Rot[0];
@@ -13437,6 +13560,23 @@ void make_Scale(float delta)
     }
     else
     {
+        if (O->curve_count > 0)
+        {
+            if (Axis_lock)
+            {
+                Action_Center->scl_vec[0] = 1;
+                Action_Center->scl_vec[1] = 1;
+                Action_Center->scl_vec[2] = 1;
+                Action_Center->scl_vec[Axis_lock - 1] = 1 + delta;
+            }
+            else
+            {
+                Action_Center->scl_vec[0] = 1 + delta;
+                Action_Center->scl_vec[1] = 1 + delta;
+                Action_Center->scl_vec[2] = 1 + delta;
+            }
+        }
+
         if (Axis_lock)
         {
             T->scl[0] = object_Scl[0];
@@ -13494,6 +13634,23 @@ void make_Scale_Persp(float delta_1, float delta_2)
     }
     else
     {
+        if (O->curve_count > 0)
+        {
+            if (Axis_lock)
+            {
+                Action_Center->scl_vec[0] = 1;
+                Action_Center->scl_vec[1] = 1;
+                Action_Center->scl_vec[2] = 1;
+                Action_Center->scl_vec[Axis_lock - 1] = 1 + delta_1;
+            }
+            else
+            {
+                Action_Center->scl_vec[0] = 1 + delta_2;
+                Action_Center->scl_vec[1] = 1 + delta_2;
+                Action_Center->scl_vec[2] = 1 + delta_2;
+            }
+        }
+
         if (Axis_lock)
         {
             T->scl[0] = object_Scl[0];
@@ -14176,6 +14333,13 @@ int main(int argc, char * args[])
                                 {
                                     T = objects[currentObject]->T;
                                     bake_pose_Children(T);
+
+                                    if (O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
+                                    {
+                                        snap_back_Object_Cps_To_Pos(O);
+                                        update_object_Curves(O, subdLevel);
+                                        update_object_Curves(O, subdLevel);
+                                    }
                                 }
                             }
                             else
@@ -14271,6 +14435,7 @@ int main(int argc, char * args[])
                         camera_z_move = 0;
                         object_hook = 0;
                         ROTATION = 0;
+                        rotate_Curves_With_Object = 0;
                         MOVEMENT = 0;
                         BONES_MODE = 0;
                         SCALE = 0;
@@ -15691,6 +15856,7 @@ int main(int argc, char * args[])
                         camera_z_move = 0;
                         object_hook = 0;
                         ROTATION = 0;
+                        rotate_Curves_With_Object = 0;
                         MOVEMENT = 0;
                         BONES_MODE = 0;
                         SCALE = 0;
@@ -17518,6 +17684,10 @@ int main(int argc, char * args[])
                 reset_View(Camera, CamDist, ortho_on);
                 message = -10;
             }
+            else if (Curve_Mode)
+            {
+
+            }
             else if (mod & KMOD_ALT)
             {
                 SCALE = 1;
@@ -17561,6 +17731,26 @@ int main(int argc, char * args[])
                         T->scl[0] = 1.0;
                         T->scl[1] = 1.0;
                         T->scl[2] = 1.0;
+                    }
+
+                    if (O->curve_count > 0)
+                    {
+                        remember_Object_Curves_pos(O);
+                        reset_Action_Center();
+
+                        Action_Center->rot_Order = T->rot_Order;
+
+                        if (T->scl_vec[0] == 0) T->scl_vec[0] = MIN_SCALE;
+                        if (T->scl_vec[1] == 0) T->scl_vec[1] = MIN_SCALE;
+                        if (T->scl_vec[2] == 0) T->scl_vec[2] = MIN_SCALE;
+
+                        Action_Center->scl_vec[0] = 1.0 / T->scl_vec[0];
+                        Action_Center->scl_vec[1] = 1.0 / T->scl_vec[1];
+                        Action_Center->scl_vec[2] = 1.0 / T->scl_vec[2];
+
+                        Action_Center->pos[0] = T->pos[0];
+                        Action_Center->pos[1] = T->pos[1];
+                        Action_Center->pos[2] = T->pos[2];
                     }
                 }
 
@@ -17614,12 +17804,33 @@ int main(int argc, char * args[])
                         T->rot[1] = 0.0;
                         T->rot[2] = 0.0;
                     }
+
+                    if (O->curve_count > 0)
+                    {
+                        remember_Object_Curves_pos(O);
+
+                        if (T->scl_vec[0] == 0) T->scl_vec[0] = MIN_SCALE;
+                        if (T->scl_vec[1] == 0) T->scl_vec[1] = MIN_SCALE;
+                        if (T->scl_vec[2] == 0) T->scl_vec[2] = MIN_SCALE;
+
+                        Action_Center->scl_vec[0] = 1.0 / T->scl_vec[0];
+                        Action_Center->scl_vec[1] = 1.0 / T->scl_vec[1];
+                        Action_Center->scl_vec[2] = 1.0 / T->scl_vec[2];
+
+                        invert_Rotation_1(Action_Center->rotVec, T->rotVec);
+
+                        scale_axis(Action_Center);
+
+                        RESET = 1;
+                        rotate_Curves_With_Object = 1;
+                    }
                 }
 
                 message = -10;
 
                 transform_Objects_And_Render();
                 ROTATION = 0;
+                rotate_Curves_With_Object = 0;
             }
             else
             {
@@ -17633,6 +17844,22 @@ int main(int argc, char * args[])
                 }
                 if (T->Bone == NULL && T->Deformer == NULL)
                 {
+                    O = T->Object;
+                    if (O != NULL && O->curve_count > 0)
+                    {
+                        remember_Object_Curves_pos(O);
+
+                        float Delta[3];
+
+                        Delta[0] = -T->pos[0];
+                        Delta[1] = -T->pos[1];
+                        Delta[2] = -T->pos[2];
+
+                        transfer_Delta_To_Object_Cps(O, Delta);
+                        update_object_Curves(O, subdLevel);
+                        update_object_Curves(O, subdLevel);
+                    }
+
                     T->pos[0] = 0.0;
                     T->pos[1] = 0.0;
                     T->pos[2] = 0.0;
@@ -18322,6 +18549,7 @@ int main(int argc, char * args[])
                     subdLevel = subdLevel_mem;
                     object_hook = 0;
                     ROTATION = 0;
+                    rotate_Curves_With_Object = 0;
                     MOVEMENT = 0;
                     SCALE = 0;
                     Axis_lock = 0;
@@ -18528,6 +18756,7 @@ int main(int argc, char * args[])
                     subdLevel = subdLevel_mem;
                     object_hook = 0;
                     ROTATION = 0;
+                    rotate_Curves_With_Object = 0;
                     MOVEMENT = 0;
                     SCALE = 0;
                     Axis_lock = 0;

@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1606591540 source:c:\gl_sdl_hybrid_ik\main.c
+1612708142 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -19,10 +19,10 @@
 	<ft2build.h>
 	"UserInterface.h"
 	"Materials.h"
-	"Properties.h"
 	"Items.h"
 	"IKSolution.h"
 	"Deformer.h"
+	"Properties.h"
 	"Poses.h"
 	"Bones.h"
 	"Subcharacters.h"
@@ -31,6 +31,7 @@
 	"ImageLoad.h"
 	"MathFunctions.h"
 	"Cameras.h"
+	"Selections.h"
 	"Saving.h"
 	"InitializingFunctions.h"
 	"ExtensionFunctions.h"
@@ -41,7 +42,6 @@
 	"Arrays.h"
 	"Lights.h"
 	"Rendering.h"
-	"Selections.h"
 	"Hierarchys.h"
 	"Validators.h"
 	"Loading.h"
@@ -63,45 +63,45 @@
 1540493296 c:\gl_sdl_hybrid_ik\cursors.h
 	"SDL/SDL.h"
 
-1578768311 c:\gl_sdl_hybrid_ik\transformer.h
+1612700052 c:\gl_sdl_hybrid_ik\transformer.h
 
-1577375482 c:\gl_sdl_hybrid_ik\object.h
+1612544340 c:\gl_sdl_hybrid_ik\object.h
 
-1541078686 c:\gl_sdl_hybrid_ik\curves.h
+1612707140 c:\gl_sdl_hybrid_ik\curves.h
 
-1606582615 c:\gl_sdl_hybrid_ik\userinterface.h
+1612521318 c:\gl_sdl_hybrid_ik\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
 	<errno.h>
 
-1579021339 c:\gl_sdl_hybrid_ik\iksolution.h
+1610190046 c:\gl_sdl_hybrid_ik\iksolution.h
 
-1603833673 c:\gl_sdl_hybrid_ik\deformer.h
+1610212623 c:\gl_sdl_hybrid_ik\deformer.h
 
-1578765947 c:\gl_sdl_hybrid_ik\poses.h
+1610122833 c:\gl_sdl_hybrid_ik\poses.h
 
-1604050199 c:\gl_sdl_hybrid_ik\bones.h
+1609945119 c:\gl_sdl_hybrid_ik\bones.h
 
 1605903727 c:\gl_sdl_hybrid_ik\shaders.h
 
-1540493296 c:\gl_sdl_hybrid_ik\file_io.h
+1612527237 c:\gl_sdl_hybrid_ik\file_io.h
 
 1606064982 c:\gl_sdl_hybrid_ik\materials.h
 
 1606071568 c:\gl_sdl_hybrid_ik\imageload.h
 
-1606237728 c:\gl_sdl_hybrid_ik\mathfunctions.h
+1607016589 c:\gl_sdl_hybrid_ik\mathfunctions.h
 
-1605749848 c:\gl_sdl_hybrid_ik\cameras.h
+1611399663 c:\gl_sdl_hybrid_ik\cameras.h
 
-1606585299 c:\gl_sdl_hybrid_ik\saving.h
+1612633099 c:\gl_sdl_hybrid_ik\saving.h
 
-1606591540 c:\gl_sdl_hybrid_ik\initializingfunctions.h
+1612527237 c:\gl_sdl_hybrid_ik\initializingfunctions.h
 
 1540493296 c:\gl_sdl_hybrid_ik\extensionfunctions.h
 
-1587206817 c:\gl_sdl_hybrid_ik\subdivision.h
+1612545931 c:\gl_sdl_hybrid_ik\subdivision.h
 
 1587209912 c:\gl_sdl_hybrid_ik\generators.h
 
@@ -120,23 +120,23 @@
 
 1558890340 c:\gl_sdl_hybrid_ik\arrays.h
 
-1606076863 c:\gl_sdl_hybrid_ik\lights.h
+1611826455 c:\gl_sdl_hybrid_ik\lights.h
 
-1606292894 c:\gl_sdl_hybrid_ik\rendering.h
+1612631864 c:\gl_sdl_hybrid_ik\rendering.h
 
 1605011737 c:\gl_sdl_hybrid_ik\selections.h
 
-1604235130 c:\gl_sdl_hybrid_ik\hierarchys.h
+1610121165 c:\gl_sdl_hybrid_ik\hierarchys.h
 
 1540493296 c:\gl_sdl_hybrid_ik\validators.h
 
-1606591141 c:\gl_sdl_hybrid_ik\loading.h
+1612559345 c:\gl_sdl_hybrid_ik\loading.h
 
 1540493296 c:\gl_sdl_hybrid_ik\modeling.h
 
-1606054387 c:\gl_sdl_hybrid_ik\items.h
+1606929261 c:\gl_sdl_hybrid_ik\items.h
 
-1606557291 c:\gl_sdl_hybrid_ik\subcharacters.h
+1609268787 c:\gl_sdl_hybrid_ik\subcharacters.h
 
-1606239161 c:\gl_sdl_hybrid_ik\properties.h
+1610363124 c:\gl_sdl_hybrid_ik\properties.h
 
