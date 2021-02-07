@@ -11205,10 +11205,13 @@ void start_Movement()
             if (currentLocator == 0)
                 currentLocator = transformerIndex - 1;
             T = transformers[currentLocator];
-            O = T->Object;
-            if (O->curve_count > 0)
+            if (T->Object != NULL)
             {
-                remember_Object_Curves_pos(O);
+                O = T->Object;
+                if (O->curve_count > 0)
+                {
+                    remember_Object_Curves_pos(O);
+                }
             }
         }
         else
