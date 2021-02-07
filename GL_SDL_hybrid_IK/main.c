@@ -11205,6 +11205,11 @@ void start_Movement()
             if (currentLocator == 0)
                 currentLocator = transformerIndex - 1;
             T = transformers[currentLocator];
+            O = T->Object;
+            if (O->curve_count > 0)
+            {
+                remember_Object_Curves_pos(O);
+            }
         }
         else
         {
@@ -14328,6 +14333,13 @@ int main(int argc, char * args[])
                                 {
                                     T = transformers[currentLocator];
                                     bake_pose_Children(T);
+
+                                    if (O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
+                                    {
+                                        snap_back_Object_Cps_To_Pos(O);
+                                        update_object_Curves(O, subdLevel);
+                                        update_object_Curves(O, subdLevel);
+                                    }
                                 }
                                 else
                                 {
