@@ -149,6 +149,7 @@ int UPDATE_DEFORMERS = 0;
 
 int wireframe = 0;
 int edgedraw = 0;
+int curve_Draw = 0;
 int edgeWeights = 0;
 int cpWeights = 0;
 int vertdraw = 0;
@@ -1587,7 +1588,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         {
             render_polys_OnScreen(C, wireframe, edgedraw, vertdraw, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
 
-            if (!BIND_POSE)
+            if (curve_Draw)
             {
                 render_Curves();
                 render_Cps();
@@ -1648,7 +1649,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         {
             render_quads_OnScreen(C, wireframe, edgedraw, vertdraw, level, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
 
-            if (!BIND_POSE)
+            if (curve_Draw)
             {
                 render_Curves_(subdLevel);
                 render_Cps();
@@ -2859,6 +2860,7 @@ void set_Curve_Mode()
         Curve_Mode = 1;
         Bone_Mode = 0;
         vertdraw = 0;
+        curve_Draw = 1;
         Button_Mode[4].color = UI_GRAYB;
         Button_Mode[5].color = UI_GRAYD;
 
@@ -17616,6 +17618,10 @@ int main(int argc, char * args[])
             subdivide_Curves(subdLevel);
             update_Curves(subdLevel);
             update_Curves(subdLevel);
+//            if (curvesIndex > 0)
+//            {
+//                print_Curve_subdLevel(curves[0]);
+//            }
             //
 
             UPDATE_COLORS = 1;
@@ -17974,6 +17980,7 @@ int main(int argc, char * args[])
                                     subdivide_Curve_Segments(C, subdLevel);
                                     update_Curve(C, subdLevel);
                                     update_Curve(C, subdLevel);
+                                    //print_Curve_subdLevel(C);
                                 }
                             }
                         }
@@ -19001,7 +19008,11 @@ int main(int argc, char * args[])
         {
             if (Curve_Mode)
             {
-                if (currentCurve >= 0 && currentCurve < curvesIndex)
+                if (mod & KMOD_SHIFT)
+                {
+                    curve_Draw = !curve_Draw;
+                }
+                else if (currentCurve >= 0 && currentCurve < curvesIndex)
                 {
                     C = curves[currentCurve];
                     C->open = !C->open;

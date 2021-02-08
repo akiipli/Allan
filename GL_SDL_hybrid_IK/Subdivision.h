@@ -882,7 +882,23 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
     {
         E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
         V = &O->verts_[L][(e + c_v) / ARRAYSIZE][(e + c_v) % ARRAYSIZE]; // edge vertex
+/*
+        if (E->S != NULL)
+        {
+            Mx = E->S->B[0];
+            My = E->S->B[1];
+            Mz = E->S->B[2];
 
+            V->Tx = Mx;
+            V->Ty = My;
+            V->Tz = Mz;
+
+            E->Mx = Mx;
+            E->My = My;
+            E->Mz = Mz;
+        }
+        else
+*/
         if (E->polycount > 1)
         {
             idx = E->polys[0];
@@ -922,7 +938,82 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->Mz = E->B.Tz;
         }
     }
+/*
+    int curveinvolvement;
+    float poly_offset[3];
 
+    if (O->curve_count > 0)
+    {
+        for (q = 0; q < O->quadcount_[L1]; q ++)
+        {
+            Q = &O->quads_[L1][q / ARRAYSIZE][q % ARRAYSIZE];
+            Q->center[0] = 0;
+            Q->center[1] = 0;
+            Q->center[2] = 0;
+        }
+
+        for (e = 0; e < O->edgecount_[L1]; e ++) // find edge polys and center verts
+        {
+            E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
+
+            idx = E->polys[0];
+            Q0 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            Q0->center[0] += E->Mx;
+            Q0->center[1] += E->My;
+            Q0->center[2] += E->Mz;
+
+
+            if (E->polycount > 1)
+            {
+                //idx = O->vertcount + O->edgecount + E->polys[1];
+                //V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+
+                idx = E->polys[1];
+                Q1 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                Q1->center[0] += E->Mx;
+                Q1->center[1] += E->My;
+                Q1->center[2] += E->Mz;
+            }
+        }
+
+        for (q = 0; q < O->quadcount_[L1]; q ++)
+        {
+            Q = &O->quads_[L1][q / ARRAYSIZE][q % ARRAYSIZE];
+            idx = O->vertcount_[L1] + O->edgecount_[L1] + q;
+            V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+
+            curveinvolvement = 0;
+
+            for (e = 0; e < 4; e ++)
+            {
+                idx = Q->edges[e];
+                E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                if (E->S != NULL)
+                {
+                    curveinvolvement = 1;
+                    break;
+                }
+            }
+
+            if (curveinvolvement)
+            {
+                V->Tx = Q->center[0] / 4.0;
+                V->Ty = Q->center[1] / 4.0;
+                V->Tz = Q->center[2] / 4.0;
+
+                poly_offset[0] = V->Tx - Q->B.Tx;
+                poly_offset[1] = V->Ty - Q->B.Ty;
+                poly_offset[2] = V->Tz - Q->B.Tz;
+
+                V->Tx += poly_offset[0];
+                V->Ty += poly_offset[1];
+                V->Tz += poly_offset[2];
+            }
+        }
+    }
+*/
     float Fx, Fy, Fz;
     float Ex, Ey, Ez;
     float Tx, Ty, Tz;
@@ -1046,6 +1137,43 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             }
         }
     }
+/*
+    for (e = 0; e < O->edgecount_[L1]; e ++) // edge verts average surrounding polys and self position
+    {
+        E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
+
+        if (E->S != NULL)
+        {
+            if (E->S->counter_edge)
+                idx = E->verts[1];
+            else
+                idx = E->verts[0];
+
+            V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            if (V->vert != NULL)
+            {
+                V->vert->Tx = E->S->A[0];
+                V->vert->Ty = E->S->A[1];
+                V->vert->Tz = E->S->A[2];
+            }
+
+            if (E->S->counter_edge)
+                idx = E->verts[0];
+            else
+                idx = E->verts[1];
+
+            V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            if (V->vert != NULL)
+            {
+                V->vert->Tx = E->S->C[0];
+                V->vert->Ty = E->S->C[1];
+                V->vert->Tz = E->S->C[2];
+            }
+        }
+    }
+*/
 
     return 1;
 }
@@ -1468,6 +1596,43 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             }
         }
     }
+    /*
+    for (e = 0; e < O->edgecount; e ++) // edge verts average surrounding polys and self position
+    {
+        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+        if (E->S != NULL)
+        {
+            if (E->S->counter_edge)
+                idx = E->verts[1];
+            else
+                idx = E->verts[0];
+
+            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            if (V->vert != NULL)
+            {
+                V->vert->Tx = E->S->A[0];
+                V->vert->Ty = E->S->A[1];
+                V->vert->Tz = E->S->A[2];
+            }
+
+            if (E->S->counter_edge)
+                idx = E->verts[0];
+            else
+                idx = E->verts[1];
+
+            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            if (V->vert != NULL)
+            {
+                V->vert->Tx = E->S->C[0];
+                V->vert->Ty = E->S->C[1];
+                V->vert->Tz = E->S->C[2];
+            }
+        }
+    }
+    */
 }
 
 void tune_In_Subdivision_Shape(object * O)

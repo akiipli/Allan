@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright <2018> <Allan Kiipli>
+Copyright <2018><2021> <Allan Kiipli>
 */
 
 /*
@@ -16,6 +16,13 @@ For this to work, curves need to be under objects.
 Also cps array needs to be under same object.
 Also segments need to be level wise under object,
 similar fashion to edges.
+
+Deleting a curve is not deleting segments from segments array,
+but rather replacing them with null pointer.
+
+Because cps can connect to multiple curves,
+i do not delete them now.
+I could not determine the connection.
 */
 
 #ifndef CURVES_H_INCLUDED
@@ -91,6 +98,7 @@ struct curve_segment
     float A[3]; // begin
     float B[3]; // center
     float C[3]; // end
+    int counter_edge;
 };
 
 curve_segment * segments[SEGMENTS];
@@ -147,7 +155,7 @@ void calculate_Curve_Segment_B(curve * C, int index)
 
     cp * CP0, * CP1;
     curve_segment * S = C->segments[index];
-    S->level = 0;
+    S->level = -1;
     CP0 = C->cps[index];
     CP1 = C->cps[(index + 1) % C->cps_count];
     continuity0 = C->cps_continuity[index];
@@ -320,7 +328,9 @@ void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, 
 {
     curve_segment * S_0, * S_1, * S_2, * S_3;
 
-    if (level >= S->level && S->level > 0) // level 0 is filled with Coordinates and Tangents in update Curve, also segments
+    //printf("\r %d %d\t", level, S->level);
+
+    if (level > S->level && S->level > -1) // level 0 is filled with Coordinates and Tangents in update Curve, also segments
                                            // level 0 continuity is controlled with curves continuity arrays.
     {
         float len0, len1, portion;
@@ -478,7 +488,9 @@ void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, 
         S->B[2] = (C[2] + A1[2]) / 2.0;
     }
 
-    if (S0->subdivided && S->subdivided && S1->subdivided && level >= S->level + 1)
+    //printf("\r %d %d %d %d %d\t", S0->subdivided, S->subdivided, S1->subdivided, level, S->level);
+
+    if (S0->subdivided && S->subdivided && S1->subdivided && level >= S->level)
     {
         S_0 = S0->segment[1];
         S_1 = S->segment[0];
@@ -491,7 +503,7 @@ void fill_Curve_Segment_With_Coordinates(curve_segment * S, curve_segment * S0, 
         memcpy(S_2->A, S->B, float_3);
         memcpy(S_2->C, S->C, float_3);
 
-        if (S->level == 0)
+        if (S->level == -1)
         {
             if (start_open)
                 fill_Curve_Segment_With_Coordinates(S_1, S_0, S_2, level, 1, 0, 1, 0, start_segment_continuity, end_segment_continuity);
@@ -572,7 +584,9 @@ void fill_Curve_Segments_With_Coordinates(curve * C, int level)
             end_segment_continuity = C->cps_continuity[s + 1] * 0.5;
         }
 
-        if (level >= S->level)
+        //printf("\r%d %d\t", level, S->level);
+
+        if (level > S->level)
         {
             if (C->open && s == 0)
             {
@@ -592,6 +606,8 @@ void fill_Curve_Segments_With_Coordinates(curve * C, int level)
 
 void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object * O, edge * E)
 {
+    //printf("\r%d %d %d\t", S->subdivided, level, S->level);
+
     if (!S->subdivided && level > S->level)
     {
         int idx;
@@ -621,7 +637,15 @@ void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object *
             S->segment[0] = S0;
             S->segment[1] = S1;
 
-            if (O != NULL && E != NULL && S->E != NULL)
+            S0->counter_edge = 0;
+            S1->counter_edge = 0;
+
+//            object * O2 = O;
+//            edge * E2 = E;
+//            edge * E3 = S->E;
+//            int SS = E->subdivs;
+
+            if (O != NULL && E != NULL && S->E != NULL && E->subdivs)
             {
                 /* assign subdivided edges to subdivided segments */
                 /* detect if edge runs against curve */
@@ -633,6 +657,8 @@ void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object *
 
                 if (counter)
                 {
+                    S0->counter_edge = 1;
+                    S1->counter_edge = 1;
                     S0->E = E1;
                     E1->S = S0;
                     S1->E = E0;
@@ -640,6 +666,8 @@ void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object *
                 }
                 else
                 {
+                    S0->counter_edge = 0;
+                    S1->counter_edge = 0;
                     S0->E = E0;
                     E0->S = S0;
                     S1->E = E1;
@@ -672,19 +700,26 @@ void subdivide_Curve_Segments(curve * C, int level)
 
         counter = 0;
 
+//        object * O1 = C->O;
+//        edge * E1 = S->E;
+//        cp * CP1 = CP->vert;
+
         if (C->O != NULL && S->E != NULL && CP->vert != NULL)
         {
             E = S->E;
+
             if (E->subdivs)
             {
                 idx = E->verts[0];
                 V = &C->O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
                 if (V == CP->vert)
                 {
+                    S->counter_edge = 0;
                     counter = 0;
                 }
                 else
                 {
+                    S->counter_edge = 1;
                     counter = 1;
                 }
             }
@@ -920,7 +955,7 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
 
         if (S == NULL) return 0;
 
-        S->level = 0;
+        S->level = -1;
         S->subdivided = 0;
         S->E = NULL;
         S->index = segmentIndex;
@@ -1009,7 +1044,7 @@ int add_Curve_Segment(curve * C)
 
     if (S == NULL) return 0;
 
-    S->level = 0;
+    S->level = -1;
     S->subdivided = 0;
     S->E = NULL;
     S->index = segmentIndex;
@@ -1137,7 +1172,7 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
 
         if (S == NULL) return 0;
 
-        S->level = 0;
+        S->level = -1;
         S->subdivided = 0;
         S->E = NULL;
         S->index = segmentIndex;
@@ -1238,7 +1273,7 @@ int add_New_Curve(float pos[3], int open)
 
     if (S == NULL) return 0;
 
-    S->level = 0;
+    S->level = -1;
     S->subdivided = 0;
     S->E = NULL;
     S->index = segmentIndex;
@@ -1299,7 +1334,8 @@ void free_Segments()
     for (s = 0; s < segmentIndex; s ++)
     {
         S = segments[s];
-        free(S);
+        if (S != NULL)
+            free(S);
     }
 }
 
@@ -1312,9 +1348,12 @@ void free_Cps()
     for (c = 0; c < cpsIndex; c ++)
     {
         CP = cps[c];
-        if (CP->segments != NULL)
-            free(CP->segments);
-        free_Cp(CP);
+        if (CP != NULL)
+        {
+            if (CP->segments != NULL)
+                free(CP->segments);
+            free_Cp(CP);
+        }
     }
 }
 
@@ -2038,7 +2077,7 @@ int create_Object_Curve(object * O)
 
                 if (S == NULL) return 0;
 
-                S->level = 0;
+                S->level = -1;
                 S->subdivided = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
@@ -2074,7 +2113,7 @@ int create_Object_Curve(object * O)
 
                         if (S == NULL) return 0;
 
-                        S->level = 0;
+                        S->level = -1;
                         S->subdivided = 0;
                         S->index = segmentIndex;
                         segments[segmentIndex ++] = S;
@@ -2102,7 +2141,7 @@ int create_Object_Curve(object * O)
 
                 if (S == NULL) return 0;
 
-                S->level = 0;
+                S->level = -1;
                 S->subdivided = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
@@ -2282,8 +2321,11 @@ void clean_Edge_Segment_Recursive(object * O, edge * E, int L, int l)
     }
     else
     {
-        E->S->E = NULL;
-        E->S = NULL;
+        if (E->S != NULL)
+        {
+            E->S->E = NULL;
+            E->S = NULL;
+        }
 
         L ++;
         if (L >= SUBD)
@@ -2431,6 +2473,16 @@ void delete_Curve(curve * C)
         }
     }
 
+    /* segmentIndex is not changed */
+
+    for (s = 0; s < C->segment_count; s ++)
+    {
+        S = C->segments[s];
+
+        segments[S->index] = NULL;
+        free(S);
+    }
+
     condition = 0;
 
     for (c = 0; c < curvesIndex; c ++)
@@ -2455,6 +2507,19 @@ void delete_Curve(curve * C)
 
         free_Curve(C);
     }
+}
+
+void print_Curve_subdLevel(curve * C)
+{
+    printf("starting segments ");
+    curve_segment * S = C->segments[0];
+
+    while(S->subdivided)
+    {
+        printf("%d ", S->level);
+        S = S->segment[0];
+    }
+    printf("\n");
 }
 
 #endif // CURVES_H_INCLUDED

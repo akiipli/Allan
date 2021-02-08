@@ -6857,7 +6857,7 @@ void render_Image(unsigned char * data, camera * C, int width, int height, int L
 
 void draw_Curve_Segment_Recursive_ID(curve_segment * S, int level)
 {
-    if (S->level == level)
+    if (S->level + 1 == level)
     {
         glBegin(GL_LINE_STRIP);
         glVertex3fv(S->A);
@@ -6874,7 +6874,7 @@ void draw_Curve_Segment_Recursive_ID(curve_segment * S, int level)
 
 void draw_Curve_Segment_Recursive(curve_segment * S, int level)
 {
-    if (S->level == level)
+    if (S->level + 1 == level)
     {
         glBegin(GL_LINE_STRIP);
         glVertex3fv(S->A);

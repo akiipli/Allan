@@ -173,6 +173,9 @@ i: open image
 4: verts
 5: bones
 6: bind mode
+shift-c in curve mode toggles curve drawing on/off.
+alt-a in bind pose adds ik chain for selected transformers.
+a: in curve mode. Adds curve and starts mouse drag for last cp. Click to place it.
 page up: increase subdivision level
 page down: decrease subdivision level
 l: show, hide locators. When deformer player is active, toggle Lightshow
