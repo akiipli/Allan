@@ -2403,6 +2403,20 @@ void clean_Object_Curves(object * O)
     }
 }
 
+void delete_Segment_Recursive(curve_segment * S)
+{
+    if (S->subdivided)
+    {
+        if (S->segment[0])
+            delete_Segment_Recursive(S->segment[0]);
+        if (S->segment[1])
+            delete_Segment_Recursive(S->segment[1]);
+    }
+
+    segments[S->index] = NULL;
+    free(S);
+}
+
 void delete_Curve(curve * C)
 {
     int c, s, p;
@@ -2479,8 +2493,7 @@ void delete_Curve(curve * C)
     {
         S = C->segments[s];
 
-        segments[S->index] = NULL;
-        free(S);
+        delete_Segment_Recursive(S);
     }
 
     condition = 0;
