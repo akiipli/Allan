@@ -884,10 +884,10 @@ void ordered_Cp_Selection()
     for (s = selected_cps_count0 - 1; s >= 0; s --)
     {
         selected_cps[selected_cps_count ++] = selected_cps0[s];
-        printf("%d ", selected_cps0[s]);
+        //printf("%d ", selected_cps0[s]);
     }
 
-    printf("\n");
+    //printf("\n");
 
     if (selected_cps_count > 0)
         currentCp = selected_cps[selected_cps_count - 1];
