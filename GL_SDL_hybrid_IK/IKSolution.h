@@ -294,6 +294,29 @@ void collect_Chain_Bones(bone * A, bone * B)
     return;
 }
 
+direction_Pack length_AB_(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+    float V[3];
+    direction_Pack P;
+    V[0] = x1 - x0;
+    V[1] = y1 - y0;
+    V[2] = z1 - z0;
+    P.distance = sqrt(V[0] * V[0] + V[1] * V[1] + V[2] * V[2]);
+    if (P.distance > 0)
+    {
+        P.vec[0] = V[0] / P.distance;
+        P.vec[1] = V[1] / P.distance;
+        P.vec[2] = V[2] / P.distance;
+    }
+    else
+    {
+        P.vec[0] = 1;
+        P.vec[1] = 0;
+        P.vec[2] = 0;
+    }
+    return P;
+}
+
 direction_Pack length_AB(float A[3], float B[3])
 {
     float V[3];

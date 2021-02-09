@@ -124,6 +124,7 @@ struct vertex
 
     cp * control_point;
     object * O;
+    int patch;
 };
 
 void print_vertex(vertex * V)

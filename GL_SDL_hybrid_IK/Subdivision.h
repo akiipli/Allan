@@ -882,7 +882,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
     {
         E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
         V = &O->verts_[L][(e + c_v) / ARRAYSIZE][(e + c_v) % ARRAYSIZE]; // edge vertex
-/*
+
+        /*
         if (E->S != NULL)
         {
             Mx = E->S->B[0];
@@ -898,7 +899,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->Mz = Mz;
         }
         else
-*/
+        */
+
         if (E->polycount > 1)
         {
             idx = E->polys[0];
@@ -939,8 +941,137 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         }
     }
 /*
-    int curveinvolvement;
+    int start, set_and_done;
+    float n0[3], dot;
+
+    direction_Pack D;
+
+    edge * E0;
+
+    if (O->curve_count > 0 && L < 3)
+    {
+        // use polycenter vertexes weight as patch inicator
+        // start polycenter verts after cage and edge verts
+
+        if (L == 1)
+        {
+            start = O->vertcount + O->edgecount;
+        }
+        else
+        {
+            start = O->vertcount_[L1 - 1] + O->edgecount_[L1 - 1];
+        }
+
+        for (v = start; v < O->vertcount_[L1]; v ++)
+        {
+            V = &O->verts_[L1][v / ARRAYSIZE][v % ARRAYSIZE];
+
+            if (V->patch)
+            {
+                n0[0] = V->N.Tx;
+                n0[1] = V->N.Ty;
+                n0[2] = V->N.Tz;
+
+                //printf("%f %f %f\n", n0[0], n0[0], n0[0]);
+
+                for (e = 0; e < V->edgecount; e ++)
+                {
+                    idx = V->edges[e];
+                    E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    // use dot to flatten patch crosshair points
+
+                    if (E->verts[0] == V->index)
+                    {
+                        idx = E->verts[1];
+                    }
+                    else if (E->verts[1] == V->index)
+                    {
+                        idx = E->verts[0];
+                    }
+
+                    V0 = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    D = length_AB_(V->Tx, V->Ty, V->Tz, V0->Tx, V0->Ty, V0->Tz);
+
+                    dot = dot_productFF(n0, D.vec);
+
+                    E->Mx = E->B.Tx + V->N.Tx * (D.distance * 0.4) * -dot;
+                    E->My = E->B.Ty + V->N.Ty * (D.distance * 0.4) * -dot;
+                    E->Mz = E->B.Tz + V->N.Tz * (D.distance * 0.4) * -dot;
+                }
+
+                for (e = 0; e < V->edgecount; e ++)
+                {
+                    idx = V->edges[e];
+                    E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (E->subdivs)
+                    {
+                        idx = E->edges[0];
+
+                        E0 = &O->edges_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        set_and_done = 0;
+
+                        if (V->vert != NULL)
+                        {
+                            if (E0->verts[0] == V->vert->index)
+                            {
+                                idx = E0->verts[1];
+                                set_and_done = 1;
+                            }
+                            else if (E0->verts[1] == V->vert->index)
+                            {
+                                idx = E0->verts[0];
+                                set_and_done = 1;
+                            }
+                        }
+
+                        if (!set_and_done)
+                        {
+                            idx = E->edges[1];
+
+                            E0 = &O->edges_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            set_and_done = 0;
+
+                            if (V->vert != NULL)
+                            {
+                                if (E0->verts[0] == V->vert->index)
+                                {
+                                    idx = E0->verts[1];
+                                    set_and_done = 1;
+                                }
+                                else if (E0->verts[1] == V->vert->index)
+                                {
+                                    idx = E0->verts[0];
+                                    set_and_done = 1;
+                                }
+                            }
+                        }
+
+                        if (set_and_done)
+                        {
+                            V0 = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            V0->Tx = E->Mx;
+                            V0->Ty = E->My;
+                            V0->Tz = E->Mz;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    */
+
+    /*
+
+    int curveinvolvement, q;
     float poly_offset[3];
+
+    quadrant * Q;
 
     if (O->curve_count > 0)
     {
@@ -993,6 +1124,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 if (E->S != NULL)
                 {
                     curveinvolvement = 1;
+                    V->patch = 1; // use it as polycenter indicator for higher levels
                     break;
                 }
             }
@@ -1003,6 +1135,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 V->Ty = Q->center[1] / 4.0;
                 V->Tz = Q->center[2] / 4.0;
 
+                //
+
                 poly_offset[0] = V->Tx - Q->B.Tx;
                 poly_offset[1] = V->Ty - Q->B.Ty;
                 poly_offset[2] = V->Tz - Q->B.Tz;
@@ -1010,10 +1144,17 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 V->Tx += poly_offset[0];
                 V->Ty += poly_offset[1];
                 V->Tz += poly_offset[2];
+
+                //
+            }
+            else
+            {
+                V->patch = 0; // polycenter indicator
             }
         }
     }
-*/
+    */
+
     float Fx, Fy, Fz;
     float Ex, Ey, Ez;
     float Tx, Ty, Tz;
@@ -1028,94 +1169,78 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         V = &O->verts_[L][v / ARRAYSIZE][v % ARRAYSIZE]; // new level 0 cage vertexes
         V0 = &O->verts_[L1][v / ARRAYSIZE][v % ARRAYSIZE]; // old level -1 cage vertexes
 
-        // first we scan surroundings and find distance to it as collapsed
-
-        Fx = Fy = Fz = 0.0;
-        Ex = Ey = Ez = 0.0;
-        Ex_o = Ey_o = Ez_o = 0.0;
-        Ex_w = Ey_w = Ez_w = 0.0;
-
-        openedge = 0;
-        edgeweight = 0;
-
-        // create logic for open edges
-
-        edgecount = V0->edgecount;
-
-        for(e = 0; e < V0->edgecount; e ++)
+//        if (V0->patch)
+//        {
+//
+//        }
+//        else
         {
-            idx = V0->edges[e];
-            E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+            // first we scan surroundings and find distance to it as collapsed
 
-            if (E->polycount == 1)
+            Fx = Fy = Fz = 0.0;
+            Ex = Ey = Ez = 0.0;
+            Ex_o = Ey_o = Ez_o = 0.0;
+            Ex_w = Ey_w = Ez_w = 0.0;
+
+            openedge = 0;
+            edgeweight = 0;
+
+            // create logic for open edges
+
+            edgecount = V0->edgecount;
+
+            for(e = 0; e < V0->edgecount; e ++)
             {
-                openedge ++;
-                Ex_o += E->B.Tx;
-                Ey_o += E->B.Ty;
-                Ez_o += E->B.Tz;
+                idx = V0->edges[e];
+                E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (E->polycount == 1)
+                {
+                    openedge ++;
+                    Ex_o += E->B.Tx;
+                    Ey_o += E->B.Ty;
+                    Ez_o += E->B.Tz;
+                }
+                else if (E->weight != 0)
+                {
+                    edgeweight ++;
+                    Ex_w += E->B.Tx;
+                    Ey_w += E->B.Ty;
+                    Ez_w += E->B.Tz;
+                }
+
+                Fx += E->Mx;
+                Fy += E->My;
+                Fz += E->Mz;
+
+                Ex += E->B.Tx;
+                Ey += E->B.Ty;
+                Ez += E->B.Tz;
             }
-            else if (E->weight != 0)
-            {
-                edgeweight ++;
-                Ex_w += E->B.Tx;
-                Ey_w += E->B.Ty;
-                Ez_w += E->B.Tz;
-            }
 
-            Fx += E->Mx;
-            Fy += E->My;
-            Fz += E->Mz;
-
-            Ex += E->B.Tx;
-            Ey += E->B.Ty;
-            Ez += E->B.Tz;
-        }
-
-        if (openedge)
-        {
-            Ex_o /= openedge;
-            Ey_o /= openedge;
-            Ez_o /= openedge;
-
-            Tx = V->Tx;
-            Ty = V->Ty;
-            Tz = V->Tz;
-
-            V->Tx = (Ex_o + V->Tx) / 2.0;
-            V->Ty = (Ey_o + V->Ty) / 2.0;
-            V->Tz = (Ez_o + V->Tz) / 2.0;
-        }
-        else if (edgeweight)
-        {
-            Ex_w /= edgeweight;
-            Ey_w /= edgeweight;
-            Ez_w /= edgeweight;
-
-            V->Tx = (Ex_w + V->Tx) / 2.0;
-            V->Ty = (Ey_w + V->Ty) / 2.0;
-            V->Tz = (Ez_w + V->Tz) / 2.0;
-        }
-        else
-        {
-            Fx /= edgecount;
-            Fy /= edgecount;
-            Fz /= edgecount;
-
-            Ex /= edgecount;
-            Ey /= edgecount;
-            Ez /= edgecount;
-
-            V->Tx = (Fx + 2.0 * Ex + (V->edgecount - 3) * V->Tx) / edgecount;
-            V->Ty = (Fy + 2.0 * Ey + (V->edgecount - 3) * V->Ty) / edgecount;
-            V->Tz = (Fz + 2.0 * Ez + (V->edgecount - 3) * V->Tz) / edgecount;
-        }
-        if (V0->weight != 0 && edgeweight)
-        {
             if (openedge)
             {
-                V->Tx = Tx * V0->weight + V->Tx * (1 - V0->weight);
-                V->Ty = Ty * V0->weight + V->Ty * (1 - V0->weight);
-                V->Tz = Tz * V0->weight + V->Tz * (1 - V0->weight);
+                Ex_o /= openedge;
+                Ey_o /= openedge;
+                Ez_o /= openedge;
+
+                Tx = V->Tx;
+                Ty = V->Ty;
+                Tz = V->Tz;
+
+                V->Tx = (Ex_o + V->Tx) / 2.0;
+                V->Ty = (Ey_o + V->Ty) / 2.0;
+                V->Tz = (Ez_o + V->Tz) / 2.0;
+            }
+            else if (edgeweight)
+            {
+                Ex_w /= edgeweight;
+                Ey_w /= edgeweight;
+                Ez_w /= edgeweight;
+
+                V->Tx = (Ex_w + V->Tx) / 2.0;
+                V->Ty = (Ey_w + V->Ty) / 2.0;
+                V->Tz = (Ez_w + V->Tz) / 2.0;
             }
             else
             {
@@ -1127,54 +1252,79 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 Ey /= edgecount;
                 Ez /= edgecount;
 
-                Tx = (Fx + 2.0 * Ex + (V->edgecount - 3) * V->Tx) / edgecount;
-                Ty = (Fy + 2.0 * Ey + (V->edgecount - 3) * V->Ty) / edgecount;
-                Tz = (Fz + 2.0 * Ez + (V->edgecount - 3) * V->Tz) / edgecount;
+                V->Tx = (Fx + 2.0 * Ex + (V->edgecount - 3) * V->Tx) / edgecount;
+                V->Ty = (Fy + 2.0 * Ey + (V->edgecount - 3) * V->Ty) / edgecount;
+                V->Tz = (Fz + 2.0 * Ez + (V->edgecount - 3) * V->Tz) / edgecount;
+            }
+            if (V0->weight != 0 && edgeweight)
+            {
+                if (openedge)
+                {
+                    V->Tx = Tx * V0->weight + V->Tx * (1 - V0->weight);
+                    V->Ty = Ty * V0->weight + V->Ty * (1 - V0->weight);
+                    V->Tz = Tz * V0->weight + V->Tz * (1 - V0->weight);
+                }
+                else
+                {
+                    Fx /= edgecount;
+                    Fy /= edgecount;
+                    Fz /= edgecount;
 
-                V->Tx = V->Tx * V0->weight + Tx * (1 - V0->weight);
-                V->Ty = V->Ty * V0->weight + Ty * (1 - V0->weight);
-                V->Tz = V->Tz * V0->weight + Tz * (1 - V0->weight);
+                    Ex /= edgecount;
+                    Ey /= edgecount;
+                    Ez /= edgecount;
+
+                    Tx = (Fx + 2.0 * Ex + (V->edgecount - 3) * V->Tx) / edgecount;
+                    Ty = (Fy + 2.0 * Ey + (V->edgecount - 3) * V->Ty) / edgecount;
+                    Tz = (Fz + 2.0 * Ez + (V->edgecount - 3) * V->Tz) / edgecount;
+
+                    V->Tx = V->Tx * V0->weight + Tx * (1 - V0->weight);
+                    V->Ty = V->Ty * V0->weight + Ty * (1 - V0->weight);
+                    V->Tz = V->Tz * V0->weight + Tz * (1 - V0->weight);
+                }
             }
         }
     }
 /*
-    for (e = 0; e < O->edgecount_[L1]; e ++) // edge verts average surrounding polys and self position
+    if (O->curve_count > 0)
     {
-        E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
-
-        if (E->S != NULL)
+        for (e = 0; e < O->edgecount_[L1]; e ++) // edge verts average surrounding polys and self position
         {
-            if (E->S->counter_edge)
-                idx = E->verts[1];
-            else
-                idx = E->verts[0];
+            E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
 
-            V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-            if (V->vert != NULL)
+            if (E->S != NULL)
             {
-                V->vert->Tx = E->S->A[0];
-                V->vert->Ty = E->S->A[1];
-                V->vert->Tz = E->S->A[2];
-            }
+                if (E->S->counter_edge)
+                    idx = E->verts[1];
+                else
+                    idx = E->verts[0];
 
-            if (E->S->counter_edge)
-                idx = E->verts[0];
-            else
-                idx = E->verts[1];
+                V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-            V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                if (V->vert != NULL)
+                {
+                    V->vert->Tx = E->S->A[0];
+                    V->vert->Ty = E->S->A[1];
+                    V->vert->Tz = E->S->A[2];
+                }
 
-            if (V->vert != NULL)
-            {
-                V->vert->Tx = E->S->C[0];
-                V->vert->Ty = E->S->C[1];
-                V->vert->Tz = E->S->C[2];
+                if (E->S->counter_edge)
+                    idx = E->verts[0];
+                else
+                    idx = E->verts[1];
+
+                V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (V->vert != NULL)
+                {
+                    V->vert->Tx = E->S->C[0];
+                    V->vert->Ty = E->S->C[1];
+                    V->vert->Tz = E->S->C[2];
+                }
             }
         }
     }
 */
-
     return 1;
 }
 
@@ -1318,9 +1468,9 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
     //O->vertcount_[L] = O->vertcount + O->edgecount + O->polycount;
 
-    int v, e, idx, p;
+    int v, e, idx;
 
-    polygon * P, * P0, * P1;
+    polygon * P0, * P1;
     vertex * V, * V0;
     edge * E;
 
@@ -1387,8 +1537,10 @@ void tune_In_Subdivision_Shape_transformed(object * O)
         }
     }
 
-    int curveinvolvement;
+    int curveinvolvement, p;
     float poly_offset[3];
+
+    polygon * P;
 
     if (O->curve_count > 0)
     {
@@ -1441,6 +1593,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 if (E->S != NULL)
                 {
                     curveinvolvement = 1;
+                    V->patch = 1; // use it as polycenter indicator for higher levels
                     break;
                 }
             }
@@ -1460,6 +1613,10 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 V->Tx += poly_offset[0];
                 V->Ty += poly_offset[1];
                 V->Tz += poly_offset[2];
+            }
+            else
+            {
+                V->patch = 0; // polycenter indicator
             }
         }
     }
