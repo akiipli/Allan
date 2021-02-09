@@ -883,8 +883,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
         V = &O->verts_[L][(e + c_v) / ARRAYSIZE][(e + c_v) % ARRAYSIZE]; // edge vertex
 
-        /*
-        if (E->S != NULL)
+
+        if (E->S != NULL && L < 1) /* level 1 blocks patches */
         {
             Mx = E->S->B[0];
             My = E->S->B[1];
@@ -899,7 +899,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->Mz = Mz;
         }
         else
-        */
+
 
         if (E->polycount > 1)
         {
@@ -940,7 +940,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->Mz = E->B.Tz;
         }
     }
-/*
+
     int start, set_and_done;
     float n0[3], dot;
 
@@ -948,7 +948,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
     edge * E0;
 
-    if (O->curve_count > 0 && L < 3)
+    if (O->curve_count > 0 && L < 1) /* level 1 blocks patches */
     {
         // use polycenter vertexes weight as patch inicator
         // start polycenter verts after cage and edge verts
@@ -1064,16 +1064,16 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             }
         }
     }
-    */
 
-    /*
+
+
 
     int curveinvolvement, q;
     float poly_offset[3];
 
     quadrant * Q;
 
-    if (O->curve_count > 0)
+    if (O->curve_count > 0 && L < 1) /* level 1 blocks patches */
     {
         for (q = 0; q < O->quadcount_[L1]; q ++)
         {
@@ -1137,9 +1137,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 //
 
-                poly_offset[0] = V->Tx - Q->B.Tx;
-                poly_offset[1] = V->Ty - Q->B.Ty;
-                poly_offset[2] = V->Tz - Q->B.Tz;
+                poly_offset[0] = (V->Tx - Q->B.Tx) / 2.0;
+                poly_offset[1] = (V->Ty - Q->B.Ty) / 2.0;
+                poly_offset[2] = (V->Tz - Q->B.Tz) / 2.0;
 
                 V->Tx += poly_offset[0];
                 V->Ty += poly_offset[1];
@@ -1153,7 +1153,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             }
         }
     }
-    */
+
 
     float Fx, Fy, Fz;
     float Ex, Ey, Ez;
@@ -1169,11 +1169,11 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         V = &O->verts_[L][v / ARRAYSIZE][v % ARRAYSIZE]; // new level 0 cage vertexes
         V0 = &O->verts_[L1][v / ARRAYSIZE][v % ARRAYSIZE]; // old level -1 cage vertexes
 
-//        if (V0->patch)
-//        {
-//
-//        }
-//        else
+        if (V0->patch && L < 1) /* level 1 blocks patches */
+        {
+
+        }
+        else
         {
             // first we scan surroundings and find distance to it as collapsed
 
@@ -1285,8 +1285,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             }
         }
     }
-/*
-    if (O->curve_count > 0)
+
+    if (O->curve_count > 0 && L < 1) /* level 1 blocks patches */
     {
         for (e = 0; e < O->edgecount_[L1]; e ++) // edge verts average surrounding polys and self position
         {
@@ -1324,7 +1324,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             }
         }
     }
-*/
+
     return 1;
 }
 
