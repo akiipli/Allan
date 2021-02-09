@@ -1606,9 +1606,9 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
                 /* poly offset lifts or sinks poly center */
 
-                poly_offset[0] = V->Tx - P->B.Tx;
-                poly_offset[1] = V->Ty - P->B.Ty;
-                poly_offset[2] = V->Tz - P->B.Tz;
+                poly_offset[0] = (V->Tx - P->B.Tx) / 2.0;
+                poly_offset[1] = (V->Ty - P->B.Ty) / 2.0;
+                poly_offset[2] = (V->Tz - P->B.Tz) / 2.0;
 
                 V->Tx += poly_offset[0];
                 V->Ty += poly_offset[1];
