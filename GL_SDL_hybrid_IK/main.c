@@ -944,10 +944,10 @@ void ordered_Curve_Selection()
     for (s = selected_curves_count0 - 1; s >= 0; s --)
     {
         selected_curves[selected_curves_count ++] = selected_curves0[s];
-        printf("%d ", selected_curves0[s]);
+        //printf("%d ", selected_curves0[s]);
     }
 
-    printf("\n");
+    //printf("\n");
 
     if (selected_curves_count > 0)
         currentCurve = selected_curves[selected_curves_count - 1];
@@ -4529,6 +4529,8 @@ void open_OBJ_dialog()
             currentLocator = transformerIndex - 1;
             currentObject = objectIndex - 1;
             deselect_Objects();
+            selected_object_count = 1;
+            selected_objects[0] = currentObject;
             subdLevel = -1;
         }
     }
