@@ -1137,9 +1137,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 //
 
-                poly_offset[0] = (V->Tx - Q->B.Tx) / 2.0;
-                poly_offset[1] = (V->Ty - Q->B.Ty) / 2.0;
-                poly_offset[2] = (V->Tz - Q->B.Tz) / 2.0;
+                poly_offset[0] = (V->Tx - Q->B.Tx) / 4.0;
+                poly_offset[1] = (V->Ty - Q->B.Ty) / 4.0;
+                poly_offset[2] = (V->Tz - Q->B.Tz) / 4.0;
 
                 V->Tx += poly_offset[0];
                 V->Ty += poly_offset[1];
