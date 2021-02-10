@@ -1737,6 +1737,8 @@ int read_Curves_file(Curves_In * CURV_IN, char * fileName)
 
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%u", (unsigned*)&C->O);
+
+                C->visible = 1;
             }
         }
         else

@@ -174,6 +174,8 @@ void delete_Constraint(ikChain * I)
     }
 }
 
+void parent(transformer * T, transformer * P);
+
 void init_IK_Pole(ikChain * I)
 {
     if (transformerIndex < TRANSFORMERS)
@@ -211,6 +213,10 @@ void init_IK_Pole(ikChain * I)
                 C->IK_goal = I->A;
                 T->Constraint = C;
                 I->A->Constraint = C;
+                if (I->B->Constraint != NULL)
+                {
+                    parent(T, I->B->Constraint->Locator);
+                }
                 constraintsIndex ++;
             }
             else
@@ -252,6 +258,7 @@ void init_IK_Constraint(ikChain * I)
                 C->IK_goal = I->B;
                 T->Constraint = C;
                 I->B->Constraint = C;
+                I->stretch = 0;
                 constraintsIndex ++;
             }
             else

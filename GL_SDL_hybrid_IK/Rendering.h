@@ -6912,28 +6912,31 @@ void render_Curves_ID()
     {
         C = curves[c];
 
-        idx = C->index;
-
-        R = (float)(idx / M0) / (float)255;
-        idx0 = idx % M0;
-        G = (float)(idx0 / M1) / (float)255;
-        idx1 = idx0 % M1;
-        B = (float)(idx1 / 255) / (float)255;
-        idx2 = idx1 % 255;
-        A = (float)(idx2) / (float)255;
-
-        glColor4f(R, G, B, A);
-
-        if (C->open)
-            glBegin(GL_LINE_STRIP);
-        else
-            glBegin(GL_LINE_LOOP);
-        for (p = 0; p < C->cps_count; p ++)
+        if (C->visible)
         {
-            CP = C->cps[p];
-            glVertex3fv(CP->pos);
+            idx = C->index;
+
+            R = (float)(idx / M0) / (float)255;
+            idx0 = idx % M0;
+            G = (float)(idx0 / M1) / (float)255;
+            idx1 = idx0 % M1;
+            B = (float)(idx1 / 255) / (float)255;
+            idx2 = idx1 % 255;
+            A = (float)(idx2) / (float)255;
+
+            glColor4f(R, G, B, A);
+
+            if (C->open)
+                glBegin(GL_LINE_STRIP);
+            else
+                glBegin(GL_LINE_LOOP);
+            for (p = 0; p < C->cps_count; p ++)
+            {
+                CP = C->cps[p];
+                glVertex3fv(CP->pos);
+            }
+            glEnd();
         }
-        glEnd();
     }
 
     glEnable(GL_MULTISAMPLE);
@@ -6955,30 +6958,33 @@ void render_Curves()
     {
         C = curves[c];
 
-        if (C->selected)
+        if (C->visible)
         {
-            glLineWidth(2);
-            line_color = &selected_color[0];
-            glDisable(GL_LIGHTING);
+            if (C->selected)
+            {
+                glLineWidth(2);
+                line_color = &selected_color[0];
+                glDisable(GL_LIGHTING);
+            }
+            else
+            {
+                glLineWidth(1);
+                line_color = &current_color[0];
+                if (!glIsEnabled(GL_LIGHTING))
+                    glEnable(GL_LIGHTING);
+            }
+            if (C->open)
+                glBegin(GL_LINE_STRIP);
+            else
+                glBegin(GL_LINE_LOOP);
+            glColor4ubv(line_color);
+            for (p = 0; p < C->cps_count; p ++)
+            {
+                CP = C->cps[p];
+                glVertex3fv(CP->pos);
+            }
+            glEnd();
         }
-        else
-        {
-            glLineWidth(1);
-            line_color = &current_color[0];
-            if (!glIsEnabled(GL_LIGHTING))
-                glEnable(GL_LIGHTING);
-        }
-        if (C->open)
-            glBegin(GL_LINE_STRIP);
-        else
-            glBegin(GL_LINE_LOOP);
-        glColor4ubv(line_color);
-        for (p = 0; p < C->cps_count; p ++)
-        {
-            CP = C->cps[p];
-            glVertex3fv(CP->pos);
-        }
-        glEnd();
     }
     glEnable(GL_TEXTURE_2D);
     //glEnable(GL_MULTISAMPLE);
@@ -7011,32 +7017,35 @@ void render_Curves_ID_(int level)
     {
         C = curves[c];
 
-        idx = C->index;
-
-        R = (float)(idx / M0) / (float)255;
-        idx0 = idx % M0;
-        G = (float)(idx0 / M1) / (float)255;
-        idx1 = idx0 % M1;
-        B = (float)(idx1 / 255) / (float)255;
-        idx2 = idx1 % 255;
-        A = (float)(idx2) / (float)255;
-
-        glColor4f(R, G, B, A);
-
-        if (C->open)
+        if (C->visible)
         {
-            for (s = 0; s < C->segment_count - 1; s ++)
+            idx = C->index;
+
+            R = (float)(idx / M0) / (float)255;
+            idx0 = idx % M0;
+            G = (float)(idx0 / M1) / (float)255;
+            idx1 = idx0 % M1;
+            B = (float)(idx1 / 255) / (float)255;
+            idx2 = idx1 % 255;
+            A = (float)(idx2) / (float)255;
+
+            glColor4f(R, G, B, A);
+
+            if (C->open)
             {
-                S = C->segments[s];
-                draw_Curve_Segment_Recursive_ID(S, level);
+                for (s = 0; s < C->segment_count - 1; s ++)
+                {
+                    S = C->segments[s];
+                    draw_Curve_Segment_Recursive_ID(S, level);
+                }
             }
-        }
-        else
-        {
-            for (s = 0; s < C->segment_count; s ++)
+            else
             {
-                S = C->segments[s];
-                draw_Curve_Segment_Recursive_ID(S, level);
+                for (s = 0; s < C->segment_count; s ++)
+                {
+                    S = C->segments[s];
+                    draw_Curve_Segment_Recursive_ID(S, level);
+                }
             }
         }
     }
@@ -7060,39 +7069,41 @@ void render_Curves_(int level)
     {
         C = curves[c];
 
-        if (C->selected)
+        if (C->visible)
         {
-            glLineWidth(2);
-            line_color = &selected_color[0];
-            glDisable(GL_LIGHTING);
-        }
-        else
-        {
-            glLineWidth(1);
-            line_color = &current_color[0];
-            if (!glIsEnabled(GL_LIGHTING))
-                glEnable(GL_LIGHTING);
-        }
-
-        glColor4ubv(line_color);
-
-        if (C->open)
-        {
-            for (s = 0; s < C->segment_count - 1; s ++)
+            if (C->selected)
             {
-                S = C->segments[s];
-                draw_Curve_Segment_Recursive(S, level);
+                glLineWidth(2);
+                line_color = &selected_color[0];
+                glDisable(GL_LIGHTING);
+            }
+            else
+            {
+                glLineWidth(1);
+                line_color = &current_color[0];
+                if (!glIsEnabled(GL_LIGHTING))
+                    glEnable(GL_LIGHTING);
+            }
+
+            glColor4ubv(line_color);
+
+            if (C->open)
+            {
+                for (s = 0; s < C->segment_count - 1; s ++)
+                {
+                    S = C->segments[s];
+                    draw_Curve_Segment_Recursive(S, level);
+                }
+            }
+            else
+            {
+                for (s = 0; s < C->segment_count; s ++)
+                {
+                    S = C->segments[s];
+                    draw_Curve_Segment_Recursive(S, level);
+                }
             }
         }
-        else
-        {
-            for (s = 0; s < C->segment_count; s ++)
-            {
-                S = C->segments[s];
-                draw_Curve_Segment_Recursive(S, level);
-            }
-        }
-
     }
     glEnable(GL_TEXTURE_2D);
     //glEnable(GL_MULTISAMPLE);

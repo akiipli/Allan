@@ -133,6 +133,7 @@ struct curve
     int segment_count;
     int open;
     object * O;
+    int visible;
 };
 
 curve * curves[CURVES];
@@ -1104,6 +1105,7 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
     curves[curvesIndex] = C;
     C->index = curvesIndex;
     curvesIndex ++;
+    C->visible = 1;
 
     if (O->curve_count < OBJECT_CURVES)
     {
@@ -1232,6 +1234,7 @@ int add_New_Curve(float pos[3], int open)
     curves[curvesIndex] = C;
     C->index = curvesIndex;
     curvesIndex ++;
+    C->visible = 1;
 
     if (cpsIndex >= CPS)
     {
@@ -2533,6 +2536,53 @@ void print_Curve_subdLevel(curve * C)
         S = S->segment[0];
     }
     printf("\n");
+}
+
+void update_Objects_Curves_Coordinates(object * O)
+{
+    int c, p;
+    curve * C;
+    cp * CP;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->vert != NULL)
+            {
+                CP->pos[0] = CP->vert->Tx;
+                CP->pos[1] = CP->vert->Ty;
+                CP->pos[2] = CP->vert->Tz;
+            }
+        }
+    }
+}
+
+void hide_Object_Curves(object * O)
+{
+    int c;
+    curve * C;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+        C->visible = 0;
+    }
+}
+
+void unhide_Object_Curves(object * O)
+{
+    int c;
+    curve * C;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+        C->visible = 1;
+    }
 }
 
 #endif // CURVES_H_INCLUDED

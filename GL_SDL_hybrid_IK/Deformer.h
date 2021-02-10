@@ -1409,4 +1409,72 @@ void print_Deformer_IK_Chains(deformer * D)
     }
 }
 
+void remember_Deformer_Object_Curves_pos(deformer * D)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->curve_count > 0)
+        {
+            remember_Object_Curves_pos(O);
+        }
+    }
+}
+
+void snap_back_Deformer_Object_Cps_To_Pos(deformer * D)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->curve_count > 0)
+        {
+            snap_back_Object_Cps_To_Pos(O);
+        }
+    }
+}
+
+void update_Deformer_Objects_Curves_Coordinates(deformer * D)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->curve_count > 0)
+        {
+            update_Objects_Curves_Coordinates(O);
+        }
+    }
+}
+
+void update_Deformer_object_Curves(deformer * D, int level)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->curve_count > 0)
+        {
+            update_object_Curves(O, level);
+        }
+    }
+}
+
 #endif // DEFORMER_H_INCLUDED
