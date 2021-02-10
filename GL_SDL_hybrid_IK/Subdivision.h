@@ -996,9 +996,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                     dot = dot_productFF(n0, D.vec);
 
-                    E->Mx = E->B.Tx + V->N.Tx * (D.distance * 0.4) * -dot;
-                    E->My = E->B.Ty + V->N.Ty * (D.distance * 0.4) * -dot;
-                    E->Mz = E->B.Tz + V->N.Tz * (D.distance * 0.4) * -dot;
+                    E->Mx = E->B.Tx + E->N.Tx * (D.distance * 0.4) * -dot;
+                    E->My = E->B.Ty + E->N.Ty * (D.distance * 0.4) * -dot;
+                    E->Mz = E->B.Tz + E->N.Tz * (D.distance * 0.4) * -dot;
                 }
 
                 for (e = 0; e < V->edgecount; e ++)
@@ -1069,8 +1069,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
 
     int curveinvolvement, q;
-    float poly_offset[3];
-
+    float Tx, Ty, Tz;
+    float dist;
     quadrant * Q;
 
     if (O->curve_count > 0 && L < 1) /* level 1 blocks patches */
@@ -1081,11 +1081,14 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             Q->center[0] = 0;
             Q->center[1] = 0;
             Q->center[2] = 0;
+            Q->dist = 0;
         }
 
         for (e = 0; e < O->edgecount_[L1]; e ++) // find edge polys and center verts
         {
             E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
+
+            D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz);
 
             idx = E->polys[0];
             Q0 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1093,6 +1096,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             Q0->center[0] += E->Mx;
             Q0->center[1] += E->My;
             Q0->center[2] += E->Mz;
+            Q0->dist += D.distance;
 
 
             if (E->polycount > 1)
@@ -1106,6 +1110,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 Q1->center[0] += E->Mx;
                 Q1->center[1] += E->My;
                 Q1->center[2] += E->Mz;
+                Q1->dist += D.distance;
             }
         }
 
@@ -1135,15 +1140,15 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 V->Ty = Q->center[1] / 4.0;
                 V->Tz = Q->center[2] / 4.0;
 
-                //
+                Q->dist /= 4.0;
 
-                poly_offset[0] = (V->Tx - Q->B.Tx) / 4.0;
-                poly_offset[1] = (V->Ty - Q->B.Ty) / 4.0;
-                poly_offset[2] = (V->Tz - Q->B.Tz) / 4.0;
+                D = length_AB_(V->Tx, V->Ty, V->Tz, Q->B.Tx, Q->B.Ty, Q->B.Tz);
 
-                V->Tx += poly_offset[0];
-                V->Ty += poly_offset[1];
-                V->Tz += poly_offset[2];
+                dist = (D.distance + Q->dist) / 2.0;
+
+                V->Tx += V->N.Tx * dist * 0.5;
+                V->Ty += V->N.Ty * dist * 0.5;
+                V->Tz += V->N.Tz * dist * 0.5;
 
                 //
             }
@@ -1157,7 +1162,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
     float Fx, Fy, Fz;
     float Ex, Ey, Ez;
-    float Tx, Ty, Tz;
+    //float Tx, Ty, Tz;
     float Ex_o, Ey_o, Ez_o;
     float Ex_w, Ey_w, Ez_w;
     float edgecount;
@@ -1538,7 +1543,9 @@ void tune_In_Subdivision_Shape_transformed(object * O)
     }
 
     int curveinvolvement, p;
-    float poly_offset[3];
+    direction_Pack D;
+    float Tx, Ty, Tz;
+    float dist;
 
     polygon * P;
 
@@ -1550,11 +1557,14 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             P->center[0] = 0;
             P->center[1] = 0;
             P->center[2] = 0;
+            P->dist = 0;
         }
 
         for (e = 0; e < O->edgecount; e ++) // find edge polys and center verts
         {
             E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+            D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz);
 
             idx = E->polys[0];
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1562,6 +1572,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             P0->center[0] += E->Mx;
             P0->center[1] += E->My;
             P0->center[2] += E->Mz;
+            P0->dist += D.distance;
 
 
             if (E->polycount > 1)
@@ -1575,6 +1586,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 P1->center[0] += E->Mx;
                 P1->center[1] += E->My;
                 P1->center[2] += E->Mz;
+                P1->dist += D.distance;
             }
         }
 
@@ -1600,19 +1612,34 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
             if (curveinvolvement)
             {
+                /*
                 V->Tx = P->center[0] / (float)V->edgecount;
                 V->Ty = P->center[1] / (float)V->edgecount;
                 V->Tz = P->center[2] / (float)V->edgecount;
 
-                /* poly offset lifts or sinks poly center */
-
-                poly_offset[0] = (V->Tx - P->B.Tx) / 2.0;
-                poly_offset[1] = (V->Ty - P->B.Ty) / 2.0;
-                poly_offset[2] = (V->Tz - P->B.Tz) / 2.0;
+                poly_offset[0] = (V->Tx - P->B.Tx);// / 2.0;
+                poly_offset[1] = (V->Ty - P->B.Ty);// / 2.0;
+                poly_offset[2] = (V->Tz - P->B.Tz);// / 2.0;
 
                 V->Tx += poly_offset[0];
                 V->Ty += poly_offset[1];
                 V->Tz += poly_offset[2];
+                */
+
+                V->Tx = P->center[0] / (float)V->edgecount;
+                V->Ty = P->center[1] / (float)V->edgecount;
+                V->Tz = P->center[2] / (float)V->edgecount;
+
+                P->dist /= (float)V->edgecount;
+
+                D = length_AB_(V->Tx, V->Ty, V->Tz, P->B.Tx, P->B.Ty, P->B.Tz);
+
+                dist = (D.distance + P->dist) / 2.0;
+
+                V->Tx += V->N.Tx * dist * 0.5;
+                V->Ty += V->N.Ty * dist * 0.5;
+                V->Tz += V->N.Tz * dist * 0.5;
+
             }
             else
             {
@@ -1623,7 +1650,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
     float Fx, Fy, Fz;
     float Ex, Ey, Ez;
-    float Tx, Ty, Tz;
+    //float Tx, Ty, Tz;
     float Ex_o, Ey_o, Ez_o;
     float Ex_w, Ey_w, Ez_w;
     float edgecount;
