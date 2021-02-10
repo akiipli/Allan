@@ -2021,17 +2021,17 @@ int create_Object_Curve(object * O)
                 {
                     n = E->verts[0];
                 }
-                printf("E:%d ", n);
+                //printf("E:%d ", n);
                 if (n == selected_verts[(v + 1) % selected_verts_count]->index)
                 {
                     E0 = E;
-                    printf("edge %d", E0->index);
+                    //printf("edge %d", E0->index);
                     break;
                 }
             }
         }
 
-        printf("\n");
+        //printf("\n");
 
         if (E0 == NULL || E0->S != NULL)
         {
