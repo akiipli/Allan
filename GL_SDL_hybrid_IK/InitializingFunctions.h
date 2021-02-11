@@ -189,14 +189,7 @@ void free_deformers()
     for(d = 0; d < deformerIndex; d ++)
     {
         D = deformers[d];
-        free(D->Name);
-        free(D->Transformers);
-        free(D->Selections);
-        free(D->Objects);
-        free(D->Bones);
-        free(D->IKchains);
-        //free(D->Poses);
-        free(D->P);
+        free_Deformer(D);
     }
 }
 

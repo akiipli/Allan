@@ -12102,6 +12102,8 @@ void clear_All()
 {
     if (!dialog_lock)
     {
+        create_Transformers_List();
+
         clear_Deformers();
         clear_Constraints();
         clear_ikChains();
