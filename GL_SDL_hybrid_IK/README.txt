@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+10:55 AM 2/11/2021
+In curves Mode pressing Ctrl + F transfers Curves Cps coordinates to objects original coordinates.
+
 11:12 PM 2/4/2021
 Steps taken to integrate curves.
 Pick verts in order and press Ctrl + P. This creates a curve for the current object. It must connect edgeflow.

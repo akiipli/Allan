@@ -2585,4 +2585,28 @@ void unhide_Object_Curves(object * O)
     }
 }
 
+void transfer_Curve_Cps_To_Vertex_Coordinates(object * O)
+{
+    int c, p;
+    curve * C;
+    cp * CP;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+
+            if (CP->vert != NULL)
+            {
+                CP->vert->x = CP->pos[0];
+                CP->vert->y = CP->pos[1];
+                CP->vert->z = CP->pos[2];
+            }
+        }
+    }
+}
+
 #endif // CURVES_H_INCLUDED

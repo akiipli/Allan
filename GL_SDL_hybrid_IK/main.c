@@ -12187,7 +12187,7 @@ void clear_All()
 
         clear_Items();
 
-        clean_Object_Curves(O);
+        //clean_Object_Curves(O);
     }
 }
 
@@ -18698,7 +18698,14 @@ int main(int argc, char * args[])
             }
             else if (mod & KMOD_CTRL)
             {
-                freeze_Object_Coordinates(O);
+                if (Curve_Mode)
+                {
+                    transfer_Curve_Cps_To_Vertex_Coordinates(O);
+                }
+                else
+                {
+                    freeze_Object_Coordinates(O);
+                }
             }
             else if (mod & KMOD_ALT)
             {
