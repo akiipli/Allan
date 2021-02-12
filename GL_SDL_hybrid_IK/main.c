@@ -11842,7 +11842,7 @@ void transform_Objects_And_Render()
     if (message == -10)
     {
         UPDATE_COLORS = 0;
-        printf("update colors\n");
+        //printf("update colors\n");
         poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
     }
 
@@ -12007,6 +12007,13 @@ void delete_Object(int index, int render)
         }
         if (condition)
         {
+            if (O->curve_count > 0)
+            {
+                delete_Object_Curves(O);
+                currentCurve = curvesIndex - 1;
+                if (currentCurve < 0)
+                    currentCurve = 0;
+            }
             delete_Transformer(O->T);
 
             remove_Selections_From_Transformers(O);
@@ -14208,29 +14215,48 @@ int main(int argc, char * args[])
                     }
                     else if(altDown)
                     {
+                        edge_divisor += 0.1;
+                        printf("edge divisor: %f\t\r", edge_divisor);
+
+                        message = -1;
+                        /*
                         Reflect += 0.1;
                         printf("%f\n", Reflect);
+                        */
                     }
                     else if(controlDown)
                     {
-                        if (fog.Distance > 100 && fog.Distance < 1000)
+                        if (Curve_Mode)
                         {
-                            fog.Distance += 10;
-                        }
-                        else if (fog.Distance > 10 && fog.Distance <= 100)
-                        {
-                            fog.Distance += 2;
+                            curve_subdiv += 1;
+
+                            if (curve_subdiv >= SUBD)
+                            {
+                                curve_subdiv = SUBD;
+                            }
+                            printf("curve subdiv: %d\t\r", curve_subdiv);
                         }
                         else
                         {
-                            fog.Distance += 0.5;
+                            if (fog.Distance > 100 && fog.Distance < 1000)
+                            {
+                                fog.Distance += 10;
+                            }
+                            else if (fog.Distance > 10 && fog.Distance <= 100)
+                            {
+                                fog.Distance += 2;
+                            }
+                            else
+                            {
+                                fog.Distance += 0.5;
+                            }
+                            if (fog.Distance > 1000)
+                            {
+                                fog.Distance = 1000;
+                            }
+                            printf("%f\n", fog.Distance);
+                            update_fog();
                         }
-                        if (fog.Distance > 1000)
-                        {
-                            fog.Distance = 1000;
-                        }
-                        printf("%f\n", fog.Distance);
-                        update_fog();
                     }
                     else if (BONES_MODE)
                     {
@@ -14288,27 +14314,44 @@ int main(int argc, char * args[])
                     }
                     else if(altDown)
                     {
+                        edge_divisor -= 0.1;
+                        printf("edge divisor: %f\t\r", edge_divisor);
+
+                        message = -1;
+                        /*
                         Reflect -= 0.1;
                         printf("%f\n", Reflect);
+                        */
                     }
                     else if(controlDown)
                     {
-                        if (fog.Distance < 1000 && fog.Distance >= 100)
+                        if (Curve_Mode)
                         {
-                            fog.Distance -= 10;
-                        }
-                        else if (fog.Distance < 100 && fog.Distance >= 10)
-                        {
-                            fog.Distance -= 2;
+                            curve_subdiv -= 1;
+
+                            if (curve_subdiv < 1)
+                            {
+                                curve_subdiv = 1;
+                            }
+                            printf("curve subdiv: %d\t\r", curve_subdiv);
                         }
                         else
                         {
-                            fog.Distance -= 0.5;
+                            if (fog.Distance < 1000 && fog.Distance >= 100)
+                            {
+                                fog.Distance -= 10;
+                            }
+                            else if (fog.Distance < 100 && fog.Distance >= 10)
+                            {
+                                fog.Distance -= 2;
+                            }
+                            else
+                            {
+                                fog.Distance -= 0.5;
+                            }
+                            printf("%f\n", fog.Distance);
+                            update_fog();
                         }
-                        printf("%f\n", fog.Distance);
-                        update_fog();
-//                        if (fog.Distance < 0)
-//                            fog.Distance = 0;
                     }
                     else if (BONES_MODE)
                     {

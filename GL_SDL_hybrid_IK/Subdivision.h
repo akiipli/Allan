@@ -18,6 +18,9 @@ Copyright <2018> <Allan Kiipli>
 // bounding boxes and coordinates. This for 3d tuning only. UVs stay undeformed.
 // Cage is deformed and vertexes update transformed coordinates.
 
+int curve_subdiv = 1;
+float edge_divisor = 1.0;
+
 void tune_In_Subdivision_Shape_uvtex(object * O);
 int tune_In_Subdivision_Shape_uvtex_(object * O, int L);
 
@@ -884,7 +887,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         V = &O->verts_[L][(e + c_v) / ARRAYSIZE][(e + c_v) % ARRAYSIZE]; // edge vertex
 
 
-        if (E->S != NULL && L < 1) /* level 1 blocks patches */
+        if (E->S != NULL && L < curve_subdiv) /* level 1 blocks patches */
         {
             Mx = E->S->B[0];
             My = E->S->B[1];
@@ -948,7 +951,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
     edge * E0;
 
-    if (O->curve_count > 0 && L < 1) /* level 1 blocks patches */
+    if (O->curve_count > 0 && L < curve_subdiv) /* level 1 blocks patches */
     {
         // use polycenter vertexes weight as patch inicator
         // start polycenter verts after cage and edge verts
@@ -979,7 +982,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                     idx = V->edges[e];
                     E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    // use dot to flatten patch crosshair points
+                    /* we don't flatten crosshair points rather we transfer the hairs */
 
                     if (E->verts[0] == V->index)
                     {
@@ -996,9 +999,14 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                     dot = dot_productFF(n0, D.vec);
 
-                    E->Mx = E->B.Tx + E->N.Tx * (D.distance * 0.4) * -dot;
-                    E->My = E->B.Ty + E->N.Ty * (D.distance * 0.4) * -dot;
-                    E->Mz = E->B.Tz + E->N.Tz * (D.distance * 0.4) * -dot;
+                    D.distance *= 0.5; /* since this is previous level */
+                    D.distance *= edge_divisor;
+
+                    /* Here we use dot to modify the height of transfer */
+
+                    E->Mx = E->B.Tx + E->N.Tx * (D.distance * V->weight) * -dot;
+                    E->My = E->B.Ty + E->N.Ty * (D.distance * V->weight) * -dot;
+                    E->Mz = E->B.Tz + E->N.Tz * (D.distance * V->weight) * -dot;
                 }
 
                 for (e = 0; e < V->edgecount; e ++)
@@ -1073,7 +1081,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
     float dist;
     quadrant * Q;
 
-    if (O->curve_count > 0 && L < 1) /* level 1 blocks patches */
+    if (O->curve_count > 0 && L < curve_subdiv) /* level 1 blocks patches */
     {
         for (q = 0; q < O->quadcount_[L1]; q ++)
         {
@@ -1136,25 +1144,29 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
             if (curveinvolvement)
             {
-                V->Tx = Q->center[0] / 4.0;
-                V->Ty = Q->center[1] / 4.0;
-                V->Tz = Q->center[2] / 4.0;
+                Tx = Q->center[0] / 4.0;
+                Ty = Q->center[1] / 4.0;
+                Tz = Q->center[2] / 4.0;
 
                 Q->dist /= 4.0;
+                Q->dist /= edge_divisor;
 
-                D = length_AB_(V->Tx, V->Ty, V->Tz, Q->B.Tx, Q->B.Ty, Q->B.Tz);
+                D = length_AB_(Q->B.Tx, Q->B.Ty, Q->B.Tz, Tx, Ty, Tz);
 
-                dist = (D.distance + Q->dist) / 2.0;
+                V->weight = D.distance / Q->dist; // lift
 
-                V->Tx += V->N.Tx * dist * 0.5;
-                V->Ty += V->N.Ty * dist * 0.5;
-                V->Tz += V->N.Tz * dist * 0.5;
+                dist = (D.distance + Q->dist) * V->weight;
 
-                //
+                V->Tx = Q->B.Tx + D.vec[0] * dist;
+                V->Ty = Q->B.Ty + D.vec[1] * dist;
+                V->Tz = Q->B.Tz + D.vec[2] * dist;
+
+                //V->weight = mean;
             }
             else
             {
                 V->patch = 0; // polycenter indicator
+                V->weight = 0.0;
             }
         }
     }
@@ -1174,7 +1186,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         V = &O->verts_[L][v / ARRAYSIZE][v % ARRAYSIZE]; // new level 0 cage vertexes
         V0 = &O->verts_[L1][v / ARRAYSIZE][v % ARRAYSIZE]; // old level -1 cage vertexes
 
-        if (V0->patch && L < 1) /* level 1 blocks patches */
+        if (V0->patch && L < curve_subdiv) /* level 1 blocks patches */
         {
 
         }
@@ -1291,7 +1303,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         }
     }
 
-    if (O->curve_count > 0 && L < 1) /* level 1 blocks patches */
+    if (O->curve_count > 0 && L < curve_subdiv) /* level 1 blocks patches */
     {
         for (e = 0; e < O->edgecount_[L1]; e ++) // edge verts average surrounding polys and self position
         {
@@ -1488,7 +1500,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
         E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
         V = &O->verts_[0][(e + c_v) / ARRAYSIZE][(e + c_v) % ARRAYSIZE]; // edge vertex
 
-        if (E->S != NULL)
+        if (E->S != NULL) /* edge medians are defined with segments */
         {
             Mx = E->S->B[0];
             My = E->S->B[1];
@@ -1564,7 +1576,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
         {
             E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
 
-            D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz);
+            D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz); // edge lift
 
             idx = E->polys[0];
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1612,38 +1624,27 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
             if (curveinvolvement)
             {
-                /*
-                V->Tx = P->center[0] / (float)V->edgecount;
-                V->Ty = P->center[1] / (float)V->edgecount;
-                V->Tz = P->center[2] / (float)V->edgecount;
-
-                poly_offset[0] = (V->Tx - P->B.Tx);// / 2.0;
-                poly_offset[1] = (V->Ty - P->B.Ty);// / 2.0;
-                poly_offset[2] = (V->Tz - P->B.Tz);// / 2.0;
-
-                V->Tx += poly_offset[0];
-                V->Ty += poly_offset[1];
-                V->Tz += poly_offset[2];
-                */
-
-                V->Tx = P->center[0] / (float)V->edgecount;
-                V->Ty = P->center[1] / (float)V->edgecount;
-                V->Tz = P->center[2] / (float)V->edgecount;
+                Tx = P->center[0] / (float)V->edgecount;
+                Ty = P->center[1] / (float)V->edgecount;
+                Tz = P->center[2] / (float)V->edgecount;
 
                 P->dist /= (float)V->edgecount;
+                P->dist /= edge_divisor;
 
-                D = length_AB_(V->Tx, V->Ty, V->Tz, P->B.Tx, P->B.Ty, P->B.Tz);
+                D = length_AB_(P->B.Tx, P->B.Ty, P->B.Tz, Tx, Ty, Tz); // median lift
 
-                dist = (D.distance + P->dist) / 2.0;
+                V->weight = D.distance / P->dist; // lift
 
-                V->Tx += V->N.Tx * dist * 0.5;
-                V->Ty += V->N.Ty * dist * 0.5;
-                V->Tz += V->N.Tz * dist * 0.5;
+                dist = (D.distance + P->dist) * V->weight;
 
+                V->Tx = P->B.Tx + D.vec[0] * dist;
+                V->Ty = P->B.Ty + D.vec[1] * dist;
+                V->Tz = P->B.Tz + D.vec[2] * dist;
             }
             else
             {
                 V->patch = 0; // polycenter indicator
+                V->weight = 0.0;
             }
         }
     }

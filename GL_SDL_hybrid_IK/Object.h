@@ -12,7 +12,7 @@ Copyright <2018> <Allan Kiipli>
 #define OBJECTS 1000
 #define OBJECTARRAY 10000 // these enable big files in
 #define ARRAYSIZE 10000   //
-#define SUBD 3
+#define SUBD 4
 #define SUBD_SHAPE 3
 
 #define PIXEL_VOLUME 100

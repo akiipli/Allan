@@ -2376,6 +2376,8 @@ void disconnect_Curve_Form_Object(curve * C)
 
 void clean_Object_Curves(object * O)
 {
+    printf("clean Object Curves\n");
+
     O->curve_count = 0;
 
     int e, v, c;
@@ -2420,6 +2422,22 @@ void delete_Segment_Recursive(curve_segment * S)
     free(S);
 }
 
+void erase_Vertex_Patch_Indicators(object * O)
+{
+    int l, v;
+
+    vertex * V;
+
+    for (l = 0; l <= O->subdlevel; l ++)
+    {
+        for (v = 0; v < O->vertcount_[l]; v ++)
+        {
+            V = &O->verts_[l][v / ARRAYSIZE][v % ARRAYSIZE];
+            V->patch = 0;
+        }
+    }
+}
+
 void delete_Curve(curve * C)
 {
     int c, s, p;
@@ -2438,7 +2456,7 @@ void delete_Curve(curve * C)
 
             if (S->E != NULL)
             {
-                clean_Edge_Segment_Recursive(O, S->E, 0, O->subdlevel);
+                clean_Edge_Segment_Recursive(O, S->E, -1, O->subdlevel);
             }
         }
 
@@ -2488,6 +2506,8 @@ void delete_Curve(curve * C)
                 O->curves[c] = O->curves[c + 1];
             }
         }
+
+        erase_Vertex_Patch_Indicators(O);
     }
 
     /* segmentIndex is not changed */
@@ -2606,6 +2626,18 @@ void transfer_Curve_Cps_To_Vertex_Coordinates(object * O)
                 CP->vert->z = CP->pos[2];
             }
         }
+    }
+}
+
+void delete_Object_Curves(object * O)
+{
+    int c;
+    curve * C;
+
+    for (c = O->curve_count - 1; c >= 0; c --)
+    {
+        C = O->curves[c];
+        delete_Curve(C);
     }
 }
 
