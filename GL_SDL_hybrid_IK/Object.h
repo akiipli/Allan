@@ -282,6 +282,7 @@ typedef struct
     box_2d B2;
 
     float center[3]; // for curve based subdivision, normally it equals mean center
+    float weight;
     float dist;
 }
 quadrant;
