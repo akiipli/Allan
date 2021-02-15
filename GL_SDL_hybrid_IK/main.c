@@ -1370,6 +1370,7 @@ int subdivide_after_Creation(object * O, int level, int tune)
 
         if (result)
         {
+            create_flow_In_Edges_(O, level);
             subdivide_post(O, level, tune);
         }
         else
@@ -1477,6 +1478,7 @@ int create_Objects()
 
         generate_Edge_UV_Assoc(O); // picking in 3d and 2d
         generate_Vert_UV_Assoc(O); // picking in 3d and 2d
+        create_flow_In_Edges(O); // edge direction in polygon
 
         generate_Triangles(O);
         generate_polyNormals(O);
@@ -1502,6 +1504,7 @@ int create_Objects()
 
         if (result)
         {
+            create_flow_In_Edges_(O, level);
             subdivide_post(O, level, tune);
         }
         else
@@ -1514,6 +1517,7 @@ int create_Objects()
 
         if (result)
         {
+            create_flow_In_Edges_(O, level);
             subdivide_post(O, level, tune);
         }
         else
@@ -1526,6 +1530,7 @@ int create_Objects()
 
         if (result)
         {
+            create_flow_In_Edges_(O, level);
             subdivide_post(O, level, tune);
         }
 
@@ -4564,6 +4569,10 @@ void open_OBJ(char * fileName)
         {
             currentLocator = transformerIndex - 1;
             currentObject = objectIndex - 1;
+
+            O = objects[currentObject];
+
+            create_flow_In_Edges(O);
 
             deselect_Objects();
 
@@ -12798,6 +12807,7 @@ void save_load_Scene()
             strcat(Path, "Objects");
             obj_count = load_Objects(Path, VBO);
             add_objects_as_items(obj_count);
+            create_edge_Flows(obj_count);
             subdLevel = -1;
 
             Path[0] = '\0';

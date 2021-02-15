@@ -19,7 +19,7 @@ Copyright <2018> <Allan Kiipli>
 // Cage is deformed and vertexes update transformed coordinates.
 
 int curve_subdiv = 1;
-float edge_divisor = 0.05;
+float edge_divisor = 0.5;
 
 void tune_In_Subdivision_Shape_uvtex(object * O);
 int tune_In_Subdivision_Shape_uvtex_(object * O, int L);
@@ -946,15 +946,17 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
     int start, set_and_done;
     //float n0[3], dot;
-    int idx00, idx11;
 
-    direction_Pack D;
+    direction_Pack D; //, D0, D1;
 
-    edge * E0, * E1;
-    polygon * P;
+    edge * E0, * E1, * E2;
     quadrant * Q;
+//    polygon * P;
+    vertex * V1;
 
     float Edge_lift[3];
+    float Edge_drag[3];
+    float a, b; // dot, dot0, dot1,
 
     if (O->curve_count > 0 && L < curve_subdiv) /* level 1 blocks patches */
     {
@@ -983,7 +985,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 //printf("%f %f %f\n", n0[0], n0[0], n0[0]);
                 */
-
+/*
                 idx = v - start;
 
                 if (L > 1)
@@ -994,55 +996,150 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 {
                     P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
                 }
-
+*/
                 for (e = 0; e < V->edgecount; e ++)
                 {
-                    idx00 = (e + V->edgecount - 1) % V->edgecount;
-                    idx11 = (e + 1) % V->edgecount;
-
                     Edge_lift[0] = 0.0;
                     Edge_lift[1] = 0.0;
                     Edge_lift[2] = 0.0;
 
+                    Edge_drag[0] = 0.0;
+                    Edge_drag[1] = 0.0;
+                    Edge_drag[2] = 0.0;
+
+                    // vertex edge
                     idx = V->edges[e];
                     E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                    if (L > 1)
+                    // first edge polygon
+                    idx = E->polys[0];
+                    Q0 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    // opposite edge
+                    idx = Q0->edges[(E->slots[0] + 2) % 4];
+                    E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    // if edge is closed
+                    if (E->polycount > 1)
                     {
-                        idx = Q->edges[idx00]; // previous edge
-                        E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                        idx = Q->edges[idx11]; // next edge
+                        // second edge polygon
+                        idx = E->polys[1];
+                        Q1 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        // opposite edge
+                        idx = Q1->edges[(E->slots[1] + 2) % 4];
                         E1 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
                     }
                     else
                     {
-                        idx = P->edges[idx00]; // previous edge
-                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        // if open
+                        E1 = E0;
+                    }
+                    // reference to perimeter
+                    E2 = E->perimeter;
 
-                        idx = P->edges[idx11]; // next edge
-                        E1 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    // because level minus two can be less than zero and there are
+                    // underlying polygons
+                    if (L > 1)
+                    {
+                        // find vertexes for front edge tips
+                        if (E2->flow)
+                        {
+                            idx = E2->verts[0];
+                            V0 = &O->verts_[L1 - 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            idx = E2->verts[1];
+                            V1 = &O->verts_[L1 - 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        }
+                        else
+                        {
+                            idx = E2->verts[1];
+                            V0 = &O->verts_[L1 - 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            idx = E2->verts[0];
+                            V1 = &O->verts_[L1 - 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        }
+                    }
+                    else
+                    {
+                        // find vertexes for front edge tips
+                        if (E2->flow)
+                        {
+                            idx = E2->verts[0];
+                            V0 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            idx = E2->verts[1];
+                            V1 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        }
+                        else
+                        {
+                            idx = E2->verts[1];
+                            V0 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            idx = E2->verts[0];
+                            V1 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        }
                     }
 
-                    Edge_lift[0] += E0->Mx - E0->B.Tx;
-                    Edge_lift[1] += E0->My - E0->B.Ty;
-                    Edge_lift[2] += E0->Mz - E0->B.Tz;
+                    // this point is in the centerline edge to perimeter
 
-                    Edge_lift[0] += E1->Mx - E1->B.Tx;
-                    Edge_lift[1] += E1->My - E1->B.Ty;
-                    Edge_lift[2] += E1->Mz - E1->B.Tz;
+                    Edge_drag[0] = (E2->Mx + V->Tx) / 2.0;
+                    Edge_drag[1] = (E2->My + V->Ty) / 2.0;
+                    Edge_drag[2] = (E2->Mz + V->Tz) / 2.0;
 
-                    Edge_lift[0] /= (V->edgecount - 1);
-                    Edge_lift[1] /= (V->edgecount - 1);
-                    Edge_lift[2] /= (V->edgecount - 1);
+//                    Edge_lift[0] = (E2->Mx + V->Tx) / 2.0;
+//                    Edge_lift[1] = (E2->My + V->Ty) / 2.0;
+//                    Edge_lift[2] = (E2->Mz + V->Tz) / 2.0;
+
+                    // construct and add both edge vectors
+
+                    Edge_lift[0] += E0->Mx - V0->Tx;
+                    Edge_lift[1] += E0->My - V0->Ty;
+                    Edge_lift[2] += E0->Mz - V0->Tz;
+
+                    Edge_lift[0] += E1->Mx - V1->Tx;
+                    Edge_lift[1] += E1->My - V1->Ty;
+                    Edge_lift[2] += E1->Mz - V1->Tz;
+
+                    // divide
 
                     Edge_lift[0] *= 0.5;
                     Edge_lift[1] *= 0.5;
                     Edge_lift[2] *= 0.5;
 
-                    E->Mx = E->B.Tx + Edge_lift[0];
-                    E->My = E->B.Ty + Edge_lift[1];
-                    E->Mz = E->B.Tz + Edge_lift[2];
+                    // move composite vector to front edge center
+
+                    Edge_lift[0] += E2->Mx;
+                    Edge_lift[1] += E2->My;
+                    Edge_lift[2] += E2->Mz;
+
+//                    D = length_AB_(V->Tx, V->Ty, V->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+//                    D0 = length_AB_(V0->Tx, V0->Ty, V0->Tz, E0->Mx, E0->My, E0->Mz);
+//                    D1 = length_AB_(V1->Tx, V1->Ty, V1->Tz, E1->Mx, E1->My, E1->Mz);
+//
+//                    dot0 = dot_productFF(D.vec, D0.vec);
+//                    dot1 = dot_productFF(D.vec, D1.vec);
+//
+//                    dot = (dot0 + dot1) / 2.0;
+
+                    // make mean weighting both points
+                    a = 1 - edge_divisor;
+                    b = 1 - a;
+
+                    E->Mx = (Edge_lift[0] * a + Edge_drag[0] * b);
+                    E->My = (Edge_lift[1] * a + Edge_drag[1] * b);
+                    E->Mz = (Edge_lift[2] * a + Edge_drag[2] * b);
+
+//                    E->Mx /= 2.0;
+//                    E->My /= 2.0;
+//                    E->Mz /= 2.0;
+
+                    // patch inside edge center
+
+//                    E->Mx = Edge_lift[0];
+//                    E->My = Edge_lift[1];
+//                    E->Mz = Edge_lift[2];
+
+//                    E->Mx = Edge_drag[0];
+//                    E->My = Edge_drag[1];
+//                    E->Mz = Edge_drag[2];
+
 
 //                    /* we don't flatten crosshair points rather we transfer the hairs */
 //
@@ -1228,15 +1325,15 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 V->weight = 0.0;
             }
 
-            if (Q->subdivs)
-            {
-                for (e = 0; e < 4; e ++)
-                {
-                    idx = Q->quads[e];
-                    Q = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                    Q->weight = V->weight;
-                }
-            }
+//            if (Q->subdivs)
+//            {
+//                for (e = 0; e < 4; e ++)
+//                {
+//                    idx = Q->quads[e];
+//                    Q = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+//                    Q->weight = V->weight;
+//                }
+//            }
         }
     }
 
@@ -2371,6 +2468,9 @@ int object_Subdivide_Quads(object * O, int L)
             EI->index = edge_c;
             EI->verts[0] = Q0->verts[0];
             EI->verts[1] = Q0->verts[3];
+
+            EI->perimeter = E;
+
             idx = EI->verts[1]; // perimeter vertex needs EI as its edge
             V0 = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
             V0->edges[V0->edgecount++] = edge_c; // perimeter
@@ -2968,6 +3068,9 @@ int object_Subdivide(object * O, int L)
             EI->index = edge_c;
             EI->verts[0] = Q->verts[0];
             EI->verts[1] = Q->verts[3];
+
+            EI->perimeter = E;
+
             idx = EI->verts[1]; // perimeter vertex needs EI as its edge
             V0 = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
             V0->edges[V0->edgecount++] = edge_c; // perimeter

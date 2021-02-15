@@ -175,8 +175,9 @@ void print_triangle(triangle * T)
 }
 
 typedef struct curve_segment curve_segment;
+typedef struct edge edge;
 
-typedef struct
+struct edge
 {
     int index;
     int visible;
@@ -190,7 +191,7 @@ typedef struct
     int uv_edges[2]; // split edges, same level
     int uv_edcount;
     int polys[2];
-    int slots[2];
+    int slots[2]; // edge index in edges polys or quads
     int polycount;
     normal N;
     box_3d B;
@@ -199,8 +200,9 @@ typedef struct
     float Mz;
 
     curve_segment * S;
-}
-edge;
+    int flow[2]; // edge direction in edges polys or quads
+    edge * perimeter; // inside edge has index for perimeter one level above
+};
 
 void print_edge(edge * E)
 {

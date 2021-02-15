@@ -2594,3 +2594,141 @@ void generate_UV_Verts_Edges(object * O)
         UVert->uv_edges[UVert->uvcount++] = e;
     }
 }
+
+void create_flow_In_Edges_(object * O, int L)
+{
+    int e, idx, slot, e0;
+
+    edge * E;
+    quadrant * Q;
+
+    for (e = 0; e < O->edgecount_[L]; e ++)
+    {
+        E = &O->edges_[L][e / ARRAYSIZE][e % ARRAYSIZE];
+
+        idx = E->polys[0];
+        Q = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+        for (e0 = 0; e0 < 4; e0 ++)
+        {
+            if (Q->edges[e0] == e)
+            {
+                E->slots[0] = e0;
+                break;
+            }
+        }
+
+        slot = E->slots[0];
+
+        if (Q->verts[slot] == E->verts[0] && Q->verts[(slot + 1) % 4] == E->verts[1])
+        {
+            E->flow[0] = 1;
+        }
+        else
+        {
+            E->flow[0] = 0;
+        }
+
+        if (E->polycount > 1)
+        {
+            idx = E->polys[1];
+            Q = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            for (e0 = 0; e0 < 4; e0 ++)
+            {
+                if (Q->edges[e0] == e)
+                {
+                    E->slots[1] = e0;
+                    break;
+                }
+            }
+
+            slot = E->slots[1];
+
+            if (Q->verts[slot] == E->verts[0] && Q->verts[(slot + 1) % 4] == E->verts[1])
+            {
+                E->flow[1] = 1;
+            }
+            else
+            {
+                E->flow[1] = 0;
+            }
+        }
+        //printf("Flow %d %d\n", E->flow[0], E->flow[1]);
+    }
+}
+
+void create_flow_In_Edges(object * O)
+{
+    int e, idx, slot, e0;
+
+    edge * E;
+    polygon * P;
+
+    for (e = 0; e < O->edgecount; e ++)
+    {
+        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+        idx = E->polys[0];
+        P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+        for (e0 = 0; e0 < P->edgecount; e0 ++)
+        {
+            if (P->edges[e0] == e)
+            {
+                E->slots[0] = e0;
+                break;
+            }
+        }
+
+        slot = E->slots[0];
+
+        if (P->verts[slot] == E->verts[0] && P->verts[(slot + 1) % P->edgecount] == E->verts[1])
+        {
+            E->flow[0] = 1;
+        }
+        else
+        {
+            E->flow[0] = 0;
+        }
+
+        if (E->polycount > 1)
+        {
+            idx = E->polys[1];
+            P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            for (e0 = 0; e0 < P->edgecount; e0 ++)
+            {
+                if (P->edges[e0] == e)
+                {
+                    E->slots[1] = e0;
+                    break;
+                }
+            }
+
+            slot = E->slots[1];
+
+            if (P->verts[slot] == E->verts[0] && P->verts[(slot + 1) % P->edgecount] == E->verts[1])
+            {
+                E->flow[1] = 1;
+            }
+            else
+            {
+                E->flow[1] = 0;
+            }
+        }
+        //printf("Flow %d %d\n", E->flow[0], E->flow[1]);
+    }
+}
+
+void create_edge_Flows(int obj_count)
+{
+    int o;
+    object * O;
+
+    for (o = objectIndex - obj_count; o < objectIndex; o ++)
+    {
+        O = objects[o];
+        create_flow_In_Edges(O);
+    }
+}

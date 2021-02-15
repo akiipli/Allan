@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+12:15 PM 2/15/2021
+In curves Mode one can dial up subdivision curve parameter with Ctrl and mousescroll. This is visible
+with subdivided objects that have curves. With Alt scrolling one can change edge divisor parameter.
+This is experimental now, because it does not yield proper surface. Fanatics could improve it, i not.
+
 10:55 AM 2/11/2021
 In curves Mode pressing Ctrl + F transfers Curves Cps coordinates to objects original coordinates.
 
