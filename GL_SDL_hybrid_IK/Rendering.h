@@ -4440,6 +4440,91 @@ void draw_Axis(int Axis_lock, float object_Pos[3])
     glEnable(GL_BLEND);
 }
 
+void render_Patch_Labels(int width, int height, object * O, int l)
+{
+    int q, p, v_start;
+
+    quadrant * Q;
+    polygon * P;
+    vertex * V;
+
+    label * L;
+
+    label_count = 0;
+
+    GLdouble point[3];
+    GLdouble coords[3];
+
+    int result;
+
+    if (l < 0)
+    {
+        v_start = O->vertcount + O->edgecount;
+
+        for (p = 0; p < O->polycount; p ++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+            if (P->subdivs && P->selected)
+            {
+                V = &O->verts_[0][(p + v_start) / ARRAYSIZE][(p + v_start) % ARRAYSIZE];
+
+                if (V->patch)
+                {
+                    point[0] = V->Tx;
+                    point[1] = V->Ty;
+                    point[2] = V->Tz;
+
+                    result = point_on_screen_GLU(point, coords);
+
+                    if (result && label_count < LABELS)
+                    {
+                        L = labels[label_count ++];
+                        L->text[0] = '1';
+                        L->text[1] = '\0';
+                        L->x = coords[0] - 100;
+                        L->y = height - coords[1] + 20;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        v_start = O->vertcount_[l] + O->edgecount_[l];
+
+        for (q = 0; q < O->quadcount_[l]; q ++)
+        {
+            Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
+
+            if (Q->subdivs && Q->selected)
+            {
+                V = &O->verts_[l + 1][(q + v_start) / ARRAYSIZE][(q + v_start) % ARRAYSIZE];
+
+                if (V->patch)
+                {
+                    point[0] = V->Tx;
+                    point[1] = V->Ty;
+                    point[2] = V->Tz;
+
+                    result = point_on_screen_GLU(point, coords);
+
+                    if (result && label_count < LABELS)
+                    {
+                        L = labels[label_count ++];
+                        L->text[0] = '1';
+                        L->text[1] = '\0';
+                        L->x = coords[0] - 100;
+                        L->y = height - coords[1] + 20;
+                    }
+                }
+            }
+        }
+    }
+
+    display_labels(width, height);
+}
+
 void render_patch_edge_polys_Labels(int width, int height, object * O, int l)
 {
     int p, e, v_start, idx;
