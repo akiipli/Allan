@@ -4440,10 +4440,197 @@ void draw_Axis(int Axis_lock, float object_Pos[3])
     glEnable(GL_BLEND);
 }
 
-void render_Labels(int width, int height)
+void render_patch_edge_polys_Labels(int width, int height, object * O, int l)
+{
+    int p, e, v_start, idx;
+
+    quadrant * Q;
+    polygon * P;
+    vertex * V;
+    edge * E, * E0;
+
+    label * L;
+
+    label_count = 0;
+
+    GLdouble point[3];
+    GLdouble coords[3];
+
+    int result;
+
+    v_start = O->vertcount + O->edgecount;
+
+    for (p = 0; p < O->polycount; p ++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+        if (P->subdivs && P->selected)
+        {
+            V = &O->verts_[0][(p + v_start) / ARRAYSIZE][(p + v_start) % ARRAYSIZE];
+
+            for (e = 0; e < V->edgecount; e ++)
+            {
+                idx = V->edges[e];
+                E = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                idx = P->edges[e];
+                E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                idx = E->polys[0];
+                Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (E->perimeter == E0)
+                {
+                    point[0] = E->B.Tx;
+                    point[1] = E->B.Ty;
+                    point[2] = E->B.Tz;
+
+                    result = point_on_screen_GLU(point, coords);
+
+                    if (result && label_count < LABELS)
+                    {
+                        L = labels[label_count ++];
+                        L->text[0] = e + 48;
+                        L->text[1] = ' ';
+                        L->text[2] = E->slots[0] + 48;
+                        L->text[3] = '\0';
+                        L->x = coords[0] - 100;
+                        L->y = height - coords[1] + 20;
+                    }
+
+                    point[0] = Q->B.Tx;
+                    point[1] = Q->B.Ty;
+                    point[2] = Q->B.Tz;
+
+                    result = point_on_screen_GLU(point, coords);
+
+                    if (result && label_count < LABELS)
+                    {
+                        L = labels[label_count ++];
+                        L->text[0] = e + 48;
+                        L->text[1] = ' ';
+                        L->text[2] = E->slots[0] + 48;
+                        L->text[3] = '\0';
+                        L->x = coords[0] - 100;
+                        L->y = height - coords[1] + 20;
+                    }
+                }
+            }
+        }
+    }
+
+    display_labels(width, height);
+}
+
+void render_patch_edge_Labels(int width, int height, object * O, int l)
+{
+    int p, e, v_start, idx;
+
+    polygon * P;
+    vertex * V;
+    edge * E;
+
+    label * L;
+
+    label_count = 0;
+
+    GLdouble point[3];
+    GLdouble coords[3];
+
+    int result;
+
+    v_start = O->vertcount + O->edgecount;
+
+    for (p = 0; p < O->polycount; p ++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+        if (P->subdivs && P->selected)
+        {
+            V = &O->verts_[0][(p + v_start) / ARRAYSIZE][(p + v_start) % ARRAYSIZE];
+
+            for (e = 0; e < V->edgecount; e ++)
+            {
+                idx = V->edges[e];
+                E = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                point[0] = E->B.Tx;
+                point[1] = E->B.Ty;
+                point[2] = E->B.Tz;
+
+                result = point_on_screen_GLU(point, coords);
+
+                if (result && label_count < LABELS)
+                {
+                    L = labels[label_count ++];
+                    L->text[0] = e + 48;
+                    L->text[1] = '\0';
+                    L->x = coords[0] - 100;
+                    L->y = height - coords[1] + 20;
+                }
+            }
+        }
+    }
+
+    display_labels(width, height);
+}
+
+void render_poly_winding_Labels(int width, int height, object * O, int l)
+{
+    int p, e, idx;
+
+    polygon * P;
+    quadrant * Q;
+
+    label * L;
+
+    label_count = 0;
+
+    GLdouble point[3];
+    GLdouble coords[3];
+
+    int result;
+
+    for (p = 0; p < O->polycount; p ++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+        if (P->subdivs && P->selected)
+        {
+            for (e = 0; e < P->edgecount; e ++)
+            {
+                idx = P->quads[e];
+                Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (Q->selected)
+                {
+                    point[0] = Q->B.Tx;
+                    point[1] = Q->B.Ty;
+                    point[2] = Q->B.Tz;
+
+                    result = point_on_screen_GLU(point, coords);
+
+                    if (result && label_count < LABELS)
+                    {
+                        L = labels[label_count ++];
+                        L->text[0] = e + 48;
+                        L->text[1] = '\0';
+                        L->x = coords[0] - 100;
+                        L->y = height - coords[1] + 20;
+                    }
+                }
+            }
+        }
+    }
+
+    display_labels(width, height);
+}
+
+void render_IK_Labels(int width, int height)
 {
     int t;
     transformer * T;
+
     label * L;
 
     label_count = 0;
@@ -4471,10 +4658,11 @@ void render_Labels(int width, int height)
 
             result = point_on_screen_GLU(point, coords);
 
-            if (result)
+            if (result && label_count < LABELS)
             {
                 L = labels[label_count ++];
-                //strcpy(L->text, "F");
+                L->text[0] = 'F';
+                L->text[1] = '\0';
                 L->x = coords[0] - 120;
                 L->y = height - (coords[1] + 10);
             }

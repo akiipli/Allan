@@ -19,7 +19,7 @@ Copyright <2018> <Allan Kiipli>
 // Cage is deformed and vertexes update transformed coordinates.
 
 int curve_subdiv = 1;
-float edge_divisor = 0.5;
+float edge_divisor = 1.0;
 
 void tune_In_Subdivision_Shape_uvtex(object * O);
 int tune_In_Subdivision_Shape_uvtex_(object * O, int L);
@@ -1235,7 +1235,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
 
 
-    int curveinvolvement, q;
+    int q;
     float Tx, Ty, Tz;
     float dist;
 
@@ -1286,21 +1286,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             idx = O->vertcount_[L1] + O->edgecount_[L1] + q;
             V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
 
-            curveinvolvement = 0;
-
-            for (e = 0; e < 4; e ++)
-            {
-                idx = Q->edges[e];
-                E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                if (E->S != NULL)
-                {
-                    curveinvolvement = 1;
-                    V->patch = 1; // use it as polycenter indicator for higher levels
-                    break;
-                }
-            }
-
-            if (curveinvolvement)
+            if (V->patch)
             {
                 Tx = Q->center[0] / 4.0;
                 Ty = Q->center[1] / 4.0;
@@ -1313,27 +1299,12 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 V->weight = D.distance / Q->dist; // lift
 
-                dist = ((D.distance + Q->dist) / 2.0) * Q->weight * V->weight;
+                dist = ((D.distance + Q->dist) / 2.0) * V->weight;
 
                 V->Tx = Tx + V->N.Tx * dist;
                 V->Ty = Ty + V->N.Ty * dist;
                 V->Tz = Tz + V->N.Tz * dist;
             }
-            else
-            {
-                V->patch = 0; // polycenter indicator
-                V->weight = 0.0;
-            }
-
-//            if (Q->subdivs)
-//            {
-//                for (e = 0; e < 4; e ++)
-//                {
-//                    idx = Q->quads[e];
-//                    Q = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-//                    Q->weight = V->weight;
-//                }
-//            }
         }
     }
 
@@ -1720,13 +1691,12 @@ void tune_In_Subdivision_Shape_transformed(object * O)
         }
     }
 
-    int curveinvolvement, p;
+    int p;
     direction_Pack D;
     float Tx, Ty, Tz;
     float dist;
 
     polygon * P;
-    quadrant * Q;
 
     if (O->curve_count > 0)
     {
@@ -1775,21 +1745,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             idx = O->vertcount + O->edgecount + p;
             V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
 
-            curveinvolvement = 0;
-
-            for (e = 0; e < P->edgecount; e ++)
-            {
-                idx = P->edges[e];
-                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                if (E->S != NULL)
-                {
-                    curveinvolvement = 1;
-                    V->patch = 1; // use it as polycenter indicator for higher levels
-                    break;
-                }
-            }
-
-            if (curveinvolvement)
+            if (V->patch)
             {
                 Tx = P->center[0] / (float)V->edgecount;
                 Ty = P->center[1] / (float)V->edgecount;
@@ -1807,21 +1763,6 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 V->Tx = Tx + V->N.Tx * dist;
                 V->Ty = Ty + V->N.Ty * dist;
                 V->Tz = Tz + V->N.Tz * dist;
-            }
-            else
-            {
-                V->patch = 0; // polycenter indicator
-                V->weight = 0.0;
-            }
-
-            if (P->subdivs)
-            {
-                for (e = 0; e < P->edgecount; e ++)
-                {
-                    idx = P->quads[e];
-                    Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                    Q->weight = V->weight;
-                }
             }
         }
     }

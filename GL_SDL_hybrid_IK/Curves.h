@@ -733,6 +733,107 @@ void subdivide_Curve_Segments(curve * C, int level)
     }
 }
 
+void scan_for_Object_Patches(object * O, int level)
+{
+    int q, l, v, p, e, idx;
+
+    edge * E;
+    polygon * P;
+    quadrant * Q, * Q0;
+    vertex * V, * V0;
+
+    for (l = 0; l <= level; l ++)
+    {
+        for (v = 0; v < O->vertcount_[l]; v ++)
+        {
+            V = &O->verts_[l][v / ARRAYSIZE][v % ARRAYSIZE];
+            V->patch = 0;
+        }
+    }
+
+    int v_start = O->vertcount + O->edgecount;
+    int v_start0 = O->vertcount_[0] + O->edgecount_[0];
+
+    for (p = 0; p < O->polycount; p ++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+        V = &O->verts_[0][(p + v_start) / ARRAYSIZE][(p + v_start) % ARRAYSIZE];
+
+        for (e = 0; e < P->edgecount; e ++)
+        {
+            idx = P->edges[e];
+            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            if (E->S != NULL)
+            {
+                V->patch = 1;
+                break;
+            }
+        }
+
+        if (V->patch)
+        {
+            for (q = 0; q < P->edgecount; q ++)
+            {
+                idx = P->quads[q];
+
+                Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (Q->subdivs)
+                {
+                    idx = v_start0 + Q->index;
+                    V = &O->verts_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    V->patch = 1;
+                }
+            }
+        }
+    }
+
+    for (l = 0; l < level; l ++)
+    {
+        v_start = O->vertcount_[l] + O->edgecount_[l];
+        v_start0 = O->vertcount_[l + 1] + O->edgecount_[l + 1];
+
+        for (q = 0; q < O->quadcount_[l]; q ++)
+        {
+            Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
+            V = &O->verts_[l + 1][(q + v_start) / ARRAYSIZE][(q + v_start) % ARRAYSIZE];
+
+            if (V->patch)
+            {
+                for (e = 0; e < 4; e ++)
+                {
+                    idx = Q->quads[e];
+
+                    Q0 = &O->quads_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (Q0->subdivs)
+                    {
+                        idx = v_start0 + Q0->index;
+                        V0 = &O->verts_[l + 2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        V0->patch = 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void scan_for_Objects_Patches(int level)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < objectIndex; o ++)
+    {
+        O = objects[o];
+
+        if (O->curve_count > 0)
+            scan_for_Object_Patches(O, level);
+    }
+}
+
 void free_Subdivided_Segment(curve_segment * S0)
 {
     if (S0->subdivided)

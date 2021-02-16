@@ -2398,7 +2398,10 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
             }
             if (DRAW_LABELS)
             {
-                render_Labels(screen_width, screen_height);
+                render_IK_Labels(screen_width, screen_height);
+                //render_poly_winding_Labels(screen_width, screen_height, O, Level);
+                //render_patch_edge_Labels(screen_width, screen_height, O, Level);
+                //render_patch_edge_polys_Labels(screen_width, screen_height, O, Level);
             }
             if (Axis_lock)
             {
@@ -17770,6 +17773,9 @@ int main(int argc, char * args[])
             subdivide_Curves(subdLevel);
             update_Curves(subdLevel);
             update_Curves(subdLevel);
+
+            scan_for_Objects_Patches(subdLevel);
+
 //            if (curvesIndex > 0)
 //            {
 //                print_Curve_subdLevel(curves[0]);
@@ -18126,6 +18132,9 @@ int main(int argc, char * args[])
 
                             if (r)
                             {
+                                if (O->subdlevel > -1)
+                                    scan_for_Object_Patches(O, O->subdlevel);
+
                                 curve * C = curves[curvesIndex - 1];
 
                                 C->selected = 1;
