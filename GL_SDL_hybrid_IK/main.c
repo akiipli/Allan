@@ -17708,6 +17708,7 @@ int main(int argc, char * args[])
                 if (currentCurve >= 0 && currentCurve < curvesIndex)
                 {
                     delete_Curve(curves[currentCurve]);
+                    scan_for_Object_Patches(O, subdLevel);
                 }
             }
             else if (mod & KMOD_CTRL)
