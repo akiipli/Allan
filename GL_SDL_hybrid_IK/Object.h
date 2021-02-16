@@ -202,6 +202,8 @@ struct edge
     curve_segment * S;
     int flow[2]; // edge direction in edges polys or quads
     edge * perimeter; // inside edge has index for perimeter one level above
+    float A[3]; // begin
+    float C[3]; // end
 };
 
 void print_edge(edge * E)
@@ -285,6 +287,7 @@ typedef struct
 
     float center[3]; // for curve based subdivision, normally it equals mean center
     float dist;
+    float weight;
 }
 quadrant;
 

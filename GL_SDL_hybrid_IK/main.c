@@ -2402,7 +2402,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
                 //render_poly_winding_Labels(screen_width, screen_height, O, Level);
                 //render_patch_edge_Labels(screen_width, screen_height, O, Level);
                 //render_patch_edge_polys_Labels(screen_width, screen_height, O, Level);
-                //render_Patch_Labels(screen_width, screen_height, O, Level);
+                render_Patch_Labels(screen_width, screen_height, O, Level);
             }
             if (Axis_lock)
             {
@@ -17707,8 +17707,11 @@ int main(int argc, char * args[])
             {
                 if (currentCurve >= 0 && currentCurve < curvesIndex)
                 {
+                    object * O0 = curves[currentCurve]->O;
                     delete_Curve(curves[currentCurve]);
-                    scan_for_Object_Patches(O, subdLevel);
+
+                    if (O0 != NULL)
+                        scan_for_Object_Patches(O0, subdLevel);
                 }
             }
             else if (mod & KMOD_CTRL)
