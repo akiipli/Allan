@@ -4440,6 +4440,102 @@ void draw_Axis(int Axis_lock, float object_Pos[3])
     glEnable(GL_BLEND);
 }
 
+void render_Edge_Weight_Labels(int width, int height, object * O, int l)
+{
+    int idx, e, q, p, v_start;
+
+    quadrant * Q;
+    polygon * P;
+    vertex * V;
+    edge * E;
+
+    label * L;
+
+    label_count = 0;
+
+    GLdouble point[3];
+    GLdouble coords[3];
+
+    int result;
+
+    if (l < 0)
+    {
+        v_start = O->vertcount + O->edgecount;
+
+        for (p = 0; p < O->polycount; p ++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+            if (P->subdivs && P->selected)
+            {
+                V = &O->verts_[0][(p + v_start) / ARRAYSIZE][(p + v_start) % ARRAYSIZE];
+
+                if (V->patch)
+                {
+                    for (e = 0; e < V->edgecount; e ++)
+                    {
+                        idx = V->edges[e];
+                        E = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        point[0] = E->B.Tx;
+                        point[1] = E->B.Ty;
+                        point[2] = E->B.Tz;
+
+                        result = point_on_screen_GLU(point, coords);
+
+                        if (result && label_count < LABELS)
+                        {
+                            L = labels[label_count ++];
+                            sprintf(L->text, "%.2f", E->weight);
+                            L->x = coords[0] - 100;
+                            L->y = height - coords[1] + 20;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        v_start = O->vertcount_[l] + O->edgecount_[l];
+
+        for (q = 0; q < O->quadcount_[l]; q ++)
+        {
+            Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
+
+            if (Q->subdivs && Q->selected)
+            {
+                V = &O->verts_[l + 1][(q + v_start) / ARRAYSIZE][(q + v_start) % ARRAYSIZE];
+
+                if (V->patch)
+                {
+                    for (e = 0; e < V->edgecount; e ++)
+                    {
+                        idx = V->edges[e];
+                        E = &O->edges_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        point[0] = E->B.Tx;
+                        point[1] = E->B.Ty;
+                        point[2] = E->B.Tz;
+
+                        result = point_on_screen_GLU(point, coords);
+
+                        if (result && label_count < LABELS)
+                        {
+                            L = labels[label_count ++];
+                            sprintf(L->text, "%.2f", E->weight);
+                            L->x = coords[0] - 100;
+                            L->y = height - coords[1] + 20;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    display_labels(width, height);
+}
+
 void render_Patch_Labels(int width, int height, object * O, int l)
 {
     int q, p, v_start;

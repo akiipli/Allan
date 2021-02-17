@@ -879,13 +879,15 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
     float Mx, My, Mz;
 
+    direction_Pack D;
+    float dot;
+
     int c_v = O->vertcount_[L1]; // cage vertcount
 
     for (e = 0; e < O->edgecount_[L1]; e ++) // edge verts average surrounding polys and self position
     {
         E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
         V = &O->verts_[L][(e + c_v) / ARRAYSIZE][(e + c_v) % ARRAYSIZE]; // edge vertex
-
 
         if (E->S != NULL && L < curve_subdiv) /* level 1 blocks patches */
         {
@@ -900,6 +902,12 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->Mx = Mx;
             E->My = My;
             E->Mz = Mz;
+
+            idx = E->verts[0];
+
+            V0 = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+            D = length_AB_(V0->Tx, V0->Ty, V0->Tz, E->Mx, E->My, E->Mz);
+            E->curvature = 1 - (E->B.Tradius / D.distance);
         }
         else
 
@@ -948,11 +956,12 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
     int start, q, e0;
 
+    edge * EI0,  * EI1, * E0, * E1;
     quadrant * Q;
-    //vertex * V1;
+//    polygon * P;
 
-    float n0[3], n1[3], dot;
-    direction_Pack D;
+    float n0[3], n1[3];
+    float curvature, pWeight;
 
     if (O->curve_count > 0 && L < curve_subdiv) /* level 1 blocks patches */
     {
@@ -969,85 +978,77 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         {
             V = &O->verts_[L1][v / ARRAYSIZE][v % ARRAYSIZE];
 
+            idx = v - start;
+
+            if (L > 1)
+            {
+                Q = &O->quads_[L1 - 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                pWeight = Q->weight;
+            }
+            else
+            {
+                //P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                pWeight = V->weight;
+            }
+
             if (V->patch)
             {
-                idx = v - start;
-                /*
-                if (L > 1)
+                /* find inside edge height with parallel edges */
+
+                for (e = 0; e < (V->edgecount / 2); e ++)
                 {
+                    idx = V->edges[e];
+                    EI0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    Q = &O->quads_[L1 - 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    E0 = EI0->perimeter;
 
-                    // handle corners also
-                    for (e = 0; e < 4; e ++)
-                    {
-                        idx = Q->verts[e];
-                        V0 = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                        V1 = V0->vert;
+                    idx = V->edges[(e + 2) % V->edgecount];
+                    EI1 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                        n0[0] = V1->N.Tx;
-                        n0[1] = V1->N.Ty;
-                        n0[2] = V1->N.Tz;
+                    E1 = EI1->perimeter;
 
-                        for (e0 = 0; e0 < V1->edgecount; e0 ++)
-                        {
-                            idx = V1->edges[e0];
+                    /*
+                    n[0] = E0->N.Tx;
+                    n[1] = E0->N.Ty;
+                    n[2] = E0->N.Tz;
 
-                            E = &O->edges_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    dot = dot_productFF(n, pN);
 
-                            // do edge AC
+                    E0->curvature *= dot;
 
-                            D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+                    n[0] = E1->N.Tx;
+                    n[1] = E1->N.Ty;
+                    n[2] = E1->N.Tz;
 
-                            dot = dot_productFF(n0, D.vec);
+                    dot = dot_productFF(n, pN);
 
-                            // corners set A, then edge center vertexes in perimeter set C
+                    E1->curvature *= dot;
+                    */
+                    curvature = E0->curvature + E1->curvature;
 
-                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot * 0.3;
-                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot * 0.3;
-                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot * 0.3;
-
-                        }
-                    }
+                    EI0->curvature = curvature;
+                    EI1->curvature = curvature;
                 }
-                else
+
+                for (e = 0; e < V->edgecount; e ++)
                 {
-                    P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    idx = V->edges[e];
+                    E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    // handle corners also
-                    for (e = 0; e < P->edgecount; e ++)
-                    {
-                        idx = P->verts[e];
-                        V0 = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                        V1 = V0->vert;
+                    idx = V->edges[(e + 1) % V->edgecount];
+                    E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                        n0[0] = V1->N.Tx;
-                        n0[1] = V1->N.Ty;
-                        n0[2] = V1->N.Tz;
-
-                        for (e0 = 0; e0 < V1->edgecount; e0 ++)
-                        {
-                            idx = V1->edges[e0];
-
-                            E = &O->edges_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                            // do edge AC
-
-                            D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
-
-                            dot = dot_productFF(n0, D.vec);
-
-                            // corners set A, then edge center vertexes in perimeter set C
-
-                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot * 0.3;
-                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot * 0.3;
-                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot * 0.3;
-
-                        }
-                    }
+                    E->weight = E0->curvature;
                 }
-                */
+            }
+        }
 
+        for (v = start; v < O->vertcount_[L1]; v ++)
+        {
+            V = &O->verts_[L1][v / ARRAYSIZE][v % ARRAYSIZE];
+
+            if (V->patch)
+            {
                 /* now handle inside edges */
 
                 n0[0] = V->N.Tx;
@@ -1067,9 +1068,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                     /* inside edges set A, then edge center vertexes in perimeter set C */
 
-                    E->A[0] = E->B.Tx + V->N.Tx * D.distance * -dot * 0.3;
-                    E->A[1] = E->B.Ty + V->N.Ty * D.distance * -dot * 0.3;
-                    E->A[2] = E->B.Tz + V->N.Tz * D.distance * -dot * 0.3;
+                    E->A[0] = E->B.Tx + V->N.Tx * D.distance * -dot * 0.5 * E->weight * pWeight;
+                    E->A[1] = E->B.Ty + V->N.Ty * D.distance * -dot * 0.5 * E->weight * pWeight;
+                    E->A[2] = E->B.Tz + V->N.Tz * D.distance * -dot * 0.5 * E->weight * pWeight;
 
                     /* here address far edges over perimeter vertex */
                     idx = E->verts[1];
@@ -1083,19 +1084,19 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                     {
                         idx = V0->edges[e0];
 
-                        E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                         /* do edge AC */
 
-                        D = length_AB_(V0->Tx, V0->Ty, V0->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+                        D = length_AB_(V0->Tx, V0->Ty, V0->Tz, E0->B.Tx, E0->B.Ty, E0->B.Tz);
 
                         dot = dot_productFF(n1, D.vec);
 
                         /* edge center vertexes in perimeter set C */
 
-                        E->C[0] = E->B.Tx + V0->N.Tx * D.distance * -dot * 0.3 * V->weight;
-                        E->C[1] = E->B.Ty + V0->N.Ty * D.distance * -dot * 0.3 * V->weight;
-                        E->C[2] = E->B.Tz + V0->N.Tz * D.distance * -dot * 0.3 * V->weight;
+                        E0->C[0] = E0->B.Tx + V0->N.Tx * D.distance * -dot * 0.5 * E->weight * pWeight;
+                        E0->C[1] = E0->B.Ty + V0->N.Ty * D.distance * -dot * 0.5 * E->weight * pWeight;
+                        E0->C[2] = E0->B.Tz + V0->N.Tz * D.distance * -dot * 0.5 * E->weight * pWeight;
                     }
                 }
             }
@@ -1107,7 +1108,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
     int set_and_done;
     //float n0[3], dot;
 
-    edge * E0;
+    //edge * E0;
 
     if (O->curve_count > 0 && L < curve_subdiv) /* level 1 blocks patches */
     {
@@ -1279,17 +1280,32 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 Tz = Q->center[2] / 4.0;
 
                 Q->dist /= 4.0;
-                Q->dist /= edge_divisor;
+                Q->dist *= edge_divisor;
 
                 D = length_AB_(Q->B.Tx, Q->B.Ty, Q->B.Tz, Tx, Ty, Tz);
 
-                V->weight = D.distance / Q->dist; // lift
+                if (Q->dist > 0)
+                    V->weight = D.distance / Q->dist; // lift
+                else
+                    V->weight = 0;
 
-                dist = ((D.distance + Q->dist) / 2.0) * V->weight * Q->weight;
+                V->weight *= Q->weight * pWeight;
+
+                dist = ((D.distance + Q->dist) / 2.0) * V->weight;
 
                 V->Tx = Tx + V->N.Tx * dist;
                 V->Ty = Ty + V->N.Ty * dist;
                 V->Tz = Tz + V->N.Tz * dist;
+
+                if (Q->subdivs)
+                {
+                    for (e = 0; e < 4; e ++)
+                    {
+                        idx = Q->quads[e];
+                        Q0 = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        Q0->weight = V->weight;
+                    }
+                }
             }
         }
     }
@@ -1618,6 +1634,8 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
     float Mx, My, Mz;
 
+    direction_Pack D;
+
     for (e = 0; e < O->edgecount; e ++) // edge verts average surrounding polys and self position
     {
         E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
@@ -1636,6 +1654,12 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             E->Mx = Mx;
             E->My = My;
             E->Mz = Mz;
+
+            idx = E->verts[0];
+
+            V0 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            D = length_AB_(V0->Tx, V0->Ty, V0->Tz, E->Mx, E->My, E->Mz);
+            E->curvature = 1 - (E->B.Tradius / D.distance);
         }
         else if (E->polycount > 1)
         {
@@ -1678,7 +1702,6 @@ void tune_In_Subdivision_Shape_transformed(object * O)
     }
 
     int p;
-    direction_Pack D;
     float Tx, Ty, Tz;
     float dist;
 
@@ -1739,11 +1762,14 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 Tz = P->center[2] / (float)V->edgecount;
 
                 P->dist /= (float)V->edgecount;
-                P->dist /= edge_divisor;
+                P->dist *= edge_divisor;
 
                 D = length_AB_(P->B.Tx, P->B.Ty, P->B.Tz, Tx, Ty, Tz); // median lift
 
-                V->weight = D.distance / P->dist; // lift
+                if (P->dist > 0)
+                    V->weight = D.distance / P->dist; // lift
+                else
+                    V->weight = 0;
 
                 dist = ((D.distance + P->dist) / 2.0) * V->weight;
 

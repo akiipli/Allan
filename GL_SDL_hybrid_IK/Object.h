@@ -204,6 +204,7 @@ struct edge
     edge * perimeter; // inside edge has index for perimeter one level above
     float A[3]; // begin
     float C[3]; // end
+    float curvature;
 };
 
 void print_edge(edge * E)
