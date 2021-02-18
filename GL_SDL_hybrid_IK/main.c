@@ -1714,6 +1714,8 @@ void frame_object(camera * C, int all_Views)
 {
     int c, t, o, e, v, p, b;
 
+    cp * CP;
+    curve * Curv;
     object * O;
     vertex * V;
     edge * E;
@@ -1803,6 +1805,71 @@ void frame_object(camera * C, int all_Views)
                 if (T->pos[0] + LocatorSize > max_X) max_X = T->pos[0] + LocatorSize;
                 if (T->pos[1] + LocatorSize > max_Y) max_Y = T->pos[1] + LocatorSize;
                 if (T->pos[2] + LocatorSize > max_Z) max_Z = T->pos[2] + LocatorSize;
+            }
+        }
+        if (elements_count > 0)
+        {
+            X /= elements_count;
+            Y /= elements_count;
+            Z /= elements_count;
+        }
+    }
+    else if (Curve_Mode && Vertex_Mode)
+    {
+        for (c = 0; c < selected_curves_count; c ++)
+        {
+            Curv = curves[selected_curves[c]];
+            for (p = 0; p < Curv->cps_count; p ++)
+            {
+                CP = Curv->cps[p];
+
+                if (CP->selected)
+                {
+                    elements_count ++;
+
+                    X += CP->pos[0];
+                    Y += CP->pos[1];
+                    Z += CP->pos[2];
+
+                    if (CP->pos[0] < min_X) min_X = CP->pos[0];
+                    if (CP->pos[1] < min_Y) min_Y = CP->pos[1];
+                    if (CP->pos[2] < min_Z) min_Z = CP->pos[2];
+
+                    if (CP->pos[0] > max_X) max_X = CP->pos[0];
+                    if (CP->pos[1] > max_Y) max_Y = CP->pos[1];
+                    if (CP->pos[2] > max_Z) max_Z = CP->pos[2];
+                }
+            }
+        }
+        if (elements_count > 0)
+        {
+            X /= elements_count;
+            Y /= elements_count;
+            Z /= elements_count;
+        }
+    }
+    else if (Curve_Mode)
+    {
+        for (c = 0; c < selected_curves_count; c ++)
+        {
+            Curv = curves[selected_curves[c]];
+            for (p = 0; p < Curv->cps_count; p ++)
+            {
+                CP = Curv->cps[p];
+
+                elements_count ++;
+
+                X += CP->pos[0];
+                Y += CP->pos[1];
+                Z += CP->pos[2];
+
+                if (CP->pos[0] < min_X) min_X = CP->pos[0];
+                if (CP->pos[1] < min_Y) min_Y = CP->pos[1];
+                if (CP->pos[2] < min_Z) min_Z = CP->pos[2];
+
+                if (CP->pos[0] > max_X) max_X = CP->pos[0];
+                if (CP->pos[1] > max_Y) max_Y = CP->pos[1];
+                if (CP->pos[2] > max_Z) max_Z = CP->pos[2];
             }
         }
         if (elements_count > 0)
@@ -2406,7 +2473,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
                 //render_patch_edge_Labels(screen_width, screen_height, O, Level);
                 //render_patch_edge_polys_Labels(screen_width, screen_height, O, Level);
                 //render_Patch_Labels(screen_width, screen_height, O, Level);
-                render_Edge_Weight_Labels(screen_width, screen_height, O, Level);
+                //render_Edge_Weight_Labels(screen_width, screen_height, O, Level);
             }
             if (Axis_lock)
             {
@@ -19199,7 +19266,7 @@ int main(int argc, char * args[])
                 else if (mod & KMOD_CTRL)
                 {
                     C = curves[currentCurve];
-                    convert_To_Cp_Selection(C);
+                    convert_Curves_To_Cp_Selection();
                     ordered_Cp_Selection();
                     set_Button_sels(3);
                 }

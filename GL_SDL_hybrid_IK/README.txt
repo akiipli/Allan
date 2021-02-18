@@ -181,6 +181,9 @@ i: open image
 4: verts
 5: bones
 6: bind mode
+ctrl-e clears cp weights in selected curves
+shift-e in curve mode starts cp weight adjustment 
+ctrl-c in curve mode converts curve to cp selection
 shift-c in curve mode toggles curve drawing on/off.
 alt-a in bind pose adds ik chain for selected transformers.
 a: in curve mode. Adds curve and starts mouse drag for last cp. Click to place it.

@@ -2265,6 +2265,12 @@ int create_Object_Curve(object * O)
             printf("canditates count %d\n", canditates_count);
             printf("curve cps count %d\n", C->cps_count);
 
+            if (canditates_count == 2)
+            {
+                C->open = 1;
+                printf("Curve is open\n");
+            }
+
             /* associate segments with edges */
             /* for each vertex solve potential cp problem if it has another curve there */
         }
@@ -2748,8 +2754,6 @@ void convert_To_Cp_Selection(curve * C)
 
     cp * CP;
 
-    selected_cps_count = 0;
-
     for (p = 0; p < C->cps_count; p ++)
     {
         CP = C->cps[p];
@@ -2757,6 +2761,24 @@ void convert_To_Cp_Selection(curve * C)
         if (selected_cps_count < CPS)
         {
             selected_cps[selected_cps_count ++] = CP->index;
+        }
+    }
+}
+
+void convert_Curves_To_Cp_Selection()
+{
+    int c;
+
+    curve * C;
+
+    selected_cps_count = 0;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+        if (C->selected)
+        {
+            convert_To_Cp_Selection(C);
         }
     }
 }
