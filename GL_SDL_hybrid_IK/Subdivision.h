@@ -30,6 +30,8 @@ void update_2d_bounding_box_for_Quads(object * O, int L, unsigned char radius);
 void update_bounding_box_for_selected_UV_EdgesQuads(object * O, int L, unsigned char radius);
 void generate_cage_for_Subdivision_Quads_UV(object * O, int L);
 
+float min_dist = 0.001;
+
 void clear_edge_Weights_Recursive_(object * O, edge * E, int L, float w)
 {
     int idx;
@@ -1330,7 +1332,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 if (Q->dist == 0)
                 {
-                    Q->dist = 0.01;
+                    Q->dist = min_dist;
                 }
 
                 D = length_AB_(Q->B.Tx, Q->B.Ty, Q->B.Tz, Tx, Ty, Tz);
@@ -1810,7 +1812,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
                 if (P->dist == 0)
                 {
-                    P->dist = 0.01;
+                    P->dist = min_dist;
                 }
 
                 D = length_AB_(P->B.Tx, P->B.Ty, P->B.Tz, Tx, Ty, Tz); // median lift
