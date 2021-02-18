@@ -751,6 +751,15 @@ void scan_for_Object_Patches(object * O, int level)
         }
     }
 
+    for (l = 0; l <= level; l ++)
+    {
+        for (e = 0; e < O->edgecount_[l]; e ++)
+        {
+            E = &O->edges_[l][e / ARRAYSIZE][e % ARRAYSIZE];
+            E->patch = 0;
+        }
+    }
+
     int v_start = O->vertcount + O->edgecount;
     int v_start0 = O->vertcount_[0] + O->edgecount_[0];
 
@@ -758,6 +767,8 @@ void scan_for_Object_Patches(object * O, int level)
     {
         P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
         V = &O->verts_[0][(p + v_start) / ARRAYSIZE][(p + v_start) % ARRAYSIZE];
+
+        P->patch = 0;
 
         for (e = 0; e < P->edgecount; e ++)
         {
@@ -773,18 +784,30 @@ void scan_for_Object_Patches(object * O, int level)
 
         if (V->patch)
         {
-            for (q = 0; q < P->edgecount; q ++)
+            P->patch = 1;
+
+            for (e = 0; e < P->edgecount; e ++)
             {
-                idx = P->quads[q];
+                idx = P->quads[e];
 
                 Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                 if (Q->subdivs)
                 {
                     idx = v_start0 + Q->index;
-                    V = &O->verts_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                    V->patch = 1;
+                    V0 = &O->verts_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    V0->patch = 1;
                 }
+
+                idx = P->edges[e];
+
+                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                E->patch = 1;
+
+                idx = V->edges[e];
+
+                E = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                E->patch = 1;
             }
         }
     }
@@ -799,8 +822,12 @@ void scan_for_Object_Patches(object * O, int level)
             Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
             V = &O->verts_[l + 1][(q + v_start) / ARRAYSIZE][(q + v_start) % ARRAYSIZE];
 
+            Q->patch = 0;
+
             if (V->patch)
             {
+                Q->patch = 1;
+
                 for (e = 0; e < 4; e ++)
                 {
                     idx = Q->quads[e];
@@ -813,6 +840,16 @@ void scan_for_Object_Patches(object * O, int level)
                         V0 = &O->verts_[l + 2][idx / ARRAYSIZE][idx % ARRAYSIZE];
                         V0->patch = 1;
                     }
+
+                    idx = Q->edges[e];
+
+                    E = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    E->patch = 1;
+
+                    idx = V->edges[e];
+
+                    E = &O->edges_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    E->patch = 1;
                 }
             }
         }
@@ -1438,8 +1475,7 @@ void free_Segments()
     for (s = 0; s < segmentIndex; s ++)
     {
         S = segments[s];
-        if (S != NULL)
-            free(S);
+        free(S);
     }
 }
 
@@ -1452,12 +1488,8 @@ void free_Cps()
     for (c = 0; c < cpsIndex; c ++)
     {
         CP = cps[c];
-        if (CP != NULL)
-        {
-            if (CP->segments != NULL)
-                free(CP->segments);
-            free_Cp(CP);
-        }
+        free(CP->segments);
+        free_Cp(CP);
     }
 }
 

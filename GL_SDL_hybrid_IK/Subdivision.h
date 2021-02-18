@@ -905,6 +905,22 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->My = My;
             E->Mz = Mz;
         }
+        /*
+        else if (E->patch && L < curve_subdiv)
+        {
+            Mx = E->B.Tx;
+            My = E->B.Ty;
+            Mz = E->B.Tz;
+
+            V->Tx = Mx;
+            V->Ty = My;
+            V->Tz = Mz;
+
+            E->Mx = Mx;
+            E->My = My;
+            E->Mz = Mz;
+        }
+        */
         else if (E->polycount > 1)
         {
             idx = E->polys[0];
@@ -1274,44 +1290,60 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
     if (O->curve_count > 0 && L < curve_subdiv) /* level 1 blocks patches */
     {
+        if (L == 1)
+        {
+            start = O->vertcount + O->edgecount;
+        }
+        else
+        {
+            start = O->vertcount_[L1 - 1] + O->edgecount_[L1 - 1];
+        }
+
         for (q = 0; q < O->quadcount_[L1]; q ++)
         {
             Q = &O->quads_[L1][q / ARRAYSIZE][q % ARRAYSIZE];
-            Q->center[0] = 0;
-            Q->center[1] = 0;
-            Q->center[2] = 0;
-            Q->dist = 0;
+
+            if (Q->patch)
+            {
+                Q->center[0] = 0;
+                Q->center[1] = 0;
+                Q->center[2] = 0;
+                Q->dist = 0;
+            }
         }
 
         for (e = 0; e < O->edgecount_[L1]; e ++) // find edge polys and center verts
         {
             E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
 
-            D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz);
-
-            idx = E->polys[0];
-            Q0 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-            Q0->center[0] += E->Mx;
-            Q0->center[1] += E->My;
-            Q0->center[2] += E->Mz;
-            Q0->dist += D.distance;
-
-            E->height = D.distance;
-
-
-            if (E->polycount > 1)
+            if (E->patch)
             {
-                //idx = O->vertcount + O->edgecount + E->polys[1];
-                //V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+                D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz);
 
-                idx = E->polys[1];
-                Q1 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                idx = E->polys[0];
+                Q0 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                Q1->center[0] += E->Mx;
-                Q1->center[1] += E->My;
-                Q1->center[2] += E->Mz;
-                Q1->dist += D.distance;
+                Q0->center[0] += E->Mx;
+                Q0->center[1] += E->My;
+                Q0->center[2] += E->Mz;
+                Q0->dist += D.distance;
+
+                E->height = D.distance;
+
+
+                if (E->polycount > 1)
+                {
+                    //idx = O->vertcount + O->edgecount + E->polys[1];
+                    //V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+
+                    idx = E->polys[1];
+                    Q1 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    Q1->center[0] += E->Mx;
+                    Q1->center[1] += E->My;
+                    Q1->center[2] += E->Mz;
+                    Q1->dist += D.distance;
+                }
             }
         }
 
@@ -1705,6 +1737,22 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             E->My = My;
             E->Mz = Mz;
         }
+        /*
+        else if (E->patch)
+        {
+            Mx = E->B.Tx;
+            My = E->B.Ty;
+            Mz = E->B.Tz;
+
+            V->Tx = Mx;
+            V->Ty = My;
+            V->Tz = Mz;
+
+            E->Mx = Mx;
+            E->My = My;
+            E->Mz = Mz;
+        }
+        */
         else if (E->polycount > 1)
         {
             idx = E->polys[0];
@@ -1757,41 +1805,48 @@ void tune_In_Subdivision_Shape_transformed(object * O)
         for (p = 0; p < O->polycount; p ++)
         {
             P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-            P->center[0] = 0;
-            P->center[1] = 0;
-            P->center[2] = 0;
-            P->dist = 0;
+
+            if (P->patch)
+            {
+                P->center[0] = 0;
+                P->center[1] = 0;
+                P->center[2] = 0;
+                P->dist = 0;
+            }
         }
 
         for (e = 0; e < O->edgecount; e ++) // find edge polys and center verts
         {
             E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
 
-            D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz); // edge lift
-
-            idx = E->polys[0];
-            P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-            P0->center[0] += E->Mx;
-            P0->center[1] += E->My;
-            P0->center[2] += E->Mz;
-            P0->dist += D.distance;
-
-            E->height = D.distance;
-
-
-            if (E->polycount > 1)
+            if (E->patch)
             {
-                //idx = O->vertcount + O->edgecount + E->polys[1];
-                //V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+                D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz); // edge lift
 
-                idx = E->polys[1];
-                P1 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                idx = E->polys[0];
+                P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                P1->center[0] += E->Mx;
-                P1->center[1] += E->My;
-                P1->center[2] += E->Mz;
-                P1->dist += D.distance;
+                P0->center[0] += E->Mx;
+                P0->center[1] += E->My;
+                P0->center[2] += E->Mz;
+                P0->dist += D.distance;
+
+                E->height = D.distance;
+
+
+                if (E->polycount > 1)
+                {
+                    //idx = O->vertcount + O->edgecount + E->polys[1];
+                    //V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+
+                    idx = E->polys[1];
+                    P1 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    P1->center[0] += E->Mx;
+                    P1->center[1] += E->My;
+                    P1->center[2] += E->Mz;
+                    P1->dist += D.distance;
+                }
             }
         }
 
