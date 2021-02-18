@@ -906,7 +906,10 @@ void assert_Cp_Selection()
 
         if (CP->selected)
         {
-            selected_cps[selected_cps_count ++] = c;
+            if (selected_cps_count < CPS)
+            {
+                selected_cps[selected_cps_count ++] = c;
+            }
             currentCp = CP->index;
         }
     }
@@ -19192,6 +19195,13 @@ int main(int argc, char * args[])
                 if (mod & KMOD_SHIFT)
                 {
                     curve_Draw = !curve_Draw;
+                }
+                else if (mod & KMOD_CTRL)
+                {
+                    C = curves[currentCurve];
+                    convert_To_Cp_Selection(C);
+                    ordered_Cp_Selection();
+                    set_Button_sels(3);
                 }
                 else if (currentCurve >= 0 && currentCurve < curvesIndex)
                 {

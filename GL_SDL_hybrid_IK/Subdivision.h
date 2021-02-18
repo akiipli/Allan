@@ -902,17 +902,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->Mx = Mx;
             E->My = My;
             E->Mz = Mz;
-
-            idx = E->verts[0];
-
-            V0 = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-            D = length_AB_(V0->Tx, V0->Ty, V0->Tz, E->Mx, E->My, E->Mz);
-            E->curvature = 1 - (E->B.Tradius / D.distance);
         }
-        else
-
-
-        if (E->polycount > 1)
+        else if (E->polycount > 1)
         {
             idx = E->polys[0];
             Q0 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -956,9 +947,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
     int start, q, e0;
 
-    edge * EI0,  * EI1, * E0, * E1;
+    edge * EI0,  * EI1,  * EI2, * EI3, * E0, * E1, * E2;
     quadrant * Q;
-//    polygon * P;
+    polygon * P;
 
     float n0[3], n1[3];
     float curvature, pWeight, scaler;
@@ -987,7 +978,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             }
             else
             {
-                //P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
                 pWeight = V->weight;
             }
 
@@ -995,50 +986,75 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             {
                 /* find inside edge height with parallel edges */
 
-                for (e = 0; e < (V->edgecount / 2); e ++)
+                if (V->edgecount != 4)
                 {
-                    idx = V->edges[e];
-                    EI0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    for (e = 0; e < V->edgecount; e ++)
+                    {
+                        idx = V->edges[e];
+                        EI0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    E0 = EI0->perimeter;
+                        E0 = EI0->perimeter;
 
-                    idx = V->edges[(e + 2) % V->edgecount];
-                    EI1 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        idx = V->edges[(e + V->edgecount - 1) % V->edgecount];
+                        EI1 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    E1 = EI1->perimeter;
+                        E1 = EI1->perimeter;
 
-                    /*
-                    n[0] = E0->N.Tx;
-                    n[1] = E0->N.Ty;
-                    n[2] = E0->N.Tz;
+                        idx = V->edges[(e + 1) % V->edgecount];
+                        EI2 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    dot = dot_productFF(n, pN);
+                        E2 = EI2->perimeter;
 
-                    E0->curvature *= dot;
+                        curvature = (E1->height + E2->height) / 2.0;
 
-                    n[0] = E1->N.Tx;
-                    n[1] = E1->N.Ty;
-                    n[2] = E1->N.Tz;
+                        if (L > 1)
+                        {
+                            curvature /= Q->dist;
+                        }
+                        else
+                        {
+                            curvature /= P->dist;
+                        }
 
-                    dot = dot_productFF(n, pN);
-
-                    E1->curvature *= dot;
-                    */
-                    curvature = (E0->curvature + E1->curvature) / 2.0;
-
-                    EI0->curvature = curvature;
-                    EI1->curvature = curvature;
+                        EI0->weight = curvature;
+                    }
                 }
-
-                for (e = 0; e < V->edgecount; e ++)
+                else
                 {
-                    idx = V->edges[e];
-                    E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    for (e = 0; e < 2; e ++)
+                    {
+                        idx = V->edges[e];
+                        EI0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    idx = V->edges[(e + 1) % V->edgecount];
-                    E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        E0 = EI0->perimeter;
 
-                    E->weight = E0->curvature;
+                        idx = V->edges[(e + V->edgecount - 1) % V->edgecount];
+                        EI1 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        E1 = EI1->perimeter;
+
+                        idx = V->edges[(e + 1) % V->edgecount];
+                        EI2 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        E2 = EI2->perimeter;
+
+                        idx = V->edges[(e + 2) % V->edgecount];
+                        EI3 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        curvature = (E1->height + E2->height) / 2.0;
+
+                        if (L > 1)
+                        {
+                            curvature /= Q->dist;
+                        }
+                        else
+                        {
+                            curvature /= P->dist;
+                        }
+
+                        EI0->weight = curvature;
+                        EI3->weight = curvature;
+                    }
                 }
             }
         }
@@ -1060,7 +1076,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                     idx = V->edges[e];
                     E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    scaler = cp_continuity[L1] * E->weight * 2.0;
+                    scaler = cp_continuity[L1] * E->weight * pWeight;
 
                     /* do edge AC */
 
@@ -1100,7 +1116,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                         E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                        scaler = cp_continuity[L1] * E0->weight * 2.0;
+                        scaler = cp_continuity[L1] * E0->weight * pWeight;
 
                         /* do edge AC */
 
@@ -1279,6 +1295,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             Q0->center[2] += E->Mz;
             Q0->dist += D.distance;
 
+            E->height = D.distance;
+
 
             if (E->polycount > 1)
             {
@@ -1310,12 +1328,14 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 Q->dist /= 4.0;
                 Q->dist *= edge_divisor;
 
+                if (Q->dist == 0)
+                {
+                    Q->dist = 0.01;
+                }
+
                 D = length_AB_(Q->B.Tx, Q->B.Ty, Q->B.Tz, Tx, Ty, Tz);
 
-                if (Q->dist > 0)
-                    V->weight = D.distance / Q->dist; // lift
-                else
-                    V->weight = 0;
+                V->weight = D.distance / Q->dist; // lift
 
                 V->weight *= Q->weight * pWeight;
 
@@ -1682,12 +1702,6 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             E->Mx = Mx;
             E->My = My;
             E->Mz = Mz;
-
-            idx = E->verts[0];
-
-            V0 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-            D = length_AB_(V0->Tx, V0->Ty, V0->Tz, E->Mx, E->My, E->Mz);
-            E->curvature = 1 - (E->B.Tradius / D.distance);
         }
         else if (E->polycount > 1)
         {
@@ -1761,6 +1775,8 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             P0->center[2] += E->Mz;
             P0->dist += D.distance;
 
+            E->height = D.distance;
+
 
             if (E->polycount > 1)
             {
@@ -1792,12 +1808,14 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 P->dist /= (float)V->edgecount;
                 P->dist *= edge_divisor;
 
+                if (P->dist == 0)
+                {
+                    P->dist = 0.01;
+                }
+
                 D = length_AB_(P->B.Tx, P->B.Ty, P->B.Tz, Tx, Ty, Tz); // median lift
 
-                if (P->dist > 0)
-                    V->weight = D.distance / P->dist; // lift
-                else
-                    V->weight = 0;
+                V->weight = D.distance / P->dist; // lift
 
                 dist = ((D.distance + P->dist) / 2.0) * V->weight;
 

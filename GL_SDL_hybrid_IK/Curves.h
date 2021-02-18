@@ -2742,4 +2742,23 @@ void delete_Object_Curves(object * O)
     }
 }
 
+void convert_To_Cp_Selection(curve * C)
+{
+    int p;
+
+    cp * CP;
+
+    selected_cps_count = 0;
+
+    for (p = 0; p < C->cps_count; p ++)
+    {
+        CP = C->cps[p];
+        CP->selected = 1;
+        if (selected_cps_count < CPS)
+        {
+            selected_cps[selected_cps_count ++] = CP->index;
+        }
+    }
+}
+
 #endif // CURVES_H_INCLUDED
