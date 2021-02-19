@@ -1309,9 +1309,11 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 Q->center[1] = 0;
                 Q->center[2] = 0;
                 Q->dist = 0;
+                /*
                 Q->vec[0] = 0;
                 Q->vec[1] = 0;
                 Q->vec[2] = 0;
+                */
             }
         }
 
@@ -1352,8 +1354,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 }
             }
         }
-
-        /* calculate edge pairs */
+/*
+        // calculate edge pairs
 
         for (q = 0; q < O->quadcount_[L1]; q ++)
         {
@@ -1363,13 +1365,13 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
             if (V->patch)
             {
-                /* create paired edge weights */
+                // create paired edge weights
                 for (e = 0; e < 2; e ++)
                 {
                     idx = Q->edges[e];
                     E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    /* find opposite edge and make a pair */
+                    // find opposite edge and make a pair
 
                     idx = Q->edges[2 + e];
                     E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1380,7 +1382,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 }
             }
         }
-
+*/
         /* calculate quad center */
 
         for (q = 0; q < O->quadcount_[L1]; q ++)
@@ -1836,9 +1838,9 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
     int p;
     float Tx, Ty, Tz;
-    float dist;
+//    float dist;
 
-    edge * E0, * E1;
+    edge * E0;
     quadrant * Q;
     polygon * P;
 
