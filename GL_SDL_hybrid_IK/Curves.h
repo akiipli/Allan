@@ -2646,7 +2646,7 @@ void delete_Curve(curve * C)
             }
         }
 
-        erase_Vertex_Patch_Indicators(O);
+        //erase_Vertex_Patch_Indicators(O);
     }
 
     /* segmentIndex is not changed */

@@ -1392,9 +1392,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             if (V->patch)
             {
 
-                V->Tx = Q->B.Tx + Q->vec[0];
-                V->Ty = Q->B.Ty + Q->vec[1];
-                V->Tz = Q->B.Tz + Q->vec[2];
+//                V->Tx = Q->B.Tx + Q->vec[0];
+//                V->Ty = Q->B.Ty + Q->vec[1];
+//                V->Tz = Q->B.Tz + Q->vec[2];
 
                 Tx = Q->center[0] / 4.0;
                 Ty = Q->center[1] / 4.0;
@@ -1414,11 +1414,11 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 V->weight *= Q->weight * pWeight;
 
-//                dist = ((D.distance + Q->dist) / 2.0) * V->weight;
-//
-//                V->Tx = Tx + V->N.Tx * dist;
-//                V->Ty = Ty + V->N.Ty * dist;
-//                V->Tz = Tz + V->N.Tz * dist;
+                dist = ((D.distance + Q->dist) / 2.0) * V->weight;
+
+                V->Tx = Tx + V->N.Tx * dist;
+                V->Ty = Ty + V->N.Ty * dist;
+                V->Tz = Tz + V->N.Tz * dist;
 
                 if (Q->subdivs)
                 {
