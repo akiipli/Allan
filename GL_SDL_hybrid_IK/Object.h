@@ -206,6 +206,7 @@ struct edge
     float C[3]; // end
     float height;
     int patch;
+    float vec[3];
 };
 
 void print_edge(edge * E)
@@ -291,6 +292,7 @@ typedef struct
     float dist;
     float weight;
     int patch;
+    float vec[3];
 }
 quadrant;
 
@@ -343,6 +345,7 @@ typedef struct
     float center[3]; // for curve based subdivision, normally it equals mean center
     float dist;
     int patch;
+    float vec[3];
 }
 polygon;
 

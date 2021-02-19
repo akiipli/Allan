@@ -1309,6 +1309,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 Q->center[1] = 0;
                 Q->center[2] = 0;
                 Q->dist = 0;
+                Q->vec[0] = 0;
+                Q->vec[1] = 0;
+                Q->vec[2] = 0;
             }
         }
 
@@ -1318,7 +1321,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
             if (E->patch)
             {
-                D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz);
+                D = length_AB_(E->B.Tx, E->B.Ty, E->B.Tz, E->Mx, E->My, E->Mz);
 
                 idx = E->polys[0];
                 Q0 = &O->quads_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1330,6 +1333,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 E->height = D.distance;
 
+                E->vec[0] = E->Mx - E->B.Tx;
+                E->vec[1] = E->My - E->B.Ty;
+                E->vec[2] = E->Mz - E->B.Tz;
 
                 if (E->polycount > 1)
                 {
@@ -1347,6 +1353,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             }
         }
 
+        /* calculate edge pairs */
+
         for (q = 0; q < O->quadcount_[L1]; q ++)
         {
             Q = &O->quads_[L1][q / ARRAYSIZE][q % ARRAYSIZE];
@@ -1355,6 +1363,39 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
             if (V->patch)
             {
+                /* create paired edge weights */
+                for (e = 0; e < 2; e ++)
+                {
+                    idx = Q->edges[e];
+                    E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    /* find opposite edge and make a pair */
+
+                    idx = Q->edges[2 + e];
+                    E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    Q->vec[0] += (E0->vec[0] + E->vec[0]) * 0.5;
+                    Q->vec[1] += (E0->vec[1] + E->vec[1]) * 0.5;
+                    Q->vec[2] += (E0->vec[2] + E->vec[2]) * 0.5;
+                }
+            }
+        }
+
+        /* calculate quad center */
+
+        for (q = 0; q < O->quadcount_[L1]; q ++)
+        {
+            Q = &O->quads_[L1][q / ARRAYSIZE][q % ARRAYSIZE];
+            idx = O->vertcount_[L1] + O->edgecount_[L1] + q;
+            V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+
+            if (V->patch)
+            {
+
+                V->Tx = Q->B.Tx + Q->vec[0];
+                V->Ty = Q->B.Ty + Q->vec[1];
+                V->Tz = Q->B.Tz + Q->vec[2];
+
                 Tx = Q->center[0] / 4.0;
                 Ty = Q->center[1] / 4.0;
                 Tz = Q->center[2] / 4.0;
@@ -1373,11 +1414,11 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 V->weight *= Q->weight * pWeight;
 
-                dist = ((D.distance + Q->dist) / 2.0) * V->weight;
-
-                V->Tx = Tx + V->N.Tx * dist;
-                V->Ty = Ty + V->N.Ty * dist;
-                V->Tz = Tz + V->N.Tz * dist;
+//                dist = ((D.distance + Q->dist) / 2.0) * V->weight;
+//
+//                V->Tx = Tx + V->N.Tx * dist;
+//                V->Ty = Ty + V->N.Ty * dist;
+//                V->Tz = Tz + V->N.Tz * dist;
 
                 if (Q->subdivs)
                 {
@@ -1797,11 +1838,14 @@ void tune_In_Subdivision_Shape_transformed(object * O)
     float Tx, Ty, Tz;
     float dist;
 
+    edge * E0, * E1;
     quadrant * Q;
     polygon * P;
 
     if (O->curve_count > 0)
     {
+        /* calculate polygon flatness */
+
         for (p = 0; p < O->polycount; p ++)
         {
             P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
@@ -1812,6 +1856,9 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 P->center[1] = 0;
                 P->center[2] = 0;
                 P->dist = 0;
+                P->vec[0] = 0;
+                P->vec[1] = 0;
+                P->vec[2] = 0;
             }
         }
 
@@ -1821,7 +1868,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
             if (E->patch)
             {
-                D = length_AB_(E->Mx, E->My, E->Mz, E->B.Tx, E->B.Ty, E->B.Tz); // edge lift
+                D = length_AB_(E->B.Tx, E->B.Ty, E->B.Tz, E->Mx, E->My, E->Mz); // edge lift
 
                 idx = E->polys[0];
                 P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1833,11 +1880,13 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
                 E->height = D.distance;
 
+                E->vec[0] = E->Mx - E->B.Tx;
+                E->vec[1] = E->My - E->B.Ty;
+                E->vec[2] = E->Mz - E->B.Tz;
+
 
                 if (E->polycount > 1)
                 {
-                    //idx = O->vertcount + O->edgecount + E->polys[1];
-                    //V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
 
                     idx = E->polys[1];
                     P1 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1847,8 +1896,11 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                     P1->center[2] += E->Mz;
                     P1->dist += D.distance;
                 }
+
             }
         }
+
+        /* calculate edge pairs */
 
         for (p = 0; p < O->polycount; p ++)
         {
@@ -1858,6 +1910,60 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
             if (V->patch)
             {
+                /* create paired edge weights */
+                if (P->edgecount % 2) // if uneven
+                {
+                    for (e = 0; e < P->edgecount; e ++)
+                    {
+                        /* find composite vector for each vertex edges */
+
+                        idx = P->edges[e];
+                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+                        idx = P->edges[(e + 1) % P->edgecount];
+                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        P->vec[0] += (E0->vec[0] + E->vec[0]) * 0.5;
+                        P->vec[1] += (E0->vec[1] + E->vec[1]) * 0.5;
+                        P->vec[2] += (E0->vec[2] + E->vec[2]) * 0.5;
+                    }
+                }
+                else // if even
+                {
+                    for (e = 0; e < P->edgecount / 2; e ++)
+                    {
+                        idx = P->edges[e];
+                        E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        /* find opposite edge and make a pair */
+
+                        idx = P->edges[(P->edgecount / 2) + e];
+                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        P->vec[0] += (E0->vec[0] + E->vec[0]) * 0.5;
+                        P->vec[1] += (E0->vec[1] + E->vec[1]) * 0.5;
+                        P->vec[2] += (E0->vec[2] + E->vec[2]) * 0.5;
+                    }
+                }
+            }
+        }
+
+        /* calculate polygon center */
+
+        for (p = 0; p < O->polycount; p ++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+            idx = O->vertcount + O->edgecount + p;
+            V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
+
+            if (V->patch)
+            {
+
+                V->Tx = P->B.Tx + P->vec[0];
+                V->Ty = P->B.Ty + P->vec[1];
+                V->Tz = P->B.Tz + P->vec[2];
+
+
                 Tx = P->center[0] / (float)V->edgecount;
                 Ty = P->center[1] / (float)V->edgecount;
                 Tz = P->center[2] / (float)V->edgecount;
@@ -1874,11 +1980,11 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
                 V->weight = D.distance / P->dist; // lift
 
-                dist = ((D.distance + P->dist) / 2.0) * V->weight;
+//                dist = ((D.distance + P->dist) / 2.0) * V->weight;
 
-                V->Tx = Tx + V->N.Tx * dist;
-                V->Ty = Ty + V->N.Ty * dist;
-                V->Tz = Tz + V->N.Tz * dist;
+//                V->Tx = Tx + V->N.Tx * dist;
+//                V->Ty = Ty + V->N.Ty * dist;
+//                V->Tz = Tz + V->N.Tz * dist;
 
                 if (P->subdivs)
                 {
