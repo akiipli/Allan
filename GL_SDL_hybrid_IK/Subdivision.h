@@ -968,6 +968,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
     edge * EI0,  * EI1,  * EI2, * EI3, * E0, * E1, * E2;
     quadrant * Q;
     polygon * P;
+//    vertex * V1;
 
     float n0[3], n1[3];
     float curvature, pWeight, scaler;
@@ -1081,8 +1082,121 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         {
             V = &O->verts_[L1][v / ARRAYSIZE][v % ARRAYSIZE];
 
+            idx = v - start;
+
+            if (L > 1)
+            {
+                Q = &O->quads_[L1 - 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                pWeight = Q->weight;
+            }
+            else
+            {
+                P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                pWeight = V->weight;
+            }
+
             if (V->patch)
             {
+                /*
+                // handle corners
+
+                if (L > 1)
+                {
+                    for (e = 0; e < 4; e ++)
+                    {
+                        idx = Q->verts[e];
+                        V0 = &O->verts_[L1 - 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        V1 = V0->vert;
+
+                        if (V1 == NULL) continue;
+
+                        n0[0] = V1->N.Tx;
+                        n0[1] = V1->N.Ty;
+                        n0[2] = V1->N.Tz;
+
+                        for (e0 = 0; e0 < V1->edgecount; e0 ++)
+                        {
+                            idx = V1->edges[e0];
+                            E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            scaler = cp_continuity[L1] * 2.0 * E->weight * pWeight;
+
+                            // do edge AC
+
+                            D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+
+                            dot = dot_productFF(n0, D.vec);
+
+                            // corner edges set A, then edge center vertexes in perimeter set C
+
+                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
+                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
+                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
+
+                            E->A[0] -= V1->Tx;
+                            E->A[1] -= V1->Ty;
+                            E->A[2] -= V1->Tz;
+
+                            E->A[0] *= scaler;
+                            E->A[1] *= scaler;
+                            E->A[2] *= scaler;
+
+                            E->A[0] += V1->Tx;
+                            E->A[1] += V1->Ty;
+                            E->A[2] += V1->Tz;
+                        }
+                    }
+                }
+                else
+                {
+                    for (e = 0; e < P->edgecount; e ++)
+                    {
+                        idx = P->verts[e];
+                        V0 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        V1 = V0->vert;
+
+                        if (V1 == NULL) continue;
+
+                        n0[0] = V1->N.Tx;
+                        n0[1] = V1->N.Ty;
+                        n0[2] = V1->N.Tz;
+
+                        for (e0 = 0; e0 < V1->edgecount; e0 ++)
+                        {
+                            idx = V1->edges[e0];
+                            E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            scaler = cp_continuity[L1] * 2.0 * E->weight * pWeight;
+
+                            // do edge AC
+
+                            D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+
+                            dot = dot_productFF(n0, D.vec);
+
+                            // inside edges set A, then edge center vertexes in perimeter set C
+
+                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
+                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
+                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
+
+                            E->A[0] -= V1->Tx;
+                            E->A[1] -= V1->Ty;
+                            E->A[2] -= V1->Tz;
+
+                            E->A[0] *= scaler;
+                            E->A[1] *= scaler;
+                            E->A[2] *= scaler;
+
+                            E->A[0] += V1->Tx;
+                            E->A[1] += V1->Ty;
+                            E->A[2] += V1->Tz;
+                        }
+                    }
+                }
+                */
+
+
                 /* now handle inside edges */
 
                 n0[0] = V->N.Tx;
@@ -1121,6 +1235,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                     E->A[2] += V->Tz;
 
                     /* here address far edges over perimeter vertex */
+
                     idx = E->verts[1];
                     V0 = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
@@ -1838,7 +1953,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
     int p;
     float Tx, Ty, Tz;
-    float dist;
+//    float dist;
 
     edge * E0;
     quadrant * Q;
