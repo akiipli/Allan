@@ -292,7 +292,7 @@ typedef struct
     float dist;
     float weight;
     int patch;
-    //float vec[3];
+    float vec[3];
 }
 quadrant;
 

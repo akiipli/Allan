@@ -905,7 +905,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->My = My;
             E->Mz = Mz;
         }
-        /*
+/*
         else if (E->patch && L < curve_subdiv)
         {
             Mx = E->B.Tx;
@@ -920,7 +920,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->My = My;
             E->Mz = Mz;
         }
-        */
+*/
         else if (E->polycount > 1)
         {
             idx = E->polys[0];
@@ -1094,7 +1094,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                     idx = V->edges[e];
                     E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    scaler = cp_continuity[L1] * E->weight * pWeight;
+                    scaler = cp_continuity[L1] * 2.0 * E->weight * pWeight;
 
                     /* do edge AC */
 
@@ -1134,7 +1134,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                         E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                        scaler = cp_continuity[L1] * E0->weight * pWeight;
+                        scaler = cp_continuity[L1] * 2.0 * E0->weight * pWeight;
 
                         /* do edge AC */
 
@@ -1309,11 +1309,11 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 Q->center[1] = 0;
                 Q->center[2] = 0;
                 Q->dist = 0;
-                /*
+
                 Q->vec[0] = 0;
                 Q->vec[1] = 0;
                 Q->vec[2] = 0;
-                */
+
             }
         }
 
@@ -1354,7 +1354,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 }
             }
         }
-/*
+
         // calculate edge pairs
 
         for (q = 0; q < O->quadcount_[L1]; q ++)
@@ -1382,7 +1382,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 }
             }
         }
-*/
+
         /* calculate quad center */
 
         for (q = 0; q < O->quadcount_[L1]; q ++)
@@ -1402,7 +1402,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 Ty = Q->center[1] / 4.0;
                 Tz = Q->center[2] / 4.0;
 
-                Q->dist /= 4.0;
+                Q->dist /= 2.0;
                 Q->dist *= edge_divisor;
 
                 if (Q->dist == 0)
@@ -1414,9 +1414,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 V->weight = D.distance / Q->dist; // lift
 
-                V->weight *= Q->weight * pWeight;
+                V->weight *= Q->weight;
 
-                dist = ((D.distance + Q->dist) / 2.0) * V->weight;
+                dist = (D.distance + Q->dist) * V->weight;
 
                 V->Tx = Tx + V->N.Tx * dist;
                 V->Ty = Ty + V->N.Ty * dist;
@@ -1780,7 +1780,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             E->My = My;
             E->Mz = Mz;
         }
-        /*
+/*
         else if (E->patch)
         {
             Mx = E->B.Tx;
@@ -1795,7 +1795,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             E->My = My;
             E->Mz = Mz;
         }
-        */
+*/
         else if (E->polycount > 1)
         {
             idx = E->polys[0];
@@ -1838,7 +1838,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
     int p;
     float Tx, Ty, Tz;
-//    float dist;
+    float dist;
 
     edge * E0;
     quadrant * Q;
@@ -1960,17 +1960,15 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
             if (V->patch)
             {
-
                 V->Tx = P->B.Tx + P->vec[0];
                 V->Ty = P->B.Ty + P->vec[1];
                 V->Tz = P->B.Tz + P->vec[2];
-
 
                 Tx = P->center[0] / (float)V->edgecount;
                 Ty = P->center[1] / (float)V->edgecount;
                 Tz = P->center[2] / (float)V->edgecount;
 
-                P->dist /= (float)V->edgecount;
+                P->dist /= ((float)V->edgecount / 2.0);
                 P->dist *= edge_divisor;
 
                 if (P->dist == 0)
@@ -1983,7 +1981,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 V->weight = D.distance / P->dist; // lift
 
 //                dist = ((D.distance + P->dist) / 2.0) * V->weight;
-
+//
 //                V->Tx = Tx + V->N.Tx * dist;
 //                V->Ty = Ty + V->N.Ty * dist;
 //                V->Tz = Tz + V->N.Tz * dist;

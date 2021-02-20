@@ -44,6 +44,8 @@ int selected_curves0[CURVES];
 int selected_curves_count0 = 0;
 int connected_curves[CURVES];
 int connected_curves_count = 0;
+int connected_objects[OBJECTS];
+int connected_objects_count = 0;
 int curvesIndex = 0;
 int segmentIndex = 0;
 int selected_cps[CPS];
@@ -1635,6 +1637,38 @@ void find_connected_Curves()
     }
 }
 
+void find_connected_Objects()
+{
+    int o, c, condition;
+
+    curve * C;
+    object * O;
+
+    connected_objects_count = 0;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+
+        if (C->O != NULL)
+        {
+            condition = 1;
+
+            for (o = 0; o < connected_objects_count; o ++)
+            {
+                O = objects[connected_objects[o]];
+                if (C->O == O)
+                {
+                    condition = 0;
+                    break;
+                }
+            }
+            if (condition)
+                connected_objects[connected_objects_count ++] = C->O->index;
+        }
+    }
+}
+
 void update_connected_Curves(int level)
 {
     int c;
@@ -2763,6 +2797,50 @@ void transfer_Curve_Cps_To_Vertex_Coordinates(object * O)
                 CP->vert->x = CP->pos[0];
                 CP->vert->y = CP->pos[1];
                 CP->vert->z = CP->pos[2];
+            }
+        }
+    }
+}
+
+void transfer_Curve_Cps_To_Vertex_TCoordinates(object * O)
+{
+    int c, p;
+    curve * C;
+    cp * CP;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+
+
+            if (CP->vert != NULL)
+            {
+                CP->vert->x = CP->pos[0] - O->T->pos[0];
+                CP->vert->y = CP->pos[1] - O->T->pos[1];
+                CP->vert->z = CP->pos[2] - O->T->pos[2];
+            }
+        }
+    }
+}
+
+void update_connected_Objects()
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < connected_objects_count; o ++)
+    {
+        O = objects[connected_objects[o]];
+        if (!O->binding)
+        {
+            if (O->T->rot[0] == 0 && O->T->rot[1] == 0 && O->T->rot[2] == 0)
+            {
+                transfer_Curve_Cps_To_Vertex_TCoordinates(O);
             }
         }
     }
