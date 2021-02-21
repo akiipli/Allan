@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+10:24 PM 2/21/2021
+Now Shift+E in curves Mode starts curves weights editing when not in vertex Mode.
+In vertex Mode it starts weight editing for selected verts.
+Ctrl+E erases weights.
+
 12:15 PM 2/15/2021
 In curves Mode one can dial up subdivision curve parameter with Ctrl and mousescroll. This is visible
 with subdivided objects that have curves. With Alt scrolling one can change edge divisor parameter.

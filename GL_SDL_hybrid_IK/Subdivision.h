@@ -2287,10 +2287,10 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             }
         }
     }
-
+/*
     float a, b, start;
 
-    if (O->curve_count > 0)// && L < curve_subdiv) /* level 1 blocks patches */
+    if (O->curve_count > 0)// && L < curve_subdiv) // level 1 blocks patches
     {
         start = O->vertcount;
 
@@ -2309,7 +2309,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 V0->Tx = (E->S->B[0] * a + V0->Tx * b);
                 V0->Ty = (E->S->B[1] * a + V0->Ty * b);
                 V0->Tz = (E->S->B[2] * a + V0->Tz * b);
-                /*
+
                 if (E->S->counter_edge)
                     idx = E->verts[1];
                 else
@@ -2337,10 +2337,11 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                     V->vert->Ty = (E->S->C[1] * a + V->vert->Ty * b);
                     V->vert->Tz = (E->S->C[2] * a + V->vert->Tz * b);
                 }
-                */
+
             }
         }
     }
+    */
 }
 
 void tune_In_Subdivision_Shape(object * O)
