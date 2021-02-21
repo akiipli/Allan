@@ -1443,6 +1443,52 @@ void snap_back_Deformer_Object_Cps_To_Pos(deformer * D)
     }
 }
 
+void update_Deformer_Objects_Curves_To_Original_Coordinates()
+{
+    int d, o;
+
+    object * O;
+    deformer * D;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+
+        for (o = 0; o < D->Objects_Count; o ++)
+        {
+            O = D->Objects[o];
+
+            if (O->curve_count > 0)
+            {
+                update_Objects_Curves_To_Original_Coordinates(O);
+            }
+        }
+    }
+}
+
+void update_Deformer_Objects_Curves_To_Coordinates()
+{
+    int d, o;
+
+    object * O;
+    deformer * D;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+
+        for (o = 0; o < D->Objects_Count; o ++)
+        {
+            O = D->Objects[o];
+
+            if (O->curve_count > 0)
+            {
+                update_Objects_Curves_To_Original_Coordinates(O);
+            }
+        }
+    }
+}
+
 void update_Deformer_Objects_Curves_Coordinates(deformer * D)
 {
     int o;

@@ -4440,7 +4440,7 @@ void draw_Axis(int Axis_lock, float object_Pos[3])
     glEnable(GL_BLEND);
 }
 
-void render_Edge_Weight_Labels(int width, int height, object * O, int l)
+void render_Edge_Smooth_Labels(int width, int height, object * O, int l)
 {
     int idx, e, q, p, v_start;
 
@@ -4486,7 +4486,7 @@ void render_Edge_Weight_Labels(int width, int height, object * O, int l)
                         if (result && label_count < LABELS)
                         {
                             L = labels[label_count ++];
-                            sprintf(L->text, "%.2f", E->weight);
+                            sprintf(L->text, "%d", E->perimeter->smooth);
                             L->x = coords[0] - 100;
                             L->y = height - coords[1] + 20;
                         }
@@ -4523,7 +4523,7 @@ void render_Edge_Weight_Labels(int width, int height, object * O, int l)
                         if (result && label_count < LABELS)
                         {
                             L = labels[label_count ++];
-                            sprintf(L->text, "%.2f", E->weight);
+                            sprintf(L->text, "%d", E->perimeter->smooth);
                             L->x = coords[0] - 100;
                             L->y = height - coords[1] + 20;
                         }

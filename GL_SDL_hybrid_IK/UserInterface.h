@@ -68,7 +68,7 @@ int LISTLENGTH = 12;
 #define LINE_LOOP 0
 #define QUADS 1
 #define LABEL_TEXT_LEN 30
-#define LABELS 100
+#define LABELS 1000
 #define MATERIALS_TOTAL 100
 
 GLuint Material_Textures_Lists[MATERIALS_TOTAL];

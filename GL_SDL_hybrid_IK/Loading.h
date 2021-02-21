@@ -1630,6 +1630,16 @@ int read_Segments_file(Segments_In * SEG_IN, char * fileName)
                 sscanf(buff, "%f %f %f", &S->B[0], &S->B[1], &S->B[2]);
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%f %f %f", &S->C[0], &S->C[1], &S->C[2]);
+
+                if (loading_version >= 1008)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f", &S->weight);
+                }
+                else
+                {
+                    S->weight = 0;
+                }
             }
         }
         else

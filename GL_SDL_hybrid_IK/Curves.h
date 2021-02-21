@@ -101,6 +101,8 @@ struct curve_segment
     float B[3]; // center
     float C[3]; // end
     int counter_edge;
+    float weight;
+    float weight_init;
 };
 
 curve_segment * segments[SEGMENTS];
@@ -628,6 +630,7 @@ void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object *
             segments[segmentIndex ++] = S0;
             S0->E = NULL;
             S0->Curve = S->Curve;
+            S0->weight = S->weight;
 
             S1->index = segmentIndex;
             S1->level = S->level + 1;
@@ -635,6 +638,7 @@ void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object *
             segments[segmentIndex ++] = S1;
             S1->E = NULL;
             S1->Curve = S->Curve;
+            S1->weight = S->weight;
 
             S->subdivided = 1;
             S->segment[0] = S0;
@@ -1101,6 +1105,7 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
         S->E = NULL;
         S->index = segmentIndex;
         segments[segmentIndex ++] = S;
+        S->weight = 1.0;
     }
 
     C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
@@ -1190,6 +1195,7 @@ int add_Curve_Segment(curve * C)
     S->E = NULL;
     S->index = segmentIndex;
     segments[segmentIndex ++] = S;
+    S->weight = 1.0;
 
     C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
 
@@ -1319,6 +1325,7 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
         S->E = NULL;
         S->index = segmentIndex;
         segments[segmentIndex ++] = S;
+        S->weight = 1.0;
     }
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
@@ -1421,6 +1428,7 @@ int add_New_Curve(float pos[3], int open)
     S->E = NULL;
     S->index = segmentIndex;
     segments[segmentIndex ++] = S;
+    S->weight = 1.0;
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
     if (C->segments == NULL) return 0;
@@ -1706,6 +1714,43 @@ void update_selected_Curves(int level)
     }
 }
 
+void assign_Segment_Weight_Recursive(curve_segment * S)
+{
+    curve_segment * S0, * S1;
+
+    if (S->subdivided)
+    {
+        S0 = S->segment[0];
+        S0->weight = S->weight;
+        S1 = S->segment[1];
+        S1->weight = S->weight;
+        assign_Segment_Weight_Recursive(S0);
+        assign_Segment_Weight_Recursive(S1);
+    }
+}
+
+void snap_back_Curve_Weights()
+{
+    printf("\nsnap back Curve Weights\n");
+
+    int c, s;
+
+    curve_segment * S;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            S = C->segments[s];
+            S->weight = S->weight_init;
+            if (S->subdivided)
+                assign_Segment_Weight_Recursive(S);
+        }
+    }
+}
+
 void snap_back_Cp_Weights()
 {
     printf("\nsnap back Cp Weights\n");
@@ -1729,6 +1774,26 @@ void snap_back_Cp_Weights()
     }
 }
 
+void finish_adjusting_Curve_Weights()
+{
+    printf("\nfinish adjusting Curve Weights\n");
+
+    int c, s;
+
+    curve_segment * S;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            S = C->segments[s];
+            S->weight_init = S->weight;
+        }
+    }
+}
+
 void finish_adjusting_Cp_Weights()
 {
     printf("\nfinish adjusting Cp Weights\n");
@@ -1748,6 +1813,35 @@ void finish_adjusting_Cp_Weights()
             {
                 C->cps_continuity_init[p] = C->cps_continuity[p];
             }
+        }
+    }
+}
+
+void adjust_Selected_Curve_Weights(float w)
+{
+    int c, s;
+
+    curve_segment * S;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            S = C->segments[s];
+            S->weight = S->weight_init + w;
+
+            if (S->weight < 0)
+            {
+                S->weight = 0.0;
+            }
+            else if (S->weight > 1.0)
+            {
+                S->weight = 1.0;
+            }
+
+            assign_Segment_Weight_Recursive(S);
         }
     }
 }
@@ -1804,6 +1898,26 @@ int init_continuity_For_Selected_Curves()
         }
     }
     return r;
+}
+
+void clear_Selected_Segment_Weights()
+{
+    int c, s;
+
+    curve_segment * S;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            S = C->segments[s];
+            S->weight = 0;
+            S->weight_init = 0;
+            assign_Segment_Weight_Recursive(S);
+        }
+    }
 }
 
 void clear_Selected_Cp_Weights()
@@ -2251,6 +2365,7 @@ int create_Object_Curve(object * O)
                 S->subdivided = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
+                S->weight = 1.0;
 
                 E->S = S;
                 S->E = E;
@@ -2287,6 +2402,7 @@ int create_Object_Curve(object * O)
                         S->subdivided = 0;
                         S->index = segmentIndex;
                         segments[segmentIndex ++] = S;
+                        S->weight = 1.0;
 
                         E->S = S;
                         S->E = E;
@@ -2315,6 +2431,7 @@ int create_Object_Curve(object * O)
                 S->subdivided = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
+                S->weight = 1.0;
 
 
                 r = add_Curve_Segment_To_Verts(C, V, O);
@@ -2731,6 +2848,29 @@ void print_Curve_subdLevel(curve * C)
     printf("\n");
 }
 
+void update_Objects_Curves_To_Original_Coordinates(object * O)
+{
+    int c, p;
+    curve * C;
+    cp * CP;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+            if (CP->vert != NULL)
+            {
+                CP->pos[0] = CP->vert->x;
+                CP->pos[1] = CP->vert->y;
+                CP->pos[2] = CP->vert->z;
+            }
+        }
+    }
+}
+
 void update_Objects_Curves_Coordinates(object * O)
 {
     int c, p;
@@ -2889,6 +3029,201 @@ void convert_Curves_To_Cp_Selection()
         if (C->selected)
         {
             convert_To_Cp_Selection(C);
+        }
+    }
+}
+
+void generate_Inside_Edges_Smoothness(object * O, int level)
+{
+    int l, e, v, idx, start;
+
+    vertex * V;
+    edge * E, * E0;
+
+    if (level > O->subdlevel)
+    {
+        level = O->subdlevel;
+    }
+
+    for (l = 0; l <= level; l ++)
+    {
+
+        for (e = 0; e < O->edgecount_[l]; e ++)
+        {
+            E = &O->edges_[l][e / ARRAYSIZE][e % ARRAYSIZE];
+
+            E->smooth = 0;
+
+            E0 = E->perimeter;
+
+            if (E0 != NULL && E0->S == NULL)
+                E0->smooth = 0;
+        }
+
+        if (l == 0)
+        {
+            start = O->vertcount + O->edgecount;
+        }
+        else
+        {
+            start = O->vertcount_[l - 1] + O->edgecount_[l - 1];
+        }
+
+        for (v = start; v < O->vertcount_[l]; v ++)
+        {
+            V = &O->verts_[l][v / ARRAYSIZE][v % ARRAYSIZE];
+
+            if (V->patch)
+            {
+                for (e = 0; e < V->edgecount; e ++)
+                {
+                    idx = V->edges[e];
+
+                    E = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    E->smooth = 2;
+
+                    E0 = E->perimeter;
+
+                    if (E0 != NULL && E0->S == NULL)
+                        E0->smooth = 2;
+                }
+            }
+        }
+    }
+}
+
+void generate_Edges_Smoothness(object * O)
+{
+    int e, e0, e1, v, idx, start, condition;
+
+    vertex * V;
+    edge * E,  * E0, * E1;
+    curve_segment * S, * S0;
+
+    for (e = 0; e < O->edgecount; e ++)
+    {
+        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+        E->smooth = 0;
+    }
+
+    for (v = 0; v < O->vertcount; v ++)
+    {
+        V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+        if (V->control_point != NULL)
+        {
+            for (e = 0; e < V->edgecount; e ++)
+            {
+                idx = V->edges[e];
+
+                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                condition = 0;
+
+                if (E->S != NULL)
+                {
+                    S = E->S;
+
+                    start = e + 1;
+
+                    for (e0 = start; e0 < V->edgecount; e0 ++)
+                    {
+                        idx = V->edges[e0];
+
+                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        if (E0->S != NULL)
+                        {
+                            S0 = E0->S;
+
+                            if (S0->Curve == S->Curve)
+                            {
+                                condition = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (condition)
+                {
+                    for (e1 = 0; e1 < V->edgecount; e1 ++)
+                    {
+                        idx = V->edges[e1];
+
+                        E1 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        if (E1 == E || E1 == E0)
+                        {
+                            continue;
+                        }
+
+                        if (E1->S != NULL)
+                        {
+                            E1->smooth = 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void assign_Edge_Smooth_Recursive(object * O, edge * E, int l)
+{
+    int idx;
+    edge * E0, * E1;
+
+    idx = E->edges[0];
+    E0 = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    E0->smooth = E->smooth;
+    if (E0->subdivs)
+    {
+        assign_Edge_Smooth_Recursive(O, E0, l + 1);
+    }
+
+    idx = E->edges[1];
+    E1 = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    E1->smooth = E->smooth;
+    if (E1->subdivs)
+    {
+        assign_Edge_Smooth_Recursive(O, E1, l + 1);
+    }
+}
+
+void assign_Edges_Smoothness_To_Subedges(object * O)
+{
+    int e;
+    edge * E;
+
+    for (e = 0; e < O->edgecount; e ++)
+    {
+        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+        if (E->S != NULL && E->subdivs)
+        {
+            assign_Edge_Smooth_Recursive(O, E, 0);
+        }
+    }
+}
+
+void assign_Edges_Smoothness_To_Objects(int level)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < objectIndex; o ++)
+    {
+        O = objects[o];
+
+        if (O->curve_count > 0)
+        {
+            generate_Edges_Smoothness(O);
+            generate_Inside_Edges_Smoothness(O, level);
+            assign_Edges_Smoothness_To_Subedges(O);
         }
     }
 }

@@ -207,6 +207,7 @@ struct edge
     float height;
     int patch;
     float vec[3];
+    int smooth; // 0 is sharp, 1 is perimeter smooth edge, 2 is inside edge
 };
 
 void print_edge(edge * E)

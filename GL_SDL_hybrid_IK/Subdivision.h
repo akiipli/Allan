@@ -1097,7 +1097,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
             if (V->patch)
             {
-                /*
+/*
                 // handle corners
 
                 if (L > 1)
@@ -1119,7 +1119,10 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                             idx = V1->edges[e0];
                             E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                            scaler = cp_continuity[L1] * 2.0 * E->weight * pWeight;
+                            if (E->smooth)
+                                scaler = cp_continuity[L1] * 2.0;
+                            else
+                                scaler = 0; //cp_continuity[L1] * 2.0 * E->weight * pWeight;
 
                             // do edge AC
 
@@ -1129,21 +1132,21 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                             // corner edges set A, then edge center vertexes in perimeter set C
 
-                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
-                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
-                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
+                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot * scaler;
+                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot * scaler;
+                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot * scaler;
 
-                            E->A[0] -= V1->Tx;
-                            E->A[1] -= V1->Ty;
-                            E->A[2] -= V1->Tz;
-
-                            E->A[0] *= scaler;
-                            E->A[1] *= scaler;
-                            E->A[2] *= scaler;
-
-                            E->A[0] += V1->Tx;
-                            E->A[1] += V1->Ty;
-                            E->A[2] += V1->Tz;
+//                            E->A[0] -= V1->Tx;
+//                            E->A[1] -= V1->Ty;
+//                            E->A[2] -= V1->Tz;
+//
+//                            E->A[0] *= scaler;
+//                            E->A[1] *= scaler;
+//                            E->A[2] *= scaler;
+//
+//                            E->A[0] += V1->Tx;
+//                            E->A[1] += V1->Ty;
+//                            E->A[2] += V1->Tz;
                         }
                     }
                 }
@@ -1166,7 +1169,10 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                             idx = V1->edges[e0];
                             E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                            scaler = cp_continuity[L1] * 2.0 * E->weight * pWeight;
+                            if (E->smooth)
+                                scaler = cp_continuity[L1] * 2.0;
+                            else
+                                scaler = 0; // cp_continuity[L1] * 2.0 * E->weight * pWeight;
 
                             // do edge AC
 
@@ -1176,26 +1182,26 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                             // inside edges set A, then edge center vertexes in perimeter set C
 
-                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
-                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
-                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
+                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot * scaler;
+                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot * scaler;
+                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot * scaler;
 
-                            E->A[0] -= V1->Tx;
-                            E->A[1] -= V1->Ty;
-                            E->A[2] -= V1->Tz;
-
-                            E->A[0] *= scaler;
-                            E->A[1] *= scaler;
-                            E->A[2] *= scaler;
-
-                            E->A[0] += V1->Tx;
-                            E->A[1] += V1->Ty;
-                            E->A[2] += V1->Tz;
+//                            E->A[0] -= V1->Tx;
+//                            E->A[1] -= V1->Ty;
+//                            E->A[2] -= V1->Tz;
+//
+//                            E->A[0] *= scaler;
+//                            E->A[1] *= scaler;
+//                            E->A[2] *= scaler;
+//
+//                            E->A[0] += V1->Tx;
+//                            E->A[1] += V1->Ty;
+//                            E->A[2] += V1->Tz;
                         }
                     }
                 }
-                */
 
+*/
 
                 /* now handle inside edges */
 
@@ -1208,31 +1214,50 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                     idx = V->edges[e];
                     E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    scaler = cp_continuity[L1] * 2.0 * E->weight * pWeight;
+                    if (E->smooth == 1) // perimeter edge
+                    {
+                        scaler = cp_continuity[L1] * 2.0; // * E->weight * pWeight;
 
-                    /* do edge AC */
+                        D = length_AB_(V->Tx, V->Ty, V->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
 
-                    D = length_AB_(V->Tx, V->Ty, V->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+                        dot = dot_productFF(n0, D.vec);
 
-                    dot = dot_productFF(n0, D.vec);
+                        /* inside edges set A, then edge center vertexes in perimeter set C */
 
-                    /* inside edges set A, then edge center vertexes in perimeter set C */
+                        E->A[0] = E->B.Tx + V->N.Tx * D.distance * -dot;
+                        E->A[1] = E->B.Ty + V->N.Ty * D.distance * -dot;
+                        E->A[2] = E->B.Tz + V->N.Tz * D.distance * -dot;
 
-                    E->A[0] = E->B.Tx + V->N.Tx * D.distance * -dot;
-                    E->A[1] = E->B.Ty + V->N.Ty * D.distance * -dot;
-                    E->A[2] = E->B.Tz + V->N.Tz * D.distance * -dot;
+                        E->A[0] -= V->Tx;
+                        E->A[1] -= V->Ty;
+                        E->A[2] -= V->Tz;
 
-                    E->A[0] -= V->Tx;
-                    E->A[1] -= V->Ty;
-                    E->A[2] -= V->Tz;
+                        E->A[0] *= scaler;
+                        E->A[1] *= scaler;
+                        E->A[2] *= scaler;
 
-                    E->A[0] *= scaler;
-                    E->A[1] *= scaler;
-                    E->A[2] *= scaler;
+                        E->A[0] += V->Tx;
+                        E->A[1] += V->Ty;
+                        E->A[2] += V->Tz;
+                    }
+                    else if (E->smooth == 2) // inside edge
+                    {
+                        D = length_AB_(V->Tx, V->Ty, V->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
 
-                    E->A[0] += V->Tx;
-                    E->A[1] += V->Ty;
-                    E->A[2] += V->Tz;
+                        dot = dot_productFF(n0, D.vec);
+
+                        /* inside edges set A, then edge center vertexes in perimeter set C */
+
+                        E->A[0] = E->B.Tx + V->N.Tx * D.distance * -dot;
+                        E->A[1] = E->B.Ty + V->N.Ty * D.distance * -dot;
+                        E->A[2] = E->B.Tz + V->N.Tz * D.distance * -dot;
+                    }
+                    else // cross edge is sharp
+                    {
+                        E->A[0] = E->B.Tx;
+                        E->A[1] = E->B.Ty;
+                        E->A[2] = E->B.Tz;
+                    }
 
                     /* here address far edges over perimeter vertex */
 
@@ -1249,31 +1274,52 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                         E0 = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                        scaler = cp_continuity[L1] * 2.0 * E0->weight * pWeight;
+                        if (E0->smooth == 1) // perimeter edge
+                        {
+                            scaler = cp_continuity[L1] * 2.0; // * E->weight * pWeight;
 
-                        /* do edge AC */
+                            D = length_AB_(V0->Tx, V0->Ty, V0->Tz, E0->B.Tx, E0->B.Ty, E0->B.Tz);
 
-                        D = length_AB_(V0->Tx, V0->Ty, V0->Tz, E0->B.Tx, E0->B.Ty, E0->B.Tz);
+                            dot = dot_productFF(n1, D.vec);
 
-                        dot = dot_productFF(n1, D.vec);
+                            /* edge center vertexes in perimeter set C */
 
-                        /* edge center vertexes in perimeter set C */
+                            E0->C[0] = E->B.Tx + V0->N.Tx * D.distance * -dot;
+                            E0->C[1] = E->B.Ty + V0->N.Ty * D.distance * -dot;
+                            E0->C[2] = E->B.Tz + V0->N.Tz * D.distance * -dot;
 
-                        E0->C[0] = E0->B.Tx + V0->N.Tx * D.distance * -dot;
-                        E0->C[1] = E0->B.Ty + V0->N.Ty * D.distance * -dot;
-                        E0->C[2] = E0->B.Tz + V0->N.Tz * D.distance * -dot;
+                            E0->C[0] -= V0->Tx;
+                            E0->C[1] -= V0->Ty;
+                            E0->C[2] -= V0->Tz;
 
-                        E0->C[0] -= V0->Tx;
-                        E0->C[1] -= V0->Ty;
-                        E0->C[2] -= V0->Tz;
+                            E0->C[0] *= scaler;
+                            E0->C[1] *= scaler;
+                            E0->C[2] *= scaler;
 
-                        E0->C[0] *= scaler;
-                        E0->C[1] *= scaler;
-                        E0->C[2] *= scaler;
+                            E0->C[0] += V0->Tx;
+                            E0->C[1] += V0->Ty;
+                            E0->C[2] += V0->Tz;
+                        }
+                        else if (E0->smooth == 2) // inside edge
+                        {
+                            scaler = cp_continuity[L1] * 2.0 * E0->weight * pWeight;
 
-                        E0->C[0] += V0->Tx;
-                        E0->C[1] += V0->Ty;
-                        E0->C[2] += V0->Tz;
+                            D = length_AB_(V0->Tx, V0->Ty, V0->Tz, E0->B.Tx, E0->B.Ty, E0->B.Tz);
+
+                            dot = dot_productFF(n1, D.vec);
+
+                            /* edge center vertexes in perimeter set C */
+
+                            E0->C[0] = E0->B.Tx + V0->N.Tx * D.distance * -dot * scaler;
+                            E0->C[1] = E0->B.Ty + V0->N.Ty * D.distance * -dot * scaler;
+                            E0->C[2] = E0->B.Tz + V0->N.Tz * D.distance * -dot * scaler;
+                        }
+                        else // cross edge is sharp
+                        {
+                            E0->C[0] = E0->B.Tx;
+                            E0->C[1] = E0->B.Ty;
+                            E0->C[2] = E0->B.Tz;
+                        }
                     }
                 }
             }
@@ -1307,25 +1353,6 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
             if (V->patch)
             {
-                /*
-                n0[0] = V->N.Tx;
-                n0[1] = V->N.Ty;
-                n0[2] = V->N.Tz;
-
-                //printf("%f %f %f\n", n0[0], n0[0], n0[0]);
-                */
-/*
-                idx = v - start;
-
-                if (L > 1)
-                {
-                    Q = &O->quads_[L1 - 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                }
-                else
-                {
-                    P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                }
-*/
                 for (e = 0; e < V->edgecount; e ++)
                 {
                     idx = V->edges[e];
@@ -1682,14 +1709,28 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
         }
     }
 
-    if (O->curve_count > 0 && L < curve_subdiv) /* level 1 blocks patches */
+    float a, b;
+
+    if (O->curve_count > 0)// && L < curve_subdiv) /* level 1 blocks patches */
     {
+        start = O->vertcount_[L1];
+
         for (e = 0; e < O->edgecount_[L1]; e ++) // edge verts average surrounding polys and self position
         {
             E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
 
             if (E->S != NULL)
             {
+                idx = e + start;
+                V0 = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                a = E->S->weight;
+                b = 1 - a;
+
+                V0->Tx = (E->S->B[0] * a + V0->Tx * b);
+                V0->Ty = (E->S->B[1] * a + V0->Ty * b);
+                V0->Tz = (E->S->B[2] * a + V0->Tz * b);
+
                 if (E->S->counter_edge)
                     idx = E->verts[1];
                 else
@@ -1699,9 +1740,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 if (V->vert != NULL)
                 {
-                    V->vert->Tx = E->S->A[0];
-                    V->vert->Ty = E->S->A[1];
-                    V->vert->Tz = E->S->A[2];
+                    V->vert->Tx = (E->S->A[0] * a + V->vert->Tx * b);
+                    V->vert->Ty = (E->S->A[1] * a + V->vert->Ty * b);
+                    V->vert->Tz = (E->S->A[2] * a + V->vert->Tz * b);
                 }
 
                 if (E->S->counter_edge)
@@ -1713,9 +1754,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 if (V->vert != NULL)
                 {
-                    V->vert->Tx = E->S->C[0];
-                    V->vert->Ty = E->S->C[1];
-                    V->vert->Tz = E->S->C[2];
+                    V->vert->Tx = (E->S->C[0] * a + V->vert->Tx * b);
+                    V->vert->Ty = (E->S->C[1] * a + V->vert->Ty * b);
+                    V->vert->Tz = (E->S->C[2] * a + V->vert->Tz * b);
                 }
             }
         }
@@ -2246,43 +2287,60 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             }
         }
     }
-    /*
-    for (e = 0; e < O->edgecount; e ++) // edge verts average surrounding polys and self position
+
+    float a, b, start;
+
+    if (O->curve_count > 0)// && L < curve_subdiv) /* level 1 blocks patches */
     {
-        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+        start = O->vertcount;
 
-        if (E->S != NULL)
+        for (e = 0; e < O->edgecount; e ++) // edge verts average surrounding polys and self position
         {
-            if (E->S->counter_edge)
-                idx = E->verts[1];
-            else
-                idx = E->verts[0];
+            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
 
-            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-            if (V->vert != NULL)
+            if (E->S != NULL)
             {
-                V->vert->Tx = E->S->A[0];
-                V->vert->Ty = E->S->A[1];
-                V->vert->Tz = E->S->A[2];
-            }
+                idx = e + start;
+                V0 = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-            if (E->S->counter_edge)
-                idx = E->verts[0];
-            else
-                idx = E->verts[1];
+                a = E->S->weight;
+                b = 1 - a;
 
-            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                V0->Tx = (E->S->B[0] * a + V0->Tx * b);
+                V0->Ty = (E->S->B[1] * a + V0->Ty * b);
+                V0->Tz = (E->S->B[2] * a + V0->Tz * b);
+                /*
+                if (E->S->counter_edge)
+                    idx = E->verts[1];
+                else
+                    idx = E->verts[0];
 
-            if (V->vert != NULL)
-            {
-                V->vert->Tx = E->S->C[0];
-                V->vert->Ty = E->S->C[1];
-                V->vert->Tz = E->S->C[2];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (V->vert != NULL)
+                {
+                    V->vert->Tx = (E->S->A[0] * a + V->vert->Tx * b);
+                    V->vert->Ty = (E->S->A[1] * a + V->vert->Ty * b);
+                    V->vert->Tz = (E->S->A[2] * a + V->vert->Tz * b);
+                }
+
+                if (E->S->counter_edge)
+                    idx = E->verts[0];
+                else
+                    idx = E->verts[1];
+
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (V->vert != NULL)
+                {
+                    V->vert->Tx = (E->S->C[0] * a + V->vert->Tx * b);
+                    V->vert->Ty = (E->S->C[1] * a + V->vert->Ty * b);
+                    V->vert->Tz = (E->S->C[2] * a + V->vert->Tz * b);
+                }
+                */
             }
         }
     }
-    */
 }
 
 void tune_In_Subdivision_Shape(object * O)

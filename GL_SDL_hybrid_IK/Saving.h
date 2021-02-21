@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1007;
+int saving_version = 1008;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -356,6 +356,7 @@ int save_Curves(char * curves_files_dir)
             fprintf(F, "%f %f %f\n", S->A[0], S->A[1], S->A[2]);
             fprintf(F, "%f %f %f\n", S->B[0], S->B[1], S->B[2]);
             fprintf(F, "%f %f %f\n", S->C[0], S->C[1], S->C[2]);
+            fprintf(F, "%f\n", S->weight);
         }
     }
     fprintf(F, "\n");

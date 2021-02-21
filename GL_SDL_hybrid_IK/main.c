@@ -152,6 +152,7 @@ int edgedraw = 0;
 int curve_Draw = 0;
 int edgeWeights = 0;
 int cpWeights = 0;
+int curveWeights = 0;
 int vertdraw = 0;
 int tripsRender = 0;
 int splitview = 0;
@@ -2473,7 +2474,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
                 //render_patch_edge_Labels(screen_width, screen_height, O, Level);
                 //render_patch_edge_polys_Labels(screen_width, screen_height, O, Level);
                 //render_Patch_Labels(screen_width, screen_height, O, Level);
-                //render_Edge_Weight_Labels(screen_width, screen_height, O, Level);
+                render_Edge_Smooth_Labels(screen_width, screen_height, O, Level);
             }
             if (Axis_lock)
             {
@@ -10886,6 +10887,8 @@ void set_Bind_Mode()
         create_Hierarchys_List(); // because of collapsed locators
 
         Button_Mode[6].color = UI_GRAYD;
+
+        update_Deformer_Objects_Curves_To_Original_Coordinates();
     }
     else
     {
@@ -12709,6 +12712,10 @@ void exit_Bind_Mode()
     Button_Mode[selection_Mode].color = UI_GRAYD;
 
     set_Object_Mode();
+
+    update_Deformer_Objects_Curves_To_Coordinates();
+
+    transform_Objects_And_Render();
 }
 
 void save_load_Scene()
@@ -14492,7 +14499,12 @@ int main(int argc, char * args[])
                 }
                 else if (event.button.button == SDL_BUTTON_RIGHT)
                 {
-                    if (cpWeights)
+                    if (curveWeights)
+                    {
+                        snap_back_Curve_Weights();
+                        curveWeights = 0;
+                    }
+                    else if (cpWeights)
                     {
                         snap_back_Cp_Weights();
                         cpWeights = 0;
@@ -14746,6 +14758,12 @@ int main(int argc, char * args[])
                     {
                         if (T->Deformer != NULL)
                             normalize_IK_Spines(T->Deformer);
+                    }
+
+                    if (curveWeights)
+                    {
+                        finish_adjusting_Curve_Weights();
+                        curveWeights = 0;
                     }
 
                     if (cpWeights)
@@ -16359,6 +16377,14 @@ int main(int argc, char * args[])
                         }
                     }
                 }
+                else if (curveWeights)
+                {
+                    float x_offset = mouse_x - Camera->origin_2d[0];
+                    float x = (float)x_offset / ((float)screen_width / 4.0);
+
+                    adjust_Selected_Curve_Weights(x);
+                    message = -1;
+                }
                 else if (cpWeights)
                 {
                     float x_offset = mouse_x - Camera->origin_2d[0];
@@ -17789,7 +17815,15 @@ int main(int argc, char * args[])
                     delete_Curve(curves[currentCurve]);
 
                     if (O0 != NULL)
-                        scan_for_Object_Patches(O0, subdLevel);
+                    {
+                        generate_Edges_Smoothness(O0);
+                        if (O0->subdlevel > -1)
+                        {
+                            scan_for_Object_Patches(O0, subdLevel);
+                            generate_Inside_Edges_Smoothness(O, subdLevel);
+                            assign_Edges_Smoothness_To_Subedges(O0);
+                        }
+                    }
                 }
             }
             else if (mod & KMOD_CTRL)
@@ -17858,6 +17892,7 @@ int main(int argc, char * args[])
             update_Curves(subdLevel);
 
             scan_for_Objects_Patches(subdLevel);
+            assign_Edges_Smoothness_To_Objects(subdLevel);
 
 //            if (curvesIndex > 0)
 //            {
@@ -18215,8 +18250,13 @@ int main(int argc, char * args[])
 
                             if (r)
                             {
+                                generate_Edges_Smoothness(O);
                                 if (O->subdlevel > -1)
+                                {
                                     scan_for_Object_Patches(O, O->subdlevel);
+                                    generate_Inside_Edges_Smoothness(O, subdLevel);
+                                    assign_Edges_Smoothness_To_Subedges(O);
+                                }
 
                                 curve * C = curves[curvesIndex - 1];
 
@@ -18420,29 +18460,53 @@ int main(int argc, char * args[])
             {
                 if (Curve_Mode)
                 {
-                    cpWeights = !cpWeights;
-                    if (cpWeights)
+                    if (Vertex_Mode)
                     {
-                        SDL_GetMouseState(&mouse_x, &mouse_y);
-                        printf("mouse at %d, %d\n", mouse_x, mouse_y);
-
-                        subdLevel_mem = subdLevel;
-
-                        Camera = find_View(mouse_x, mouse_y, splitview);
-                        Camera->origin_2d[0] = mouse_x;
-                        Camera->origin_2d[1] = mouse_y;
-
-                        ordered_Curve_Selection();
-                        int r = init_continuity_For_Selected_Curves();
-                        if (!r)
+                        cpWeights = !cpWeights;
+                        if (cpWeights)
                         {
-                            cpWeights = 0;
+                            SDL_GetMouseState(&mouse_x, &mouse_y);
+                            printf("mouse at %d, %d\n", mouse_x, mouse_y);
+
+                            subdLevel_mem = subdLevel;
+
+                            Camera = find_View(mouse_x, mouse_y, splitview);
+                            Camera->origin_2d[0] = mouse_x;
+                            Camera->origin_2d[1] = mouse_y;
+
+                            ordered_Curve_Selection();
+                            int r = init_continuity_For_Selected_Curves();
+                            if (!r)
+                            {
+                                cpWeights = 0;
+                            }
+                        }
+                        else
+                        {
+                            finish_adjusting_Cp_Weights();
+                            update_selected_Curves(subdLevel);
                         }
                     }
                     else
                     {
-                        finish_adjusting_Cp_Weights();
-                        update_selected_Curves(subdLevel);
+                        curveWeights = !curveWeights;
+                        if (curveWeights)
+                        {
+                            SDL_GetMouseState(&mouse_x, &mouse_y);
+                            printf("mouse at %d, %d\n", mouse_x, mouse_y);
+
+                            subdLevel_mem = subdLevel;
+
+                            Camera = find_View(mouse_x, mouse_y, splitview);
+                            Camera->origin_2d[0] = mouse_x;
+                            Camera->origin_2d[1] = mouse_y;
+
+                            ordered_Curve_Selection();
+                        }
+                        else
+                        {
+                            finish_adjusting_Curve_Weights();
+                        }
                     }
                 }
                 else
@@ -18470,8 +18534,15 @@ int main(int argc, char * args[])
             {
                 if (Curve_Mode)
                 {
-                    clear_Selected_Cp_Weights();
-                    update_selected_Curves(subdLevel);
+                    if (Vertex_Mode)
+                    {
+                        clear_Selected_Cp_Weights();
+                        update_selected_Curves(subdLevel);
+                    }
+                    else
+                    {
+                        clear_Selected_Segment_Weights();
+                    }
                 }
                 else
                 {
