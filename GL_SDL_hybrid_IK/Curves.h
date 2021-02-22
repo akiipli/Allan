@@ -2823,6 +2823,22 @@ void delete_Curve(curve * C)
 
     if (condition)
     {
+        int c0;
+
+        for (c = selected_curves_count - 1; c >= 0; c --)
+        {
+            if (selected_curves[c] == index)
+            {
+                selected_curves_count --;
+
+                for (c0 = c; c0 < selected_curves_count; c0 ++)
+                {
+                    selected_curves[c0] = selected_curves[c0 + 1];
+                }
+                break;
+            }
+        }
+
         curvesIndex --;
 
         for (c = index; c < curvesIndex; c ++)

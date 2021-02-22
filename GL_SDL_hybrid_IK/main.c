@@ -17813,6 +17813,7 @@ int main(int argc, char * args[])
                 {
                     object * O0 = curves[currentCurve]->O;
                     delete_Curve(curves[currentCurve]);
+                    ordered_Curve_Selection();
 
                     if (O0 != NULL)
                     {
