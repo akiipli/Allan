@@ -1485,7 +1485,8 @@ void free_Segments()
     for (s = 0; s < segmentIndex; s ++)
     {
         S = segments[s];
-        free(S);
+        if (S != NULL)
+            free(S);
     }
 }
 
@@ -1498,8 +1499,12 @@ void free_Cps()
     for (c = 0; c < cpsIndex; c ++)
     {
         CP = cps[c];
-        free(CP->segments);
-        free_Cp(CP);
+        if (CP != NULL)
+        {
+            if (CP->segments != NULL)
+                free(CP->segments);
+            free_Cp(CP);
+        }
     }
 }
 
