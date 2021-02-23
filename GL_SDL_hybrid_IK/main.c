@@ -3509,13 +3509,14 @@ void convert_To_Vert_Selection()
 void convert_To_Border_Verts(object * O)
 {
     Draw_Bottom_Message("convert To Border Verts\n");
-    int u, i, v, e, idx;
+    int u, v, e, idx;
 
-    edge * E, * E0;
-    vertex * V;
+    edge * E, * E0, * E1;
+    vertex * V, * V0;
     uv * UV;
 
     int condition;
+    selected_verts_count = 0;
 
     for(v = 0; v < O->vertcount; v ++)
     {
@@ -3529,39 +3530,65 @@ void convert_To_Border_Verts(object * O)
         UV->selected = 0;
     }
 
+    condition = 0;
+
     for(e = 0; e < O->edgecount; e ++)
     {
         E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
         if (E->selected)
         {
-            for (v = 0; v < 2; v ++)
+            E1 = E;
+            condition = 1;
+            break;
+        }
+    }
+
+    while (condition)
+    {
+        for (v = 0; v < 2; v ++)
+        {
+            idx = E->verts[v];
+            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            if (V == V0)
             {
-                idx = E->verts[v];
-                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                condition = 1;
-                for (i = 0; i < V->edgecount; i ++)
+                continue;
+            }
+
+            condition = 0;
+            for (e = 0; e < V->edgecount; e ++)
+            {
+                idx = V->edges[e];
+                E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                if (E0 != E && E0->selected)
                 {
-                    idx = V->edges[i];
-                    E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                    if (E0 != E && E0->selected)
+                    condition = 1;
+                    break;
+                }
+            }
+
+            if (condition)
+            {
+                V->selected = 1;
+                V0 = V;
+                selected_verts[selected_verts_count ++] = V;
+                for (u = 0; u < V->uv_vertcount; u ++)
+                {
+                    idx = V->uv_verts[u];
+                    if (idx > -1 && idx < O->textcount)
                     {
-                        condition = 0;
-                        break;
+                        UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        UV->selected = V->selected;
                     }
                 }
-                if (condition)
+
+                if (E0 == E1 || (selected_verts_count > O->selected_edges_count))
                 {
-                    V->selected = 1;
-                    for (u = 0; u < V->uv_vertcount; u ++)
-                    {
-                        idx = V->uv_verts[u];
-                        if (idx > -1 && idx < O->textcount)
-                        {
-                            UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                            UV->selected = V->selected;
-                        }
-                    }
+                    condition = 0;
                 }
+
+                E = E0;
+                break;
             }
         }
     }
@@ -5578,7 +5605,7 @@ void export_OBJ_Format()
     for(o = 0; o < selected_object_count; o ++)
     {
         O0 = objects[selected_objects[o]];
-        if (subdLevel > -1 && O0->subdlevel <= subdLevel)
+        if (subdLevel > -1 && subdLevel <= O0->subdlevel)
         {
             write_OBJ_to_Disk_level_(O0, subdLevel);
         }
