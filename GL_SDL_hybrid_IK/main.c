@@ -17817,11 +17817,11 @@ int main(int argc, char * args[])
 
                     if (O0 != NULL)
                     {
+                        generate_Inside_Edges_Smoothness(O, subdLevel);
                         generate_Edges_Smoothness(O0);
                         if (O0->subdlevel > -1)
                         {
                             scan_for_Object_Patches(O0, subdLevel);
-                            generate_Inside_Edges_Smoothness(O, subdLevel);
                             assign_Edges_Smoothness_To_Subedges(O0);
                         }
                     }
@@ -18251,11 +18251,11 @@ int main(int argc, char * args[])
 
                             if (r)
                             {
+                                generate_Inside_Edges_Smoothness(O, subdLevel);
                                 generate_Edges_Smoothness(O);
                                 if (O->subdlevel > -1)
                                 {
                                     scan_for_Object_Patches(O, O->subdlevel);
-                                    generate_Inside_Edges_Smoothness(O, subdLevel);
                                     assign_Edges_Smoothness_To_Subedges(O);
                                 }
 

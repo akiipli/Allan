@@ -3056,10 +3056,10 @@ void convert_Curves_To_Cp_Selection()
 
 void generate_Inside_Edges_Smoothness(object * O, int level)
 {
-    int l, e, v, idx, start;
+    int l, e;//, v, idx, start;
 
-    vertex * V;
-    edge * E, * E0;
+//    vertex * V;
+    edge * E;//, * E0;
 
     if (level > O->subdlevel)
     {
@@ -3073,14 +3073,9 @@ void generate_Inside_Edges_Smoothness(object * O, int level)
         {
             E = &O->edges_[l][e / ARRAYSIZE][e % ARRAYSIZE];
 
-            E->smooth = 0;
-
-            E0 = E->perimeter;
-
-            if (E0 != NULL && E0->S == NULL)
-                E0->smooth = 0;
+            E->smooth = 2;
         }
-
+        /*
         if (l == 0)
         {
             start = O->vertcount + O->edgecount;
@@ -3111,6 +3106,7 @@ void generate_Inside_Edges_Smoothness(object * O, int level)
                 }
             }
         }
+        */
     }
 }
 
@@ -3242,8 +3238,8 @@ void assign_Edges_Smoothness_To_Objects(int level)
 
         if (O->curve_count > 0)
         {
-            generate_Edges_Smoothness(O);
             generate_Inside_Edges_Smoothness(O, level);
+            generate_Edges_Smoothness(O);
             assign_Edges_Smoothness_To_Subedges(O);
         }
     }
