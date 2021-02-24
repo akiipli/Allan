@@ -2474,7 +2474,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
                 //render_patch_edge_Labels(screen_width, screen_height, O, Level);
                 //render_patch_edge_polys_Labels(screen_width, screen_height, O, Level);
                 //render_Patch_Labels(screen_width, screen_height, O, Level);
-                render_Edge_Smooth_Labels(screen_width, screen_height, O, Level);
+                //render_Edge_Smooth_Labels(screen_width, screen_height, O, Level);
             }
             if (Axis_lock)
             {
