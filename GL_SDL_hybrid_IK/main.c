@@ -17912,7 +17912,7 @@ int main(int argc, char * args[])
                 else
                     delete_Locator();
             }
-            else
+            else if (Object_Mode)
                 delete_Object(currentObject, 1);
 
             message = -1;
