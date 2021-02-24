@@ -3506,17 +3506,22 @@ void convert_To_Vert_Selection()
     }
 }
 
-void convert_To_Border_Verts(object * O)
+int convert_To_Border_Verts(object * O)
 {
     Draw_Bottom_Message("convert To Border Verts\n");
-    int u, v, e, idx;
+    int v, e, e0, idx;
 
     edge * E, * E0, * E1;
-    vertex * V, * V0;
-    uv * UV;
+    vertex * V, * V0, * V1;
 
-    int condition;
+    int condition, Condition;
     selected_verts_count = 0;
+
+    int used_Edge_count = 0;
+    edge ** used_Edge = malloc(O->selected_edges_count * sizeof(edge *));
+
+    if (used_Edge == NULL)
+        return 0;
 
     for(v = 0; v < O->vertcount; v ++)
     {
@@ -3524,74 +3529,107 @@ void convert_To_Border_Verts(object * O)
         V->selected = 0;
     }
 
-    for (u = 0; u < O->textcount; u ++)
+    for(e = 0; e < O->selected_edges_count; e ++) // find selected edges
     {
-        UV = &O->uvtex[u / ARRAYSIZE][u % ARRAYSIZE];
-        UV->selected = 0;
-    }
+        idx = O->selected_edges[e];
+        E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-    condition = 0;
+        condition = 1;
+        Condition = 1; // first vertex placement
 
-    for(e = 0; e < O->edgecount; e ++)
-    {
-        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-        if (E->selected)
+        for (e0 = 0; e0 < used_Edge_count; e0 ++) // avoid already used edges
         {
-            E1 = E;
-            condition = 1;
-            break;
-        }
-    }
-
-    while (condition)
-    {
-        for (v = 0; v < 2; v ++)
-        {
-            idx = E->verts[v];
-            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-            if (V == V0)
+            if (used_Edge[e0] == E)
             {
-                continue;
-            }
-
-            condition = 0;
-            for (e = 0; e < V->edgecount; e ++)
-            {
-                idx = V->edges[e];
-                E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                if (E0 != E && E0->selected)
-                {
-                    condition = 1;
-                    break;
-                }
-            }
-
-            if (condition)
-            {
-                V->selected = 1;
-                V0 = V;
-                selected_verts[selected_verts_count ++] = V;
-                for (u = 0; u < V->uv_vertcount; u ++)
-                {
-                    idx = V->uv_verts[u];
-                    if (idx > -1 && idx < O->textcount)
-                    {
-                        UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                        UV->selected = V->selected;
-                    }
-                }
-
-                if (E0 == E1 || (selected_verts_count > O->selected_edges_count))
-                {
-                    condition = 0;
-                }
-
-                E = E0;
+                condition = 0;
                 break;
             }
         }
+        if (condition && E->selected) // edge is selected and not used
+        {
+            E1 = E; // remember it as first in row
+            used_Edge[used_Edge_count ++] = E;
+
+            while (condition) // walk forward while there is selected edges ahead
+            {
+                for (v = 0; v < 2; v ++) // first vertex that finds edge is used starting
+                {
+                    idx = E->verts[v];
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (V == V0) // avoid back winding
+                    {
+                        continue;
+                    }
+
+                    condition = 0;
+                    for (e = 0; e < V->edgecount; e ++)
+                    {
+                        idx = V->edges[e];
+                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        if (E0 != E && E0->selected)
+                        {
+                            condition = 1;
+                            break;
+                        }
+                    }
+
+                    if (condition)
+                    {
+                        if (Condition) // first vertex in row
+                        {
+                            Condition = 0;
+
+                            if (V->index == E->verts[0])
+                            {
+                                idx = E->verts[1];
+                            }
+                            else
+                            {
+                                idx = E->verts[0];
+                            }
+
+                            V1 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            V1->selected = 1;
+
+                            selected_verts[selected_verts_count ++] = V1;
+                        }
+
+                        if (V->selected)
+                        {
+                            condition = 0;
+                        }
+
+                        if (!V->selected)
+                        {
+                            V->selected = 1;
+                            V0 = V; // remember previous vertex
+                            selected_verts[selected_verts_count ++] = V;
+                        }
+
+                        if (E0 == E1 || (selected_verts_count >= O->selected_edges_count))
+                        {
+                            condition = 0;
+                        }
+                        else
+                        {
+                            E = E0;
+                            used_Edge[used_Edge_count ++] = E;
+                        }
+                        break;
+                    }
+                    else // put last vertex
+                    {
+                        V->selected = 1;
+                        selected_verts[selected_verts_count ++] = V;
+                    }
+                }
+            }
+        }
     }
+
+    free(used_Edge);
+    return 1;
 }
 
 void convert_To_Border_Edges(object * O)
@@ -18278,6 +18316,7 @@ int main(int argc, char * args[])
 
                             if (r)
                             {
+                                ordered_Verts_Selection(O);
                                 generate_Inside_Edges_Smoothness(O, subdLevel);
                                 generate_Edges_Smoothness(O);
                                 if (O->subdlevel > -1)

@@ -3,6 +3,14 @@
 Author here is:
 Allan Kiipli
 
+9:00 PM 2/24/2021
+About converting edge selection into border vertex selection. Pressing C in edge mode converts selected edges into
+border selection. It is useful for placing curves. First select poly islands that do not border with existing curves
+in object. Press C. This creates edge loops. From these loops vertex selection is created with C. 
+Press Ctrl+P in succession to place curves for these edgeloops. When edges are selected, curve placing function
+takes this selection as quide. Vertex ordered selection can be used without edges selected. Also two point curve is
+valid.
+
 10:24 PM 2/21/2021
 Now Shift+E in curves Mode starts curves weights editing when not in vertex Mode.
 In vertex Mode it starts weight editing for selected verts.

@@ -2276,7 +2276,7 @@ int create_Object_Curve(object * O)
     r = 0;
 
     edge * E, * E0;
-    vertex * V, * V0;
+    vertex * V, * V0, * V1;
 
     vertex ** V_candidates = malloc(selected_verts_count * sizeof(vertex*));
     edge ** E_candidates = malloc(selected_verts_count * sizeof(edge*));
@@ -2289,6 +2289,8 @@ int create_Object_Curve(object * O)
     int canditates_count = 0;
     int curve_closed = 0;
 
+    V1 = selected_verts[0];
+
     for (v = 0; v < selected_verts_count; v ++)
     {
         V0 = selected_verts[v];
@@ -2296,12 +2298,59 @@ int create_Object_Curve(object * O)
 
         if (V0->O == O)
         {
-            printf("%d ", V0->index);
-
             for (e = 0; e < V0->edgecount; e ++)
             {
                 idx = V0->edges[e];
                 E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (O->selected_edges_count > 0)
+                {
+                    if (E->selected && (E != E_candidates[0]))
+                    {
+                        if (E->verts[0] == V0->index)
+                        {
+                            n = E->verts[1];
+                        }
+                        else if (E->verts[1] == V0->index)
+                        {
+                            n = E->verts[0];
+                        }
+                        if (n == selected_verts[(v + 1) % selected_verts_count]->index)
+                        {
+                            E0 = E;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (E != E_candidates[0])
+                    {
+                        if (E->verts[0] == V0->index)
+                        {
+                            n = E->verts[1];
+                        }
+                        else if (E->verts[1] == V0->index)
+                        {
+                            n = E->verts[0];
+                        }
+                        if (n == selected_verts[(v + 1) % selected_verts_count]->index)
+                        {
+                            E0 = E;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (E0 == NULL) // one selected edge in row
+        {
+            for (e = 0; e < V0->edgecount; e ++)
+            {
+                idx = V0->edges[e];
+                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
                 if (E->verts[0] == V0->index)
                 {
                     n = E->verts[1];
@@ -2310,17 +2359,13 @@ int create_Object_Curve(object * O)
                 {
                     n = E->verts[0];
                 }
-                //printf("E:%d ", n);
-                if (n == selected_verts[(v + 1) % selected_verts_count]->index)
+                if (n == V1->index)
                 {
                     E0 = E;
-                    //printf("edge %d", E0->index);
                     break;
                 }
             }
         }
-
-        //printf("\n");
 
         if (E0 == NULL || E0->S != NULL)
         {
@@ -2330,10 +2375,11 @@ int create_Object_Curve(object * O)
         {
             V_candidates[canditates_count] = V0;
             E_candidates[canditates_count ++] = E0;
-            if (v == selected_verts_count - 1)
+            if (v == selected_verts_count - 1 || n == V1->index)
             {
                 curve_closed = 1;
                 printf("Curve closed\n");
+                break;
             }
         }
     }
@@ -2381,11 +2427,14 @@ int create_Object_Curve(object * O)
 
         if (r)
         {
+            V_candidates[0]->selected = 0; // drop selection
+
             curve * C = curves[curvesIndex - 1];
 
             for (s = 1; s < canditates_count; s ++)
             {
                 V = V_candidates[s];
+                V->selected = 0; // drop selection
                 E = E_candidates[s];
 
                 for (e = 0; e < V->edgecount; e ++)
@@ -2420,6 +2469,7 @@ int create_Object_Curve(object * O)
             if (!curve_closed)
             {
                 V = V0;
+                V->selected = 0; // drop selection
 
                 if (segmentIndex >= SEGMENTS)
                 {
@@ -2459,6 +2509,7 @@ int create_Object_Curve(object * O)
                 printf("Curve is open\n");
             }
 
+            /* drop candidate vertexes */
             /* associate segments with edges */
             /* for each vertex solve potential cp problem if it has another curve there */
         }
