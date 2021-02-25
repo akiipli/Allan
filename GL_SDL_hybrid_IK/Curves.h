@@ -2546,6 +2546,132 @@ void select_CP_Segments_Edges(cp * CP, int select)
 
 direction_Pack length_AB(float A[3], float B[3]);
 
+int add_Next_Edge_To_Selected(object * O)
+{
+    printf("add Next Edge To Selected\n");
+
+    int e, condition, idx, idx0, idx1;
+
+    edge * E, * E0, * E1, * E2;
+
+    vertex * V0, * V1, * V2;
+
+    float pos0[3];
+    float pos1[3];
+
+    direction_Pack P0, P1;
+
+    float angle, angle_max;
+
+    angle_max = -1;
+
+    if (selected_edges_count < 2)
+    {
+        return 0;
+    }
+
+    E0 = selected_edges[selected_edges_count - 2];
+    E1 = selected_edges[selected_edges_count - 1];
+
+    if (E0->O != O || E1->O != O)
+    {
+        return 0;
+    }
+
+    /* find the utter vertex in E1 */
+
+    E2 = NULL;
+    condition = 1;
+
+    while (condition)
+    {
+        condition = 0;
+
+        if (E0->verts[1] == E1->verts[0] || E0->verts[0] == E1->verts[0])
+        {
+            idx0 = E1->verts[0];
+            idx1 = E1->verts[1];
+            condition = 1;
+        }
+        else if (E0->verts[1] == E1->verts[1] || E0->verts[0] == E1->verts[1])
+        {
+            idx0 = E1->verts[1];
+            idx1 = E1->verts[0];
+            condition = 1;
+        }
+
+        if (condition)
+        {
+            condition = 0;
+            V0 = &O->verts[idx0 / ARRAYSIZE][idx0 % ARRAYSIZE];
+            V1 = &O->verts[idx1 / ARRAYSIZE][idx1 % ARRAYSIZE];
+
+            /* find best angle */
+
+            pos0[0] = V0->x;
+            pos0[1] = V0->y;
+            pos0[2] = V0->z;
+
+            pos1[0] = V1->x;
+            pos1[1] = V1->y;
+            pos1[2] = V1->z;
+
+            P0 = length_AB(pos0, pos1);
+
+            for (e = 0; e < V1->edgecount; e ++)
+            {
+                idx = V1->edges[e];
+                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (E->polys[0] == E1->polys[0]
+                 || E->polys[0] == E1->polys[1]
+                 || E->polys[1] == E1->polys[0]
+                 || E->polys[1] == E1->polys[1])
+                {
+                    continue;
+                }
+
+                if (E->verts[0] == V1->index)
+                {
+                    idx = E->verts[1];
+                }
+                else
+                {
+                    idx = E->verts[0];
+                }
+
+                V2 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                pos0[0] = V1->x;
+                pos0[1] = V1->y;
+                pos0[2] = V1->z;
+
+                pos1[0] = V2->x;
+                pos1[1] = V2->y;
+                pos1[2] = V2->z;
+
+                P1 = length_AB(pos0, pos1);
+
+                angle = dot_productFF(P0.vec, P1.vec);
+                if (angle >= angle_max)
+                {
+                    E2 = E;
+                    angle_max = angle;
+                }
+            }
+
+            if (E2 != NULL && !E2->selected)
+            {
+                E2->selected = 1;
+                if (selected_edges_count < SELEDGES)
+                    selected_edges[selected_edges_count ++] = E2;
+            }
+        }
+    }
+
+    return 1;
+}
+
 int add_Next_Vertex_To_Selected(object * O)
 {
     int r = 0;

@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+4:14 PM 2/25/2021
+Pressing up in Edge mode with two consecutive edges selected at least, adds next edge to the row.
+
 9:00 PM 2/24/2021
 About converting edge selection into border vertex selection. Pressing C in edge mode converts selected edges into
 border selection. It is useful for placing curves. First select poly islands that do not border with existing curves

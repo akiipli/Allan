@@ -3574,6 +3574,11 @@ int convert_To_Border_Verts(object * O)
         //E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
         E = selected_edges[e];
 
+        if (E->O != O)
+        {
+            continue;
+        }
+
         condition = 1;
         Condition = 1; // first vertex placement
 
@@ -3673,7 +3678,6 @@ int convert_To_Border_Verts(object * O)
             }
         }
     }
-
     free(used_Edge);
     return 1;
 }
@@ -3920,6 +3924,8 @@ void select_Loop()
                     else
                         selected = 0;
                     E->selected = 1;
+                    if (selected_edges_count < SELEDGES)
+                        selected_edges[selected_edges_count ++] = E;
                     for (v = 0; v < E->uv_edcount; v ++)
                     {
                         idx = E->uv_edges[v];
@@ -3973,6 +3979,8 @@ void select_Loop()
                     else
                         selected = 0;
                     E->selected = 1;
+                    if (selected_edges_count < SELEDGES)
+                        selected_edges[selected_edges_count ++] = E;
                     for (v = 0; v < E->uv_edcount; v ++)
                     {
                         idx = E->uv_edges[v];
@@ -17814,6 +17822,18 @@ int main(int argc, char * args[])
                     }
                 }
             }
+            else if (Edge_Mode)
+            {
+                if (selected_edges_count > 1)
+                {
+                    int r = add_Next_Edge_To_Selected(O);
+                    if (r)
+                    {
+                        ordered_Edges_Selection(O);
+                        assert_Element_Selection_(O);
+                    }
+                }
+            }
             else if (mod & KMOD_CTRL)
             {
                 Camera->T->rot[0] += pi30;
@@ -19408,6 +19428,7 @@ int main(int argc, char * args[])
                     clear_Edge_Selection(O);
                     assert_Element_Selection(O);
                 }
+                selected_edges_count = 0;
             }
             else if (Vertex_Mode)
             {
@@ -19546,6 +19567,10 @@ int main(int argc, char * args[])
             {
                 select_Loop();
                 assert_Element_Selection();
+                if (Edge_Mode)
+                {
+                    ordered_Edges_Selection(O);
+                }
             }
             else
             {
