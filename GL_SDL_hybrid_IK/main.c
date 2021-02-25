@@ -3556,7 +3556,7 @@ int convert_To_Border_Verts(object * O)
     selected_verts_count = 0;
 
     int used_Edge_count = 0;
-    edge ** used_Edge = malloc(O->selected_edges_count * sizeof(edge *));
+    edge ** used_Edge = malloc(selected_edges_count * sizeof(edge *));
 
     if (used_Edge == NULL)
         return 0;
@@ -3569,12 +3569,18 @@ int convert_To_Border_Verts(object * O)
 
     for(e = 0; e < selected_edges_count; e ++) // find selected edges
     {
+
         //idx = O->selected_edges[e];
         //E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
         E = selected_edges[e];
 
         condition = 1;
         Condition = 1; // first vertex placement
+
+        if (used_Edge_count >= selected_edges_count)
+        {
+            break;
+        }
 
         for (e0 = 0; e0 < used_Edge_count; e0 ++) // avoid already used edges
         {
