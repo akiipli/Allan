@@ -1101,6 +1101,7 @@ void init_object_edges(object * O, int start, int * Idx_V, int * e_polys, int * 
         vertex * V1 = &O->verts[E->verts[1] / ARRAYSIZE][E->verts[1] % ARRAYSIZE];
         boxt_2(&E->B, V0, V1, 1);
         E->S = NULL;
+        E->O = O;
     }
 }
 

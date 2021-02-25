@@ -1378,6 +1378,8 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                             {
                                 UVE->selected = 1;
                                 E->selected = 1;
+                                if (selected_edges_count < SELEDGES)
+                                    selected_edges[selected_edges_count ++] = E;
                             }
                             else
                             {
@@ -1716,17 +1718,17 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
             edge * E;
             uv_edge * UVE;
 
-            object * O;
+            object * O0;
 
             aim edgeAim;
             normal edgenormal;
 
             for (o = 0; o < Objects_count; o ++)
             {
-                O = objects[Objects[o]];
-                for (e = 0; e < O->edgecount; e ++)
+                O0 = objects[Objects[o]];
+                for (e = 0; e < O0->edgecount; e ++)
                 {
-                    E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+                    E = &O0->edges[e / ARRAYSIZE][e % ARRAYSIZE];
                     point[0] = E->B.Tx;
                     point[1] = E->B.Ty;
                     point[2] = E->B.Tz;
@@ -1764,15 +1766,19 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                             && coords[1] < R->y + R->h)
                         {
                             if (sel_add)
+                            {
                                 E->selected = 1;
+                                if (selected_edges_count < SELEDGES && O == O0)
+                                    selected_edges[selected_edges_count ++] = E;
+                            }
                             else
                                 E->selected = 0;
                             for (u = 0; u < E->uv_edcount; u ++)
                             {
                                 idx = E->uv_edges[u];
-                                if (idx > -1 && idx < O->uvedcount)
+                                if (idx > -1 && idx < O0->uvedcount)
                                 {
-                                    UVE = &O->uveds[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                    UVE = &O0->uveds[idx / ARRAYSIZE][idx % ARRAYSIZE];
                                     UVE->selected = E->selected;
                                 }
                             }

@@ -812,6 +812,44 @@ void assert_Object_Selection()
     }
 }
 
+void ordered_Edges_Selection(object * O)
+{
+    int s, p, condition;
+    edge * E;
+
+    selected_edges_count0 = 0;
+
+    for (s = selected_edges_count - 1; s >= 0; s --)
+    {
+        E = selected_edges[s];
+
+        if (E->selected && E->O == O)
+        {
+            condition = 1;
+            for (p = 0; p < selected_edges_count0; p ++)
+            {
+                if (selected_edges0[p] == selected_edges[s])
+                {
+                    condition = 0;
+                    break;
+                }
+            }
+            if (condition)
+                selected_edges0[selected_edges_count0 ++] = selected_edges[s];
+        }
+    }
+
+    selected_edges_count = 0;
+
+    for (s = selected_edges_count0 - 1; s >= 0; s --)
+    {
+        selected_edges[selected_edges_count ++] = selected_edges0[s];
+    }
+
+    if (selected_edges_count > 0)
+        currentEdge = selected_edges[selected_edges_count - 1];
+}
+
 void ordered_Verts_Selection(object * O)
 {
     int s, p, condition;
@@ -3529,10 +3567,11 @@ int convert_To_Border_Verts(object * O)
         V->selected = 0;
     }
 
-    for(e = 0; e < O->selected_edges_count; e ++) // find selected edges
+    for(e = 0; e < selected_edges_count; e ++) // find selected edges
     {
-        idx = O->selected_edges[e];
-        E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+        //idx = O->selected_edges[e];
+        //E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+        E = selected_edges[e];
 
         condition = 1;
         Condition = 1; // first vertex placement
@@ -3557,12 +3596,13 @@ int convert_To_Border_Verts(object * O)
                     idx = E->verts[v];
                     V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
+                    condition = 0;
+
                     if (V == V0) // avoid back winding
                     {
                         continue;
                     }
 
-                    condition = 0;
                     for (e = 0; e < V->edgecount; e ++)
                     {
                         idx = V->edges[e];
@@ -3642,6 +3682,8 @@ void convert_To_Border_Edges(object * O)
 
     polygon * P0, * P1;
 
+    selected_edges_count = 0;
+
     for(e = 0; e < O->edgecount; e ++)
     {
         E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
@@ -3666,6 +3708,8 @@ void convert_To_Border_Edges(object * O)
             if ((P0->selected && !P1->selected) || (!P0->selected && P1->selected))
             {
                 E->selected = 1;
+                if (selected_edges_count < SELEDGES)
+                    selected_edges[selected_edges_count ++] = E;
                 for (v = 0; v < E->uv_edcount; v ++)
                 {
                     idx = E->uv_edges[v];
@@ -3684,6 +3728,8 @@ void convert_To_Border_Edges(object * O)
             if (P0->selected)
             {
                 E->selected = 1;
+                if (selected_edges_count < SELEDGES)
+                    selected_edges[selected_edges_count ++] = E;
                 for (v = 0; v < E->uv_edcount; v ++)
                 {
                     idx = E->uv_edges[v];
@@ -4082,18 +4128,18 @@ void select_Connected()
         printf("Vertex selection type\n");
         object * O;
 
-        int * selected_edges = malloc(0);
-        int selected_edge_count;
+        int * Selected_edges = malloc(0);
+        int Selected_edge_count;
 
         for (o = 0; o < selected_object_count; o ++)
         {
             O = objects[selected_objects[o]];
 
-            selected_edges = realloc(selected_edges, O->edgecount * sizeof(int));
+            Selected_edges = realloc(Selected_edges, O->edgecount * sizeof(int));
 
             do
             {
-                selected_edge_count = 0;
+                Selected_edge_count = 0;
 
                 for (e = 0; e < O->edgecount; e ++)
                 {
@@ -4103,12 +4149,12 @@ void select_Connected()
                     idx = E->verts[1];
                     V1 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
                     if ((V0->selected && !V1->selected) || (!V0->selected && V1->selected))
-                        selected_edges[selected_edge_count ++] = e;
+                        Selected_edges[Selected_edge_count ++] = e;
                 }
 
-                for (e = 0; e < selected_edge_count; e ++)
+                for (e = 0; e < Selected_edge_count; e ++)
                 {
-                    idx = selected_edges[e];
+                    idx = Selected_edges[e];
                     E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
                     idx = E->verts[0];
                     V0 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -4118,9 +4164,9 @@ void select_Connected()
                     V1->selected = 1;
                 }
             }
-            while (selected_edge_count > 0);
+            while (Selected_edge_count > 0);
         }
-        free(selected_edges);
+        free(Selected_edges);
     }
 }
 
@@ -12346,6 +12392,7 @@ void clear_All()
         selected_verts_count = 0;
         selected_cps_count = 0;
         selected_curves_count = 0;
+        selected_edges_count = 0;
 
         object_selections = 0;
         reinit_selections();
@@ -16016,6 +16063,8 @@ int main(int argc, char * args[])
                                         {
                                             E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
                                             E->selected = UVE->selected;
+                                            if (E->selected && selected_edges_count < SELEDGES)
+                                                selected_edges[selected_edges_count ++] = E;
                                         }
                                     }
                                     break;
@@ -16031,6 +16080,8 @@ int main(int argc, char * args[])
                                             E->selected = 1;
                                             O->last_selected_edges[0] = O->last_selected_edges[1];
                                             O->last_selected_edges[1] = E->index;
+                                            if (selected_edges_count < SELEDGES)
+                                                selected_edges[selected_edges_count ++] = E;
                                         }
                                         else
                                         {
@@ -16273,6 +16324,10 @@ int main(int argc, char * args[])
                         {
                             ordered_Verts_Selection(O);
                         }
+                        else if (Edge_Mode)
+                        {
+                            ordered_Edges_Selection(O);
+                        }
                         assert_Element_Selection();
 
                     }
@@ -16305,6 +16360,10 @@ int main(int argc, char * args[])
                     else if (Vertex_Mode)
                     {
                         ordered_Verts_Selection(O);
+                    }
+                    else if (Edge_Mode)
+                    {
+                        ordered_Edges_Selection(O);
                     }
 
                     if (DRAW_LOCATORS)
@@ -17504,6 +17563,8 @@ int main(int argc, char * args[])
                                     {
                                         E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
                                         E->selected = UVE->selected;
+                                        if (E->selected && selected_edges_count < SELEDGES)
+                                            selected_edges[selected_edges_count ++] = E;
                                     }
                                     break;
                                 }
@@ -17518,6 +17579,8 @@ int main(int argc, char * args[])
                                         E->selected = 1;
                                         O->last_selected_edges[0] = O->last_selected_edges[1];
                                         O->last_selected_edges[1] = E->index;
+                                        if (selected_edges_count < SELEDGES)
+                                            selected_edges[selected_edges_count ++] = E;
                                     }
                                     else
                                     {
@@ -19465,6 +19528,7 @@ int main(int argc, char * args[])
                 else
                 {
                     convert_To_Border_Edges(O);
+                    ordered_Edges_Selection(O);
                     set_Button_sels(2);
                 }
                 assert_Element_Selection();

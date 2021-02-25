@@ -31,6 +31,7 @@ I could not determine the connection.
 #define CURVES 10000
 #define SEGMENTS 100000
 #define CPS 200000
+#define SELEDGES 1000
 
 #define OBJECT_CURVES 1000
 #define OBJECT_CPS 10000
@@ -53,16 +54,21 @@ int selected_cps_count = 0;
 int selected_cps0[CPS];
 int selected_cps_count0 = 0;
 
+int cpsIndex = 0;
+int currentCurve = 0;
+int currentCp = 0;
+
 vertex * selected_verts[CPS];
 int selected_verts_count = 0;
 vertex * selected_verts0[CPS];
 int selected_verts_count0 = 0;
-
 vertex * currentVert;
 
-int cpsIndex = 0;
-int currentCurve = 0;
-int currentCp = 0;
+edge * selected_edges[SELEDGES];
+int selected_edges_count = 0;
+edge * selected_edges0[SELEDGES];
+int selected_edges_count0 = 0;
+edge * currentEdge;
 
 int cp_Manipulation = 0;
 int curve_Manipulation = 0;
