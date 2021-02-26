@@ -19,7 +19,7 @@ Copyright <2018> <Allan Kiipli>
 // Cage is deformed and vertexes update transformed coordinates.
 
 int curve_subdiv = 2;
-float edge_divisor = 1.0;
+float edge_divisor = 2.0;
 int Patch_Mode = 1.0;
 
 void tune_In_Subdivision_Shape_uvtex(object * O);
@@ -1120,34 +1120,50 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                             idx = V1->edges[e0];
                             E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                            if (E->smooth)
-                                scaler = cp_continuity[L1] * 2.0;
-                            else
-                                scaler = 0; //cp_continuity[L1] * 2.0 * E->weight * pWeight;
+                            if (E->smooth == 1) // perimeter edge
+                            {
+                                scaler = cp_continuity[L1] * 2.0; // * E->weight * pWeight;
 
-                            // do edge AC
+                                D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
 
-                            D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+                                dot = dot_productFF(n0, D.vec);
 
-                            dot = dot_productFF(n0, D.vec);
+                                // inside edges set A, then edge center vertexes in perimeter set C
 
-                            // corner edges set A, then edge center vertexes in perimeter set C
+                                E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
+                                E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
+                                E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
 
-                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot * scaler;
-                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot * scaler;
-                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot * scaler;
+                                E->A[0] -= V1->Tx;
+                                E->A[1] -= V1->Ty;
+                                E->A[2] -= V1->Tz;
 
-//                            E->A[0] -= V1->Tx;
-//                            E->A[1] -= V1->Ty;
-//                            E->A[2] -= V1->Tz;
-//
-//                            E->A[0] *= scaler;
-//                            E->A[1] *= scaler;
-//                            E->A[2] *= scaler;
-//
-//                            E->A[0] += V1->Tx;
-//                            E->A[1] += V1->Ty;
-//                            E->A[2] += V1->Tz;
+                                E->A[0] *= scaler;
+                                E->A[1] *= scaler;
+                                E->A[2] *= scaler;
+
+                                E->A[0] += V1->Tx;
+                                E->A[1] += V1->Ty;
+                                E->A[2] += V1->Tz;
+                            }
+                            else if (E->smooth == 2) // inside edge
+                            {
+                                D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+
+                                dot = dot_productFF(n0, D.vec);
+
+                                // inside edges set A, then edge center vertexes in perimeter set C
+
+                                E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
+                                E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
+                                E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
+                            }
+                            else // cross edge is sharp
+                            {
+                                E->A[0] = E->B.Tx;
+                                E->A[1] = E->B.Ty;
+                                E->A[2] = E->B.Tz;
+                            }
                         }
                     }
                 }
@@ -1170,34 +1186,50 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                             idx = V1->edges[e0];
                             E = &O->edges_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                            if (E->smooth)
-                                scaler = cp_continuity[L1] * 2.0;
-                            else
-                                scaler = 0; // cp_continuity[L1] * 2.0 * E->weight * pWeight;
+                            if (E->smooth == 1) // perimeter edge
+                            {
+                                scaler = cp_continuity[L1] * 2.0; // * E->weight * pWeight;
 
-                            // do edge AC
+                                D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
 
-                            D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+                                dot = dot_productFF(n0, D.vec);
 
-                            dot = dot_productFF(n0, D.vec);
+                                // inside edges set A, then edge center vertexes in perimeter set C
 
-                            // inside edges set A, then edge center vertexes in perimeter set C
+                                E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
+                                E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
+                                E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
 
-                            E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot * scaler;
-                            E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot * scaler;
-                            E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot * scaler;
+                                E->A[0] -= V1->Tx;
+                                E->A[1] -= V1->Ty;
+                                E->A[2] -= V1->Tz;
 
-//                            E->A[0] -= V1->Tx;
-//                            E->A[1] -= V1->Ty;
-//                            E->A[2] -= V1->Tz;
-//
-//                            E->A[0] *= scaler;
-//                            E->A[1] *= scaler;
-//                            E->A[2] *= scaler;
-//
-//                            E->A[0] += V1->Tx;
-//                            E->A[1] += V1->Ty;
-//                            E->A[2] += V1->Tz;
+                                E->A[0] *= scaler;
+                                E->A[1] *= scaler;
+                                E->A[2] *= scaler;
+
+                                E->A[0] += V1->Tx;
+                                E->A[1] += V1->Ty;
+                                E->A[2] += V1->Tz;
+                            }
+                            else if (E->smooth == 2) // inside edge
+                            {
+                                D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
+
+                                dot = dot_productFF(n0, D.vec);
+
+                                // inside edges set A, then edge center vertexes in perimeter set C
+
+                                E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
+                                E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
+                                E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
+                            }
+                            else // cross edge is sharp
+                            {
+                                E->A[0] = E->B.Tx;
+                                E->A[1] = E->B.Ty;
+                                E->A[2] = E->B.Tz;
+                            }
                         }
                     }
                 }
@@ -1729,7 +1761,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 idx = e + start;
                 V0 = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                if (Patch_Mode)
+                if (Patch_Mode && L < curve_subdiv)
                 {
                     V0->Tx = E->S->B[0];
                     V0->Ty = E->S->B[1];
