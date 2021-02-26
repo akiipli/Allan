@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+3:37 PM 2/26/2021
+Alt+P switches for patch Mode
+
 4:14 PM 2/25/2021
 Pressing up in Edge mode with two consecutive edges selected at least, adds next edge to the row.
 

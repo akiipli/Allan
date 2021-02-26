@@ -18,8 +18,9 @@ Copyright <2018> <Allan Kiipli>
 // bounding boxes and coordinates. This for 3d tuning only. UVs stay undeformed.
 // Cage is deformed and vertexes update transformed coordinates.
 
-int curve_subdiv = 1;
+int curve_subdiv = 2;
 float edge_divisor = 1.0;
+int Patch_Mode = 1.0;
 
 void tune_In_Subdivision_Shape_uvtex(object * O);
 int tune_In_Subdivision_Shape_uvtex_(object * O, int L);
@@ -905,8 +906,8 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->My = My;
             E->Mz = Mz;
         }
-/*
-        else if (E->patch && L < curve_subdiv)
+
+        else if (Patch_Mode && E->patch && L < curve_subdiv)
         {
             Mx = E->B.Tx;
             My = E->B.Ty;
@@ -920,7 +921,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->My = My;
             E->Mz = Mz;
         }
-*/
+
         else if (E->polycount > 1)
         {
             idx = E->polys[0];
@@ -1535,11 +1536,6 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
             if (V->patch)
             {
-
-//                V->Tx = Q->B.Tx + Q->vec[0];
-//                V->Ty = Q->B.Ty + Q->vec[1];
-//                V->Tz = Q->B.Tz + Q->vec[2];
-
                 Tx = Q->center[0] / 4.0;
                 Ty = Q->center[1] / 4.0;
                 Tz = Q->center[2] / 4.0;
@@ -1558,11 +1554,20 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                 V->weight *= Q->weight;
 
-                dist = (D.distance + Q->dist) * V->weight;
+                if (Patch_Mode)
+                {
+                    V->Tx = Q->B.Tx + Q->vec[0];
+                    V->Ty = Q->B.Ty + Q->vec[1];
+                    V->Tz = Q->B.Tz + Q->vec[2];
+                }
+                else
+                {
+                    dist = (D.distance + Q->dist) * V->weight;
 
-                V->Tx = Tx + V->N.Tx * dist;
-                V->Ty = Ty + V->N.Ty * dist;
-                V->Tz = Tz + V->N.Tz * dist;
+                    V->Tx = Tx + V->N.Tx * dist;
+                    V->Ty = Ty + V->N.Ty * dist;
+                    V->Tz = Tz + V->N.Tz * dist;
+                }
 
                 if (Q->subdivs)
                 {
@@ -1724,39 +1729,76 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 idx = e + start;
                 V0 = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                a = E->S->weight;
-                b = 1 - a;
-
-                V0->Tx = (E->S->B[0] * a + V0->Tx * b);
-                V0->Ty = (E->S->B[1] * a + V0->Ty * b);
-                V0->Tz = (E->S->B[2] * a + V0->Tz * b);
-
-                if (E->S->counter_edge)
-                    idx = E->verts[1];
-                else
-                    idx = E->verts[0];
-
-                V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                if (V->vert != NULL)
+                if (Patch_Mode)
                 {
-                    V->vert->Tx = (E->S->A[0] * a + V->vert->Tx * b);
-                    V->vert->Ty = (E->S->A[1] * a + V->vert->Ty * b);
-                    V->vert->Tz = (E->S->A[2] * a + V->vert->Tz * b);
+                    V0->Tx = E->S->B[0];
+                    V0->Ty = E->S->B[1];
+                    V0->Tz = E->S->B[2];
+
+                    if (E->S->counter_edge)
+                        idx = E->verts[1];
+                    else
+                        idx = E->verts[0];
+
+                    V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (V->vert != NULL)
+                    {
+                        V->vert->Tx = E->S->A[0];
+                        V->vert->Ty = E->S->A[1];
+                        V->vert->Tz = E->S->A[2];
+                    }
+
+                    if (E->S->counter_edge)
+                        idx = E->verts[0];
+                    else
+                        idx = E->verts[1];
+
+                    V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (V->vert != NULL)
+                    {
+                        V->vert->Tx = E->S->C[0];
+                        V->vert->Ty = E->S->C[1];
+                        V->vert->Tz = E->S->C[2];
+                    }
                 }
-
-                if (E->S->counter_edge)
-                    idx = E->verts[0];
                 else
-                    idx = E->verts[1];
-
-                V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                if (V->vert != NULL)
                 {
-                    V->vert->Tx = (E->S->C[0] * a + V->vert->Tx * b);
-                    V->vert->Ty = (E->S->C[1] * a + V->vert->Ty * b);
-                    V->vert->Tz = (E->S->C[2] * a + V->vert->Tz * b);
+                    a = E->S->weight;
+                    b = 1 - a;
+
+                    V0->Tx = (E->S->B[0] * a + V0->Tx * b);
+                    V0->Ty = (E->S->B[1] * a + V0->Ty * b);
+                    V0->Tz = (E->S->B[2] * a + V0->Tz * b);
+
+                    if (E->S->counter_edge)
+                        idx = E->verts[1];
+                    else
+                        idx = E->verts[0];
+
+                    V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (V->vert != NULL)
+                    {
+                        V->vert->Tx = (E->S->A[0] * a + V->vert->Tx * b);
+                        V->vert->Ty = (E->S->A[1] * a + V->vert->Ty * b);
+                        V->vert->Tz = (E->S->A[2] * a + V->vert->Tz * b);
+                    }
+
+                    if (E->S->counter_edge)
+                        idx = E->verts[0];
+                    else
+                        idx = E->verts[1];
+
+                    V = &O->verts_[L1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (V->vert != NULL)
+                    {
+                        V->vert->Tx = (E->S->C[0] * a + V->vert->Tx * b);
+                        V->vert->Ty = (E->S->C[1] * a + V->vert->Ty * b);
+                        V->vert->Tz = (E->S->C[2] * a + V->vert->Tz * b);
+                    }
                 }
             }
         }
@@ -1936,8 +1978,8 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             E->My = My;
             E->Mz = Mz;
         }
-/*
-        else if (E->patch)
+
+        else if (Patch_Mode && E->patch)
         {
             Mx = E->B.Tx;
             My = E->B.Ty;
@@ -1951,7 +1993,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
             E->My = My;
             E->Mz = Mz;
         }
-*/
+
         else if (E->polycount > 1)
         {
             idx = E->polys[0];

@@ -488,6 +488,7 @@ void make_osd(object * O)
         p += sprintf(&osd_font[p], "polys\t%d\n", O->polycount);
 
     p += sprintf(&osd_font[p], "linear\t%d\n", linear_pose);
+    p += sprintf(&osd_font[p], "patch\t%d\n", Patch_Mode);
 
 }
 
@@ -14451,7 +14452,7 @@ int main(int argc, char * args[])
                     {
                         if (Curve_Mode)
                         {
-                            //curve_subdiv += 1;
+                            curve_subdiv += 1;
 
                             if (curve_subdiv >= SUBD)
                             {
@@ -14550,7 +14551,7 @@ int main(int argc, char * args[])
                     {
                         if (Curve_Mode)
                         {
-                            //curve_subdiv -= 1;
+                            curve_subdiv -= 1;
 
                             if (curve_subdiv < 1)
                             {
@@ -18433,6 +18434,10 @@ int main(int argc, char * args[])
                         }
                     }
                 }
+            }
+            else if (mod & KMOD_ALT)
+            {
+                Patch_Mode = !Patch_Mode;
             }
             else
             {
