@@ -19,7 +19,7 @@ Copyright <2018> <Allan Kiipli>
 // Cage is deformed and vertexes update transformed coordinates.
 
 int curve_subdiv = 2;
-float edge_divisor = 2.0;
+float edge_divisor = 1.0;
 int Patch_Mode = 1.0;
 
 void tune_In_Subdivision_Shape_uvtex(object * O);
