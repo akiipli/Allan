@@ -906,9 +906,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->My = My;
             E->Mz = Mz;
         }
-
         else if (Patch_Mode && E->patch && L < curve_subdiv)
         {
+            // /*
             Mx = E->B.Tx;
             My = E->B.Ty;
             Mz = E->B.Tz;
@@ -920,6 +920,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->Mx = Mx;
             E->My = My;
             E->Mz = Mz;
+            // */
         }
 
         else if (E->polycount > 1)
@@ -969,7 +970,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
     edge * EI0,  * EI1,  * EI2, * EI3, * E0, * E1, * E2;
     quadrant * Q;
     polygon * P;
-//    vertex * V1;
+    vertex * V1;
 
     float n0[3], n1[3];
     float curvature, pWeight, scaler;
@@ -1098,7 +1099,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
             if (V->patch)
             {
-/*
+// /*
                 // handle corners
 
                 if (L > 1)
@@ -1122,13 +1123,13 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                             if (E->smooth == 1) // perimeter edge
                             {
-                                scaler = cp_continuity[L1] * 2.0; // * E->weight * pWeight;
+                                scaler = cp_continuity[L1] * 2.0;
 
                                 D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
 
                                 dot = dot_productFF(n0, D.vec);
 
-                                // inside edges set A, then edge center vertexes in perimeter set C
+                                // corner edges set A, then edge center vertexes in perimeter set C
 
                                 E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
                                 E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
@@ -1146,17 +1147,18 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                                 E->A[1] += V1->Ty;
                                 E->A[2] += V1->Tz;
                             }
-                            else if (E->smooth == 2) // inside edge
+                            else if (E->smooth == 2) // corner edge
                             {
                                 D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
 
                                 dot = dot_productFF(n0, D.vec);
 
-                                // inside edges set A, then edge center vertexes in perimeter set C
+                                // corner edges set A, then edge center vertexes in perimeter set C
+                                // instead polygon weight we should identify sharp edges
 
-                                E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
-                                E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
-                                E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
+                                E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot * pWeight;
+                                E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot * pWeight;
+                                E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot * pWeight;
                             }
                             else // cross edge is sharp
                             {
@@ -1188,13 +1190,13 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
 
                             if (E->smooth == 1) // perimeter edge
                             {
-                                scaler = cp_continuity[L1] * 2.0; // * E->weight * pWeight;
+                                scaler = cp_continuity[L1] * 2.0;
 
                                 D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
 
                                 dot = dot_productFF(n0, D.vec);
 
-                                // inside edges set A, then edge center vertexes in perimeter set C
+                                // corner edges set A, then edge center vertexes in perimeter set C
 
                                 E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
                                 E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
@@ -1212,17 +1214,18 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                                 E->A[1] += V1->Ty;
                                 E->A[2] += V1->Tz;
                             }
-                            else if (E->smooth == 2) // inside edge
+                            else if (E->smooth == 2) // corner edge
                             {
                                 D = length_AB_(V1->Tx, V1->Ty, V1->Tz, E->B.Tx, E->B.Ty, E->B.Tz);
 
                                 dot = dot_productFF(n0, D.vec);
 
-                                // inside edges set A, then edge center vertexes in perimeter set C
+                                // corner edges set A, then edge center vertexes in perimeter set C
+                                // instead polygon weight we should identify sharp edges
 
-                                E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot;
-                                E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot;
-                                E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot;
+                                E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot * pWeight;
+                                E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot * pWeight;
+                                E->A[2] = E->B.Tz + V1->N.Tz * D.distance * -dot * pWeight;
                             }
                             else // cross edge is sharp
                             {
@@ -1233,9 +1236,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                         }
                     }
                 }
-
-*/
-
+// */
                 /* now handle inside edges */
 
                 n0[0] = V->N.Tx;
@@ -1456,6 +1457,33 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                         }
                     }
                 }
+            }
+        }
+
+        // perimeter edges
+
+        for (e = 0; e < O->edgecount_[L1]; e ++) // edge verts average surrounding polys and self position
+        {
+            E = &O->edges_[L1][e / ARRAYSIZE][e % ARRAYSIZE];
+            V = &O->verts_[L][(e + c_v) / ARRAYSIZE][(e + c_v) % ARRAYSIZE]; // edge vertex
+
+            if (E->S != NULL && L < curve_subdiv) /* level 1 blocks patches */
+            {
+
+            }
+            else if (Patch_Mode && E->patch && L < curve_subdiv)
+            {
+                Mx = (E->A[0] + E->C[0]) / 2.0;
+                My = (E->A[1] + E->C[1]) / 2.0;
+                Mz = (E->A[2] + E->C[2]) / 2.0;
+
+                V->Tx = Mx;
+                V->Ty = My;
+                V->Tz = Mz;
+
+                E->Mx = Mx;
+                E->My = My;
+                E->Mz = Mz;
             }
         }
     }
