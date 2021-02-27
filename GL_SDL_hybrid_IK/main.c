@@ -14453,7 +14453,7 @@ int main(int argc, char * args[])
                     {
                         if (Curve_Mode)
                         {
-                            curve_subdiv += 1;
+                            //curve_subdiv += 1;
 
                             if (curve_subdiv >= SUBD)
                             {
@@ -14552,7 +14552,7 @@ int main(int argc, char * args[])
                     {
                         if (Curve_Mode)
                         {
-                            curve_subdiv -= 1;
+                            //curve_subdiv -= 1;
 
                             if (curve_subdiv < 1)
                             {
