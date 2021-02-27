@@ -77,6 +77,12 @@ Segments_In;
 
 typedef struct
 {
+    int t_index, obj_count, b_index, i_index;
+}
+hierarchys_pack;
+
+typedef struct
+{
     unsigned address;
     char Name[STRLEN];
     int indice;
@@ -3104,7 +3110,7 @@ int load_Subcharacters(char * path)
     return s_index;
 }
 
-void null_Loaded_Addresses(int t_index, int obj_count, int b_index, int i_index)
+void null_Loaded_Addresses(hierarchys_pack hP)
 {
     int b, s, o, t, i;
 
@@ -3114,12 +3120,12 @@ void null_Loaded_Addresses(int t_index, int obj_count, int b_index, int i_index)
     vert_selection * S;
     transformer * T;
 
-    for (t = transformerIndex - t_index; t < transformerIndex; t ++)
+    for (t = transformerIndex - hP.t_index; t < transformerIndex; t ++)
     {
         T = transformers[t];
         T->address = 0;
     }
-    for (o = objectIndex - obj_count; o < objectIndex; o ++)
+    for (o = objectIndex - hP.obj_count; o < objectIndex; o ++)
     {
         O = objects[o];
         O->address = 0;
@@ -3129,13 +3135,13 @@ void null_Loaded_Addresses(int t_index, int obj_count, int b_index, int i_index)
             S->address = 0;
         }
     }
-    for (b = bonesIndex - b_index; b < bonesIndex; b ++)
+    for (b = bonesIndex - hP.b_index; b < bonesIndex; b ++)
     {
         B = bones[b];
         B->address = 0;
     }
 
-    for (i = iksIndex - i_index; i < iksIndex; i ++)
+    for (i = iksIndex - hP.i_index; i < iksIndex; i ++)
     {
         I = ikChains[i];
         I->address = 0;
@@ -3376,8 +3382,10 @@ void load_Curves(char * path, int obj_count)
     }
 }
 
-void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacter_count)
+hierarchys_pack load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacter_count)
 {
+    hierarchys_pack hP;
+
     char Path[STRLEN];
     DIR * dir;
     struct dirent * ent;
@@ -4010,6 +4018,13 @@ void load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacte
             }
         }
     }
+
+    hP.t_index = t_index;
+    hP.obj_count = obj_count;
+    hP.b_index = b_index;
+    hP.i_index = i_index;
+
+    return hP;
 
     //null_Loaded_Addresses(t_index, obj_count, b_index, i_index);
 }

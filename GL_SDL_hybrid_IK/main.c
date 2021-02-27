@@ -12990,6 +12990,8 @@ void save_load_Scene()
 
         int obj_count = 0, defr_count = 0, pose_count = 0, subcharacter_count = 0, subcharacter_poses_count = 0;
 
+        hierarchys_pack hP;
+
         if (!isDirectory(scene_files_dir))
         {
             printf("Scene is not in the path");
@@ -13066,7 +13068,7 @@ void save_load_Scene()
             strcat(Path, scene_files_dir);
             strcat(Path, "/");
             strcat(Path, "Hierarchys");
-            load_Hierarchys(Path, obj_count, defr_count, subcharacter_count);
+            hP = load_Hierarchys(Path, obj_count, defr_count, subcharacter_count);
 
             Path[0] = '\0';
             strcat(Path, scene_files_dir);
@@ -13084,6 +13086,8 @@ void save_load_Scene()
             }
 
             assign_Poses(pose_count, defr_count);
+
+            null_Loaded_Addresses(hP);
 
             /* Load Subcharacter poses */
 
