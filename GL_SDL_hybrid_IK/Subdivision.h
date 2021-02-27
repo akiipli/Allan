@@ -1154,7 +1154,6 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                                 dot = dot_productFF(n0, D.vec);
 
                                 // corner edges set A, then edge center vertexes in perimeter set C
-                                // instead polygon weight we should identify sharp edges, set smooth
 
                                 E->A[0] = E->B.Tx + V1->N.Tx * D.distance * -dot * pWeight;
                                 E->A[1] = E->B.Ty + V1->N.Ty * D.distance * -dot * pWeight;

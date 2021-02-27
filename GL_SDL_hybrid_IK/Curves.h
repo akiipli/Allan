@@ -3371,6 +3371,82 @@ void generate_Edges_Smoothness(object * O)
     }
 }
 
+void generate_Corner_Edges_Smoothness(object * O)
+{
+    int e, e0, v, idx, start;
+    int l, smooth;
+
+    vertex * V, * V0, * V1;
+    edge * E, * E0;
+
+    for (l = 0; l <= O->subdlevel; l ++)
+    {
+        if (l == 0)
+        {
+            start = O->vertcount + O->edgecount; // patch vertex start
+        }
+        else
+        {
+            start = O->vertcount_[l - 1] + O->edgecount_[l - 1];
+        }
+
+        for (v = start; v < O->vertcount_[l]; v ++)
+        {
+            V = &O->verts_[l][v / ARRAYSIZE][v % ARRAYSIZE];
+
+            if (V->patch) // use after patches scan
+            {
+                for (e = 0; e < V->edgecount; e ++)
+                {
+                    idx = V->edges[e];
+
+                    E = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    idx = E->verts[1]; // patch verts take place 0
+
+                    V0 = &O->verts_[l][idx / ARRAYSIZE][idx % ARRAYSIZE]; // vertex in perimeter
+
+                    if (V0->vert != NULL)
+                    {
+                        V1 = V0->vert; // perimeter vertex is corner vertex in next level
+
+                        // look for smooth edges
+
+                        smooth = 2;
+
+                        for (e0 = 0; e0 < V1->edgecount; e0 ++)
+                        {
+                            idx = V1->edges[e0];
+
+                            E0 = &O->edges_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            if (E0->smooth != 2)
+                            {
+                                smooth = E0->smooth;
+                                break;
+                            }
+                        }
+
+                        if (smooth != 2)
+                        {
+                            //printf("%d ", smooth);
+
+                            for (e0 = 0; e0 < V1->edgecount; e0 ++)
+                            {
+                                idx = V1->edges[e0];
+
+                                E0 = &O->edges_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                E0->smooth = smooth;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void assign_Edge_Smooth_Recursive(object * O, edge * E, int l)
 {
     int idx;
@@ -3424,6 +3500,7 @@ void assign_Edges_Smoothness_To_Objects(int level)
             generate_Inside_Edges_Smoothness(O, level);
             generate_Edges_Smoothness(O);
             assign_Edges_Smoothness_To_Subedges(O);
+            generate_Corner_Edges_Smoothness(O);
         }
     }
 }

@@ -2513,7 +2513,8 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
                 //render_patch_edge_Labels(screen_width, screen_height, O, Level);
                 //render_patch_edge_polys_Labels(screen_width, screen_height, O, Level);
                 //render_Patch_Labels(screen_width, screen_height, O, Level);
-                render_Edge_Smooth_Labels(screen_width, screen_height, O, Level);
+                //render_Edge_Smooth_Labels(screen_width, screen_height, O, Level);
+                //render_Corner_Edge_Smooth_Labels(screen_width, screen_height, O, Level);
             }
             if (Axis_lock)
             {
@@ -17978,6 +17979,7 @@ int main(int argc, char * args[])
                         {
                             scan_for_Object_Patches(O0, subdLevel);
                             assign_Edges_Smoothness_To_Subedges(O0);
+                            generate_Corner_Edges_Smoothness(O0);
                         }
                     }
                 }
@@ -18413,6 +18415,7 @@ int main(int argc, char * args[])
                                 {
                                     scan_for_Object_Patches(O, O->subdlevel);
                                     assign_Edges_Smoothness_To_Subedges(O);
+                                    generate_Corner_Edges_Smoothness(O);
                                 }
 
                                 curve * C = curves[curvesIndex - 1];
