@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1008;
+int saving_version = 1009;
 
 int NIGHT = 0;
 int SHADOWS = 0;

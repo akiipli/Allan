@@ -3505,4 +3505,38 @@ void assign_Edges_Smoothness_To_Objects(int level)
     }
 }
 
+void toggle_Selected_Edges_Patch_Mode(object * O)
+{
+    int e;
+
+    edge * E;
+
+    for (e = 0; e < O->edgecount; e ++)
+    {
+        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+        if (E->selected)
+        {
+            E->patch = !E->patch;
+        }
+    }
+}
+
+void clear_Selected_Edges_Patch_Mode(object * O)
+{
+    int e;
+
+    edge * E;
+
+    for (e = 0; e < O->edgecount; e ++)
+    {
+        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+        if (E->selected)
+        {
+            E->patch = 0;
+        }
+    }
+}
+
 #endif // CURVES_H_INCLUDED

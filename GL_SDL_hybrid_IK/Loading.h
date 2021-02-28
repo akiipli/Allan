@@ -2530,6 +2530,15 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
                 {
                     E->S = NULL;
                 }
+                if (loading_version >= 1009)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &E->patch);
+                }
+                else
+                {
+                    E->patch = 0;
+                }
             }
 
             uv_edge * UVE;

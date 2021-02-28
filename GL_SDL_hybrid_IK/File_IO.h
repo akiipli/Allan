@@ -228,6 +228,7 @@ void print_edge_f(FILE * F, edge * E)
     for(i = 0; i < E->uv_edcount; i++) fprintf(F, " %d", E->uv_edges[i]);
     fprintf(F, "\n");
     fprintf(F, "%u\n", (unsigned)E->S);
+    fprintf(F, "%d\n", E->patch);
 
 //    int index;
 //    int visible;

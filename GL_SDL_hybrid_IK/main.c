@@ -18454,7 +18454,14 @@ int main(int argc, char * args[])
             }
             else
             {
-                add_Pose();
+                if (Curve_Mode)
+                {
+                    toggle_Selected_Edges_Patch_Mode(O);
+                }
+                else
+                {
+                    add_Pose();
+                }
             }
             message = -1;
         }
@@ -18712,6 +18719,10 @@ int main(int argc, char * args[])
                     {
                         clear_Selected_Cp_Weights();
                         update_selected_Curves(subdLevel);
+                    }
+                    else if (Edge_Mode)
+                    {
+                        clear_Selected_Edges_Patch_Mode(O);
                     }
                     else
                     {
