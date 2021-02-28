@@ -489,6 +489,9 @@ void make_osd(object * O)
 
     p += sprintf(&osd_font[p], "linear\t%d\n", linear_pose);
     p += sprintf(&osd_font[p], "patch\t%d\n", Patch_Mode);
+    p += sprintf(&osd_font[p], "locators\t%d\n", DRAW_LOCATORS);
+    p += sprintf(&osd_font[p], "curves\t%d\n", curve_Draw);
+    p += sprintf(&osd_font[p], "edges\t%d\n", edgedraw);
 
 }
 
@@ -3606,7 +3609,10 @@ int convert_To_Border_Verts(object * O)
             {
                 for (v = 0; v < 2; v ++) // first vertex that finds edge is used starting
                 {
-                    idx = E->verts[v];
+                    if (E->flow)
+                        idx = E->verts[(v + 1) % 2];
+                    else
+                        idx = E->verts[v];
                     V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                     condition = 0;
