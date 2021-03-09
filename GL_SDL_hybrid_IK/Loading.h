@@ -1641,10 +1641,12 @@ int read_Segments_file(Segments_In * SEG_IN, char * fileName)
                 {
                     fgets(buff, BUF_SIZE, fp);
                     sscanf(buff, "%f", &S->weight);
+                    S->weight_init = S->weight;
                 }
                 else
                 {
                     S->weight = 0;
+                    S->weight_init = 0.0;
                 }
             }
         }

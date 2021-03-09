@@ -1111,7 +1111,8 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
         S->E = NULL;
         S->index = segmentIndex;
         segments[segmentIndex ++] = S;
-        S->weight = 1.0;
+        S->weight = 0.0;
+        S->weight_init = 0.0;
     }
 
     C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
@@ -1201,7 +1202,8 @@ int add_Curve_Segment(curve * C)
     S->E = NULL;
     S->index = segmentIndex;
     segments[segmentIndex ++] = S;
-    S->weight = 1.0;
+    S->weight = 0.0;
+    S->weight_init = 0.0;
 
     C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
 
@@ -1331,7 +1333,8 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
         S->E = NULL;
         S->index = segmentIndex;
         segments[segmentIndex ++] = S;
-        S->weight = 1.0;
+        S->weight = 0.0;
+        S->weight_init = 0.0;
     }
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
@@ -1434,7 +1437,8 @@ int add_New_Curve(float pos[3], int open)
     S->E = NULL;
     S->index = segmentIndex;
     segments[segmentIndex ++] = S;
-    S->weight = 1.0;
+    S->weight = 0.0;
+    S->weight_init = 0.0;
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
     if (C->segments == NULL) return 0;
@@ -2422,7 +2426,8 @@ int create_Object_Curve(object * O)
                 S->subdivided = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
-                S->weight = 1.0;
+                S->weight = 0.0;
+                S->weight_init = 0.0;
 
                 E->S = S;
                 S->E = E;
@@ -2462,7 +2467,8 @@ int create_Object_Curve(object * O)
                         S->subdivided = 0;
                         S->index = segmentIndex;
                         segments[segmentIndex ++] = S;
-                        S->weight = 1.0;
+                        S->weight = 0.0;
+                        S->weight_init = 0.0;
 
                         E->S = S;
                         S->E = E;
@@ -2492,8 +2498,8 @@ int create_Object_Curve(object * O)
                 S->subdivided = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
-                S->weight = 1.0;
-
+                S->weight = 0.0;
+                S->weight_init = 0.0;
 
                 r = add_Curve_Segment_To_Verts(C, V, O);
                 if (r)
