@@ -11022,6 +11022,12 @@ void set_Bind_Mode()
         Button_Mode[6].color = UI_GRAYD;
 
         update_Deformer_Objects_Curves_To_Original_Coordinates();
+
+        if (Curve_Mode)
+        {
+            Curve_Mode = 0;
+            Button_Mode[5].color = UI_GRAYB;
+        }
     }
     else
     {
@@ -11056,7 +11062,7 @@ void set_Bind_Mode()
         paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
 
         Button_Mode[6].color = UI_GRAYB;
-        Button_Mode[selection_Mode].color = UI_GRAYD;
+        //Button_Mode[selection_Mode].color = UI_GRAYD;
 
         //set_Object_Mode();
 
