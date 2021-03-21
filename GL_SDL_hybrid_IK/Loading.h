@@ -2541,6 +2541,8 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
                 {
                     E->patch = 0;
                 }
+
+                E->O = O;
             }
 
             uv_edge * UVE;
