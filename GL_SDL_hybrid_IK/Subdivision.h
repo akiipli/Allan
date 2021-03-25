@@ -2031,7 +2031,7 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
     int p;
     float Tx, Ty, Tz;
-//    float dist;
+    float dist;
 
     edge * E0;
     quadrant * Q;
@@ -2108,20 +2108,20 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 /* create paired edge weights */
                 if (P->edgecount % 2) // if uneven
                 {
-                    for (e = 0; e < P->edgecount; e ++)
-                    {
-                        /* find composite vector for each vertex edges */
-
-                        idx = P->edges[e];
-                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-
-                        idx = P->edges[(e + 1) % P->edgecount];
-                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                        P->vec[0] += (E0->vec[0] + E->vec[0]) * 0.5;
-                        P->vec[1] += (E0->vec[1] + E->vec[1]) * 0.5;
-                        P->vec[2] += (E0->vec[2] + E->vec[2]) * 0.5;
-                    }
+//                    for (e = 0; e < P->edgecount; e ++)
+//                    {
+//                        /* find composite vector for each vertex edges */
+//
+//                        idx = P->edges[e];
+//                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+//
+//                        idx = P->edges[(e + 1) % P->edgecount];
+//                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+//
+//                        P->vec[0] += (E0->vec[0] + E->vec[0]) * 0.5;
+//                        P->vec[1] += (E0->vec[1] + E->vec[1]) * 0.5;
+//                        P->vec[2] += (E0->vec[2] + E->vec[2]) * 0.5;
+//                    }
                 }
                 else // if even
                 {
@@ -2153,10 +2153,6 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
             if (V->patch)
             {
-                V->Tx = P->B.Tx + P->vec[0];
-                V->Ty = P->B.Ty + P->vec[1];
-                V->Tz = P->B.Tz + P->vec[2];
-
                 Tx = P->center[0] / (float)V->edgecount;
                 Ty = P->center[1] / (float)V->edgecount;
                 Tz = P->center[2] / (float)V->edgecount;
@@ -2173,11 +2169,20 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
                 V->weight = D.distance / P->dist; // lift
 
-//                dist = ((D.distance + P->dist) / 2.0) * V->weight;
-//
-//                V->Tx = Tx + V->N.Tx * dist;
-//                V->Ty = Ty + V->N.Ty * dist;
-//                V->Tz = Tz + V->N.Tz * dist;
+                if (P->edgecount % 2) // if uneven
+                {
+                    dist = ((D.distance + P->dist) / 2.0) * V->weight;
+
+                    V->Tx = Tx + V->N.Tx * dist;
+                    V->Ty = Ty + V->N.Ty * dist;
+                    V->Tz = Tz + V->N.Tz * dist;
+                }
+                else
+                {
+                    V->Tx = P->B.Tx + P->vec[0];
+                    V->Ty = P->B.Ty + P->vec[1];
+                    V->Tz = P->B.Tz + P->vec[2];
+                }
 
                 if (P->subdivs)
                 {
