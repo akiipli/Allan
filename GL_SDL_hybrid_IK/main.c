@@ -3609,10 +3609,7 @@ int convert_To_Border_Verts(object * O)
             {
                 for (v = 0; v < 2; v ++) // first vertex that finds edge is used starting
                 {
-                    if (E->flow)
-                        idx = E->verts[(v + 1) % 2];
-                    else
-                        idx = E->verts[v];
+                    idx = E->verts[v];
                     V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                     condition = 0;
@@ -3679,6 +3676,7 @@ int convert_To_Border_Verts(object * O)
                     }
                     else // put last vertex
                     {
+                        Condition = 0;
                         V->selected = 1;
                         selected_verts[selected_verts_count ++] = V;
                     }
