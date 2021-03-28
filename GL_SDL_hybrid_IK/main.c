@@ -3663,7 +3663,7 @@ int convert_To_Border_Verts(object * O)
                             selected_verts[selected_verts_count ++] = V;
                         }
 
-                        if (E0 == E1 || (selected_verts_count >= O->selected_edges_count))
+                        if (E0 == E1 || (selected_verts_count > O->selected_edges_count))
                         {
                             condition = 0;
                         }
