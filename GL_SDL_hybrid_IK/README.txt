@@ -205,7 +205,10 @@ i: open image
 5: bones
 6: bind mode
 ctrl-f in curve mode freezes vert coordinates to cp positions
-ctrl-e clears cp weights in selected curves
+ctrl-e in curve mode and object mode clears selected curves weight
+ctrl-e in curve mode and vertex mode clears cp weights in selected curves
+ctrl-e in curve mode and edges mode clears segment weights in selected curves
+ctrl-e in curve mode and polygon mode clears selected edges patch variable
 shift-e in curve mode starts cp weight adjustment 
 ctrl-c in curve mode converts curve to cp selection
 shift-c in curve mode toggles curve drawing on/off.

@@ -1927,7 +1927,31 @@ int init_continuity_For_Selected_Curves()
     return r;
 }
 
-void clear_Selected_Segment_Weights()
+void clear_Selected_Segments_Weights()
+{
+    int c, s;
+
+    curve_segment * S;
+    curve * C;
+
+    for (c = 0; c < selected_curves_count; c ++)
+    {
+        C = curves[selected_curves[c]];
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            S = C->segments[s];
+
+            if (S->selected)
+            {
+                S->weight = 0;
+                S->weight_init = 0;
+                assign_Segment_Weight_Recursive(S);
+            }
+        }
+    }
+}
+
+void clear_Selected_Curves_Weights()
 {
     int c, s;
 

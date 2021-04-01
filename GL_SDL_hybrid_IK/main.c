@@ -226,6 +226,7 @@ int LOCAT_ID_RENDER = 0;
 int BONES_ID_RENDER = 0;
 int CPS_ID_RENDER = 0;
 int CURVE_ID_RENDER = 0;
+int SEGMENTS_ID_RENDER = 0;
 
 float m[4][4];
 
@@ -1727,6 +1728,10 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         {
             render_Cps_ID();
         }
+        else if (SEGMENTS_ID_RENDER)
+        {
+            render_Segments_ID(O);
+        }
         else if (VERTS_ID_RENDER)
         {
             render_poly_Verts_ID(C, O);
@@ -1787,6 +1792,10 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
         else if (CPS_ID_RENDER)
         {
             render_Cps_ID();
+        }
+        else if (SEGMENTS_ID_RENDER)
+        {
+            render_Segments_ID_(O, level);
         }
         else if (VERTS_ID_RENDER)
         {
@@ -16051,9 +16060,18 @@ int main(int argc, char * args[])
                         }
                         else if (Edge_Mode)
                         {
-                            EDGES_ID_RENDER = 1;
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                            EDGES_ID_RENDER = 0;
+                            if (Curve_Mode)
+                            {
+                                SEGMENTS_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                SEGMENTS_ID_RENDER = 0;
+                            }
+                            else
+                            {
+                                EDGES_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                EDGES_ID_RENDER = 0;
+                            }
                         }
                         else if (Polygon_Mode)
                         {
@@ -16188,61 +16206,96 @@ int main(int argc, char * args[])
                             }
                             else if (Edge_Mode)
                             {
-                                uv_edge * UVE;
-                                edge * E;
-                                if (Camera->uv_draw)
+                                if (Curve_Mode)
                                 {
-                                    if (o > -1 && o < O->uvedcount)
+                                    curve_segment * S;
+
+                                    if (o > -1 && o < segmentIndex)
                                     {
-                                        UVE = &O->uveds[o / ARRAYSIZE][o % ARRAYSIZE];
-                                        printf("uv edge id %d\n", o);
+                                        S = segments[o];
+
+                                        printf("segment id %d\n", o);
                                         if (add_selection_mode)
                                         {
-                                            UVE->selected = 1;
-                                        }
-                                        else
-                                        {
-                                            UVE->selected = 0;
-                                        }
-                                        idx = UVE->edge;
-                                        if (idx > -1 && idx < O->edgecount)
-                                        {
-                                            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                            E->selected = UVE->selected;
-                                            if (E->selected && selected_edges_count < SELEDGES)
-                                                selected_edges[selected_edges_count ++] = E;
-                                        }
-                                    }
-                                    break;
-                                }
-                                else
-                                {
-                                    if (o > -1 && o < O->edgecount)
-                                    {
-                                        E = &O->edges[o / ARRAYSIZE][o % ARRAYSIZE];
-                                        printf("edge id %d\n", o);
-                                        if (add_selection_mode)
-                                        {
-                                            E->selected = 1;
-                                            O->last_selected_edges[0] = O->last_selected_edges[1];
-                                            O->last_selected_edges[1] = E->index;
-                                            if (selected_edges_count < SELEDGES)
-                                                selected_edges[selected_edges_count ++] = E;
-                                        }
-                                        else
-                                        {
-                                            E->selected = 0;
-                                        }
-                                        for (u = 0; u < E->uv_edcount; u ++)
-                                        {
-                                            idx = E->uv_edges[u];
-                                            if (idx > -1 && idx < O->uvedcount)
+                                            S->selected = 1;
+                                            if (selected_segments_count < SEGMENTS)
+                                                selected_segments[selected_segments_count ++] = o;
+                                            if (S->E != NULL)
                                             {
-                                                UVE = &O->uveds[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                                UVE->selected = E->selected;
+                                                S->E->selected = 1;
+                                                if (selected_edges_count < EDGES)
+                                                    selected_edges[selected_edges_count ++] = S->E;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            S->selected = 0;
+                                            if (S->E != NULL)
+                                            {
+                                                S->E->selected = 0;
                                             }
                                         }
                                         break;
+                                    }
+                                }
+                                else
+                                {
+                                    uv_edge * UVE;
+                                    edge * E;
+                                    if (Camera->uv_draw)
+                                    {
+                                        if (o > -1 && o < O->uvedcount)
+                                        {
+                                            UVE = &O->uveds[o / ARRAYSIZE][o % ARRAYSIZE];
+                                            printf("uv edge id %d\n", o);
+                                            if (add_selection_mode)
+                                            {
+                                                UVE->selected = 1;
+                                            }
+                                            else
+                                            {
+                                                UVE->selected = 0;
+                                            }
+                                            idx = UVE->edge;
+                                            if (idx > -1 && idx < O->edgecount)
+                                            {
+                                                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                E->selected = UVE->selected;
+                                                if (E->selected && selected_edges_count < SELEDGES)
+                                                    selected_edges[selected_edges_count ++] = E;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        if (o > -1 && o < O->edgecount)
+                                        {
+                                            E = &O->edges[o / ARRAYSIZE][o % ARRAYSIZE];
+                                            printf("edge id %d\n", o);
+                                            if (add_selection_mode)
+                                            {
+                                                E->selected = 1;
+                                                O->last_selected_edges[0] = O->last_selected_edges[1];
+                                                O->last_selected_edges[1] = E->index;
+                                                if (selected_edges_count < SELEDGES)
+                                                    selected_edges[selected_edges_count ++] = E;
+                                            }
+                                            else
+                                            {
+                                                E->selected = 0;
+                                            }
+                                            for (u = 0; u < E->uv_edcount; u ++)
+                                            {
+                                                idx = E->uv_edges[u];
+                                                if (idx > -1 && idx < O->uvedcount)
+                                                {
+                                                    UVE = &O->uveds[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                    UVE->selected = E->selected;
+                                                }
+                                            }
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -17580,9 +17633,18 @@ int main(int argc, char * args[])
                     }
                     else if (Edge_Mode)
                     {
-                        EDGES_ID_RENDER = 1;
-                        poly_Render(0, 0, splitview, CamDist, 0, level);
-                        EDGES_ID_RENDER = 0;
+                        if (Curve_Mode)
+                        {
+                            SEGMENTS_ID_RENDER = 1;
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                            SEGMENTS_ID_RENDER = 0;
+                        }
+                        else
+                        {
+                            EDGES_ID_RENDER = 1;
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                            EDGES_ID_RENDER = 0;
+                        }
                     }
                     else if (Polygon_Mode)
                     {
@@ -17699,59 +17761,92 @@ int main(int argc, char * args[])
                         }
                         else if (Edge_Mode)
                         {
-                            uv_edge * UVE;
-                            edge * E;
-                            if (Camera->uv_draw)
+                            if (Curve_Mode)
                             {
-                                if (o > -1 && o < O->uvedcount)
+                                curve_segment * S;
+
+                                if (o > -1 && o < segmentIndex)
                                 {
-                                    UVE = &O->uveds[o / ARRAYSIZE][o % ARRAYSIZE];
+                                    S = segments[o];
+
+                                    //printf("cp vertex id %d\n", o);
                                     if (add_selection_mode)
                                     {
-                                        UVE->selected = 1;
+                                        S->selected = 1;
+                                        if (selected_segments_count < SEGMENTS)
+                                            selected_segments[selected_segments_count ++] = o;
+                                        if (S->E != NULL)
+                                        {
+                                            S->E->selected = 1;
+                                        }
                                     }
                                     else
                                     {
-                                        UVE->selected = 0;
-                                    }
-                                    idx = UVE->edge;
-                                    if (idx > -1 && idx < O->edgecount)
-                                    {
-                                        E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                        E->selected = UVE->selected;
-                                        if (E->selected && selected_edges_count < SELEDGES)
-                                            selected_edges[selected_edges_count ++] = E;
+                                        S->selected = 0;
+                                        if (S->E != NULL)
+                                        {
+                                            S->E->selected = 0;
+                                        }
                                     }
                                     break;
                                 }
                             }
                             else
                             {
-                                if (o > -1 && o < O->edgecount)
+                                uv_edge * UVE;
+                                edge * E;
+                                if (Camera->uv_draw)
                                 {
-                                    E = &O->edges[o / ARRAYSIZE][o % ARRAYSIZE];
-                                    if (add_selection_mode)
+                                    if (o > -1 && o < O->uvedcount)
                                     {
-                                        E->selected = 1;
-                                        O->last_selected_edges[0] = O->last_selected_edges[1];
-                                        O->last_selected_edges[1] = E->index;
-                                        if (selected_edges_count < SELEDGES)
-                                            selected_edges[selected_edges_count ++] = E;
-                                    }
-                                    else
-                                    {
-                                        E->selected = 0;
-                                    }
-                                    for (u = 0; u < E->uv_edcount; u ++)
-                                    {
-                                        idx = E->uv_edges[u];
-                                        if (idx > -1 && idx < O->uvedcount)
+                                        UVE = &O->uveds[o / ARRAYSIZE][o % ARRAYSIZE];
+                                        if (add_selection_mode)
                                         {
-                                            UVE = &O->uveds[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                            UVE->selected = E->selected;
+                                            UVE->selected = 1;
                                         }
+                                        else
+                                        {
+                                            UVE->selected = 0;
+                                        }
+                                        idx = UVE->edge;
+                                        if (idx > -1 && idx < O->edgecount)
+                                        {
+                                            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                            E->selected = UVE->selected;
+                                            if (E->selected && selected_edges_count < SELEDGES)
+                                                selected_edges[selected_edges_count ++] = E;
+                                        }
+                                        break;
                                     }
-                                    break;
+                                }
+                                else
+                                {
+                                    if (o > -1 && o < O->edgecount)
+                                    {
+                                        E = &O->edges[o / ARRAYSIZE][o % ARRAYSIZE];
+                                        if (add_selection_mode)
+                                        {
+                                            E->selected = 1;
+                                            O->last_selected_edges[0] = O->last_selected_edges[1];
+                                            O->last_selected_edges[1] = E->index;
+                                            if (selected_edges_count < SELEDGES)
+                                                selected_edges[selected_edges_count ++] = E;
+                                        }
+                                        else
+                                        {
+                                            E->selected = 0;
+                                        }
+                                        for (u = 0; u < E->uv_edcount; u ++)
+                                        {
+                                            idx = E->uv_edges[u];
+                                            if (idx > -1 && idx < O->uvedcount)
+                                            {
+                                                UVE = &O->uveds[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                UVE->selected = E->selected;
+                                            }
+                                        }
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -18854,11 +18949,15 @@ int main(int argc, char * args[])
                     }
                     else if (Edge_Mode)
                     {
+                        clear_Selected_Segments_Weights();
+                    }
+                    else if (Polygon_Mode)
+                    {
                         clear_Selected_Edges_Patch_Mode(O);
                     }
                     else
                     {
-                        clear_Selected_Segment_Weights();
+                        clear_Selected_Curves_Weights();
                     }
                 }
                 else

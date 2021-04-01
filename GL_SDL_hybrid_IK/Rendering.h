@@ -1872,6 +1872,29 @@ int draw_UV_Edge_ID_recursive(camera * C, object * O, uv_edge * UVE, int L, int 
     return 0;
 }
 
+int draw_Segment_ID_recursive(curve_segment * S, int L, int l)
+{
+    if (L > l) return 0;
+
+    if (S->subdivided == 0 || L == l)
+    {
+        glVertex3f(S->A[0], S->A[1], S->A[2]);
+        glVertex3f(S->C[0], S->C[1], S->C[2]);
+
+        return 1;
+    }
+    else
+    {
+        L ++;
+        if (L >= SUBD) return 0;
+
+        draw_Segment_ID_recursive(S->segment[0], L, l);
+        draw_Segment_ID_recursive(S->segment[1], L, l);
+    }
+
+    return 0;
+}
+
 int draw_Edge_ID_recursive(camera * C, object * O, edge * E, int L, int l)
 {
     if (L > l) return 0;
@@ -3128,6 +3151,97 @@ void render_Quads_ID(camera * C, object * O, int l)
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DITHER);
     glEnable(GL_LIGHTING);
+}
+
+void render_Segments_ID_(object * O, int l)
+{
+    int L;
+    if (l > O->subdlevel)
+    {
+        L = O->subdlevel;
+    }
+    else
+    {
+        L = l;
+    }
+
+    if (O->subdlevel >= L)
+    {
+        int c, s, q, e, idx, idx0, idx1, idx2;
+        quadrant * Q;
+        vertex * V;
+        curve * C;
+        curve_segment * S;
+
+        int M0 = 255 * 255 * 255;
+        int M1 = 255 * 255;
+
+        float R, G, B, A;
+
+        glDisable(GL_LIGHTING);
+        glDisable(GL_DITHER);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
+        glDisable(GL_MULTISAMPLE);
+
+        for (q = 0; q < O->quadcount_[L]; q ++)
+        {
+            Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
+
+            glColor4f(1, 1, 1, 1);
+
+            glBegin(GL_QUADS);
+            for (e = 0; e < 4; e ++)
+            {
+                idx = Q->verts[e];
+                V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                glVertex3f(V->Tx, V->Ty, V->Tz);
+            }
+            glEnd();
+        }
+
+        glLineWidth(6);
+
+        glBegin(GL_LINES);
+
+        for (c = 0; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+
+            for (s = 0; s < C->segment_count; s ++)
+            {
+                S = C->segments[s];
+
+                idx = S->index;
+
+                R = (float)(idx / M0) / (float)255;
+                idx0 = idx % M0;
+                G = (float)(idx0 / M1) / (float)255;
+                idx1 = idx0 % M1;
+                B = (float)(idx1 / 255) / (float)255;
+                idx2 = idx1 % 255;
+                A = (float)(idx2) / (float)255;
+
+                glColor4f(R, G, B, A);
+
+                if (S->subdivided)
+                {
+                    draw_Segment_ID_recursive(S->segment[0], 0, L);
+                    draw_Segment_ID_recursive(S->segment[1], 0, L);
+                }
+            }
+        }
+
+        glEnd();
+
+        glLineWidth(1);
+
+        glEnable(GL_MULTISAMPLE);
+        glEnable(GL_BLEND);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_DITHER);
+        glEnable(GL_LIGHTING);
+    }
 }
 
 void render_quads_Edges_ID(camera * C, object * O, int l)
@@ -7677,6 +7791,79 @@ void render_Curves_(int level)
     glEnable(GL_LIGHTING);
     glDisable(GL_LINE_STIPPLE);
     glLineWidth(1);
+}
+
+void render_Segments_ID(object * O)
+{
+    int M0 = 255 * 255 * 255;
+    int M1 = 255 * 255;
+
+    float R, G, B, A;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DITHER);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_MULTISAMPLE);
+
+    int p, e, c, s, idx, idx0, idx1, idx2;
+
+    polygon * P;
+    vertex * V;
+    curve * C;
+    curve_segment * S;
+
+    glColor4f(1, 1, 1, 1);
+
+    for (p = 0; p < O->polycount; p++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+        glBegin(GL_TRIANGLE_FAN);
+        for (e = 0; e < P->edgecount; e ++)
+        {
+            idx = P->verts[e];
+            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            glVertex3f(V->Tx, V->Ty, V->Tz);
+        }
+        glEnd();
+    }
+
+    glLineWidth(6);
+    glColor4f(1, 1, 1, 1);
+    glBegin(GL_LINES);
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+        if (C->selected)
+        {
+            for (s = 0; s < C->segment_count; s ++)
+            {
+                S = C->segments[s];
+                idx = S->index;
+
+                R = (float)(idx / M0) / (float)255;
+                idx0 = idx % M0;
+                G = (float)(idx0 / M1) / (float)255;
+                idx1 = idx0 % M1;
+                B = (float)(idx1 / 255) / (float)255;
+                idx2 = idx1 % 255;
+                A = (float)(idx2) / (float)255;
+
+                glColor4f(R, G, B, A);
+                glVertex3fv(S->A);
+                glVertex3fv(S->C);
+            }
+        }
+    }
+    glEnd();
+    glLineWidth(1);
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DITHER);
+    glEnable(GL_LIGHTING);
 }
 
 void render_Cps_ID()
