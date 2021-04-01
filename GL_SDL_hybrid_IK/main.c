@@ -852,6 +852,8 @@ void ordered_Edges_Selection(object * O)
 
     if (selected_edges_count > 0)
         currentEdge = selected_edges[selected_edges_count - 1];
+    else
+        currentEdge = 0;
 }
 
 void ordered_Verts_Selection(object * O)
@@ -893,6 +895,62 @@ void ordered_Verts_Selection(object * O)
 
     if (selected_verts_count > 0)
         currentVert = selected_verts[selected_verts_count - 1];
+    else
+        currentVert = 0;
+}
+
+void recreate_Segment_Selection()
+{
+    int c, s;
+
+    curve * C;
+    curve_segment * S;
+
+    selected_segments_count = 0;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+
+        for (s = 0; s < C->segment_count; s ++)
+        {
+            S = C->segments[s];
+
+            if (S->selected && selected_segments_count < SEGMENTS)
+            {
+                selected_segments[selected_segments_count ++] = S->index;
+            }
+        }
+    }
+
+    currentSegment = 0;
+}
+
+void recreate_Cp_Selection()
+{
+    int c, p;
+
+    curve * C;
+    cp * CP;
+
+    selected_cps_count = 0;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+
+            if (CP->selected && selected_cps_count < CPS)
+            {
+                selected_cps[selected_cps_count ++] = CP->index;
+            }
+        }
+    }
+
+    currentCp = 0;
 }
 
 void ordered_Segment_Selection()
@@ -900,7 +958,7 @@ void ordered_Segment_Selection()
     int s, p, condition;
     curve_segment * S;
 
-    selected_cps_count0 = 0;
+    selected_segments_count0 = 0;
 
     for (s = selected_segments_count - 1; s >= 0; s --)
     {
@@ -934,6 +992,8 @@ void ordered_Segment_Selection()
 
     if (selected_segments_count > 0)
         currentSegment = selected_segments[selected_segments_count - 1];
+    else
+        currentSegment = 0;
 }
 
 void ordered_Cp_Selection()
@@ -975,6 +1035,8 @@ void ordered_Cp_Selection()
 
     if (selected_cps_count > 0)
         currentCp = selected_cps[selected_cps_count - 1];
+    else
+        currentCp = 0;
 }
 
 void assert_Cp_Selection()
@@ -1038,6 +1100,8 @@ void ordered_Curve_Selection()
 
     if (selected_curves_count > 0)
         currentCurve = selected_curves[selected_curves_count - 1];
+    else
+        currentCurve = 0;
 }
 
 void assert_Curve_Selection()
@@ -12292,6 +12356,8 @@ void delete_Object(int index, int render)
                 currentCurve = curvesIndex - 1;
                 if (currentCurve < 0)
                     currentCurve = 0;
+                recreate_Segment_Selection();
+                recreate_Cp_Selection();
             }
             delete_Transformer(O->T);
 
@@ -18044,6 +18110,8 @@ int main(int argc, char * args[])
                     object * O0 = curves[currentCurve]->O;
                     delete_Curve(curves[currentCurve]);
                     ordered_Curve_Selection();
+                    recreate_Segment_Selection();
+                    recreate_Cp_Selection();
 
                     if (O0 != NULL)
                     {
@@ -19471,7 +19539,8 @@ int main(int argc, char * args[])
                     int c;
                     for (c = 0; c < segmentIndex; c ++)
                     {
-                        segments[c]->selected = 0;
+                        if (segments[c] != NULL)
+                            segments[c]->selected = 0;
                     }
                     selected_segments_count = 0;
                 }
