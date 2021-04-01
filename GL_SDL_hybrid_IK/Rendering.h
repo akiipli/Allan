@@ -17,6 +17,7 @@ Copyright <2018> <Allan Kiipli>
 #define BONEZ 4
 #define CURVE 5
 #define CURVE_CP 6
+#define CURVE_SEGMENT 7
 
 // to do: migrate pixels to GL
 // make ray traced rendering progressive
@@ -43,6 +44,7 @@ GLubyte current_deform_color[4] = {255, 200, 250, 155};
 GLubyte vert_color[4] = {0, 0, 0, 255};
 GLubyte selected_vert_color[4] = {255, 255, 255, 255};
 GLubyte * line_color = NULL;
+GLubyte segment_color[4] = {255, 0, 0, 255};
 GLubyte Line_Color[4] = {0, 0, 0, 0};
 GLubyte line_red[4] = {255, 0, 0, 255};
 GLubyte line_cyan[4] = {0, 255, 255, 255};
@@ -1457,6 +1459,46 @@ void put_In_Rectangle_Selection(camera * C, object * O, int * Objects, int Objec
                         else
                         {
                             CP->selected = 0;
+                        }
+                    }
+                }
+            }
+        }
+        else if (sel_type == CURVE_SEGMENT)
+        {
+            int c, s;
+            curve * C;
+            curve_segment * S;
+
+            for (c = 0; c < curvesIndex; c ++)
+            {
+                C = curves[c];
+
+                for (s = 0; s < C->segment_count; s ++)
+                {
+                    S = C->segments[s];
+
+                    point[0] = S->B[0];
+                    point[1] = S->B[1];
+                    point[2] = S->B[2];
+                    result = point_on_screen_GLU(point, coords);
+                    if (result)
+                    {
+                        if (coords[0] > R->x
+                            && coords[0] < R->x + R->w
+                            && coords[1] > R->y
+                            && coords[1] < R->y + R->h)
+                        {
+                            if (sel_add)
+                            {
+                                S->selected = 1;
+                                if (selected_segments_count < SEGMENTS)
+                                    selected_segments[selected_segments_count ++] = S->index;
+                            }
+                            else
+                            {
+                                S->selected = 0;
+                            }
                         }
                     }
                 }
@@ -7476,9 +7518,17 @@ void render_Curves()
                 glBegin(GL_LINE_STRIP);
             else
                 glBegin(GL_LINE_LOOP);
-            glColor4ubv(line_color);
+
             for (p = 0; p < C->cps_count; p ++)
             {
+                if (C->segments[p]->selected)
+                {
+                    glColor4ubv(segment_color);
+                }
+                else
+                {
+                    glColor4ubv(line_color);
+                }
                 CP = C->cps[p];
                 glVertex3fv(CP->pos);
             }
@@ -7584,13 +7634,21 @@ void render_Curves_(int level)
                     glEnable(GL_LIGHTING);
             }
 
-            glColor4ubv(line_color);
-
             if (C->open)
             {
                 for (s = 0; s < C->segment_count - 1; s ++)
                 {
                     S = C->segments[s];
+
+                    if (S->selected)
+                    {
+                        glColor4ubv(segment_color);
+                    }
+                    else
+                    {
+                        glColor4ubv(line_color);
+                    }
+
                     draw_Curve_Segment_Recursive(S, level);
                 }
             }
@@ -7599,6 +7657,16 @@ void render_Curves_(int level)
                 for (s = 0; s < C->segment_count; s ++)
                 {
                     S = C->segments[s];
+
+                    if (S->selected)
+                    {
+                        glColor4ubv(segment_color);
+                    }
+                    else
+                    {
+                        glColor4ubv(line_color);
+                    }
+
                     draw_Curve_Segment_Recursive(S, level);
                 }
             }

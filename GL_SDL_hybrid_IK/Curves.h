@@ -37,7 +37,7 @@ I could not determine the connection.
 #define OBJECT_CPS 10000
 #define OBJECT_SEGMENTS 10000
 
-#define CP_CONTINUITY 0.5
+#define CP_CONTINUITY 0.3
 
 int selected_curves[CURVES];
 int selected_curves_count = 0;
@@ -54,9 +54,15 @@ int selected_cps_count = 0;
 int selected_cps0[CPS];
 int selected_cps_count0 = 0;
 
+int selected_segments[SEGMENTS];
+int selected_segments_count = 0;
+int selected_segments0[SEGMENTS];
+int selected_segments_count0 = 0;
+
 int cpsIndex = 0;
 int currentCurve = 0;
 int currentCp = 0;
+int currentSegment = 0;
 
 vertex * selected_verts[CPS];
 int selected_verts_count = 0;
@@ -82,7 +88,7 @@ float cp_continuity[SUBD];
 void init_cp_continuity()
 {
     int l;
-    float v = 0.3; // for subdivided segments it is safe to use A and C points in Segments.
+    float v = 0.2; // for subdivided segments it is safe to use A and C points in Segments.
                    // Thus B is not used and we scale tangents down significantly.
     float i = v / SUBD;
 
@@ -633,6 +639,7 @@ void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object *
             S0->index = segmentIndex;
             S0->level = S->level + 1;
             S0->subdivided = 0;
+            S0->selected = S->selected;
             segments[segmentIndex ++] = S0;
             S0->E = NULL;
             S0->Curve = S->Curve;
@@ -641,6 +648,7 @@ void subdivide_Curve_Segment(curve_segment * S, int level, int counter, object *
             S1->index = segmentIndex;
             S1->level = S->level + 1;
             S1->subdivided = 0;
+            S1->selected = S->selected;
             segments[segmentIndex ++] = S1;
             S1->E = NULL;
             S1->Curve = S->Curve;
@@ -1108,6 +1116,7 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
 
         S->level = -1;
         S->subdivided = 0;
+        S->selected = 0;
         S->E = NULL;
         S->index = segmentIndex;
         segments[segmentIndex ++] = S;
@@ -1199,6 +1208,7 @@ int add_Curve_Segment(curve * C)
 
     S->level = -1;
     S->subdivided = 0;
+    S->selected = 0;
     S->E = NULL;
     S->index = segmentIndex;
     segments[segmentIndex ++] = S;
@@ -1330,6 +1340,7 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
 
         S->level = -1;
         S->subdivided = 0;
+        S->selected = 0;
         S->E = NULL;
         S->index = segmentIndex;
         segments[segmentIndex ++] = S;
@@ -1434,6 +1445,7 @@ int add_New_Curve(float pos[3], int open)
 
     S->level = -1;
     S->subdivided = 0;
+    S->selected = 0;
     S->E = NULL;
     S->index = segmentIndex;
     segments[segmentIndex ++] = S;
@@ -2424,6 +2436,7 @@ int create_Object_Curve(object * O)
 
                 S->level = -1;
                 S->subdivided = 0;
+                S->selected = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
                 S->weight = 0.0;
@@ -2465,6 +2478,7 @@ int create_Object_Curve(object * O)
 
                         S->level = -1;
                         S->subdivided = 0;
+                        S->selected = 0;
                         S->index = segmentIndex;
                         segments[segmentIndex ++] = S;
                         S->weight = 0.0;
@@ -2496,6 +2510,7 @@ int create_Object_Curve(object * O)
 
                 S->level = -1;
                 S->subdivided = 0;
+                S->selected = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
                 S->weight = 0.0;
@@ -3542,6 +3557,28 @@ void clear_Selected_Edges_Patch_Mode(object * O)
         {
             E->patch = 0;
         }
+    }
+}
+
+void assign_Segment_Selection_Recursive(curve_segment * S, int selected)
+{
+    if (S->subdivided)
+    {
+        assign_Segment_Selection_Recursive(S->segment[0], selected);
+        assign_Segment_Selection_Recursive(S->segment[1], selected);
+    }
+}
+
+void assign_Selection_To_Subsegments()
+{
+    int s;
+    curve_segment * S;
+
+    for (s = 0; s < selected_segments_count; s ++)
+    {
+        S = segments[selected_segments[s]];
+
+        assign_Segment_Selection_Recursive(S, S->selected);
     }
 }
 

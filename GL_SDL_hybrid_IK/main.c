@@ -895,6 +895,47 @@ void ordered_Verts_Selection(object * O)
         currentVert = selected_verts[selected_verts_count - 1];
 }
 
+void ordered_Segment_Selection()
+{
+    int s, p, condition;
+    curve_segment * S;
+
+    selected_cps_count0 = 0;
+
+    for (s = selected_segments_count - 1; s >= 0; s --)
+    {
+        S = segments[selected_segments[s]];
+
+        if (S->selected)
+        {
+            condition = 1;
+            for (p = 0; p < selected_segments_count0; p ++)
+            {
+                if (selected_segments0[p] == selected_segments[s])
+                {
+                    condition = 0;
+                    break;
+                }
+            }
+            if (condition)
+                selected_segments0[selected_segments_count0 ++] = selected_segments[s];
+        }
+    }
+
+    selected_segments_count = 0;
+
+    for (s = selected_segments_count0 - 1; s >= 0; s --)
+    {
+        selected_segments[selected_segments_count ++] = selected_segments0[s];
+        //printf("%d ", selected_cps0[s]);
+    }
+
+    //printf("\n");
+
+    if (selected_segments_count > 0)
+        currentSegment = selected_segments[selected_segments_count - 1];
+}
+
 void ordered_Cp_Selection()
 {
     int s, p, condition;
@@ -2880,7 +2921,7 @@ void set_Edge_Mode()
     if (Curve_Mode)
     {
         printf("Curve Mode\n");
-        selection_Mode = 5;
+        selection_Mode = 7;
     }
     else
     {
@@ -2988,10 +3029,19 @@ void set_Curve_Mode()
     else
     {
         printf("Curve Mode\n");
-        if (Vertex_Mode)
+        if (Edge_Mode)
+        {
+            selection_Mode = 7; // CURVE_SEGMENT
+        }
+        else if (Vertex_Mode)
+        {
             selection_Mode = 6; // CURVE_CP
+        }
         else
+        {
             selection_Mode = 5; // CURVE
+        }
+
         Curve_Mode = 1;
         Bone_Mode = 0;
         vertdraw = 0;
@@ -16336,6 +16386,11 @@ int main(int argc, char * args[])
                             ordered_Curve_Selection();
                         else if (selection_Mode == CURVE_CP)
                             ordered_Cp_Selection();
+                        else if (selection_Mode == CURVE_SEGMENT)
+                        {
+                            ordered_Segment_Selection();
+                            assign_Selection_To_Subsegments();
+                        }
                     }
                     else if (Object_Mode)
                     {
@@ -16385,6 +16440,11 @@ int main(int argc, char * args[])
                         {
                             ordered_Cp_Selection();
                             ordered_Verts_Selection(O);
+                        }
+                        else if (selection_Mode == CURVE_SEGMENT)
+                        {
+                            ordered_Segment_Selection();
+                            assign_Selection_To_Subsegments();
                         }
                     }
                     else if (Vertex_Mode)
@@ -19406,7 +19466,16 @@ int main(int argc, char * args[])
             }
             else if (Curve_Mode)
             {
-                if (selection_Mode == 6) // CURVE_CP
+                if (selection_Mode == 7) // CURVE_SEGMENT
+                {
+                    int c;
+                    for (c = 0; c < segmentIndex; c ++)
+                    {
+                        segments[c]->selected = 0;
+                    }
+                    selected_segments_count = 0;
+                }
+                else if (selection_Mode == 6) // CURVE_CP
                 {
                     int c;
                     for (c = 0; c < cpsIndex; c ++)
