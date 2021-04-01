@@ -18953,7 +18953,7 @@ int main(int argc, char * args[])
                     }
                     else if (Polygon_Mode)
                     {
-                        clear_Selected_Edges_Patch_Mode(O);
+                        //clear_Selected_Edges_Patch_Mode(O);
                     }
                     else
                     {
