@@ -12544,6 +12544,7 @@ void clear_All()
         selected_cps_count = 0;
         selected_curves_count = 0;
         selected_edges_count = 0;
+        selected_segments_count = 0;
 
         object_selections = 0;
         reinit_selections();
