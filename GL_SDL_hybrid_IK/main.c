@@ -6796,7 +6796,7 @@ void deformer_Player()
 
     DRAW_UI = 1;
 
-    ELEMENT_ARRAYS = 1;
+    //ELEMENT_ARRAYS = 1;
     init_Hint();
 
     if (subdLevel > -1)
