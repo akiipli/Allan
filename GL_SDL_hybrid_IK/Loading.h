@@ -2388,7 +2388,16 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
                 O->surface = 0;
 
                 fgets(buff, BUF_SIZE, fp);
-                sscanf(buff, "%d %d", &O->deforms, &O->binding);
+
+                if (loading_version >= 1010)
+                {
+                    sscanf(buff, "%d %d %d", &O->deforms, &O->binding, &O->smooth);
+                }
+                else
+                {
+                    sscanf(buff, "%d %d", &O->deforms, &O->binding);
+                    O->smooth = 1;
+                }
 
 //                fgets(buff, BUF_SIZE, fp);
 //                sscanf(buff, "%f %f %f", &O->T.rot[0], &O->T.rot[1], &O->T.rot[2]);

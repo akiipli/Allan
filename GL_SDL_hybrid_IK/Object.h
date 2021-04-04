@@ -395,6 +395,7 @@ struct object
     int selected;
     int binding;
     int shadow;
+    int smooth;
 
     uv       ** uvtex;
     vertex   ** verts;

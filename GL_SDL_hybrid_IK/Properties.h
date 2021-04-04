@@ -155,6 +155,11 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "surface\t%d %s", O->surface, Materials[O->surface].Name);
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
+        sprintf(text, "smooth");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%d", O->smooth);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+        idx ++;
     }
     else if (type == PROPERTIES_MATERIAL)
     {

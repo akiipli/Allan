@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+12:24 PM 4/4/2021
+Objects smoothness introduced. Switch off element Arrays to see the effect. Also non smooth objects do not conform
+subdivided shape.
+
 4:53 PM 2/28/2021
 In Curve mode p switches selected edges patch mode even without curves
 Ctrl+E clears edges patch flag in edges mode while in Curve mode. This is also saved.

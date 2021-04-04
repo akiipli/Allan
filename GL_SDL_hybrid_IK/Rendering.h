@@ -6475,9 +6475,19 @@ void fill_in_VertCoords_Fan_Object(object * O, int E)
                     O->vert_array[0][v_c++] = V->Tx;
                     O->vert_array[0][v_c++] = V->Ty;
                     O->vert_array[0][v_c++] = V->Tz;
-                    O->norm_array[0][n_c++] = V->N.Tx;
-                    O->norm_array[0][n_c++] = V->N.Ty;
-                    O->norm_array[0][n_c++] = V->N.Tz;
+
+                    if (O->smooth)
+                    {
+                        O->norm_array[0][n_c++] = V->N.Tx;
+                        O->norm_array[0][n_c++] = V->N.Ty;
+                        O->norm_array[0][n_c++] = V->N.Tz;
+                    }
+                    else
+                    {
+                        O->norm_array[0][n_c++] = P->N.Tx;
+                        O->norm_array[0][n_c++] = P->N.Ty;
+                        O->norm_array[0][n_c++] = P->N.Tz;
+                    }
                     //O->text_array[t_c++] = UV->u;
                     //O->text_array[t_c++] = UV->v;
                     O->tang_array[0][t_a++] = UV->tangent[0];
@@ -6550,9 +6560,19 @@ void fill_in_VertCoords_Fan(camera * C, int E)
                         O->vert_array[0][v_c++] = V->Tx;
                         O->vert_array[0][v_c++] = V->Ty;
                         O->vert_array[0][v_c++] = V->Tz;
-                        O->norm_array[0][n_c++] = V->N.Tx;
-                        O->norm_array[0][n_c++] = V->N.Ty;
-                        O->norm_array[0][n_c++] = V->N.Tz;
+
+                        if (O->smooth)
+                        {
+                            O->norm_array[0][n_c++] = V->N.Tx;
+                            O->norm_array[0][n_c++] = V->N.Ty;
+                            O->norm_array[0][n_c++] = V->N.Tz;
+                        }
+                        else
+                        {
+                            O->norm_array[0][n_c++] = P->N.Tx;
+                            O->norm_array[0][n_c++] = P->N.Ty;
+                            O->norm_array[0][n_c++] = P->N.Tz;
+                        }
 //                        O->text_array[t_c++] = UV->u;
 //                        O->text_array[t_c++] = UV->v;
                         O->tang_array[0][t_a++] = UV->tangent[0];
@@ -6695,9 +6715,19 @@ void fill_in_VertCoords_quads_Object(object * O, int l, int E)
                     O->vert_array_[L][0][v_c++] = V->Tx;
                     O->vert_array_[L][0][v_c++] = V->Ty;
                     O->vert_array_[L][0][v_c++] = V->Tz;
-                    O->norm_array_[L][0][n_c++] = V->N.Tx;
-                    O->norm_array_[L][0][n_c++] = V->N.Ty;
-                    O->norm_array_[L][0][n_c++] = V->N.Tz;
+
+                    if (O->smooth)
+                    {
+                        O->norm_array_[L][0][n_c++] = V->N.Tx;
+                        O->norm_array_[L][0][n_c++] = V->N.Ty;
+                        O->norm_array_[L][0][n_c++] = V->N.Tz;
+                    }
+                    else
+                    {
+                        O->norm_array_[L][0][n_c++] = Q->N.Tx;
+                        O->norm_array_[L][0][n_c++] = Q->N.Ty;
+                        O->norm_array_[L][0][n_c++] = Q->N.Tz;
+                    }
     //                    O->text_array_[L][t_c++] = UV->u;
     //                    O->text_array_[L][t_c++] = UV->v;
                     O->tang_array_[L][0][t_a++] = UV->tangent[0];
@@ -6772,9 +6802,19 @@ void fill_in_VertCoords_quads(camera * C, int l, int E)
                         O->vert_array_[L][0][v_c++] = V->Tx;
                         O->vert_array_[L][0][v_c++] = V->Ty;
                         O->vert_array_[L][0][v_c++] = V->Tz;
-                        O->norm_array_[L][0][n_c++] = V->N.Tx;
-                        O->norm_array_[L][0][n_c++] = V->N.Ty;
-                        O->norm_array_[L][0][n_c++] = V->N.Tz;
+
+                        if (O->smooth)
+                        {
+                            O->norm_array_[L][0][n_c++] = V->N.Tx;
+                            O->norm_array_[L][0][n_c++] = V->N.Ty;
+                            O->norm_array_[L][0][n_c++] = V->N.Tz;
+                        }
+                        else
+                        {
+                            O->norm_array_[L][0][n_c++] = Q->N.Tx;
+                            O->norm_array_[L][0][n_c++] = Q->N.Ty;
+                            O->norm_array_[L][0][n_c++] = Q->N.Tz;
+                        }
     //                    O->text_array_[L][t_c++] = UV->u;
     //                    O->text_array_[L][t_c++] = UV->v;
                         O->tang_array_[L][0][t_a++] = UV->tangent[0];

@@ -1382,7 +1382,10 @@ void tune_subdivide_post_transformed(object * O, int L)
             update_bounding_box_for_transformed_Edges_(O, level - 1, 0);
             update_bounding_box_for_transformed_Quads(O, level - 1, 0);
 
-            tune_In_Subdivision_Shape_transformed_(O, level);
+            if (O->smooth)
+            {
+                tune_In_Subdivision_Shape_transformed_(O, level);
+            }
 
             update_bounding_box_for_transformed_Edges_(O, level, 0);
             update_bounding_box_for_transformed_Quads(O, level, 0);
@@ -1398,7 +1401,10 @@ void tune_subdivide_post_transformed(object * O, int L)
             update_bounding_box_for_transformed_Edges(O, 0);
             update_bounding_box_for_transformed_Polys(O, 0);
 
-            tune_In_Subdivision_Shape_transformed(O);
+            if (O->smooth)
+            {
+                tune_In_Subdivision_Shape_transformed(O);
+            }
 
             update_bounding_box_for_transformed_Edges_(O, level, 0);
             update_bounding_box_for_transformed_Quads(O, level, 0);
@@ -1418,18 +1424,24 @@ void tune_subdivide_post(object * O)
         if (level > 0)
         {
             generate_cage_for_Subdivision_Quads(O, level);
-            if (O->tune[level])
-                tune_In_Subdivision_Shape_(O, level, edge_c, cage_v);
-            if (O->tune_in_uvtex[level])
-                tune_In_Subdivision_Shape_uvtex_(O, level);
+            if (O->smooth)
+            {
+                if (O->tune[level])
+                    tune_In_Subdivision_Shape_(O, level, edge_c, cage_v);
+                if (O->tune_in_uvtex[level])
+                    tune_In_Subdivision_Shape_uvtex_(O, level);
+            }
         }
         else
         {
             generate_cage_for_Subdivision(O, level);
-            if (O->tune[level])
-                tune_In_Subdivision_Shape(O);
-            if (O->tune_in_uvtex[level])
-                tune_In_Subdivision_Shape_uvtex(O);
+            if (O->smooth)
+            {
+                if (O->tune[level])
+                    tune_In_Subdivision_Shape(O);
+                if (O->tune_in_uvtex[level])
+                    tune_In_Subdivision_Shape_uvtex(O);
+            }
         }
 
         update_bounding_box_for_Edges_(O, level, 1);
@@ -1463,17 +1475,23 @@ void subdivide_post(object * O, int level, int tune)
     {
         if (level > 0)
         {
-            if (O->tune[level])
-                tune_In_Subdivision_Shape_(O, level, edge_c, cage_v);
-            if (O->tune_in_uvtex[level])
-                tune_In_Subdivision_Shape_uvtex_(O, level);
+            if (O->smooth)
+            {
+                if (O->tune[level])
+                    tune_In_Subdivision_Shape_(O, level, edge_c, cage_v);
+                if (O->tune_in_uvtex[level])
+                    tune_In_Subdivision_Shape_uvtex_(O, level);
+            }
         }
         else
         {
-            if (O->tune[level])
-                tune_In_Subdivision_Shape(O);
-            if (O->tune_in_uvtex[level])
-                tune_In_Subdivision_Shape_uvtex(O);
+            if (O->smooth)
+            {
+                if (O->tune[level])
+                    tune_In_Subdivision_Shape(O);
+                if (O->tune_in_uvtex[level])
+                    tune_In_Subdivision_Shape_uvtex(O);
+            }
         }
     }
     update_bounding_box_for_Edges_(O, level, 1);
@@ -13297,6 +13315,30 @@ void save_load_Scene()
     Button_h_scen[0].color = UI_GRAYB;
 }
 
+void change_Object_Smooth()
+{
+    if (currentObject >= 0 && currentObject < objectIndex)
+    {
+        O = objects[currentObject];
+        O->smooth = !O->smooth;
+
+        fill_in_VertCoords_Fan_Object(O, ELEMENT_ARRAYS);
+
+        if (subdLevel > -1)
+        {
+            fill_in_VertCoords_quads_Object(O, subdLevel, ELEMENT_ARRAYS);
+        }
+
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        DRAW_UI = 1;
+
+        draw_Dialog();
+
+        SDL_GL_SwapBuffers();
+    }
+}
+
 void change_Transformer_Pin()
 {
     if (currentLocator >= 0 && currentLocator < transformerIndex)
@@ -15945,6 +15987,16 @@ int main(int argc, char * args[])
                                     }
                                 }
                             }
+                            else if (dialog_type == ITEM_DIALOG && PROPERTIES == PROPERTIES_OBJECT)
+                            {
+                                if (mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 4 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 5)
+                                {
+                                    if (h_index == 1)
+                                    {
+                                        change_Object_Smooth();
+                                    }
+                                }
+                            }
                         }
                     }
                     else if (!Camera_screen_lock && mouse_x > SIDEBAR && mouse_y < screen_height)
@@ -16706,6 +16758,20 @@ int main(int argc, char * args[])
                                     draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
                                 else
                                     draw_Properties("", screen_height, 1, PROPERTIES_LOCATOR, Type);
+                                SDL_GL_SwapBuffers();
+                            }
+                        }
+                        else if (PROPERTIES == PROPERTIES_OBJECT)
+                        {
+                            if (properties[prop_y][prop_x] != UI_BACKL)
+                            {
+                                //printf("rendering\t\t\r");
+                                black_out_properties();
+                                properties[prop_y][prop_x] = UI_BACKL;
+                                if (Type != NULL)
+                                    draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
+                                else
+                                    draw_Properties("", screen_height, 1, PROPERTIES, Type);
                                 SDL_GL_SwapBuffers();
                             }
                         }

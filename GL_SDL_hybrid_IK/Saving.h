@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1009;
+int saving_version = 1010;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -435,7 +435,7 @@ void save_Objects(char * object_files_dir)
         fprintf(F, "%d ", O->uvedcount);
         fprintf(F, "%d\n", O->polycount);
 
-        fprintf(F, "%d %d\n", O->deforms, O->binding);
+        fprintf(F, "%d %d %d\n", O->deforms, O->binding, O->smooth);
 
 //        fprintf(F, "%f %f %f\n", O->T.rot[0], O->T.rot[1], O->T.rot[2]);
 //        fprintf(F, "%f %f %f\n", O->T.pos[0], O->T.pos[1], O->T.pos[2]);
