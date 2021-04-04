@@ -266,6 +266,8 @@ int delay_ms = 100;
 
 int subdLevel = 1; // -1 is no subdivision
 int subdLevel_mem = -1;
+int NIGHT_mem;
+int SHADOWS_mem;
 
 float cage_v = 1.0;
 float edge_c = 1.0;
@@ -5651,6 +5653,12 @@ void render_Thumbnails()
 {
     O = objects[0];
 
+    NIGHT_mem = NIGHT;
+    NIGHT = 0;
+
+    SHADOWS_mem = SHADOWS;
+    SHADOWS = 0;
+
     subdLevel_mem = subdLevel;
     subdLevel = 1;
 
@@ -5681,6 +5689,8 @@ void render_Thumbnails()
     init_lights();
 
     subdLevel = subdLevel_mem;
+    NIGHT = NIGHT_mem;
+    SHADOWS = SHADOWS_mem;
 }
 
 void black_out_MaterialsList()
