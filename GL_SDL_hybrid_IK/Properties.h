@@ -40,15 +40,18 @@ int Drag_X = 0;
 int DragDelta = 0;
 
 int Color;
+int Color_adjusted;
 int Drag_Color = 0;
 int Color_Component = 0;
 
 int Drag_Shine = 0;
 float Shine;
+float Shine_adjusted;
 float ShineDelta;
 
 int Drag_Displacement = 0;
 float Displacement;
+float Displacement_adjusted;
 float DisplacementDelta;
 
 int properties[Y_OFFSET][X_OFFSET];

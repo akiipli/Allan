@@ -15952,6 +15952,7 @@ int main(int argc, char * args[])
                                         Color_Component = 3;
                                         Drag_Color = 1;
                                     }
+                                    Color = Materials[currentMaterial].RGBA.Color[Color_Component];
                                 }
                                 else if (!Drag_Shine && mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 2)
                                 {
@@ -15959,6 +15960,7 @@ int main(int argc, char * args[])
                                     if (h_index == 2)
                                     {
                                         Drag_Shine = 1;
+                                        Shine = Materials[currentMaterial].Shininess;
                                     }
                                 }
                                 else if (!Drag_Displacement && mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 2 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 3)
@@ -15967,6 +15969,7 @@ int main(int argc, char * args[])
                                     if (h_index == 2)
                                     {
                                         Drag_Displacement = 1;
+                                        Displacement = Materials[currentMaterial].Displacement;
                                     }
                                 }
                             }
@@ -16233,6 +16236,7 @@ int main(int argc, char * args[])
                                         O->selected = 1;
                                         selected_objects[selected_object_count ++] = o;
                                     }
+                                    currentMaterial = O->surface;
                                 }
                                 else
                                 {
@@ -16656,11 +16660,11 @@ int main(int argc, char * args[])
                 {
                     DragDelta = mouse_x - Drag_X;
                     DisplacementDelta = (float)DragDelta / 100.0;
-                    Displacement = Materials[currentMaterial].Displacement;
-                    Displacement += DisplacementDelta;
-                    Displacement = clamp_f(Displacement, 0, 60.0);
 
-                    Materials[currentMaterial].Displacement = Displacement;
+                    Displacement_adjusted = Displacement + DisplacementDelta;
+                    Displacement_adjusted = clamp_f(Displacement_adjusted, 0, 60.0);
+
+                    Materials[currentMaterial].Displacement = Displacement_adjusted;
                     update_Materials_List(0, 0);
 
                     SDL_GL_SwapBuffers();
@@ -16669,11 +16673,11 @@ int main(int argc, char * args[])
                 {
                     DragDelta = mouse_x - Drag_X;
                     ShineDelta = (float)DragDelta / 100.0;
-                    Shine = Materials[currentMaterial].Shininess;
-                    Shine += ShineDelta;
-                    Shine = clamp_f(Shine, 0, 60.0);
 
-                    Materials[currentMaterial].Shininess = Shine;
+                    Shine_adjusted = Shine + ShineDelta;
+                    Shine_adjusted = clamp_f(Shine_adjusted, 0, 60.0);
+
+                    Materials[currentMaterial].Shininess = Shine_adjusted;
                     update_Materials_List(0, 0);
 
                     SDL_GL_SwapBuffers();
@@ -16681,11 +16685,11 @@ int main(int argc, char * args[])
                 else if (Drag_Color)
                 {
                     DragDelta = (mouse_x - Drag_X) / 2;
-                    Color = Materials[currentMaterial].RGBA.Color[Color_Component];
-                    Color += DragDelta;
-                    Color = clamp_i(Color, 0, 255);
+
+                    Color_adjusted = Color + DragDelta;
+                    Color_adjusted = clamp_i(Color_adjusted, 0, 255);
                     //printf("Color_Component %d, DragDelta %d\r", Color_Component, DragDelta);
-                    Materials[currentMaterial].RGBA.Color[Color_Component] = Color;
+                    Materials[currentMaterial].RGBA.Color[Color_Component] = Color_adjusted;
                     update_Materials_List(0, 0);
 
                     SDL_GL_SwapBuffers();
