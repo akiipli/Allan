@@ -37,7 +37,7 @@ I could not determine the connection.
 #define OBJECT_CPS 10000
 #define OBJECT_SEGMENTS 10000
 
-#define CP_CONTINUITY 0.3
+#define CP_CONTINUITY 0.5
 
 int selected_curves[CURVES];
 int selected_curves_count = 0;
@@ -989,7 +989,7 @@ int add_Cp_To_Curve(curve * C, cp * CP)
         return 0;
     }
     C->cps[C->cps_count - 1] = CP;
-    C->cps_continuity[C->cps_count - 1] = 0.7;
+    C->cps_continuity[C->cps_count - 1] = CP_CONTINUITY;
 
     if (C->segment_count > 0)
     {
@@ -1134,7 +1134,7 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
 
     if (C->cps_continuity == NULL) return 0;
 
-    C->cps_continuity[C->cps_count - 1] = 0.7;
+    C->cps_continuity[C->cps_count - 1] = CP_CONTINUITY;
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
 
@@ -1225,7 +1225,7 @@ int add_Curve_Segment(curve * C)
 
     if (C->cps_continuity == NULL) return 0;
 
-    C->cps_continuity[C->cps_count - 1] = 0.7;
+    C->cps_continuity[C->cps_count - 1] = CP_CONTINUITY;
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
 
