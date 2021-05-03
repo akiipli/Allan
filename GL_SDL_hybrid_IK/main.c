@@ -18764,7 +18764,7 @@ int main(int argc, char * args[])
             {
                 if (Curve_Mode)
                 {
-                    toggle_Selected_Edges_Patch_Mode(O);
+                    //toggle_Selected_Edges_Patch_Mode(O);
                 }
                 else
                 {
