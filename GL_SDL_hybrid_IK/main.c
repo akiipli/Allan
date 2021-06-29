@@ -4588,6 +4588,7 @@ void open_IMG(char * fileName)
     dialog_lock = 0;
     Osd = 1;
     HINTS = 1;
+    PROPERTIES = PROPERTIES_NONE;
 
     if (!Object_Mode)
     {
@@ -4936,6 +4937,7 @@ void open_OBJ(char * fileName)
     dialog_lock = 0;
     Osd = 1;
     HINTS = 1;
+    PROPERTIES = PROPERTIES_NONE;
 
     if (!Object_Mode)
     {
@@ -5851,6 +5853,7 @@ void export_OBJ_Format()
     object * O0;
 
     dialog_lock = 0;
+    PROPERTIES = PROPERTIES_NONE;
 
     Draw_Bottom_Message("export OBJ Format\n");
 
@@ -13317,6 +13320,7 @@ void save_load_Scene()
             dialog_lock = 0;
             Osd = 1;
             HINTS = 1;
+            PROPERTIES = PROPERTIES_NONE;
         }
     }
 
@@ -19167,6 +19171,7 @@ int main(int argc, char * args[])
                     dialog_lock = 0;
                     Osd = 1;
                     HINTS = 1;
+                    PROPERTIES = PROPERTIES_NONE;
 
                     if (!Object_Mode)
                     {
