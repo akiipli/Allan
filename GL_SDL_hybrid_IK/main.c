@@ -17,6 +17,7 @@ look for CUBECOMMENT
 
 /*CORRECT IT*/
 
+
 int ROTATION = 0;
 int MOVEMENT = 0;
 int SCALE = 0;
@@ -15726,9 +15727,10 @@ int main(int argc, char * args[])
                                 {
                                     (*Button_item[Buttonindex].func)(Buttonindex);
                                     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-                                    draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, currentObject, selection_rectangle);
-                                    SDL_GL_SwapBuffers();
-                                    glDrawBuffer(GL_BACK);
+                                    draw_Dialog();
+//                                    draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, currentObject, selection_rectangle);
+//                                    SDL_GL_SwapBuffers();
+//                                    glDrawBuffer(GL_BACK);
                                 }
                             }
                             else
