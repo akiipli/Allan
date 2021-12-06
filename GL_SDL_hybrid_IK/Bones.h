@@ -690,7 +690,7 @@ void delete_Zero_Selections_From_Objects(deformer * D)
 
     object * O;
     vert_selection * S;
-    transformer * T;
+//    transformer * T;
 
     for (o = 0; o < D->Objects_Count; o ++)
     {
@@ -711,33 +711,33 @@ void delete_Zero_Selections_From_Objects(deformer * D)
             for (v = O->vertex_selections - 1; v >= 0; v --)
             {
                 S = O->vertex_selection[v];
-                T = S->Transformer;
+//                T = S->Transformer;
 
                 if (S->indices_count == 0)
                 {
-                    if (T == NULL)
+//                    if (T == NULL)
+//                    {
+                    //printf("%u %u\n", sizeof(S->indices), sizeof(S->weights));
+                    free(O->vertex_selection[v]->indices);
+                    free(O->vertex_selection[v]->weights);
+
+                    //printf("%u %u\n", sizeof(S->split[0].indices), sizeof(S->split[0].weights));
+                    free(O->vertex_selection[v]->split[0].indices);
+                    free(O->vertex_selection[v]->split[0].weights);
+
+                    //printf("%u %u\n", sizeof(S->split[1].indices), sizeof(S->split[1].weights));
+                    free(O->vertex_selection[v]->split[1].indices);
+                    free(O->vertex_selection[v]->split[1].weights);
+
+                    free(O->vertex_selection[v]);
+
+                    O->vertex_selections -= 1;
+                    for (i = v; i < O->vertex_selections; i ++)
                     {
-                        //printf("%u %u\n", sizeof(S->indices), sizeof(S->weights));
-                        free(O->vertex_selection[v]->indices);
-                        free(O->vertex_selection[v]->weights);
-
-                        //printf("%u %u\n", sizeof(S->split[0].indices), sizeof(S->split[0].weights));
-                        free(O->vertex_selection[v]->split[0].indices);
-                        free(O->vertex_selection[v]->split[0].weights);
-
-                        //printf("%u %u\n", sizeof(S->split[1].indices), sizeof(S->split[1].weights));
-                        free(O->vertex_selection[v]->split[1].indices);
-                        free(O->vertex_selection[v]->split[1].weights);
-
-                        free(O->vertex_selection[v]);
-
-                        O->vertex_selections -= 1;
-                        for (i = v; i < O->vertex_selections; i ++)
-                        {
-                            O->vertex_selection[i] = O->vertex_selection[i + 1];
-                            O->vertex_selection[i]->index -= 1;
-                        }
+                        O->vertex_selection[i] = O->vertex_selection[i + 1];
+                        O->vertex_selection[i]->index -= 1;
                     }
+//                    }
                 }
             }
         }
