@@ -20028,6 +20028,16 @@ int main(int argc, char * args[])
             set_Bind_Mode();
             message = -12;
         }
+        else if (message == 59)
+        {
+            if (BIND_POSE && DRAW_LOCATORS)
+            {
+                Camera = find_View(mouse_x, mouse_y, splitview);
+                O = objects[currentObject];
+                project_Selected_Locators(Camera, O, selected_transformers, selected_transformer_count);
+            }
+            message = -1;
+        }
         else if (message == 76)
         {
             SHADERS = !SHADERS;

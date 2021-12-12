@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+8:00 PM 12/12/2021
+In Bind Mode pressing Enter places drawed bones selected locators into current mesh along viewport vector.
+
 12:24 PM 4/4/2021
 Objects smoothness introduced. Switch off element Arrays to see the effect. Also non smooth objects do not conform
 subdivided shape.

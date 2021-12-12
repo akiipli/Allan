@@ -526,6 +526,86 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
     return volume_index[0];
 }
 
+void project_Selected_Locators(camera * C, object * O, int * selected_transformers, int selected_transformer_count)
+{
+    printf("Object %s %d\n", O->Name, O->polycount);
+    printf("Camera %s %d\n", C->Name, C->ortho);
+
+    float dot;
+    float angle;
+    float i_point[3];
+    direction_Pack D, D0;
+
+    int s, t, p, p_count;
+
+    polygon * P;
+    transformer * T;
+
+    for (s = 0; s < selected_transformer_count; s ++)
+    {
+        t = selected_transformers[s];
+        T = transformers[t];
+        D = length_AB_(C->T->pos[0], C->T->pos[1], C->T->pos[2], T->pos[0], T->pos[1], T->pos[2]);
+
+        if (T->Bone == NULL)
+        {
+            continue;
+        }
+
+        p_count = 0;
+        i_point[0] = 0.0;
+        i_point[1] = 0.0;
+        i_point[2] = 0.0;
+
+        for (p = 0; p < O->polycount; p ++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+            D0 = length_AB_(C->T->pos[0], C->T->pos[1], C->T->pos[2], P->B.Tx, P->B.Ty, P->B.Tz);
+
+            if (D0.distance > 0)
+            {
+                angle = atan2(P->B.Tradius, D0.distance);
+
+                dot = dot_productFF(D0.vec, D.vec);
+
+                if (acos(dot) < angle)
+                {
+                    i_point[0] += (D.vec[0] * D0.distance);
+                    i_point[1] += (D.vec[1] * D0.distance);
+                    i_point[2] += (D.vec[2] * D0.distance);
+
+                    p_count ++;
+                }
+            }
+        }
+
+        if (p_count > 0)
+        {
+            i_point[0] /= p_count;
+            i_point[1] /= p_count;
+            i_point[2] /= p_count;
+
+            T->pos[0] = C->T->pos[0] + i_point[0];
+            T->pos[1] = C->T->pos[1] + i_point[1];
+            T->pos[2] = C->T->pos[2] + i_point[2];
+        }
+    }
+
+    for (s = 0; s < selected_transformer_count; s ++)
+    {
+        t = selected_transformers[s];
+        T = transformers[t];
+
+        if (T->Bone == NULL)
+        {
+            continue;
+        }
+
+        synthesize_Bone_Alignement(T->Bone);
+    }
+}
+
 /*inline*/ int come_With_Pixel(pixel * P, camera * C, normal * D)
 {
     Uint32 pix;
