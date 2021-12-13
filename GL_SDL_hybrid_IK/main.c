@@ -1139,7 +1139,7 @@ void assert_Locators_Selection()
     for (t = 0; t < transformerIndex; t ++)
     {
         T = transformers[t];
-        if (T->selected && T != current_T)
+        if (T->selected) //(T->selected && T != current_T)
         {
             selected_transformers[selected_transformer_count ++] = t;
         }

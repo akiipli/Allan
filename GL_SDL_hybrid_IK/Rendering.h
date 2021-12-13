@@ -541,54 +541,129 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     polygon * P;
     transformer * T;
 
-    for (s = 0; s < selected_transformer_count; s ++)
+    if (C->ortho)
     {
-        t = selected_transformers[s];
-        T = transformers[t];
-        D = length_AB_(C->T->pos[0], C->T->pos[1], C->T->pos[2], T->pos[0], T->pos[1], T->pos[2]);
+        printf("ortho");
 
-        if (T->Bone == NULL)
+        direction T_Dir, P_Dir;
+
+        float rotVec_I[3][3];
+        float x, y, z;
+        float X, Y, Z;
+        float dist, a, b;
+
+        invert_Rotation(C->T, rotVec_I);
+
+        for (s = 0; s < selected_transformer_count; s ++)
         {
-            continue;
-        }
+            t = selected_transformers[s];
+            T = transformers[t];
 
-        p_count = 0;
-        i_point[0] = 0.0;
-        i_point[1] = 0.0;
-        i_point[2] = 0.0;
-
-        for (p = 0; p < O->polycount; p ++)
-        {
-            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-
-            D0 = length_AB_(C->T->pos[0], C->T->pos[1], C->T->pos[2], P->B.Tx, P->B.Ty, P->B.Tz);
-
-            if (D0.distance > 0)
+            if (T->Bone == NULL)
             {
-                angle = atan2(P->B.Tradius, D0.distance);
+                continue;
+            }
 
-                dot = dot_productFF(D0.vec, D.vec);
+            x = T->pos[0] - C->T->pos[0];
+            y = T->pos[1] - C->T->pos[1];
+            z = T->pos[2] - C->T->pos[2];
 
-                if (acos(dot) < angle)
+            rotate_Vertex_I(rotVec_I, x, y, z, &T_Dir);
+
+            p_count = 0;
+            i_point[0] = T_Dir.x;
+            i_point[1] = T_Dir.y;
+            i_point[2] = 0.0;
+
+            for (p = 0; p < O->polycount; p ++)
+            {
+                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+                X = P->B.Tx - C->T->pos[0];
+                Y = P->B.Ty - C->T->pos[1];
+                Z = P->B.Tz - C->T->pos[2];
+
+                rotate_Vertex_I(rotVec_I, X, Y, Z, &P_Dir);
+
+                if (P_Dir.z > 0)
                 {
-                    i_point[0] += (D.vec[0] * D0.distance);
-                    i_point[1] += (D.vec[1] * D0.distance);
-                    i_point[2] += (D.vec[2] * D0.distance);
+                    a = T_Dir.x - P_Dir.x;
+                    b = T_Dir.y - P_Dir.y;
+                    dist = sqrt(a * a + b * b);
 
-                    p_count ++;
+                    if (dist < P->B.Tradius)
+                    {
+                        i_point[2] += P_Dir.z;
+
+                        p_count ++;
+                    }
                 }
             }
+
+            if (p_count > 0)
+            {
+                i_point[2] /= p_count;
+
+                rotate_Vertex_I(C->T->rotVec_, i_point[0], i_point[1], i_point[2], &T_Dir);
+
+                T->pos[0] = C->T->pos[0] + T_Dir.x;
+                T->pos[1] = C->T->pos[1] + T_Dir.y;
+                T->pos[2] = C->T->pos[2] + T_Dir.z;
+            }
         }
-
-        if (p_count > 0)
+    }
+    else
+    {
+        for (s = 0; s < selected_transformer_count; s ++)
         {
-            i_point[0] /= p_count;
-            i_point[1] /= p_count;
-            i_point[2] /= p_count;
+            t = selected_transformers[s];
+            T = transformers[t];
 
-            T->pos[0] = C->T->pos[0] + i_point[0];
-            T->pos[1] = C->T->pos[1] + i_point[1];
-            T->pos[2] = C->T->pos[2] + i_point[2];
+            if (T->Bone == NULL)
+            {
+                continue;
+            }
+
+            D = length_AB_(C->T->pos[0], C->T->pos[1], C->T->pos[2], T->pos[0], T->pos[1], T->pos[2]);
+
+            p_count = 0;
+            i_point[0] = 0.0;
+            i_point[1] = 0.0;
+            i_point[2] = 0.0;
+
+            for (p = 0; p < O->polycount; p ++)
+            {
+                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+                D0 = length_AB_(C->T->pos[0], C->T->pos[1], C->T->pos[2], P->B.Tx, P->B.Ty, P->B.Tz);
+
+                if (D0.distance > 0)
+                {
+                    angle = atan2(P->B.Tradius, D0.distance);
+
+                    dot = dot_productFF(D0.vec, D.vec);
+
+                    if (acos(dot) < angle)
+                    {
+                        i_point[0] += (D.vec[0] * D0.distance);
+                        i_point[1] += (D.vec[1] * D0.distance);
+                        i_point[2] += (D.vec[2] * D0.distance);
+
+                        p_count ++;
+                    }
+                }
+            }
+
+            if (p_count > 0)
+            {
+                i_point[0] /= p_count;
+                i_point[1] /= p_count;
+                i_point[2] /= p_count;
+
+                T->pos[0] = C->T->pos[0] + i_point[0];
+                T->pos[1] = C->T->pos[1] + i_point[1];
+                T->pos[2] = C->T->pos[2] + i_point[2];
+            }
         }
     }
 
