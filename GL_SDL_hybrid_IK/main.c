@@ -1888,6 +1888,116 @@ void flip_Cameras(camera * C)
     }
 }
 
+void select_All()
+{
+    int c, t, o, e, v, p, b, l;
+
+    cp * CP;
+    curve * C;
+    object * O;
+    vertex * V;
+    edge * E;
+    polygon * P;
+    transformer * T;
+    bone * B;
+
+    if (DRAW_LOCATORS && Bone_Mode)
+    {
+        for (b = 0; b < bonesIndex; b ++)
+        {
+            B = bones[b];
+            B->selected = 1;
+        }
+    }
+    else if (DRAW_LOCATORS && Object_Mode)
+    {
+        selected_transformer_count = 0;
+        for (t = CUBEINDEX - 1; t < transformerIndex; t ++) // skip world and cameras
+        {
+            T = transformers[t];
+            T->selected = 1;
+            selected_transformers[selected_transformer_count ++] = T->index;
+        }
+    }
+    else if (Curve_Mode && Vertex_Mode)
+    {
+        for (c = 0; c < selected_curves_count; c ++)
+        {
+            C = curves[selected_curves[c]];
+            for (p = 0; p < C->cps_count; p ++)
+            {
+                CP = C->cps[p];
+                CP->selected = 1;
+            }
+        }
+        assert_Cp_Selection();
+    }
+    else if (Curve_Mode)
+    {
+        selected_curves_count = 0;
+        for (c = 0; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+            C->selected = 1;
+            selected_curves[selected_curves_count ++] = C->index;
+        }
+    }
+    else if (Object_Mode)
+    {
+        selected_object_count = 0;
+        for (o = 0; o < objectIndex; o ++)
+        {
+            O = objects[o];
+            O->selected = 1;
+            selected_objects[selected_object_count ++] = O->index;
+        }
+    }
+    else if (Polygon_Mode)
+    {
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O = objects[selected_objects[o]];
+            for (p = 0; p < O->polycount; p ++)
+            {
+                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+                P->selected = 1;
+                assignSelectionToQuads(O, P, 1);
+            }
+        }
+        assert_Element_Selection();
+        for (l = 0; l < SUBD; l++)
+            load_id_colors(selected_objects, selected_object_count, l, OBJECT_COLORS);
+        load_id_colors_Fan(selected_objects, selected_object_count, OBJECT_COLORS);
+        UPDATE_COLORS = 1;
+    }
+    else if (Edge_Mode)
+    {
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O = objects[selected_objects[o]];
+            for (e = 0; e < O->edgecount; e ++)
+            {
+                E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+                E->selected = 1;
+            }
+        }
+        assert_Element_Selection();
+    }
+    else if (Vertex_Mode)
+    {
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O = objects[selected_objects[o]];
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                V->selected = 1;
+            }
+        }
+        assert_Element_Selection();
+    }
+}
+
 void frame_object(camera * C, int all_Views)
 {
     int c, t, o, e, v, p, b;
@@ -19265,6 +19375,10 @@ int main(int argc, char * args[])
                 SDL_GetMouseState(&mouse_x, &mouse_y);
                 Camera = find_View(mouse_x, mouse_y, splitview);
                 frame_object(Camera, 1);
+            }
+            else if (mod & KMOD_CTRL)
+            {
+                select_All();
             }
             else if (BIND_POSE)
             {

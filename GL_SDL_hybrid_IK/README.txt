@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+4:46 PM 12/14/2021
+Ctrl + A selects All.
+
 8:00 PM 12/12/2021
 In Bind Mode pressing Enter places drawed bones selected locators into current mesh along viewport vector.
 
