@@ -1131,8 +1131,8 @@ void assert_Locators_Selection()
 {
     int t;
     transformer * T;
-    transformer * current_T;
-    current_T = transformers[currentLocator];
+//    transformer * current_T;
+//    current_T = transformers[currentLocator];
 
     selected_transformer_count = 0;
 

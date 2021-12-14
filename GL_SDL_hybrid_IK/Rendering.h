@@ -563,6 +563,10 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
             {
                 continue;
             }
+            else if (T == T->Bone->A)
+            {
+                continue;
+            }
 
             x = T->pos[0] - C->T->pos[0];
             y = T->pos[1] - C->T->pos[1];
@@ -623,6 +627,10 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
             {
                 continue;
             }
+            else if (T == T->Bone->A)
+            {
+                continue;
+            }
 
             D = length_AB_(C->T->pos[0], C->T->pos[1], C->T->pos[2], T->pos[0], T->pos[1], T->pos[2]);
 
@@ -676,8 +684,29 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
         {
             continue;
         }
+        else if (T == T->Bone->A)
+        {
+            T->pos[0] = T->parent->pos[0];
+            T->pos[1] = T->parent->pos[1];
+            T->pos[2] = T->parent->pos[2];
+        }
+    }
+
+    bone * B;
+
+    for (s = 0; s < selected_transformer_count; s ++)
+    {
+        t = selected_transformers[s];
+        T = transformers[t];
+
+        if (T->Bone == NULL || T->Bone == B)
+        {
+            continue;
+        }
 
         synthesize_Bone_Alignement(T->Bone);
+
+        B = T->Bone;
     }
 }
 
