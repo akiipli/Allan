@@ -672,7 +672,7 @@ int initialize_object(int index,
     verts[index] = (vertex**)  malloc(OBJECTARRAY * sizeof(vertex*));
     if (verts[index] == NULL) return 0;
     icols[index] = (id_color**)malloc(OBJECTARRAY * sizeof(id_color*));
-    if (verts[index] == NULL) return 0;
+    if (icols[index] == NULL) return 0;
     trips[index] = (triangle**)malloc(OBJECTARRAY * sizeof(triangle*));
     if (trips[index] == NULL) return 0;
     edges[index] = (edge**)    malloc(OBJECTARRAY * sizeof(edge*));
