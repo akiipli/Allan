@@ -1026,9 +1026,9 @@ void init_object_verts(object * O, int start, float * Coords, int * Edges, int E
         V->y = Coords[c_v++ % LEN_3];
         V->z = Coords[c_v++ % LEN_3];
 
-        V->Rx = V->x; // morph coordinates
-        V->Ry = V->y;
-        V->Rz = V->z;
+//        V->Rx = V->x; // morph coordinates
+//        V->Ry = V->y;
+//        V->Rz = V->z;
 
         V->edgecount = E_tiks[c_E++ % LEN];
         V->edges = malloc(V->edgecount * sizeof(int));
