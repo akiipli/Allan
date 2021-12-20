@@ -109,13 +109,17 @@ struct vertex
     float x;
     float y;
     float z;
+
+    float Rx; // morph coordinates
+    float Ry;
+    float Rz;
+
     float Tx; // transformed verts
     float Ty;
     float Tz;
+
     vertex * vert;
-//    float Rx; // radial coordinates, z is depth
-//    float Ry;
-//    float Rz;
+
     int * edges;
     int edgecount;
     int * uv_verts;

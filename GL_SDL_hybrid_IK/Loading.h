@@ -2464,6 +2464,10 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
                 sscanf(buff, "%*s %f %f %f", &V->N.Tx, &V->N.Ty, &V->N.Tz);
                 fgets(buff, BUF_SIZE, fp);
 
+                V->Rx = V->x; // morph coordinates
+                V->Ry = V->y;
+                V->Rz = V->z;
+
                 b = 6;
 
                 V->edges = malloc(V->edgecount * sizeof(int));

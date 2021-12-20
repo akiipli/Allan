@@ -398,9 +398,9 @@ void rotate_vertex_groups(transformer * T)
                 idx = S->indices[i];
                 V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                X = V->x - T->pos_bind[0];
-                Y = V->y - T->pos_bind[1];
-                Z = V->z - T->pos_bind[2];
+                X = V->Rx - T->pos_bind[0];
+                Y = V->Ry - T->pos_bind[1];
+                Z = V->Rz - T->pos_bind[2];
 
                 V->Tx += (rotVec[0][0] * X + rotVec[1][0] * Y + rotVec[2][0] * Z + T->pos[0]) * S->weights[i];
                 V->Ty += (rotVec[0][1] * X + rotVec[1][1] * Y + rotVec[2][1] * Z + T->pos[1]) * S->weights[i];
@@ -422,9 +422,9 @@ void rotate_verts(object * O, transformer T)
     for (i = 0; i < O->vertcount; i++)
     {
         V = &O->verts[i / ARRAYSIZE][i % ARRAYSIZE];
-        V->Tx = T.rotVec[0][0] * V->x + T.rotVec[1][0] * V->y + T.rotVec[2][0] * V->z + T.pos[0];
-        V->Ty = T.rotVec[0][1] * V->x + T.rotVec[1][1] * V->y + T.rotVec[2][1] * V->z + T.pos[1];
-        V->Tz = T.rotVec[0][2] * V->x + T.rotVec[1][2] * V->y + T.rotVec[2][2] * V->z + T.pos[2];
+        V->Tx = T.rotVec[0][0] * V->Rx + T.rotVec[1][0] * V->Ry + T.rotVec[2][0] * V->Rz + T.pos[0];
+        V->Ty = T.rotVec[0][1] * V->Rx + T.rotVec[1][1] * V->Ry + T.rotVec[2][1] * V->Rz + T.pos[1];
+        V->Tz = T.rotVec[0][2] * V->Rx + T.rotVec[1][2] * V->Ry + T.rotVec[2][2] * V->Rz + T.pos[2];
 
         V->N.Tx = T.rotVec_[0][0] * V->N.x + T.rotVec_[1][0] * V->N.y + T.rotVec_[2][0] * V->N.z;
         V->N.Ty = T.rotVec_[0][1] * V->N.x + T.rotVec_[1][1] * V->N.y + T.rotVec_[2][1] * V->N.z;
@@ -462,9 +462,9 @@ void rotate_verts_(object * O, transformer T, int l)
     for (i = 0; i < O->vertcount_[L]; i++)
     {
         V = &O->verts_[L][i / ARRAYSIZE][i % ARRAYSIZE];
-        V->Tx = T.rotVec[0][0] * V->x + T.rotVec[1][0] * V->y + T.rotVec[2][0] * V->z + T.pos[0];
-        V->Ty = T.rotVec[0][1] * V->x + T.rotVec[1][1] * V->y + T.rotVec[2][1] * V->z + T.pos[1];
-        V->Tz = T.rotVec[0][2] * V->x + T.rotVec[1][2] * V->y + T.rotVec[2][2] * V->z + T.pos[2];
+        V->Tx = T.rotVec[0][0] * V->Rx + T.rotVec[1][0] * V->Ry + T.rotVec[2][0] * V->Rz + T.pos[0];
+        V->Ty = T.rotVec[0][1] * V->Rx + T.rotVec[1][1] * V->Ry + T.rotVec[2][1] * V->Rz + T.pos[1];
+        V->Tz = T.rotVec[0][2] * V->Rx + T.rotVec[1][2] * V->Ry + T.rotVec[2][2] * V->Rz + T.pos[2];
 
         V->N.Tx = T.rotVec_[0][0] * V->N.x + T.rotVec_[1][0] * V->N.y + T.rotVec_[2][0] * V->N.z;
         V->N.Ty = T.rotVec_[0][1] * V->N.x + T.rotVec_[1][1] * V->N.y + T.rotVec_[2][1] * V->N.z;
