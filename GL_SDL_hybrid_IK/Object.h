@@ -110,9 +110,9 @@ struct vertex
     float y;
     float z;
 
-//    float Rx; // morph coordinates
-//    float Ry;
-//    float Rz;
+    float Rx; // morph coordinates
+    float Ry;
+    float Rz;
 
     float Tx; // transformed verts
     float Ty;

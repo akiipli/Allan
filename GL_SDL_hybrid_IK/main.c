@@ -19535,6 +19535,7 @@ int main(int argc, char * args[])
             {
                 if (Curve_Mode)
                 {
+                    Draw_Bottom_Message("transfer Curve Cps To Vertex Coordinates");
                     transfer_Curve_Cps_To_Vertex_Coordinates(O);
                 }
                 else

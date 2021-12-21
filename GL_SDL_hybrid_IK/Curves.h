@@ -3186,6 +3186,10 @@ void transfer_Curve_Cps_To_Vertex_Coordinates(object * O)
                 CP->vert->x = CP->pos[0];
                 CP->vert->y = CP->pos[1];
                 CP->vert->z = CP->pos[2];
+
+                CP->vert->Rx = CP->pos[0];
+                CP->vert->Ry = CP->pos[1];
+                CP->vert->Rz = CP->pos[2];
             }
         }
     }

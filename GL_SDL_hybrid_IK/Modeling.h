@@ -20,6 +20,10 @@ void transfer_Transformed_Coordinates(object * O)
         V->y = V->Ty;
         V->z = V->Tz;
 
+        V->Rx = V->Tx; // morph coordinates
+        V->Ry = V->Ty;
+        V->Rz = V->Tz;
+
         V->N.x = V->N.Tx;
         V->N.y = V->N.Ty;
         V->N.z = V->N.Tz;
