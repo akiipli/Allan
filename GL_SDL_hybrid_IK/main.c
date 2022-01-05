@@ -20172,8 +20172,9 @@ int main(int argc, char * args[])
         }
         else if (message == 78)
         {
-            update_transformed_Triangles_radius(subdLevel);
+            find_Camera_Objects();
             Camera = find_View(mouse_x, mouse_y, splitview);
+            update_transformed_Triangles_radius(Camera, subdLevel);
             render_and_save_Image(Camera, screen_width, screen_height, subdLevel);
         }
         if (message != 0 && !dialog_lock)

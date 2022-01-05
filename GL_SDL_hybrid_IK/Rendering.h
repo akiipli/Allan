@@ -334,10 +334,34 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
     P->B[volume_counter] = 100;
     P->A[volume_counter] = 100;
 
+    float objectradius;
+    aim objectAim;
+
     for (o = 0; o < C->object_count; o++)
     {
         i = C->objects[o];
         O = objects[i];
+
+        objectradius = O->B.radius;
+        objectAim = vector3d(O->B, C->T->pos);
+
+        if (objectAim.dist > objectradius)
+        {
+            deviation = atan2(objectradius * 2, objectAim.dist - objectradius);
+        }
+        else
+        {
+            deviation = pi;
+        }
+
+        deviation += C->view_minor;
+
+        aim_deviation = acos(dot_productN(D, objectAim.vec));
+
+        if (aim_deviation > deviation)
+        {
+            continue;
+        }
         // make switch for renderlevels
         // when it comes to switchable properties
         // later when UI enables it.
@@ -743,10 +767,35 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     P->B[volume_counter] = 100;
     P->A[volume_counter] = 100;
 
+    float objectradius;
+    aim objectAim;
+
     for (o = 0; o < C->object_count; o++)
     {
         i = C->objects[o];
         O = objects[i];
+
+        objectradius = O->B.radius;
+        objectAim = vector3d(O->B, C->T->pos);
+
+        if (objectAim.dist > objectradius)
+        {
+            deviation = atan2(objectradius * 2, objectAim.dist - objectradius);
+        }
+        else
+        {
+            deviation = pi;
+        }
+
+        deviation += C->view_minor;
+
+        aim_deviation = acos(dot_productN(D, objectAim.vec));
+
+        if (aim_deviation > deviation)
+        {
+            continue;
+        }
+
         int t;
         for (t = 0; t < O->tripcount; t++)
         {

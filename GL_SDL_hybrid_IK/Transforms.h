@@ -26,14 +26,14 @@ void rotate_Camera(camera * C, float CamDist)
 //    gluLookAt(C->T.pos[0], C->T.pos[1], C->T.pos[2], 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
-void update_transformed_Triangles_radius(int L)
+void update_transformed_Triangles_radius(camera * C, int L)
 {
     int o, level;
     object * O;
 
-    for (o = 0; o < objectIndex; o ++)
+    for (o = 0; o < C->object_count; o ++)
     {
-        O = objects[o];
+        O = objects[C->objects[o]];
         update_bounding_box_for_transformed_Trips(O, 1); // does update radius
 
         for (level = L; level <= O->subdlevel; level ++)
