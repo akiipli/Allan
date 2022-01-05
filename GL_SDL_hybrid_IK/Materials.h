@@ -61,7 +61,7 @@ int init_Material(int index)
     int i = index % MATERIALS_TOTAL;
     surface_Material * M = &Materials[i];
     M->index = index;
-    M->smooth = 0;
+    M->smooth = 1;
     sprintf(M->Name, "M");
     M->texture = 0;
     M->normal = 0;
@@ -69,7 +69,7 @@ int init_Material(int index)
     M->Texture_idx = 0; // index in displayLists for glCallList
     M->Normal_idx = 0; // index in normalsLists for glCallList
     M->Bump_idx = 0; // index in bumpsLists for glCallList
-    M->use_texture = 0;
+    M->use_texture = 1;
     M->RGBA.R = 255;
     M->RGBA.G = 255;
     M->RGBA.B = 255;

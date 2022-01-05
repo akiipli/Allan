@@ -14579,7 +14579,8 @@ int main(int argc, char * args[])
                     case SDLK_F3: message = 21; printf("F3\n"); break;
                     case SDLK_F4: message = 22; printf("F4\n"); break;
                     case SDLK_F5: message = 76; printf("F5\n"); break;
-                    case SDLK_F6: message = 77; printf("F5\n"); break;
+                    case SDLK_F6: message = 77; printf("F6\n"); break;
+                    case SDLK_F12: message = 78; printf("F12\n"); break;
 
                     case SDLK_TAB: message = 25; printf("TAB\n"); break;
 
@@ -20168,6 +20169,12 @@ int main(int argc, char * args[])
         else if (message == 77)
         {
             //calculate_Triangle_Tangents(O);
+        }
+        else if (message == 78)
+        {
+            update_transformed_Triangles_radius(subdLevel);
+            Camera = find_View(mouse_x, mouse_y, splitview);
+            render_and_save_Image(Camera, screen_width, screen_height, subdLevel);
         }
         if (message != 0 && !dialog_lock)
         {

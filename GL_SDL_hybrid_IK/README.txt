@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+8:18 PM 1/5/2022
+Rendering revisited. Pressing F12 starts rendering based on current dimensions. Based on perspective viewtype.
+
 4:46 PM 12/14/2021
 Ctrl + A selects All.
 

@@ -8,6 +8,8 @@ Copyright <2018> <Allan Kiipli>
 #define FILE_IO_H_INCLUDED
 
 char outfiles[] = "C:/Allan/outfiles/";
+char renderfiles[] = "C:/Allan/render/";
+char renderName[] = "muhv";
 
 int write_OBJ_to_Disk_level_(object * O, int L)
 {

@@ -396,14 +396,14 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
 //
 //                printf("polyAim.vec %f %f %f\n", polyAim.vec[0], polyAim.vec[1], polyAim.vec[2]);
 
-                if (polyAim.dist > polyradius)
-                {
-                    deviation = atan2(polyradius, polyAim.dist - polyradius);
-                }
-                else
-                {
-                    deviation = pi;
-                }
+//                if (polyAim.dist > polyradius)
+//                {
+                deviation = atan2(polyradius * 2, polyAim.dist);
+//                }
+//                else
+//                {
+//                    deviation = pi;
+//                }
 
 //                printf("deviation %f\n", deviation);
 
@@ -417,7 +417,7 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
                     continue;
                 }
 
-                P->R[volume_counter] = 255;
+                //P->R[volume_counter] = 255;
 
                 plane = init_plane(polypoints[1], &polynormal);
                 dist = nearest(C->T->pos, plane);
@@ -451,7 +451,7 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
                     polytexts[2][0] = UV->u;
                     polytexts[2][1] = UV->v;
 
-                    if (Material.use_texture && texture != NULL)
+                    if (texture != NULL)//(Material.use_texture && texture != NULL)
                     {
                         T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
                         x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
@@ -467,7 +467,7 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
                         a = Material.RGBA.A;
                         normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
                     }
-                    if (Material.smooth)
+                    if (texture != NULL)//(Material.smooth)
                     {
                         dot_light = dot_productFF(T_uvNormal.normal, light_vec);
                     }
@@ -475,6 +475,9 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
                     {
                         dot_light = dot_productN(&polynormal, light_vec);
                     }
+
+                    if (dot_light < 0)
+                        dot_light = abs(dot_light);
 
                     P->D[volume_counter] = dist;
                     P->trip[volume_counter] = t;
@@ -797,14 +800,14 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 //
 //                printf("polyAim.vec %f %f %f\n", polyAim.vec[0], polyAim.vec[1], polyAim.vec[2]);
 
-                if (polyAim.dist > polyradius)
-                {
-                    deviation = atan2(polyradius, polyAim.dist - polyradius);
-                }
-                else
-                {
-                    deviation = pi;
-                }
+//                if (polyAim.dist > polyradius)
+//                {
+                deviation = atan2(polyradius * 2, polyAim.dist);
+//                }
+//                else
+//                {
+//                    deviation = pi;
+//                }
 
 //                printf("deviation %f\n", deviation);
 
@@ -818,7 +821,7 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
                     continue;
                 }
 
-                P->R[volume_counter] = 255;
+                //P->R[volume_counter] = 255;
 
                 plane = init_plane(polypoints[1], &polynormal);
                 dist = nearest(C->T->pos, plane);
@@ -852,7 +855,7 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
                     polytexts[2][0] = UV->u;
                     polytexts[2][1] = UV->v;
 
-                    if (Material.use_texture && texture != NULL)
+                    if (texture != NULL)//(Material.use_texture && texture != NULL)
                     {
                         T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
                         x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
@@ -868,7 +871,7 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
                         a = Material.RGBA.A;
                         normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
                     }
-                    if (Material.smooth)
+                    if (texture != NULL)//(Material.smooth)
                     {
                         dot_light = dot_productFF(T_uvNormal.normal, light_vec);
                     }
@@ -876,6 +879,9 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
                     {
                         dot_light = dot_productN(&polynormal, light_vec);
                     }
+
+                    if (dot_light < 0)
+                        dot_light = abs(dot_light);
 
                     P->D[volume_counter] = dist;
                     P->trip[volume_counter] = t;
@@ -7678,6 +7684,8 @@ void render_Void(unsigned char * data, int width, int height)
 
 void render_Image(unsigned char * data, camera * C, int width, int height, int L)
 {
+    SDL_Event event;
+
     normalizeF((float *)&light_vec);
 //    printf("light_vec %f %f %f\n", light_vec[0], light_vec[1], light_vec[2]);
 //    printf("render_Image\n");
@@ -7695,11 +7703,11 @@ void render_Image(unsigned char * data, camera * C, int width, int height, int L
     float DDy;
 
     float H_Mark = C->h_view / 2.0;
-    float V_Mark = C->v_view / 2.0;
+    float V_Mark = -C->v_view / 2.0;
     float H_step = (C->h_view / (float)width);
     float V_step = (C->v_view / (float)height);
     H_Mark -= H_step / 2.0;
-    V_Mark -= V_step / 2.0;
+    V_Mark += V_step / 2.0;
     H_Mark += pi;
     V_Mark += pi_2;
 
@@ -7712,6 +7720,8 @@ void render_Image(unsigned char * data, camera * C, int width, int height, int L
         H_Mark = H_MARK;
         for (x = 0; x < width; x ++)
         {
+            if (!(y % 10) && !(x % 10))
+                printf(".");
             D.D.y = DDy;
             D.D.x = sin(H_Mark) * R;
             D.D.z = cos(H_Mark) * R;
@@ -7730,8 +7740,86 @@ void render_Image(unsigned char * data, camera * C, int width, int height, int L
 
             H_Mark -= H_step;
         }
-        V_Mark -= V_step;
+        if (!(y % 10))
+            printf("\n");
+
+        if (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_KEYUP)
+            {
+                if (event.key.keysym.sym == SDLK_ESCAPE)
+                {
+                    break;
+                }
+            }
+        }
+
+        V_Mark += V_step;
     }
+}
+
+int makepath(char * file_path, mode_t mode);
+
+void render_and_save_Image(camera * C, int width, int height, int L)
+{
+    ILuint ImgId = 0;
+
+	ilGenImages(1, &ImgId);
+
+	ilBindImage(ImgId);
+
+    void * Data = malloc(width * height * 4 * sizeof(unsigned char));
+
+    if (Data != NULL)
+    {
+        render_Image(Data, C, width, height, L);
+
+        //ilLoadL(IL_TYPE_UNKNOWN, Data, width * height * 4 * 8);
+
+        ilTexImage(width, height, 0, 4, IL_RGBA, IL_UNSIGNED_BYTE, Data);
+
+        int result = 0;
+
+        if (!isDirectory(renderfiles))
+        {
+            printf("making directory\n");
+            result = makepath(renderfiles, 0777);
+        }
+        else
+        {
+            result = 1;
+        }
+
+        printf("%d\n", result);
+
+        if (result)
+        {
+            char Path[STRLEN];
+
+            Path[0] = '\0';
+
+            strcat(Path, renderfiles);
+            strcat(Path, renderName);
+            strcat(Path, ".png");
+
+            if (isFile(Path))
+            {
+                remove(Path);
+            }
+
+            ilSave(IL_PNG, Path);
+
+            printf("image saved to %s\n", Path);
+        }
+
+        free(Data);
+    }
+    else
+    {
+        printf("Render: Not enough memory!\n");
+    }
+
+    ilDeleteImages(1, &ImgId);
 }
 
 void draw_Curve_Segment_Recursive_ID(curve_segment * S, int level)
