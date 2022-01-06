@@ -95,6 +95,9 @@ typedef struct
 }
 pixel;
 
+int volume_index[PIXEL_VOLUME];
+float d_index[PIXEL_VOLUME];
+
 /*inline*/ float length(float V[3])
 {
     float l = sqrt(V[0] * V[0] + V[1] * V[1] + V[2] * V[2]);
@@ -334,8 +337,13 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
     P->B[volume_counter] = 100;
     P->A[volume_counter] = 100;
 
+    int d;
+    float s;
+
     float objectradius;
     aim objectAim;
+
+    int t;
 
     for (o = 0; o < C->object_count; o++)
     {
@@ -367,7 +375,7 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
         // later when UI enables it.
         // Then level -1 geometry when displayed as level 0
         // has level 0 geometry but no tune of it.
-        int t;
+
         for (t = 0; t < O->tripcount_[L]; t++)
         {
             T = &O->trips_[L][t / ARRAYSIZE][t % ARRAYSIZE];
@@ -378,31 +386,6 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
 
 //            printf("\ntriangle %d\n", t);
 //            printf("polynormal %f %f %f\n", polynormal.x, polynormal.y, polynormal.z);
-
-            idx = T->verts[0];
-            V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-            polypoints[0][0] = V->Tx;
-            polypoints[0][1] = V->Ty;
-            polypoints[0][2] = V->Tz;
-            polynormals[0][0] = V->N.Tx;
-            polynormals[0][1] = V->N.Ty;
-            polynormals[0][2] = V->N.Tz;
-            idx = T->verts[1];
-            V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-            polypoints[1][0] = V->Tx;
-            polypoints[1][1] = V->Ty;
-            polypoints[1][2] = V->Tz;
-            polynormals[1][0] = V->N.Tx;
-            polynormals[1][1] = V->N.Ty;
-            polynormals[1][2] = V->N.Tz;
-            idx = T->verts[2];
-            V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-            polypoints[2][0] = V->Tx;
-            polypoints[2][1] = V->Ty;
-            polypoints[2][2] = V->Tz;
-            polynormals[2][0] = V->N.Tx;
-            polynormals[2][1] = V->N.Ty;
-            polynormals[2][2] = V->N.Tz;
 
             dot = dot_product(&polynormal, D);
 
@@ -440,6 +423,31 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
 //                    printf("continue\n");
                     continue;
                 }
+
+                idx = T->verts[0];
+                V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polypoints[0][0] = V->Tx;
+                polypoints[0][1] = V->Ty;
+                polypoints[0][2] = V->Tz;
+                polynormals[0][0] = V->N.Tx;
+                polynormals[0][1] = V->N.Ty;
+                polynormals[0][2] = V->N.Tz;
+                idx = T->verts[1];
+                V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polypoints[1][0] = V->Tx;
+                polypoints[1][1] = V->Ty;
+                polypoints[1][2] = V->Tz;
+                polynormals[1][0] = V->N.Tx;
+                polynormals[1][1] = V->N.Ty;
+                polynormals[1][2] = V->N.Tz;
+                idx = T->verts[2];
+                V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polypoints[2][0] = V->Tx;
+                polypoints[2][1] = V->Ty;
+                polypoints[2][2] = V->Tz;
+                polynormals[2][0] = V->N.Tx;
+                polynormals[2][1] = V->N.Ty;
+                polynormals[2][2] = V->N.Tz;
 
                 //P->R[volume_counter] = 255;
 
@@ -512,6 +520,9 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
                     P->B[volume_counter] = b * dot_light;
                     P->A[volume_counter] = a;
                     volume_counter ++;
+
+                    if (volume_counter == PIXEL_VOLUME)
+                        break;
                 }
                 else
                 {
@@ -524,9 +535,6 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
     {
         return 0;
     }
-
-    int volume_index[volume_counter], d;
-    float d_index[volume_counter], s;
 
     for (i = 0; i < volume_counter; i ++)
     {
@@ -767,8 +775,13 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     P->B[volume_counter] = 100;
     P->A[volume_counter] = 100;
 
+    int d;
+    float s;
+
     float objectradius;
     aim objectAim;
+
+    int t;
 
     for (o = 0; o < C->object_count; o++)
     {
@@ -796,7 +809,6 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
             continue;
         }
 
-        int t;
         for (t = 0; t < O->tripcount; t++)
         {
             T = &O->trips[t / ARRAYSIZE][t % ARRAYSIZE];
@@ -807,31 +819,6 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 
 //            printf("\ntriangle %d\n", t);
 //            printf("polynormal %f %f %f\n", polynormal.x, polynormal.y, polynormal.z);
-
-            idx = T->verts[0];
-            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-            polypoints[0][0] = V->Tx;
-            polypoints[0][1] = V->Ty;
-            polypoints[0][2] = V->Tz;
-            polynormals[0][0] = V->N.Tx;
-            polynormals[0][1] = V->N.Ty;
-            polynormals[0][2] = V->N.Tz;
-            idx = T->verts[1];
-            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-            polypoints[1][0] = V->Tx;
-            polypoints[1][1] = V->Ty;
-            polypoints[1][2] = V->Tz;
-            polynormals[1][0] = V->N.Tx;
-            polynormals[1][1] = V->N.Ty;
-            polynormals[1][2] = V->N.Tz;
-            idx = T->verts[2];
-            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-            polypoints[2][0] = V->Tx;
-            polypoints[2][1] = V->Ty;
-            polypoints[2][2] = V->Tz;
-            polynormals[2][0] = V->N.Tx;
-            polynormals[2][1] = V->N.Ty;
-            polynormals[2][2] = V->N.Tz;
 
             dot = dot_product(&polynormal, D);
 
@@ -869,6 +856,31 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 //                    printf("continue\n");
                     continue;
                 }
+
+                idx = T->verts[0];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polypoints[0][0] = V->Tx;
+                polypoints[0][1] = V->Ty;
+                polypoints[0][2] = V->Tz;
+                polynormals[0][0] = V->N.Tx;
+                polynormals[0][1] = V->N.Ty;
+                polynormals[0][2] = V->N.Tz;
+                idx = T->verts[1];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polypoints[1][0] = V->Tx;
+                polypoints[1][1] = V->Ty;
+                polypoints[1][2] = V->Tz;
+                polynormals[1][0] = V->N.Tx;
+                polynormals[1][1] = V->N.Ty;
+                polynormals[1][2] = V->N.Tz;
+                idx = T->verts[2];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polypoints[2][0] = V->Tx;
+                polypoints[2][1] = V->Ty;
+                polypoints[2][2] = V->Tz;
+                polynormals[2][0] = V->N.Tx;
+                polynormals[2][1] = V->N.Ty;
+                polynormals[2][2] = V->N.Tz;
 
                 //P->R[volume_counter] = 255;
 
@@ -941,6 +953,9 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
                     P->B[volume_counter] = b * dot_light;
                     P->A[volume_counter] = a;
                     volume_counter ++;
+
+                    if (volume_counter == PIXEL_VOLUME)
+                        break;
                 }
                 else
                 {
@@ -953,9 +968,6 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     {
         return 0;
     }
-
-    int volume_index[volume_counter], d;
-    float d_index[volume_counter], s;
 
     for (i = 0; i < volume_counter; i ++)
     {
