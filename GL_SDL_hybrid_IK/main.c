@@ -31,6 +31,7 @@ int RESET = 0;
 #include "Dialog.h"
 #include <dirent.h>
 #include "Cursors.h"
+#include <time.h>
 
 #include "SDL/SDL_image.h"
 #include "SDL/SDL_syswm.h"
