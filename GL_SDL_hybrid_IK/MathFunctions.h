@@ -171,24 +171,24 @@ Copyright <2018> <Allan Kiipli>
     b->Ty = (A->Ty + B->Ty + C->Ty + D->Ty) / 4.0;
     b->Tz = (A->Tz + B->Tz + C->Tz + D->Tz) / 4.0;
 
-    float min_x = A->x;
-    float min_y = A->y;
-    float min_z = A->z;
-    float max_x = B->x;
-    float max_y = B->y;
-    float max_z = B->z;
+    float min_x = A->Tx;
+    float min_y = A->Ty;
+    float min_z = A->Tz;
+    float max_x = B->Tx;
+    float max_y = B->Ty;
+    float max_z = B->Tz;
 
-    if (B->x < min_x) {min_x = B->x; max_x = A->x;}
-    if (B->y < min_y) {min_y = B->y; max_y = A->y;}
-    if (B->z < min_z) {min_z = B->z; max_z = A->z;}
+    if (B->Tx < min_x) {min_x = B->Tx; max_x = A->Tx;}
+    if (B->Ty < min_y) {min_y = B->Ty; max_y = A->Ty;}
+    if (B->Tz < min_z) {min_z = B->Tz; max_z = A->Tz;}
 
-    if (C->x < min_x) min_x = C->x; else if (C->x > max_x) max_x = C->x;
-    if (C->y < min_y) min_y = C->y; else if (C->y > max_y) max_y = C->y;
-    if (C->z < min_z) min_z = C->z; else if (C->z > max_z) max_z = C->z;
+    if (C->Tx < min_x) min_x = C->Tx; else if (C->Tx > max_x) max_x = C->Tx;
+    if (C->Ty < min_y) min_y = C->Ty; else if (C->Ty > max_y) max_y = C->Ty;
+    if (C->Tz < min_z) min_z = C->Tz; else if (C->Tz > max_z) max_z = C->Tz;
 
-    if (D->x < min_x) min_x = D->x; else if (D->x > max_x) max_x = D->x;
-    if (D->y < min_y) min_y = D->y; else if (D->y > max_y) max_y = D->y;
-    if (D->z < min_z) min_z = D->z; else if (D->z > max_z) max_z = D->z;
+    if (D->Tx < min_x) min_x = D->Tx; else if (D->Tx > max_x) max_x = D->Tx;
+    if (D->Ty < min_y) min_y = D->Ty; else if (D->Ty > max_y) max_y = D->Ty;
+    if (D->Tz < min_z) min_z = D->Tz; else if (D->Tz > max_z) max_z = D->Tz;
     if (radius)
         b->Tradius = sqrt((max_x - min_x) * (max_x - min_x) +
                      (max_y - min_y) * (max_y - min_y) +

@@ -424,11 +424,6 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
 
                         polyradius = Q->B.Tradius;
 
-                        if (polyradius == 0)
-                        {
-                            continue;
-                        }
-
                         polyAim = vector3d(Q->B, C->T->pos);
 
                         deviation = atan2(polyradius * 2, polyAim.dist); // * 2
