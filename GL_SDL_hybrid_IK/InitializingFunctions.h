@@ -817,6 +817,8 @@ int initialize_object(int index,
 
     O->smooth = 1;
 
+    O->group = 0;
+
     for (i = 0; i < SUBD; i ++)
     {
         O->textcount_[i] = 0;
