@@ -1190,6 +1190,7 @@ void init_object_polys(object * O, int start, int * p_trips, int T_LEN, int * p_
         P->surface = 0;
         P->selected = 0;
         P->color = i;
+        P->group = 0;
         P->edgecount = E_tiks[c_E++ % LEN];
         P->tripcount = P->edgecount - 2;
         P->trips = calloc(P->tripcount, sizeof(int));

@@ -47,6 +47,16 @@ box_3d;
 
 typedef struct
 {
+    int index;
+    int * indices;
+    int indices_count;
+    int assigned;
+    box_3d B;
+}
+polygroup;
+
+typedef struct
+{
     float u;
     float v;
     float radius;
@@ -213,6 +223,8 @@ struct edge
     object * O;
     float vec[3];
     int smooth; // 0 is sharp, 1 is perimeter smooth edge, 2 is inside edge
+
+    polygroup group_Polys;
 };
 
 void print_edge(edge * E)
@@ -352,6 +364,8 @@ typedef struct
     float dist;
     int patch;
     float vec[3];
+
+    int group;
 }
 polygon;
 
@@ -512,6 +526,8 @@ struct object
     int segment_count;
     cp ** cps;
     int cps_count;
+
+    int group;
 };
 
 void print_object(object * O)
