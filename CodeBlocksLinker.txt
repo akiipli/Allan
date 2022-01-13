@@ -1,10 +1,12 @@
 Linker settings
 Other linker options
 -lglew32mx -lglew32 -lfreetype -lDevIL -lILU -lILUT -lmingw32 -lSDLmain -lSDL -lSDL_image -lsdlgfx -lSDL_mixer -lSDL_ttf
--lopengl32 -lglu32 -lgdi32 -mwindows
+-lopengl32 -lglu32 -lgdi32 -mwindows -lpthreadGC2
 Search directories
 Compiler
 C:\SDL-1.2.15\include
 C:\SDL-1.2.15\include\freetype2
+C:\pthreads\include
 Linker
 C:\SDL-1.2.15\lib
+C:\pthreads\lib\x86

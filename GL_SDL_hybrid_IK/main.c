@@ -32,6 +32,8 @@ int RESET = 0;
 #include <dirent.h>
 #include "Cursors.h"
 #include <time.h>
+#include <pthread.h>
+#include <assert.h>
 
 #include "SDL/SDL_image.h"
 #include "SDL/SDL_syswm.h"
@@ -20177,6 +20179,7 @@ int main(int argc, char * args[])
             Camera = find_View(mouse_x, mouse_y, splitview);
             update_transformed_Triangles_radius(Camera, subdLevel);
             generate_Polygroups(Camera);
+            populate_box_3d_Aim_And_Deviation(Camera);
             render_and_save_Image(Camera, screen_width, screen_height, subdLevel);
         }
         if (message != 0 && !dialog_lock)

@@ -25,6 +25,13 @@ typedef struct curve_segment curve_segment;
 
 typedef struct
 {
+    float vec[3];
+    float dist;
+}
+aim;
+
+typedef struct
+{
     float R;
     float G;
     float B;
@@ -42,6 +49,9 @@ typedef struct
     float Tz;
     float radius;
     float Tradius;
+    float deviation;
+    aim Aim;
+    int backface;
 }
 box_3d;
 

@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+12:32 PM 1/13/2022
+Rendering gone to pthreads. 8 threads speed up testing.
+
 8:18 PM 1/5/2022
 Rendering revisited. Pressing F12 starts rendering based on current dimensions. Based on perspective viewtype.
 

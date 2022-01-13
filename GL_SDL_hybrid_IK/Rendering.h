@@ -81,22 +81,12 @@ polyplane;
 
 typedef struct
 {
-    float vec[3];
-    float dist;
-}
-aim;
-
-typedef struct
-{
     float R[PIXEL_VOLUME], G[PIXEL_VOLUME], B[PIXEL_VOLUME], A[PIXEL_VOLUME], D[PIXEL_VOLUME];
     int trip[PIXEL_VOLUME];
     int level[PIXEL_VOLUME]; // level of triangle
     int object[PIXEL_VOLUME];
 }
 pixel;
-
-int volume_index[PIXEL_VOLUME];
-float d_index[PIXEL_VOLUME];
 
 /*inline*/ float length(float V[3])
 {
@@ -166,6 +156,181 @@ aim vector3d_T(vertex * V, float B[3])
         a.vec[2] /= a.dist;
     }
     return a;
+}
+
+void populate_box_3d_Aim_And_Deviation(camera * C)
+{
+    int o, p, e, q, idx, t;
+    object * O;
+    polygon * P;
+    quadrant * Q;
+    edge * E;
+    triangle * T;
+
+    aim polyAim;
+    float polyradius;
+    float deviation;
+
+    float dot;
+
+    normal polynormal;
+
+/*
+    normal D;
+    D.x = C->T->rotVec_[2][0];
+    D.y = C->T->rotVec_[2][1];
+    D.z = C->T->rotVec_[2][2];
+*/
+
+    int L;
+
+    for (o = 0; o < C->object_count; o ++)
+    {
+        O = objects[C->objects[o]];
+
+        for (e = 0; e < O->edgecount; e ++)
+        {
+            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+            if (E->group_Polys.assigned == 0)
+            {
+                polyradius = E->group_Polys.B.Tradius;
+
+                polyAim = vector3d(E->group_Polys.B, C->T->pos);
+
+                deviation = atan2(polyradius, polyAim.dist);
+
+                E->group_Polys.B.deviation = deviation;
+                E->group_Polys.B.Aim.dist = polyAim.dist;
+                E->group_Polys.B.Aim.vec[0] = polyAim.vec[0];
+                E->group_Polys.B.Aim.vec[1] = polyAim.vec[1];
+                E->group_Polys.B.Aim.vec[2] = polyAim.vec[2];
+
+                for (p = 0; p < E->group_Polys.indices_count; p ++)
+                {
+                    idx = E->group_Polys.indices[p];
+
+                    P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    polyradius = P->B.Tradius;
+
+                    polyAim = vector3d(P->B, C->T->pos);
+
+                    deviation = atan2(polyradius * 2, polyAim.dist);
+
+                    P->B.deviation = deviation;
+                    P->B.Aim.dist = polyAim.dist;
+                    P->B.Aim.vec[0] = polyAim.vec[0];
+                    P->B.Aim.vec[1] = polyAim.vec[1];
+                    P->B.Aim.vec[2] = polyAim.vec[2];
+/*
+                    polynormal.x = -P->N.Tx;
+                    polynormal.y = -P->N.Ty;
+                    polynormal.z = -P->N.Tz;
+
+                    dot = dot_productN(&polynormal, polyAim.vec);
+
+                    if (dot > 0)
+                    {
+                        P->B.backface = 0;
+                    }
+                    else
+                    {
+                        P->B.backface = 1;
+                    }
+*/
+
+                    for (t = 0; t < P->tripcount; t ++)
+                    {
+                        idx = P->trips[t];
+
+                        T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        polyAim = vector3d(T->B, C->T->pos);
+
+                        polynormal.x = -T->N.Tx;
+                        polynormal.y = -T->N.Ty;
+                        polynormal.z = -T->N.Tz;
+
+                        dot = dot_productN(&polynormal, polyAim.vec);
+
+                        if (dot > 0)
+                        {
+                            T->B.backface = 0;
+                        }
+                        else
+                        {
+                            T->B.backface = 1;
+                        }
+                    }
+
+
+                    if (P->subdivs)
+                    {
+                        for (q = 0; q < P->edgecount; q ++)
+                        {
+                            L = 0;
+
+                            idx = P->quads[q];
+
+                            Q = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            polyradius = Q->B.Tradius;
+
+                            polyAim = vector3d(Q->B, C->T->pos);
+
+                            deviation = atan2(polyradius * 2, polyAim.dist);
+
+                            Q->B.deviation = deviation;
+                            Q->B.Aim.dist = polyAim.dist;
+                            Q->B.Aim.vec[0] = polyAim.vec[0];
+                            Q->B.Aim.vec[1] = polyAim.vec[1];
+                            Q->B.Aim.vec[2] = polyAim.vec[2];
+
+                            polynormal.x = -Q->N.Tx;
+                            polynormal.y = -Q->N.Ty;
+                            polynormal.z = -Q->N.Tz;
+
+                            dot = dot_productN(&polynormal, polyAim.vec);
+
+                            if (dot > 0)
+                            {
+                                Q->B.backface = 0;
+                            }
+                            else
+                            {
+                                Q->B.backface = 1;
+                            }
+
+                            for (t = 0; t < 2; t ++)
+                            {
+                                idx = Q->trips[t];
+
+                                T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                polyAim = vector3d(T->B, C->T->pos);
+
+                                polynormal.x = -T->N.Tx;
+                                polynormal.y = -T->N.Ty;
+                                polynormal.z = -T->N.Tz;
+
+                                dot = dot_productN(&polynormal, polyAim.vec);
+
+                                if (dot > 0)
+                                {
+                                    T->B.backface = 0;
+                                }
+                                else
+                                {
+                                    T->B.backface = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /*inline*/ int cull(float point[3], float p_points[3][3])
@@ -324,8 +489,7 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
     object * O;
     vertex * V;
     uv * UV;
-    aim polyAim;
-    float polyradius, deviation, aim_deviation;
+    float aim_deviation;
     polyplane plane;
     float polypoints[3][3];
     float polynormals[3][3];
@@ -334,6 +498,9 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
     texelPack T_uvNormal;
     SDL_Surface * texture;
     surface_Material Material;
+
+    int volume_index[PIXEL_VOLUME];
+    float d_index[PIXEL_VOLUME];
 
     int volume_counter = 0;
 
@@ -344,9 +511,6 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
 
     int d;
     float s;
-
-    float objectradius;
-    aim objectAim;
 
     int t, q, p, Preak, l;
     //int q0;
@@ -361,27 +525,6 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
         i = C->objects[o];
         O = objects[i];
 
-        objectradius = O->B.radius;
-        objectAim = vector3d(O->B, C->T->pos);
-
-        if (objectAim.dist > objectradius)
-        {
-            deviation = atan2(objectradius * 2, objectAim.dist - objectradius);
-        }
-        else
-        {
-            deviation = pi;
-        }
-
-        deviation += C->view_minor;
-
-        aim_deviation = acos(dot_productN(D, objectAim.vec));
-
-        if (aim_deviation > deviation)
-        {
-            continue;
-        }
-
         for (e = 0; e < O->edgecount; e ++)
         {
             if (Preak)
@@ -391,15 +534,9 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
 
             if (E->group_Polys.assigned == 0)
             {
-                polyradius = E->group_Polys.B.Tradius;
+                aim_deviation = acos(dot_productN(D, E->group_Polys.B.Aim.vec));
 
-                polyAim = vector3d(E->group_Polys.B, C->T->pos);
-
-                deviation = atan2(polyradius, polyAim.dist);
-
-                aim_deviation = acos(dot_productN(D, polyAim.vec));
-
-                if (aim_deviation > deviation)
+                if (aim_deviation > E->group_Polys.B.deviation)
                 {
                     continue;
                 }
@@ -421,15 +558,9 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
 
                     if (dot > -0.5)
                     {
-                        polyradius = P0->B.Tradius;
+                        aim_deviation = acos(dot_productN(D, P0->B.Aim.vec));
 
-                        polyAim = vector3d(P0->B, C->T->pos);
-
-                        deviation = atan2(polyradius * 2, polyAim.dist);
-
-                        aim_deviation = acos(dot_productN(D, polyAim.vec));
-
-                        if (aim_deviation > deviation)
+                        if (aim_deviation > P0->B.deviation)
                         {
                             continue;
                         }
@@ -447,15 +578,9 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
 
                                 Q = &O->quads_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                                polyradius = Q->B.Tradius;
+                                aim_deviation = acos(dot_productN(D, Q->B.Aim.vec));
 
-                                polyAim = vector3d(Q->B, C->T->pos);
-
-                                deviation = atan2(polyradius * 2, polyAim.dist); // * 2
-
-                                aim_deviation = acos(dot_productN(D, polyAim.vec));
-
-                                if (aim_deviation > deviation)
+                                if (Q->B.backface || aim_deviation > Q->B.deviation)
                                 {
                                     continue;
                                 }
@@ -507,14 +632,14 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
 
                                     T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                                    polynormal.x = -T->N.Tx;
-                                    polynormal.y = -T->N.Ty;
-                                    polynormal.z = -T->N.Tz;
-
-                                    dot = dot_product(&polynormal, D);
-
-                                    if (dot > 0)
+                                    if (!T->B.backface)
                                     {
+                                        polynormal.x = -T->N.Tx;
+                                        polynormal.y = -T->N.Ty;
+                                        polynormal.z = -T->N.Tz;
+
+                                        dot = dot_product(&polynormal, D);
+
                                         idx = T->verts[0];
                                         V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
                                         polypoints[0][0] = V->Tx;
@@ -854,8 +979,7 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     object * O;
     vertex * V;
     uv * UV;
-    aim polyAim;
-    float polyradius, deviation, aim_deviation;
+    float aim_deviation;
     polyplane plane;
     float polypoints[3][3];
     float polynormals[3][3];
@@ -864,6 +988,9 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     texelPack T_uvNormal;
     SDL_Surface * texture;
     surface_Material Material;
+
+    int volume_index[PIXEL_VOLUME];
+    float d_index[PIXEL_VOLUME];
 
     int volume_counter = 0;
 
@@ -874,9 +1001,6 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 
     int d;
     float s;
-
-    float objectradius;
-    aim objectAim;
 
     int t, p, Preak;
 
@@ -890,27 +1014,6 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
         i = C->objects[o];
         O = objects[i];
 
-        objectradius = O->B.radius;
-        objectAim = vector3d(O->B, C->T->pos);
-
-        if (objectAim.dist > objectradius)
-        {
-            deviation = atan2(objectradius * 2, objectAim.dist - objectradius);
-        }
-        else
-        {
-            deviation = pi;
-        }
-
-        deviation += C->view_minor;
-
-        aim_deviation = acos(dot_productN(D, objectAim.vec));
-
-        if (aim_deviation > deviation)
-        {
-            continue;
-        }
-
         for (e = 0; e < O->edgecount; e ++)
         {
             if (Preak)
@@ -920,15 +1023,9 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 
             if (E->group_Polys.assigned == 0)
             {
-                polyradius = E->group_Polys.B.Tradius;
+                aim_deviation = acos(dot_productN(D, E->group_Polys.B.Aim.vec));
 
-                polyAim = vector3d(E->group_Polys.B, C->T->pos);
-
-                deviation = atan2(polyradius, polyAim.dist);
-
-                aim_deviation = acos(dot_productN(D, polyAim.vec));
-
-                if (aim_deviation > deviation)
+                if (aim_deviation > E->group_Polys.B.deviation)
                 {
                     continue;
                 }
@@ -950,15 +1047,9 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 
                     if (dot > -0.5)
                     {
-                        polyradius = P0->B.Tradius;
+                        aim_deviation = acos(dot_productN(D, P0->B.Aim.vec));
 
-                        polyAim = vector3d(P0->B, C->T->pos);
-
-                        deviation = atan2(polyradius * 2, polyAim.dist);
-
-                        aim_deviation = acos(dot_productN(D, polyAim.vec));
-
-                        if (aim_deviation > deviation)
+                        if (aim_deviation > P0->B.deviation)
                         {
                             continue;
                         }
@@ -972,14 +1063,14 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 
                             T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                            polynormal.x = -T->N.Tx;
-                            polynormal.y = -T->N.Ty;
-                            polynormal.z = -T->N.Tz;
-
-                            dot = dot_product(&polynormal, D);
-
-                            if (dot > 0)
+                            if (!T->B.backface)
                             {
+                                polynormal.x = -T->N.Tx;
+                                polynormal.y = -T->N.Ty;
+                                polynormal.z = -T->N.Tz;
+
+                                dot = dot_product(&polynormal, D);
+
                                 idx = T->verts[0];
                                 V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
                                 polypoints[0][0] = V->Tx;
@@ -7868,82 +7959,142 @@ void render_Void(unsigned char * data, int width, int height)
     }
 }
 
-void render_Image(unsigned char * data, camera * C, int width, int height, int L)
-{
-    SDL_Event event;
+#define NUM_THREADS 8
+int EXIT_RENDER;
 
-    printf("Rendering started, press ESC to cancel and save\n");
-    clock_t begin_ = clock();
+typedef struct
+{
+    unsigned char * data;
+    camera * C;
+    int L;
+    int width;
+    int height;
+    int index;
+}
+render_arguments;
+
+void * perform_work(void * arguments)
+{
+    //SDL_Event event;
+
+    int idx;
+    render_arguments * Args = (render_arguments *)arguments;
 
     normalizeF((float *)&light_vec);
-//    printf("light_vec %f %f %f\n", light_vec[0], light_vec[1], light_vec[2]);
-//    printf("render_Image\n");
 
-    // TODO
-    // exclude objects from camera
-    // exclude objects from lights
-
-    int x, y, idx;
-    int c = 0;
+    int x, y, index;
     float R;
     pixel P;
 
     union Dir D = {{0.0, 0.0, -1.0}};
     float DDy;
 
-    float H_Mark = C->h_view / 2.0;
-    float V_Mark = -C->v_view / 2.0;
-    float H_step = (C->h_view / (float)width);
-    float V_step = (C->v_view / (float)height);
-    H_Mark -= H_step / 2.0;
+    float H_Mark = Args->C->h_view / 2.0;
+    float V_Mark = -Args->C->v_view / 2.0;
+    float h_step = (Args->C->h_view / (float)Args->width);
+    float H_step = h_step * NUM_THREADS;;
+    float V_step = (Args->C->v_view / (float)Args->height);
+    H_Mark -= h_step / 2.0;
     V_Mark += V_step / 2.0;
     H_Mark += pi;
     V_Mark += pi_2;
 
-    float H_MARK = H_Mark;
+    float H_MARK = H_Mark - ((float)(Args->index) * h_step);
 
-    for (y = 0; y < height; y ++)
+    for (y = 0; y < Args->height; y ++)
     {
         R = sin(V_Mark);
         DDy = -cos(V_Mark);
         H_Mark = H_MARK;
-        for (x = 0; x < width; x ++)
+        for (x = Args->index; x < Args->width; x += NUM_THREADS)
         {
-            if (!(y % 10) && !(x % 10))
+            if (!Args->index && !(y % 10))
                 printf(".");
             D.D.y = DDy;
             D.D.x = sin(H_Mark) * R;
             D.D.z = cos(H_Mark) * R;
 
-            rotate_Vector(C->T, -D.D.x, D.D.y, -D.D.z, &D.D); // direction is submitted from union
+            rotate_Vector(Args->C->T, -D.D.x, D.D.y, -D.D.z, &D.D); // direction is submitted from union
+            index = y * Args->width * 4 + x * 4;
 
-            if (L == -1)
-            idx = come_With_Pixel(&P, C, &D.N); // normal is submitted from union
+            if (Args->L == -1)
+            {
+                idx = come_With_Pixel(&P, Args->C, &D.N); // normal is submitted from union
+            }
             else
-            idx = come_With_Pixel_(&P, C, &D.N, L);
+            {
+                idx = come_With_Pixel_(&P, Args->C, &D.N, Args->L);
+            }
 
-            data[c++] = (unsigned char)P.R[idx];
-            data[c++] = (unsigned char)P.G[idx];
-            data[c++] = (unsigned char)P.B[idx];
-            data[c++] = (unsigned char)P.A[idx];
+            Args->data[index] = (unsigned char)P.R[idx];
+            Args->data[index + 1] = (unsigned char)P.G[idx];
+            Args->data[index + 2] = (unsigned char)P.B[idx];
+            Args->data[index + 3] = (unsigned char)P.A[idx];
 
             H_Mark -= H_step;
         }
-        if (!(y % 10))
-            printf("\n");
 
-        if (SDL_PollEvent(&event))
+        if (!Args->index && !(y % 10))
         {
-            if (event.type == SDL_KEYUP)
-            {
-                if (event.key.keysym.sym == SDLK_ESCAPE)
-                {
-                    break;
-                }
-            }
+            printf("\n");
+//            if (SDL_PollEvent(&event))
+//            {
+//                if (event.type == SDL_KEYUP)
+//                {
+//                    if (event.key.keysym.sym == SDLK_ESCAPE)
+//                    {
+//                        EXIT_RENDER = 1;
+//                    }
+//                }
+//            }
         }
 
+//        if (EXIT_RENDER == 1)
+//        {
+//            pthread_t id = pthread_self();
+//            pthread_cancel(id);
+//            break;
+//        }
+
         V_Mark += V_step;
+    }
+
+    return NULL;
+}
+
+void render_Image(unsigned char * data, camera * C, int width, int height, int L)
+{
+    //SDL_Event event;
+
+    printf("Rendering started, press ESC to cancel and save\n");
+    clock_t begin_ = clock();
+
+    pthread_t threads[NUM_THREADS];
+    render_arguments thread_args[NUM_THREADS];
+
+    int result_code;
+
+    int t;
+
+    EXIT_RENDER = 0;
+
+    for (t = 0; t < NUM_THREADS; t ++)
+    {
+        thread_args[t].data = data;
+        thread_args[t].C = C;
+        thread_args[t].L = L;
+        thread_args[t].width = width;
+        thread_args[t].height = height;
+        thread_args[t].index = t;
+        result_code = pthread_create(&threads[t], NULL, perform_work, &thread_args[t]);
+        pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+        assert(!result_code);
+    }
+
+    for (t = 0; t < NUM_THREADS; t ++)
+    {
+        result_code = pthread_join(threads[t], NULL);
+        assert(!result_code);
     }
 
     clock_t end_ = clock();
