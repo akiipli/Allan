@@ -632,6 +632,16 @@ void free_object(object * O)
         }
     }
 
+    int x, y;
+
+    for (y = 0; y < OBJECT_GROUP_V; y ++)
+    {
+        for (x = 0; x < OBJECT_GROUP_H; x ++)
+        {
+            free(O->Polygroups[y][x].indices);
+        }
+    }
+
     free(O->Name);
     free(O->WEncapsulator);
 
@@ -856,7 +866,7 @@ int initialize_object(int index,
     {
         for (x = 0; x < OBJECT_GROUP_H; x ++)
         {
-            O->Polygroups[y][x].indices = NULL;
+            O->Polygroups[y][x].indices = malloc(O->polycount * sizeof(int));
         }
     }
 

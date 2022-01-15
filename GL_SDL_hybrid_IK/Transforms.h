@@ -37,11 +37,10 @@ void generate_Object_Polygroups(camera * C, int L)
     int x, y;
     float R;
 
-    int o, p, q;
+    int o, p;
 
     object * O;
     polygon * P;
-    quadrant * Q;
 
     polygroup * G;
 
@@ -88,57 +87,25 @@ void generate_Object_Polygroups(camera * C, int L)
                 G = &O->Polygroups[y][x];
 
                 G->indices_count = 0;
-                if (G->indices != NULL)
-                {
-                    free(G->indices);
-                }
 
-                if (L > -1)
+                for (p = 0; p < O->polycount; p ++)
                 {
-                    G->indices = malloc(O->quadcount_[L] * sizeof(int));
+                    P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
 
-                    for (q = 0; q < O->quadcount_[L]; q ++)
+                    if (P->B.backface)
                     {
-                        Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
-
-                        if (Q->B.backface)
-                        {
-                            continue;
-                        }
-
-                        deviation = dot_productN((normal *)&D, Q->B.Aim.vec);
-
-                        if (acos(deviation) < Radius + Q->B.deviation)
-                        {
-                            G->indices[G->indices_count ++] = Q->index;
-                        }
+                        continue;
                     }
-                }
-                else
-                {
-                    G->indices = malloc(O->polycount * sizeof(int));
 
-                    for (p = 0; p < O->polycount; p ++)
+                    deviation = dot_productN((normal *)&D, P->B.Aim.vec);
+
+                    if (acos(deviation) < Radius + P->B.deviation)
                     {
-                        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-
-                        if (P->B.backface)
-                        {
-                            continue;
-                        }
-
-                        deviation = dot_productN((normal *)&D, P->B.Aim.vec);
-
-                        if (acos(deviation) < Radius + P->B.deviation)
-                        {
-                            G->indices[G->indices_count ++] = P->index;
-                        }
+                        G->indices[G->indices_count ++] = P->index;
                     }
                 }
 
-                G->indices = realloc(G->indices, G->indices_count * sizeof(int));
-
-                //printf("%s, %d, %d, %d\n", O->Name, G->indices_count, y, x);
+                //printf("%s %d, %d, %d\n", O->Name, G->indices_count, y, x);
             }
 
             H_Mark -= H_step;
