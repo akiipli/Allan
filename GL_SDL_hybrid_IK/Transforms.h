@@ -32,15 +32,16 @@ union Dir
    normal N;
 };
 
-void generate_Object_Polygroups(camera * C)
+void generate_Object_Polygroups(camera * C, int L)
 {
     int x, y;
     float R;
 
-    int o, p;
+    int o, p, q;
 
     object * O;
     polygon * P;
+    quadrant * Q;
 
     polygroup * G;
 
@@ -91,24 +92,50 @@ void generate_Object_Polygroups(camera * C)
                 {
                     free(G->indices);
                 }
-                G->indices = malloc(O->polycount * sizeof(int));
 
-                for (p = 0; p < O->polycount; p ++)
+                if (L > -1)
                 {
-                    P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+                    G->indices = malloc(O->quadcount_[L] * sizeof(int));
 
-                    if (P->B.backface)
+                    for (q = 0; q < O->quadcount_[L]; q ++)
                     {
-                        continue;
-                    }
+                        Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
 
-                    deviation = dot_productN((normal *)&D, P->B.Aim.vec);
+                        if (Q->B.backface)
+                        {
+                            continue;
+                        }
 
-                    if (acos(deviation) < Radius + P->B.deviation)
-                    {
-                        G->indices[G->indices_count ++] = P->index;
+                        deviation = dot_productN((normal *)&D, Q->B.Aim.vec);
+
+                        if (acos(deviation) < Radius + Q->B.deviation)
+                        {
+                            G->indices[G->indices_count ++] = Q->index;
+                        }
                     }
                 }
+                else
+                {
+                    G->indices = malloc(O->polycount * sizeof(int));
+
+                    for (p = 0; p < O->polycount; p ++)
+                    {
+                        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+                        if (P->B.backface)
+                        {
+                            continue;
+                        }
+
+                        deviation = dot_productN((normal *)&D, P->B.Aim.vec);
+
+                        if (acos(deviation) < Radius + P->B.deviation)
+                        {
+                            G->indices[G->indices_count ++] = P->index;
+                        }
+                    }
+                }
+
                 G->indices = realloc(G->indices, G->indices_count * sizeof(int));
 
                 //printf("%s, %d, %d, %d\n", O->Name, G->indices_count, y, x);
