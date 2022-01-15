@@ -19,6 +19,9 @@ Copyright <2018> <Allan Kiipli>
 
 #define INFLUENCES 1
 
+#define OBJECT_GROUP_V 4
+#define OBJECT_GROUP_H 4
+
 typedef struct cp cp;
 typedef struct curve curve;
 typedef struct curve_segment curve_segment;
@@ -57,11 +60,8 @@ box_3d;
 
 typedef struct
 {
-    int index;
     int * indices;
     int indices_count;
-    int assigned;
-    box_3d B;
 }
 polygroup;
 
@@ -149,6 +149,8 @@ struct vertex
     cp * control_point;
     object * O;
     int patch;
+
+    float aim_vec[3];
 };
 
 void print_vertex(vertex * V)
@@ -233,8 +235,6 @@ struct edge
     object * O;
     float vec[3];
     int smooth; // 0 is sharp, 1 is perimeter smooth edge, 2 is inside edge
-
-    polygroup group_Polys;
 };
 
 void print_edge(edge * E)
@@ -374,8 +374,6 @@ typedef struct
     float dist;
     int patch;
     float vec[3];
-
-    int group;
 }
 polygon;
 
@@ -537,7 +535,7 @@ struct object
     cp ** cps;
     int cps_count;
 
-    int group;
+    polygroup Polygroups[OBJECT_GROUP_V][OBJECT_GROUP_H];
 };
 
 void print_object(object * O)

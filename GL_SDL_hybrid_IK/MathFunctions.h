@@ -263,56 +263,6 @@ Copyright <2018> <Allan Kiipli>
     P->B2.v = v;
 }
 
-void sum_box_3d_For_Polygroup_T(object * O, edge * E, unsigned char radius)
-{
-    int i, idx;
-    polygon * P;
-
-    idx = E->group_Polys.indices[0];
-    P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-    float min_x = P->B.Tx;
-    float min_y = P->B.Ty;
-    float min_z = P->B.Tz;
-    float max_x = P->B.Tx;
-    float max_y = P->B.Ty;
-    float max_z = P->B.Tz;
-
-    E->group_Polys.B.Tradius = P->B.Tradius * 1.5;
-
-    float x = 0;
-    float y = 0;
-    float z = 0;
-
-    for (i = 0; i < E->group_Polys.indices_count; i ++)
-    {
-        idx = E->group_Polys.indices[i];
-
-        P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-        if (P->B.Tx < min_x) min_x = P->B.Tx; else if (P->B.Tx > max_x) max_x = P->B.Tx;
-        if (P->B.Ty < min_y) min_y = P->B.Ty; else if (P->B.Ty > max_y) max_y = P->B.Ty;
-        if (P->B.Tz < min_z) min_z = P->B.Tz; else if (P->B.Tz > max_z) max_z = P->B.Tz;
-
-        x += P->B.Tx;
-        y += P->B.Ty;
-        z += P->B.Tz;
-    }
-
-    x /= E->group_Polys.indices_count;
-    y /= E->group_Polys.indices_count;
-    z /= E->group_Polys.indices_count;
-
-    if (radius)
-        E->group_Polys.B.Tradius += sqrt((max_x - min_x) * (max_x - min_x) +
-                       (max_y - min_y) * (max_y - min_y) +
-                       (max_z - min_z) * (max_z - min_z)) / 2.0;
-
-    E->group_Polys.B.Tx = x;
-    E->group_Polys.B.Ty = y;
-    E->group_Polys.B.Tz = z;
-}
-
 /*inline*/ void boxt_P_T(object * O, polygon * P, unsigned char radius)
 {
     vertex * V;

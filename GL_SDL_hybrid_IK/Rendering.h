@@ -62,12 +62,6 @@ typedef struct
 }
 texelPack;
 
-union Dir
-{
-   direction D;
-   normal N;
-};
-
 typedef struct
 {
     float x;
@@ -158,20 +152,20 @@ aim vector3d_T(vertex * V, float B[3])
     return a;
 }
 
-void populate_box_3d_Aim_And_Deviation(camera * C)
+void populate_box_3d_Aim_And_Deviation(camera * C, int L)
 {
-    int o, p, e, q, idx, t;
+    int o, p, q, idx, t, v;
+
+    vertex * V;
     object * O;
     polygon * P;
     quadrant * Q;
-    edge * E;
+    //edge * E;
     triangle * T;
 
-    aim polyAim;
-    float polyradius;
-    float deviation;
+    aim polyAim, vertexAim;
 
-    float dot;
+    float dot, Dot;
 
     normal polynormal;
 
@@ -182,150 +176,172 @@ void populate_box_3d_Aim_And_Deviation(camera * C)
     D.z = C->T->rotVec_[2][2];
 */
 
-    int L;
+    if (L > 0) L = 0;
 
-    for (o = 0; o < C->object_count; o ++)
+    if (L > -1)
     {
-        O = objects[C->objects[o]];
-
-        for (e = 0; e < O->edgecount; e ++)
+        for (o = 0; o < C->object_count; o ++)
         {
-            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+            O = objects[C->objects[o]];
 
-            if (E->group_Polys.assigned == 0)
+            if (O->subdlevel < L)
             {
-                polyradius = E->group_Polys.B.Tradius;
+                continue;
+            }
 
-                polyAim = vector3d(E->group_Polys.B, C->T->pos);
+            for (v = 0; v < O->vertcount_[L]; v ++)
+            {
+                V = &O->verts_[L][v / ARRAYSIZE][v % ARRAYSIZE];
 
-                deviation = atan2(polyradius, polyAim.dist);
+                vertexAim = vector3d_T(V, C->T->pos);
 
-                E->group_Polys.B.deviation = deviation;
-                E->group_Polys.B.Aim.dist = polyAim.dist;
-                E->group_Polys.B.Aim.vec[0] = polyAim.vec[0];
-                E->group_Polys.B.Aim.vec[1] = polyAim.vec[1];
-                E->group_Polys.B.Aim.vec[2] = polyAim.vec[2];
+                V->aim_vec[0] = vertexAim.vec[0];
+                V->aim_vec[1] = vertexAim.vec[1];
+                V->aim_vec[2] = vertexAim.vec[2];
+            }
 
-                for (p = 0; p < E->group_Polys.indices_count; p ++)
+            for (q = 0; q < O->quadcount_[L]; q ++)
+            {
+                Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
+
+                polyAim = vector3d(Q->B, C->T->pos);
+
+                Dot = 1.0;
+
+                for (v = 0; v < 4; v ++)
                 {
-                    idx = E->group_Polys.indices[p];
+                    idx = Q->verts[v];
 
-                    P = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    polyradius = P->B.Tradius;
+                    dot = dot_productFF(V->aim_vec, polyAim.vec);
 
-                    polyAim = vector3d(P->B, C->T->pos);
+                    if (dot < Dot)
+                    {
+                        Dot = dot;
+                    }
+                }
 
-                    deviation = atan2(polyradius * 2, polyAim.dist);
+                Q->B.deviation = acos(Dot);
+                Q->B.Aim.dist = polyAim.dist;
+                Q->B.Aim.vec[0] = polyAim.vec[0];
+                Q->B.Aim.vec[1] = polyAim.vec[1];
+                Q->B.Aim.vec[2] = polyAim.vec[2];
 
-                    P->B.deviation = deviation;
-                    P->B.Aim.dist = polyAim.dist;
-                    P->B.Aim.vec[0] = polyAim.vec[0];
-                    P->B.Aim.vec[1] = polyAim.vec[1];
-                    P->B.Aim.vec[2] = polyAim.vec[2];
-/*
-                    polynormal.x = -P->N.Tx;
-                    polynormal.y = -P->N.Ty;
-                    polynormal.z = -P->N.Tz;
+                Q->B.backface = 1;
+
+                for (t = 0; t < 2; t ++)
+                {
+                    idx = Q->trips[t];
+
+                    T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    polyAim = vector3d(T->B, C->T->pos);
+
+                    polynormal.x = -T->N.Tx;
+                    polynormal.y = -T->N.Ty;
+                    polynormal.z = -T->N.Tz;
 
                     dot = dot_productN(&polynormal, polyAim.vec);
 
                     if (dot > 0)
                     {
+                        T->B.backface = 0;
+                        Q->B.backface = 0;
+                    }
+                    else
+                    {
+                        T->B.backface = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    for (o = 0; o < C->object_count; o ++)
+    {
+        O = objects[C->objects[o]];
+
+        for (v = 0; v < O->vertcount; v ++)
+        {
+            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+            vertexAim = vector3d_T(V, C->T->pos);
+
+            V->aim_vec[0] = vertexAim.vec[0];
+            V->aim_vec[1] = vertexAim.vec[1];
+            V->aim_vec[2] = vertexAim.vec[2];
+        }
+
+        for (p = 0; p < O->polycount; p ++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+            polyAim = vector3d(P->B, C->T->pos);
+
+            Dot = 1.0;
+
+            for (v = 0; v < P->edgecount; v ++)
+            {
+                idx = P->verts[v];
+
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                dot = dot_productFF(V->aim_vec, polyAim.vec);
+
+                if (dot < Dot)
+                {
+                    Dot = dot;
+                }
+            }
+
+            P->B.deviation = acos(Dot);
+            P->B.Aim.dist = polyAim.dist;
+            P->B.Aim.vec[0] = polyAim.vec[0];
+            P->B.Aim.vec[1] = polyAim.vec[1];
+            P->B.Aim.vec[2] = polyAim.vec[2];
+
+            P->B.backface = 1;
+
+            if (L == 0 && P->subdivs)
+            {
+                for (q = 0; q < P->edgecount; q ++)
+                {
+                    idx = P->quads[q];
+
+                    Q = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (Q->B.backface == 0)
+                    {
+                        P->B.backface = 0;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                for (t = 0; t < P->tripcount; t ++)
+                {
+                    idx = P->trips[t];
+
+                    T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    polyAim = vector3d(T->B, C->T->pos);
+
+                    polynormal.x = -T->N.Tx;
+                    polynormal.y = -T->N.Ty;
+                    polynormal.z = -T->N.Tz;
+
+                    dot = dot_productN(&polynormal, polyAim.vec);
+
+                    if (dot > 0)
+                    {
+                        T->B.backface = 0;
                         P->B.backface = 0;
                     }
                     else
                     {
-                        P->B.backface = 1;
-                    }
-*/
-
-                    for (t = 0; t < P->tripcount; t ++)
-                    {
-                        idx = P->trips[t];
-
-                        T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                        polyAim = vector3d(T->B, C->T->pos);
-
-                        polynormal.x = -T->N.Tx;
-                        polynormal.y = -T->N.Ty;
-                        polynormal.z = -T->N.Tz;
-
-                        dot = dot_productN(&polynormal, polyAim.vec);
-
-                        if (dot > 0)
-                        {
-                            T->B.backface = 0;
-                        }
-                        else
-                        {
-                            T->B.backface = 1;
-                        }
-                    }
-
-
-                    if (P->subdivs)
-                    {
-                        for (q = 0; q < P->edgecount; q ++)
-                        {
-                            L = 0;
-
-                            idx = P->quads[q];
-
-                            Q = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                            polyradius = Q->B.Tradius;
-
-                            polyAim = vector3d(Q->B, C->T->pos);
-
-                            deviation = atan2(polyradius * 2, polyAim.dist);
-
-                            Q->B.deviation = deviation;
-                            Q->B.Aim.dist = polyAim.dist;
-                            Q->B.Aim.vec[0] = polyAim.vec[0];
-                            Q->B.Aim.vec[1] = polyAim.vec[1];
-                            Q->B.Aim.vec[2] = polyAim.vec[2];
-
-                            polynormal.x = -Q->N.Tx;
-                            polynormal.y = -Q->N.Ty;
-                            polynormal.z = -Q->N.Tz;
-
-                            dot = dot_productN(&polynormal, polyAim.vec);
-
-                            if (dot > 0)
-                            {
-                                Q->B.backface = 0;
-                            }
-                            else
-                            {
-                                Q->B.backface = 1;
-                            }
-
-                            for (t = 0; t < 2; t ++)
-                            {
-                                idx = Q->trips[t];
-
-                                T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                                polyAim = vector3d(T->B, C->T->pos);
-
-                                polynormal.x = -T->N.Tx;
-                                polynormal.y = -T->N.Ty;
-                                polynormal.z = -T->N.Tz;
-
-                                dot = dot_productN(&polynormal, polyAim.vec);
-
-                                if (dot > 0)
-                                {
-                                    T->B.backface = 0;
-                                }
-                                else
-                                {
-                                    T->B.backface = 1;
-                                }
-                            }
-                        }
+                        T->B.backface = 1;
                     }
                 }
             }
@@ -472,18 +488,18 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
     }
 }
 
-/*inline*/ int come_With_Pixel_(pixel * P, camera * C, normal * D, int L)
+/*inline*/ int come_With_Pixel_(pixel * P, camera * C, normal * D, int L, int gx, int gy)
 {
     L = 0; // level 1 and more not implemented
 
     Uint32 pix;
     Uint8 r, g, b, a;
 
-    int i, idx, c, k, x, y, o, e;
+    int i, idx, c, k, x, y, o;
     float dot, dist, dot_light;
     normal polynormal;
     polygon * P0;
-    edge * E;
+    //edge * E;
     quadrant * Q;
     triangle * T;
     object * O;
@@ -512,238 +528,180 @@ void normal_value(float i_point[3], float polypoints[3][3], float polynormals[3]
     int d;
     float s;
 
-    int t, q, p, Preak, l;
-    //int q0;
+    int t, q, Preak;
+    L = 0; // level
 
     Preak = 0;
+
+    polygroup * G;
 
     for (o = 0; o < C->object_count; o ++)
     {
         if (Preak)
             break;
 
-        i = C->objects[o];
-        O = objects[i];
+        idx = C->objects[o];
+        O = objects[idx];
 
-        for (e = 0; e < O->edgecount; e ++)
+        G = &O->Polygroups[gy][gx];
+
+        for (i = 0; i < G->indices_count; i ++)
         {
             if (Preak)
                 break;
 
-            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+            idx = G->indices[i];
 
-            if (E->group_Polys.assigned == 0)
+            P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            aim_deviation = acos(dot_productN(D, P0->B.Aim.vec));
+
+            if (aim_deviation > P0->B.deviation)
             {
-                aim_deviation = acos(dot_productN(D, E->group_Polys.B.Aim.vec));
+                continue;
+            }
 
-                if (aim_deviation > E->group_Polys.B.deviation)
-                {
-                    continue;
-                }
-
-                for (p = 0; p < E->group_Polys.indices_count; p ++)
+            if (P0->subdivs)
+            {
+                for (q = 0; q < P0->edgecount; q ++)
                 {
                     if (Preak)
                         break;
 
-                    idx = E->group_Polys.indices[p];
+                    idx = P0->quads[q];
 
-                    P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    Q = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    polynormal.x = -P0->N.Tx;
-                    polynormal.y = -P0->N.Ty;
-                    polynormal.z = -P0->N.Tz;
-
-                    dot = dot_product(&polynormal, D);
-
-                    if (dot > -0.5)
+                    if (Q->B.backface)
                     {
-                        aim_deviation = acos(dot_productN(D, P0->B.Aim.vec));
+                        continue;
+                    }
 
-                        if (aim_deviation > P0->B.deviation)
-                        {
-                            continue;
-                        }
+                    aim_deviation = acos(dot_productN(D, Q->B.Aim.vec));
 
-                        if (P0->subdivs)
+                    if (aim_deviation > Q->B.deviation)
+                    {
+                        continue;
+                    }
+
+                    for (t = 0; t < 2; t ++)
+                    {
+                        if (Preak)
+                            break;
+
+                        idx = Q->trips[t];
+
+                        T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        if (!T->B.backface)
                         {
-                            for (q = 0; q < P0->edgecount; q ++)
+                            polynormal.x = -T->N.Tx;
+                            polynormal.y = -T->N.Ty;
+                            polynormal.z = -T->N.Tz;
+
+                            dot = dot_product(&polynormal, D);
+
+                            idx = T->verts[0];
+                            V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            polypoints[0][0] = V->Tx;
+                            polypoints[0][1] = V->Ty;
+                            polypoints[0][2] = V->Tz;
+                            polynormals[0][0] = V->N.Tx;
+                            polynormals[0][1] = V->N.Ty;
+                            polynormals[0][2] = V->N.Tz;
+                            idx = T->verts[1];
+                            V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            polypoints[1][0] = V->Tx;
+                            polypoints[1][1] = V->Ty;
+                            polypoints[1][2] = V->Tz;
+                            polynormals[1][0] = V->N.Tx;
+                            polynormals[1][1] = V->N.Ty;
+                            polynormals[1][2] = V->N.Tz;
+                            idx = T->verts[2];
+                            V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            polypoints[2][0] = V->Tx;
+                            polypoints[2][1] = V->Ty;
+                            polypoints[2][2] = V->Tz;
+                            polynormals[2][0] = V->N.Tx;
+                            polynormals[2][1] = V->N.Ty;
+                            polynormals[2][2] = V->N.Tz;
+
+                            //P->R[volume_counter] = 255;
+
+                            plane = init_plane(polypoints[1], &polynormal);
+                            dist = nearest(C->T->pos, plane);
+
+                            dist /= dot;
+
+                            intersection_Point[0] = C->T->pos[0] + D->x * dist;
+                            intersection_Point[1] = C->T->pos[1] + D->y * dist;
+                            intersection_Point[2] = C->T->pos[2] + D->z * dist;
+
+                            c = cull(intersection_Point, polypoints);
+
+            //                printf("c %d\n", c);
+
+                            if (c > 0)
                             {
-                                if (Preak)
-                                    break;
+                                idx = T->surface;
+                                Material = Materials[idx];
+                                texture = Surf_Text[Material.texture];
 
-                                l = 0;
+                                idx = T->texts[0];
+                                UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                polytexts[0][0] = UV->u;
+                                polytexts[0][1] = UV->v;
+                                idx = T->texts[1];
+                                UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                polytexts[1][0] = UV->u;
+                                polytexts[1][1] = UV->v;
+                                idx = T->texts[2];
+                                UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                polytexts[2][0] = UV->u;
+                                polytexts[2][1] = UV->v;
 
-                                idx = P0->quads[q];
-
-                                Q = &O->quads_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                                aim_deviation = acos(dot_productN(D, Q->B.Aim.vec));
-
-                                if (Q->B.backface || aim_deviation > Q->B.deviation)
+                                if (texture != NULL)//(Material.use_texture && texture != NULL)
                                 {
-                                    continue;
+                                    T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
+                                    x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
+                                    y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
+                                    pix = get_pixel32(texture, x, y);
+                                    SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+                                }
+                                else
+                                {
+                                    r = Material.RGBA.R;
+                                    g = Material.RGBA.G;
+                                    b = Material.RGBA.B;
+                                    a = Material.RGBA.A;
+                                    normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
+                                }
+                                if (texture != NULL)//(Material.smooth)
+                                {
+                                    dot_light = dot_productFF(T_uvNormal.normal, light_vec);
+                                }
+                                else
+                                {
+                                    dot_light = dot_productN(&polynormal, light_vec);
                                 }
 
-                                // level 1 and more not implemented
-            /*
-                                if (Q->subdivs && l < L)
-                                {
-                                    while (l < L)
-                                    {
-                                        if (!Q->subdivs)
-                                            break;
+                                if (dot_light < 0)
+                                    dot_light = abs(dot_light);
 
-                                        l ++;
+                                P->D[volume_counter] = dist;
+                                P->trip[volume_counter] = t;
+                                P->level[volume_counter] = L;
+                                P->object[volume_counter] = i;
+                                P->R[volume_counter] = r * dot_light;
+                                P->G[volume_counter] = g * dot_light;
+                                P->B[volume_counter] = b * dot_light;
+                                P->A[volume_counter] = a;
+                                volume_counter ++;
 
-                                        for (q0 = 0; q0 < 4; q0 ++)
-                                        {
-                                            if (Preak)
-                                                break;
+                                if (volume_counter == PIXEL_VOLUME)
+                                    Preak = 1;
 
-                                            idx = Q->quads[q0];
-
-                                            Q = &O->quads_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                                            polyradius = Q->B.Tradius;
-
-                                            polyAim = vector3d(Q->B, C->T->pos);
-
-                                            deviation = atan2(polyradius, polyAim.dist); // * 2
-
-                                            aim_deviation = acos(dot_productN(D, polyAim.vec));
-
-                                            if (aim_deviation > deviation)
-                                            {
-                                                continue;
-                                            }
-
-                                            break;
-                                        }
-                                    }
-                                }
-            */
-                                for (t = 0; t < 2; t ++)
-                                {
-                                    if (Preak)
-                                        break;
-
-                                    idx = Q->trips[t];
-
-                                    T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                                    if (!T->B.backface)
-                                    {
-                                        polynormal.x = -T->N.Tx;
-                                        polynormal.y = -T->N.Ty;
-                                        polynormal.z = -T->N.Tz;
-
-                                        dot = dot_product(&polynormal, D);
-
-                                        idx = T->verts[0];
-                                        V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                        polypoints[0][0] = V->Tx;
-                                        polypoints[0][1] = V->Ty;
-                                        polypoints[0][2] = V->Tz;
-                                        polynormals[0][0] = V->N.Tx;
-                                        polynormals[0][1] = V->N.Ty;
-                                        polynormals[0][2] = V->N.Tz;
-                                        idx = T->verts[1];
-                                        V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                        polypoints[1][0] = V->Tx;
-                                        polypoints[1][1] = V->Ty;
-                                        polypoints[1][2] = V->Tz;
-                                        polynormals[1][0] = V->N.Tx;
-                                        polynormals[1][1] = V->N.Ty;
-                                        polynormals[1][2] = V->N.Tz;
-                                        idx = T->verts[2];
-                                        V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                        polypoints[2][0] = V->Tx;
-                                        polypoints[2][1] = V->Ty;
-                                        polypoints[2][2] = V->Tz;
-                                        polynormals[2][0] = V->N.Tx;
-                                        polynormals[2][1] = V->N.Ty;
-                                        polynormals[2][2] = V->N.Tz;
-
-                                        //P->R[volume_counter] = 255;
-
-                                        plane = init_plane(polypoints[1], &polynormal);
-                                        dist = nearest(C->T->pos, plane);
-
-                                        dist /= dot;
-
-                                        intersection_Point[0] = C->T->pos[0] + D->x * dist;
-                                        intersection_Point[1] = C->T->pos[1] + D->y * dist;
-                                        intersection_Point[2] = C->T->pos[2] + D->z * dist;
-
-                                        c = cull(intersection_Point, polypoints);
-
-                        //                printf("c %d\n", c);
-
-                                        if (c > 0)
-                                        {
-                                            idx = T->surface;
-                                            Material = Materials[idx];
-                                            texture = Surf_Text[Material.texture];
-
-                                            idx = T->texts[0];
-                                            UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                            polytexts[0][0] = UV->u;
-                                            polytexts[0][1] = UV->v;
-                                            idx = T->texts[1];
-                                            UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                            polytexts[1][0] = UV->u;
-                                            polytexts[1][1] = UV->v;
-                                            idx = T->texts[2];
-                                            UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                            polytexts[2][0] = UV->u;
-                                            polytexts[2][1] = UV->v;
-
-                                            if (texture != NULL)//(Material.use_texture && texture != NULL)
-                                            {
-                                                T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
-                                                x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
-                                                y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
-                                                pix = get_pixel32(texture, x, y);
-                                                SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
-                                            }
-                                            else
-                                            {
-                                                r = Material.RGBA.R;
-                                                g = Material.RGBA.G;
-                                                b = Material.RGBA.B;
-                                                a = Material.RGBA.A;
-                                                normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
-                                            }
-                                            if (texture != NULL)//(Material.smooth)
-                                            {
-                                                dot_light = dot_productFF(T_uvNormal.normal, light_vec);
-                                            }
-                                            else
-                                            {
-                                                dot_light = dot_productN(&polynormal, light_vec);
-                                            }
-
-                                            if (dot_light < 0)
-                                                dot_light = abs(dot_light);
-
-                                            P->D[volume_counter] = dist;
-                                            P->trip[volume_counter] = t;
-                                            P->level[volume_counter] = L;
-                                            P->object[volume_counter] = i;
-                                            P->R[volume_counter] = r * dot_light;
-                                            P->G[volume_counter] = g * dot_light;
-                                            P->B[volume_counter] = b * dot_light;
-                                            P->A[volume_counter] = a;
-                                            volume_counter ++;
-
-                                            if (volume_counter == PIXEL_VOLUME)
-                                                Preak = 1;
-
-                                            break;
-                                        }
-                                    }
-                                }
+                                break;
                             }
                         }
                     }
@@ -965,15 +923,15 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     }
 }
 
-/*inline*/ int come_With_Pixel(pixel * P, camera * C, normal * D)
+/*inline*/ int come_With_Pixel(pixel * P, camera * C, normal * D, int gx, int gy)
 {
     Uint32 pix;
     Uint8 r, g, b, a;
 
-    int i, idx, c, k, x, y, o, e;
+    int i, idx, c, k, x, y, o;
     float dot, dist, dot_light;
     normal polynormal;
-    edge * E;
+    //edge * E;
     polygon *P0;
     triangle * T;
     object * O;
@@ -1002,179 +960,162 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     int d;
     float s;
 
-    int t, p, Preak;
+    int t, Preak;
 
     Preak = 0;
+
+    polygroup * G;
 
     for (o = 0; o < C->object_count; o ++)
     {
         if (Preak)
             break;
 
-        i = C->objects[o];
-        O = objects[i];
+        idx = C->objects[o];
+        O = objects[idx];
 
-        for (e = 0; e < O->edgecount; e ++)
+        G = &O->Polygroups[gy][gx];
+
+        for (i = 0; i < G->indices_count; i ++)
         {
             if (Preak)
                 break;
 
-            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+            idx = G->indices[i];
 
-            if (E->group_Polys.assigned == 0)
+            P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+/*
+            polynormal.x = -P0->N.Tx;
+            polynormal.y = -P0->N.Ty;
+            polynormal.z = -P0->N.Tz;
+
+            dot = dot_product(&polynormal, D);
+*/
+            aim_deviation = acos(dot_productN(D, P0->B.Aim.vec));
+
+            if (aim_deviation > P0->B.deviation)
             {
-                aim_deviation = acos(dot_productN(D, E->group_Polys.B.Aim.vec));
+                continue;
+            }
 
-                if (aim_deviation > E->group_Polys.B.deviation)
+            for (t = 0; t < P0->tripcount; t ++)
+            {
+                if (Preak)
+                    break;
+
+                idx = P0->trips[t];
+
+                T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (!T->B.backface)
                 {
-                    continue;
-                }
-
-                for (p = 0; p < E->group_Polys.indices_count; p ++)
-                {
-                    if (Preak)
-                        break;
-
-                    idx = E->group_Polys.indices[p];
-
-                    P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                    polynormal.x = -P0->N.Tx;
-                    polynormal.y = -P0->N.Ty;
-                    polynormal.z = -P0->N.Tz;
+                    polynormal.x = -T->N.Tx;
+                    polynormal.y = -T->N.Ty;
+                    polynormal.z = -T->N.Tz;
 
                     dot = dot_product(&polynormal, D);
 
-                    if (dot > -0.5)
+                    idx = T->verts[0];
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    polypoints[0][0] = V->Tx;
+                    polypoints[0][1] = V->Ty;
+                    polypoints[0][2] = V->Tz;
+                    polynormals[0][0] = V->N.Tx;
+                    polynormals[0][1] = V->N.Ty;
+                    polynormals[0][2] = V->N.Tz;
+                    idx = T->verts[1];
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    polypoints[1][0] = V->Tx;
+                    polypoints[1][1] = V->Ty;
+                    polypoints[1][2] = V->Tz;
+                    polynormals[1][0] = V->N.Tx;
+                    polynormals[1][1] = V->N.Ty;
+                    polynormals[1][2] = V->N.Tz;
+                    idx = T->verts[2];
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    polypoints[2][0] = V->Tx;
+                    polypoints[2][1] = V->Ty;
+                    polypoints[2][2] = V->Tz;
+                    polynormals[2][0] = V->N.Tx;
+                    polynormals[2][1] = V->N.Ty;
+                    polynormals[2][2] = V->N.Tz;
+
+                    //P->R[volume_counter] = 255;
+
+                    plane = init_plane(polypoints[1], &polynormal);
+                    dist = nearest(C->T->pos, plane);
+
+                    dist /= dot;
+
+                    intersection_Point[0] = C->T->pos[0] + D->x * dist;
+                    intersection_Point[1] = C->T->pos[1] + D->y * dist;
+                    intersection_Point[2] = C->T->pos[2] + D->z * dist;
+
+                    c = cull(intersection_Point, polypoints);
+
+    //                printf("c %d\n", c);
+
+                    if (c > 0)
                     {
-                        aim_deviation = acos(dot_productN(D, P0->B.Aim.vec));
+                        idx = T->surface;
+                        Material = Materials[idx];
+                        texture = Surf_Text[Material.texture];
 
-                        if (aim_deviation > P0->B.deviation)
+                        idx = T->texts[0];
+                        UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        polytexts[0][0] = UV->u;
+                        polytexts[0][1] = UV->v;
+                        idx = T->texts[1];
+                        UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        polytexts[1][0] = UV->u;
+                        polytexts[1][1] = UV->v;
+                        idx = T->texts[2];
+                        UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        polytexts[2][0] = UV->u;
+                        polytexts[2][1] = UV->v;
+
+                        if (texture != NULL)//(Material.use_texture && texture != NULL)
                         {
-                            continue;
+                            T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
+                            x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
+                            y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
+                            pix = get_pixel32(texture, x, y);
+                            SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+                        }
+                        else
+                        {
+                            r = Material.RGBA.R;
+                            g = Material.RGBA.G;
+                            b = Material.RGBA.B;
+                            a = Material.RGBA.A;
+                            normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
+                        }
+                        if (texture != NULL)//(Material.smooth)
+                        {
+                            dot_light = dot_productFF(T_uvNormal.normal, light_vec);
+                        }
+                        else
+                        {
+                            dot_light = dot_productN(&polynormal, light_vec);
                         }
 
-                        for (t = 0; t < P0->tripcount; t ++)
-                        {
-                            if (Preak)
-                                break;
+                        if (dot_light < 0)
+                            dot_light = abs(dot_light);
 
-                            idx = P0->trips[t];
+                        P->D[volume_counter] = dist;
+                        P->trip[volume_counter] = t;
+                        P->level[volume_counter] = -1;
+                        P->object[volume_counter] = i;
+                        P->R[volume_counter] = r * dot_light;
+                        P->G[volume_counter] = g * dot_light;
+                        P->B[volume_counter] = b * dot_light;
+                        P->A[volume_counter] = a;
+                        volume_counter ++;
 
-                            T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        if (volume_counter == PIXEL_VOLUME)
+                            Preak = 1;
 
-                            if (!T->B.backface)
-                            {
-                                polynormal.x = -T->N.Tx;
-                                polynormal.y = -T->N.Ty;
-                                polynormal.z = -T->N.Tz;
-
-                                dot = dot_product(&polynormal, D);
-
-                                idx = T->verts[0];
-                                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                polypoints[0][0] = V->Tx;
-                                polypoints[0][1] = V->Ty;
-                                polypoints[0][2] = V->Tz;
-                                polynormals[0][0] = V->N.Tx;
-                                polynormals[0][1] = V->N.Ty;
-                                polynormals[0][2] = V->N.Tz;
-                                idx = T->verts[1];
-                                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                polypoints[1][0] = V->Tx;
-                                polypoints[1][1] = V->Ty;
-                                polypoints[1][2] = V->Tz;
-                                polynormals[1][0] = V->N.Tx;
-                                polynormals[1][1] = V->N.Ty;
-                                polynormals[1][2] = V->N.Tz;
-                                idx = T->verts[2];
-                                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                polypoints[2][0] = V->Tx;
-                                polypoints[2][1] = V->Ty;
-                                polypoints[2][2] = V->Tz;
-                                polynormals[2][0] = V->N.Tx;
-                                polynormals[2][1] = V->N.Ty;
-                                polynormals[2][2] = V->N.Tz;
-
-                                //P->R[volume_counter] = 255;
-
-                                plane = init_plane(polypoints[1], &polynormal);
-                                dist = nearest(C->T->pos, plane);
-
-                                dist /= dot;
-
-                                intersection_Point[0] = C->T->pos[0] + D->x * dist;
-                                intersection_Point[1] = C->T->pos[1] + D->y * dist;
-                                intersection_Point[2] = C->T->pos[2] + D->z * dist;
-
-                                c = cull(intersection_Point, polypoints);
-
-                //                printf("c %d\n", c);
-
-                                if (c > 0)
-                                {
-                                    idx = T->surface;
-                                    Material = Materials[idx];
-                                    texture = Surf_Text[Material.texture];
-
-                                    idx = T->texts[0];
-                                    UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                    polytexts[0][0] = UV->u;
-                                    polytexts[0][1] = UV->v;
-                                    idx = T->texts[1];
-                                    UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                    polytexts[1][0] = UV->u;
-                                    polytexts[1][1] = UV->v;
-                                    idx = T->texts[2];
-                                    UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                    polytexts[2][0] = UV->u;
-                                    polytexts[2][1] = UV->v;
-
-                                    if (texture != NULL)//(Material.use_texture && texture != NULL)
-                                    {
-                                        T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
-                                        x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
-                                        y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
-                                        pix = get_pixel32(texture, x, y);
-                                        SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
-                                    }
-                                    else
-                                    {
-                                        r = Material.RGBA.R;
-                                        g = Material.RGBA.G;
-                                        b = Material.RGBA.B;
-                                        a = Material.RGBA.A;
-                                        normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
-                                    }
-                                    if (texture != NULL)//(Material.smooth)
-                                    {
-                                        dot_light = dot_productFF(T_uvNormal.normal, light_vec);
-                                    }
-                                    else
-                                    {
-                                        dot_light = dot_productN(&polynormal, light_vec);
-                                    }
-
-                                    if (dot_light < 0)
-                                        dot_light = abs(dot_light);
-
-                                    P->D[volume_counter] = dist;
-                                    P->trip[volume_counter] = t;
-                                    P->level[volume_counter] = -1;
-                                    P->object[volume_counter] = i;
-                                    P->R[volume_counter] = r * dot_light;
-                                    P->G[volume_counter] = g * dot_light;
-                                    P->B[volume_counter] = b * dot_light;
-                                    P->A[volume_counter] = a;
-                                    volume_counter ++;
-
-                                    if (volume_counter == PIXEL_VOLUME)
-                                        Preak = 1;
-
-                                    break;
-                                }
-                            }
-                        }
+                        break;
                     }
                 }
             }
@@ -7982,7 +7923,7 @@ void * perform_work(void * arguments)
 
     normalizeF((float *)&light_vec);
 
-    int x, y, index;
+    int x, y, index, gx, gy;
     float R;
     pixel P;
 
@@ -7999,6 +7940,11 @@ void * perform_work(void * arguments)
     H_Mark += pi;
     V_Mark += pi_2;
 
+    float Group_Width = Args->C->h_view / (float)OBJECT_GROUP_H;
+    float Group_Height = Args->C->v_view / (float)OBJECT_GROUP_V;
+    float View_Span_H = 0.0;
+    float View_Span_V = 0.0;
+
     float H_MARK = H_Mark - ((float)(Args->index) * h_step);
 
     for (y = 0; y < Args->height; y ++)
@@ -8006,8 +7952,14 @@ void * perform_work(void * arguments)
         R = sin(V_Mark);
         DDy = -cos(V_Mark);
         H_Mark = H_MARK;
+
+        gy = (int)(View_Span_V / Group_Height);
+        View_Span_H = 0.0;
+
         for (x = Args->index; x < Args->width; x += NUM_THREADS)
         {
+            gx = (int)(View_Span_H / Group_Width);
+
             if (!Args->index && !(y % 10))
                 printf(".");
             D.D.y = DDy;
@@ -8019,11 +7971,11 @@ void * perform_work(void * arguments)
 
             if (Args->L == -1)
             {
-                idx = come_With_Pixel(&P, Args->C, &D.N); // normal is submitted from union
+                idx = come_With_Pixel(&P, Args->C, &D.N, gx, gy); // normal is submitted from union
             }
             else
             {
-                idx = come_With_Pixel_(&P, Args->C, &D.N, Args->L);
+                idx = come_With_Pixel_(&P, Args->C, &D.N, Args->L, gx, gy);
             }
 
             Args->data[index] = (unsigned char)P.R[idx];
@@ -8032,6 +7984,7 @@ void * perform_work(void * arguments)
             Args->data[index + 3] = (unsigned char)P.A[idx];
 
             H_Mark -= H_step;
+            View_Span_H += H_step;
         }
 
         if (!Args->index && !(y % 10))
@@ -8057,6 +8010,7 @@ void * perform_work(void * arguments)
 //        }
 
         V_Mark += V_step;
+        View_Span_V += V_step;
     }
 
     return NULL;

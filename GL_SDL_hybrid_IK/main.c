@@ -20177,9 +20177,8 @@ int main(int argc, char * args[])
         {
             find_Camera_Objects();
             Camera = find_View(mouse_x, mouse_y, splitview);
-            update_transformed_Triangles_radius(Camera, subdLevel);
-            generate_Polygroups(Camera);
-            populate_box_3d_Aim_And_Deviation(Camera);
+            populate_box_3d_Aim_And_Deviation(Camera, subdLevel);
+            generate_Object_Polygroups(Camera);
             render_and_save_Image(Camera, screen_width, screen_height, subdLevel);
         }
         if (message != 0 && !dialog_lock)

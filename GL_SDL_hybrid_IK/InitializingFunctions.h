@@ -817,8 +817,6 @@ int initialize_object(int index,
 
     O->smooth = 1;
 
-    O->group = 0;
-
     for (i = 0; i < SUBD; i ++)
     {
         O->textcount_[i] = 0;
@@ -851,6 +849,16 @@ int initialize_object(int index,
     O->vertex_selection = malloc(0 * sizeof(vert_selection*));
 
     O->WEncapsulator = malloc(O->vertcount * sizeof(weight_encapsulator));
+
+    int x, y;
+
+    for (y = 0; y < OBJECT_GROUP_V; y ++)
+    {
+        for (x = 0; x < OBJECT_GROUP_H; x ++)
+        {
+            O->Polygroups[y][x].indices = NULL;
+        }
+    }
 
     loaded_objects[index] = 1;
     return 1;
@@ -1192,7 +1200,6 @@ void init_object_polys(object * O, int start, int * p_trips, int T_LEN, int * p_
         P->surface = 0;
         P->selected = 0;
         P->color = i;
-        P->group = 0;
         P->edgecount = E_tiks[c_E++ % LEN];
         P->tripcount = P->edgecount - 2;
         P->trips = calloc(P->tripcount, sizeof(int));

@@ -26,190 +26,98 @@ void rotate_Camera(camera * C, float CamDist)
 //    gluLookAt(C->T.pos[0], C->T.pos[1], C->T.pos[2], 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
-void generate_Polygroups(camera * C)
+union Dir
 {
-    int o, p, e, idx; //, v, e0;
+   direction D;
+   normal N;
+};
+
+void generate_Object_Polygroups(camera * C)
+{
+    int x, y;
+    float R;
+
+    int o, p;
+
     object * O;
-    edge * E; // * E0;
-    polygon * P, * P0, * P1;
-    //vertex * V;
+    polygon * P;
 
-    for (o = 0; o < C->object_count; o ++)
+    polygroup * G;
+
+    float deviation;
+
+    union Dir D = {{0.0, 0.0, -1.0}};
+    float DDy;
+
+    float H_Mark = C->h_view / 2.0;
+    float V_Mark = -C->v_view / 2.0;
+    float H_step = (C->h_view / (float)OBJECT_GROUP_H);
+    float V_step = (C->v_view / (float)OBJECT_GROUP_V);
+    H_Mark -= H_step / 2.0;
+    V_Mark += V_step / 2.0;
+    H_Mark += pi;
+    V_Mark += pi_2;
+
+    float Radius;
+
+    Radius = sqrt(V_step * V_step + H_step * H_step) / 2.0;
+
+    //printf("h_view %f\n", C->h_view);
+    //printf("Radius %f\n", Radius);
+
+    float H_MARK = H_Mark;
+
+    for (y = 0; y < OBJECT_GROUP_V; y ++)
     {
-        O = objects[C->objects[o]];
-
-        if (O->group)
+        R = sin(V_Mark);
+        DDy = -cos(V_Mark);
+        H_Mark = H_MARK;
+        for (x = 0; x < OBJECT_GROUP_H; x ++)
         {
-            continue;
-        }
+            D.D.y = DDy;
+            D.D.x = sin(H_Mark) * R;
+            D.D.z = cos(H_Mark) * R;
 
-        for (e = 0; e < O->edgecount; e ++)
-        {
-            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-            E->group_Polys.assigned = -1;
-            E->group_Polys.indices_count = 0;
-        }
+            rotate_Vector(C->T, -D.D.x, D.D.y, -D.D.z, &D.D); // direction is submitted from union
 
-        for (e = 1; e < O->edgecount; e ++)
-        {
-            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-
-            if (E->polycount > 1)
+            for (o = 0; o < C->object_count; o ++)
             {
-                idx = E->polys[0];
-                P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                O = objects[C->objects[o]];
 
-                idx = E->polys[1];
-                P1 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                G = &O->Polygroups[y][x];
 
-                if (P0->group == 0 && P1->group == 0)
+                G->indices_count = 0;
+                if (G->indices != NULL)
                 {
-                    E->group_Polys.indices = malloc(2 * sizeof(int));
-
-                    if (E->group_Polys.indices != NULL)
-                    {
-                        E->group_Polys.index = e;
-                        E->group_Polys.indices_count = 2;
-
-                        E->group_Polys.indices[0] = E->polys[0];
-                        E->group_Polys.indices[1] = E->polys[1];
-
-                        E->group_Polys.assigned = 0;
-
-                        P0->group = e;
-                        P1->group = e;
-                    }
+                    free(G->indices);
                 }
-            }
-        }
-/*
-        for (e = 1; e < O->edgecount; e ++)
-        {
-            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+                G->indices = malloc(O->polycount * sizeof(int));
 
-            if (E->group_Polys.assigned < 1 && E->group_Polys.indices_count == 2)
-            {
-                for (v = 0; v < 2; v ++)
-                {
-                    idx = E->verts[v];
-                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                    for (e0 = 0; e0 < V->edgecount; e0 ++)
-                    {
-                        idx = V->edges[e0];
-                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                        if (E == E0)
-                        {
-                            continue;
-                        }
-
-                        if (E0->group_Polys.assigned == -1 && E0->group_Polys.indices_count == 2)
-                        {
-                            E->group_Polys.indices = realloc(E->group_Polys.indices, (E->group_Polys.indices_count + E0->group_Polys.indices_count) * sizeof(int));
-
-                            if (E->group_Polys.indices != NULL)
-                            {
-                                E->group_Polys.indices[E->group_Polys.indices_count] = E0->polys[0];
-                                E->group_Polys.indices[E->group_Polys.indices_count + 1] = E0->polys[1];
-
-                                E->group_Polys.indices_count += E0->group_Polys.indices_count;
-
-                                E->group_Polys.assigned = 0;
-                                E0->group_Polys.assigned = 1;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-*/
-        if (O->edgecount > 0)
-        {
-            int i, * p_indices, p_indices_count;
-
-            p_indices = malloc(O->polycount * sizeof(int));
-
-            p_indices_count = 0;
-
-            if (p_indices != NULL)
-            {
                 for (p = 0; p < O->polycount; p ++)
                 {
                     P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
 
-                    if (P->group == 0)
+                    if (P->B.backface)
                     {
-                        p_indices[p_indices_count ++] = P->index;
+                        continue;
+                    }
+
+                    deviation = dot_productN((normal *)&D, P->B.Aim.vec);
+
+                    if (acos(deviation) < Radius + P->B.deviation)
+                    {
+                        G->indices[G->indices_count ++] = P->index;
                     }
                 }
+                G->indices = realloc(G->indices, G->indices_count * sizeof(int));
 
-                if (p_indices_count > 0)
-                {
-                    E = &O->edges[0 / ARRAYSIZE][0 % ARRAYSIZE];
-
-                    E->group_Polys.indices = malloc(p_indices_count * sizeof(int));
-
-                    if (E->group_Polys.indices != NULL)
-                    {
-                        E->group_Polys.assigned = 0;
-                        E->group_Polys.index = 0;
-                        E->group_Polys.indices_count = p_indices_count;
-
-                        for (i = 0; i < p_indices_count; i ++)
-                        {
-                            E->group_Polys.indices[i] = p_indices[i];
-                        }
-                    }
-                }
+                //printf("%s, %d, %d, %d\n", O->Name, G->indices_count, y, x);
             }
 
-            free(p_indices);
+            H_Mark -= H_step;
         }
 
-        int check_0 = 0;
-        int check_1 = 0;
-
-        for (e = 0; e < O->edgecount; e ++)
-        {
-            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-
-            if(E->group_Polys.assigned == 0)
-            {
-                sum_box_3d_For_Polygroup_T(O, E, 1);
-
-                //printf("%d ", E->group_Polys.indices_count);
-
-                check_0 += E->group_Polys.indices_count;
-                check_1 ++;
-            }
-        }
-
-        O->group = 1;
-
-        printf("%s, %d, %d, %d\n", O->Name, O->polycount, check_0, check_1);
-    }
-}
-
-void update_transformed_Triangles_radius(camera * C, int L)
-{
-    int o, level;
-    object * O;
-
-    for (o = 0; o < C->object_count; o ++)
-    {
-        O = objects[C->objects[o]];
-        update_bounding_box_for_transformed_Trips(O, 1); // does update radius
-
-        for (level = L; level <= O->subdlevel; level ++)
-        {
-            if (level > L)
-            {
-                break;
-            }
-
-            update_bounding_box_for_transformed_Trips_(O, level, 1); // does update radius
-        }
+        V_Mark += V_step;
     }
 }
 
