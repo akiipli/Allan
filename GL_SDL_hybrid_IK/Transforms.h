@@ -32,7 +32,7 @@ union Dir
    normal N;
 };
 
-void generate_Object_Polygroups(camera * C, int L)
+void generate_Object_Polygroups(camera * C)
 {
     int x, y;
     float R;
