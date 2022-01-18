@@ -60,7 +60,7 @@ void generate_Object_Polygroups(camera * C)
 
     float Radius;
 
-    Radius = sqrt(V_step * V_step + H_step * H_step) / 2.0;
+    Radius = sqrt(V_step * V_step + H_step * H_step) / 1.9;
 
     //printf("h_view %f\n", C->h_view);
     //printf("Radius %f\n", Radius);

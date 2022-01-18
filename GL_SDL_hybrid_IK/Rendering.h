@@ -1,10 +1,10 @@
 /*
 The MIT License
 
-Copyright <2018> <Allan Kiipli>
+Copyright <2018> <2022> <Allan Kiipli>
 */
 
-#define tolerance 1000
+#define TOLERANCE 500
 
 #define POLYGON_ID_COLORS 2
 #define OBJECT_ID_COLORS 1
@@ -178,7 +178,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
 
     int l, l0;
 
-    if (level > 1) level = 1;
+    if (level > 2) level = 2;
 
     if (level > -1) // has levels
     {
@@ -474,6 +474,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
     float dot;
     int on_edge = 0;
 
+
     aim A, B;
 
     int i, C, C0;
@@ -491,8 +492,8 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
         angle += acos(dot);
     }
 
-    C = angle * tolerance;
-    C0 = pi2 * tolerance;
+    C = angle * TOLERANCE;
+    C0 = pi2 * TOLERANCE;
 
     if (C == C0)
     {
@@ -756,10 +757,10 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 {
     trianges_cancel Cancel;
 
-    int i, idx, k, o, q, q0;
+    int i, idx, k, o, q, q0, q1;
     //edge * E;
     polygon * P0;
-    quadrant * Q, * Q0;
+    quadrant * Q, * Q0, * Q1;
     triangle * T;
     object * O;
 
@@ -784,7 +785,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
     polygroup * G;
 
-    if (L > 1) L = 1;
+    if (L > 2) L = 2;
 
     for (o = 0; o < C->object_count; o ++)
     {
@@ -835,7 +836,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                         continue;
                     }
 
-                    if (Q->subdivs && L == 1)
+                    if (Q->subdivs && L >= 1)
                     {
                         for (q0 = 0; q0 < 4; q0 ++)
                         {
@@ -843,7 +844,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                                 break;
 
                             idx = Q->quads[q0];
-                            Q0 = &O->quads_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            Q0 = &O->quads_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                             if (Q0->B.backface)
                             {
@@ -857,25 +858,73 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                                 continue;
                             }
 
-                            for (t = 0; t < 2; t ++)
+                            if (Q0->subdivs && L == 2)
                             {
-                                if (Preak)
-                                    break;
-
-                                idx = Q0->trips[t];
-
-                                T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                                if (!T->B.backface)
+                                for (q1 = 0; q1 < 4; q1 ++)
                                 {
-                                    Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t);
-
-                                    volume_counter = Cancel.volume_counter;
-
-                                    Preak = Cancel.preak;
-
-                                    if (Cancel.cancel)
+                                    if (Preak)
                                         break;
+
+                                    idx = Q0->quads[q1];
+                                    Q1 = &O->quads_[2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                    if (Q1->B.backface)
+                                    {
+                                        continue;
+                                    }
+
+                                    aim_deviation = acos(dot_productN(D, Q1->B.Aim.vec));
+
+                                    if (aim_deviation > Q1->B.deviation)
+                                    {
+                                        continue;
+                                    }
+
+                                    for (t = 0; t < 2; t ++)
+                                    {
+                                        if (Preak)
+                                            break;
+
+                                        idx = Q1->trips[t];
+
+                                        T = &O->trips_[2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                        if (!T->B.backface)
+                                        {
+                                            Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t);
+
+                                            volume_counter = Cancel.volume_counter;
+
+                                            Preak = Cancel.preak;
+
+                                            if (Cancel.cancel)
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (t = 0; t < 2; t ++)
+                                {
+                                    if (Preak)
+                                        break;
+
+                                    idx = Q0->trips[t];
+
+                                    T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                    if (!T->B.backface)
+                                    {
+                                        Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t);
+
+                                        volume_counter = Cancel.volume_counter;
+
+                                        Preak = Cancel.preak;
+
+                                        if (Cancel.cancel)
+                                            break;
+                                    }
                                 }
                             }
                         }
