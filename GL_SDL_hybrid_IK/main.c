@@ -13443,6 +13443,19 @@ void save_load_Scene()
     Button_h_scen[0].color = UI_GRAYB;
 }
 
+void change_Material_Smooth()
+{
+    Materials[currentMaterial].smooth = !Materials[currentMaterial].smooth;
+
+    DRAW_UI = 0;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    DRAW_UI = 1;
+
+    draw_Dialog();
+
+    SDL_GL_SwapBuffers();
+}
+
 void change_Object_Smooth()
 {
     if (currentObject >= 0 && currentObject < objectIndex)
@@ -16090,6 +16103,13 @@ int main(int argc, char * args[])
                                     {
                                         Drag_Displacement = 1;
                                         Displacement = Materials[currentMaterial].Displacement;
+                                    }
+                                }
+                                else if (mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 2 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 4)
+                                {
+                                    if (h_index == 2)
+                                    {
+                                        change_Material_Smooth();
                                     }
                                 }
                             }

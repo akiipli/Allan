@@ -616,7 +616,7 @@ typedef struct
 }
 trianges_cancel;
 
-trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, object * O, triangle * T, int volume_counter, int t)
+trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, object * O, triangle * T, int volume_counter, int t, float shading_normal[3])
 {
     trianges_cancel Cancel;
     Cancel.preak = 0;
@@ -624,6 +624,8 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
     Uint32 pix;
     Uint8 r, g, b, a;
+    unsigned int R, G, B;
+    float a0, b0, mean;
 
     int idx, c, x, y;
     float dot, dist, dot_light;
@@ -711,6 +713,21 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
             y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
             pix = get_pixel32(texture, x, y);
             SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+
+            a0 = (float)a / (float)255;
+            b0 = (float)Material.RGBA.A / (float)255;
+
+            mean = a0 + b0;
+
+            R = r * a0 + Material.RGBA.R * b0;
+            G = g * a0 + Material.RGBA.G * b0;
+            B = b * a0 + Material.RGBA.B * b0;
+            //A = a + Material.RGBA.A;
+
+            r = R / mean;
+            g = G / mean;
+            b = B / mean;
+            //a = A / 2;
         }
         else
         {
@@ -720,13 +737,13 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
             a = Material.RGBA.A;
             normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
         }
-        if (texture != NULL)//(Material.smooth)
+        if (Material.smooth)
         {
             dot_light = dot_productFF(T_uvNormal.normal, light_vec);
         }
         else
         {
-            dot_light = dot_productN(&polynormal, light_vec);
+            dot_light = dot_productFF(shading_normal, light_vec);
         }
 
         if (dot_light < 0)
@@ -785,6 +802,8 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
     polygroup * G;
 
+    float shading_normal[3];
+
     if (L > 2) L = 2;
 
     for (o = 0; o < C->object_count; o ++)
@@ -835,6 +854,10 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                     {
                         continue;
                     }
+
+                    shading_normal[0] = -Q->N.Tx;
+                    shading_normal[1] = -Q->N.Ty;
+                    shading_normal[2] = -Q->N.Tz;
 
                     if (Q->subdivs && L >= 1)
                     {
@@ -891,7 +914,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
                                         if (!T->B.backface)
                                         {
-                                            Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t);
+                                            Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t, shading_normal);
 
                                             volume_counter = Cancel.volume_counter;
 
@@ -916,7 +939,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
                                     if (!T->B.backface)
                                     {
-                                        Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t);
+                                        Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t, shading_normal);
 
                                         volume_counter = Cancel.volume_counter;
 
@@ -942,7 +965,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
                             if (!T->B.backface)
                             {
-                                Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t);
+                                Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t, shading_normal);
 
                                 volume_counter = Cancel.volume_counter;
 
@@ -1175,6 +1198,8 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 {
     Uint32 pix;
     Uint8 r, g, b, a;
+    unsigned int R, G, B;
+    float a0, b0, mean;
 
     int i, idx, c, k, x, y, o;
     float dot, dist, dot_light;
@@ -1212,7 +1237,7 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 
     Preak = 0;
 
-    polygroup * G;
+    polygroup * G0;
 
     for (o = 0; o < C->object_count; o ++)
     {
@@ -1222,14 +1247,14 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
         idx = C->objects[o];
         O = objects[idx];
 
-        G = &O->Polygroups[gy][gx];
+        G0 = &O->Polygroups[gy][gx];
 
-        for (i = 0; i < G->indices_count; i ++)
+        for (i = 0; i < G0->indices_count; i ++)
         {
             if (Preak)
                 break;
 
-            idx = G->indices[i];
+            idx = G0->indices[i];
 
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
 /*
@@ -1329,6 +1354,21 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
                             y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
                             pix = get_pixel32(texture, x, y);
                             SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+
+                            a0 = (float)a / (float)255;
+                            b0 = (float)Material.RGBA.A / (float)255;
+
+                            mean = a0 + b0;
+
+                            R = r * a0 + Material.RGBA.R * b0;
+                            G = g * a0 + Material.RGBA.G * b0;
+                            B = b * a0 + Material.RGBA.B * b0;
+                            //A = a + Material.RGBA.A;
+
+                            r = R / mean;
+                            g = G / mean;
+                            b = B / mean;
+                            //a = A / 2;
                         }
                         else
                         {
@@ -1338,7 +1378,7 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
                             a = Material.RGBA.A;
                             normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
                         }
-                        if (texture != NULL)//(Material.smooth)
+                        if (Material.smooth)
                         {
                             dot_light = dot_productFF(T_uvNormal.normal, light_vec);
                         }
@@ -8264,6 +8304,10 @@ void * perform_work(void * arguments)
 
 void render_Image(unsigned char * data, camera * C, int width, int height, int L)
 {
+    light_vec[0] = -light.Position[0];
+    light_vec[1] = -light.Position[1];
+    light_vec[2] = -light.Position[2];
+
     printf("Rendering started\n\n");
     clock_t begin_ = clock();
 

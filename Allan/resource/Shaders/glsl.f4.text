@@ -152,7 +152,7 @@ void shadeWithShadow()
 
         color *= shadowcolor;
 
-        alpha = texture2D(tex, In.texpos).a * In.Color.a;
+        alpha = (texture2D(tex, In.texpos).a + In.Color.a) *0.5; //texture2D(tex, In.texpos).a * In.Color.a;
 
         gl_FragColor = vec4(vec3(fog.Color) * fog_intensity + color * (1.0 - fog_intensity), alpha);
         gl_FragDepth = gl_FragCoord.z;

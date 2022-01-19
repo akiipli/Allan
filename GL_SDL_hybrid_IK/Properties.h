@@ -192,6 +192,11 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "%1.2f", M->Displacement);
         draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
         idx ++;
+        sprintf(text, "\tSmooth");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%1d", M->smooth);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+        idx ++;
     }
     else if (type == PROPERTIES_LOCATOR)
     {
