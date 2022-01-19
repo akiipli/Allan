@@ -178,7 +178,7 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         draw_Properties_Text(text, d_width, p_height, idx, 1, 4);
         idx ++;
 
-        GLfloat color[4] = {M->RGBA.R / 255.0, M->RGBA.G / 255.0, M->RGBA.B / 255.0, M->RGBA.A / 255.0};
+        GLfloat color[4] = {M->RGBA.R / 255.0, M->RGBA.G / 255.0, M->RGBA.B / 255.0, 255.0}; // , M->RGBA.A / 255.0};
 
         draw_Color_Button(SIDEBAR * 2, p_height, 0, color);
 
