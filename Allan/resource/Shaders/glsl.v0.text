@@ -13,10 +13,10 @@ out vec2 texpos;
 void main(void)
 {
 
-  gl_Position = ProjectionMatrix * vec4(position, 0, 1);
-  //gl_Position = ProjectionMatrix * vec4(coord.xy, 0, 1);
+    gl_Position = ProjectionMatrix * vec4(position, 0, 1);
+    //gl_Position = ProjectionMatrix * vec4(coord.xy, 0, 1);
 
-  //texpos = coord.zw;
-  texpos = uv;
+    //texpos = coord.zw;
+    texpos = uv;
 
 }

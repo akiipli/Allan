@@ -20197,7 +20197,7 @@ int main(int argc, char * args[])
         {
             find_Camera_Objects();
             Camera = find_View(mouse_x, mouse_y, splitview);
-            populate_box_3d_Aim_And_Deviation(Camera, subdLevel);
+            populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
             generate_Object_Polygroups(Camera);
             render_and_save_Image(Camera, screen_width, screen_height, subdLevel);
         }

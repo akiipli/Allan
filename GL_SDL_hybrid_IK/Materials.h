@@ -73,7 +73,7 @@ int init_Material(int index)
     M->RGBA.R = 255;
     M->RGBA.G = 255;
     M->RGBA.B = 255;
-    M->RGBA.A = 255;
+    M->RGBA.A = 0;
     M->Shininess = 2;
     return i;
 }

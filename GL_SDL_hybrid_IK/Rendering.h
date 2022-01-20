@@ -4,7 +4,7 @@ The MIT License
 Copyright <2018> <2022> <Allan Kiipli>
 */
 
-#define TOLERANCE 500
+#define TOLERANCE 100
 
 #define POLYGON_ID_COLORS 2
 #define OBJECT_ID_COLORS 1
@@ -152,7 +152,7 @@ aim vector3d_T(vertex * V, float B[3])
     return a;
 }
 
-void populate_box_3d_Aim_And_Deviation(camera * C, int level)
+void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int height)
 {
     int o, p, q, q0, idx, t, v;
 
@@ -248,11 +248,14 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
                             }
                         }
 
-                        Q->B.deviation = acos(Dot);
+                        Q->B.deviation = acos(Dot) + (C->Pixel_Size_In_Radians / (l + 2)); // adding slight radius
                         Q->B.Aim.dist = polyAim.dist;
                         Q->B.Aim.vec[0] = polyAim.vec[0];
                         Q->B.Aim.vec[1] = polyAim.vec[1];
                         Q->B.Aim.vec[2] = polyAim.vec[2];
+
+                        /* if deviation is less than View Radius in Radians divided by Resolution Radius
+                        we have a one pixel size */
 
                         Q->B.backface = 1;
 
@@ -289,7 +292,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
                             }
                         }
 
-                        Q->B.deviation = acos(Dot);
+                        Q->B.deviation = acos(Dot) + (C->Pixel_Size_In_Radians / (l + 2)); // adding slight radius
                         Q->B.Aim.dist = polyAim.dist;
                         Q->B.Aim.vec[0] = polyAim.vec[0];
                         Q->B.Aim.vec[1] = polyAim.vec[1];
@@ -304,6 +307,8 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
                             T = &O->trips_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                             polyAim = vector3d(T->B, C->T->pos);
+
+                            T->B.Aim.dist = polyAim.dist;
 
                             polynormal.x = -T->N.Tx;
                             polynormal.y = -T->N.Ty;
@@ -447,6 +452,8 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
 
                     polyAim = vector3d(T->B, C->T->pos);
 
+                    T->B.Aim.dist = polyAim.dist;
+
                     polynormal.x = -T->N.Tx;
                     polynormal.y = -T->N.Ty;
                     polynormal.z = -T->N.Tz;
@@ -540,6 +547,28 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
     N[2] = v1[0] * v2[1] - v1[1] * v2[0];
 }
 
+texelPack uv_value_mean(float polynormals[3][3], float polytexts[3][2])
+{
+    float I_TextUV[2] = {0.0, 0.0};
+    float I_Normal[3] = {0.0, 0.0, 0.0};
+
+    float M = 1.0 / 3.0;
+
+    int i;
+
+    for (i = 0; i < 3; i++)
+    {
+        I_TextUV[0] += polytexts[i][0] * M;
+        I_TextUV[1] += polytexts[i][1] * M;
+    }
+
+    // texts are flipped
+    // vertex normals at intersection point are reversed
+
+    texelPack texel_uvNormal = {{I_TextUV[0], I_TextUV[1]}, {-I_Normal[0], -I_Normal[1], -I_Normal[2]}};
+    return texel_uvNormal;
+}
+
 texelPack uv_value(float i_point[3], float polypoints[3][3], float polynormals[3][3], float polytexts[3][2])
 {
     float L[3], N[3];
@@ -615,6 +644,130 @@ typedef struct
     int volume_counter;
 }
 trianges_cancel;
+
+trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * O, triangle * T, int volume_counter, int t, float shading_normal[3])
+{
+    trianges_cancel Cancel;
+    Cancel.preak = 0;
+    Cancel.cancel = 0;
+
+    Uint32 pix;
+    Uint8 r, g, b, a;
+    unsigned int R, G, B;
+    float a0, b0, mean;
+
+    int idx, x, y;
+    float dot_light;
+    vertex * V;
+    uv * UV;
+
+    float polynormals[3][3];
+    float polytexts[3][2];
+
+    texelPack T_uvNormal;
+    SDL_Surface * texture;
+    surface_Material Material;
+
+    idx = T->verts[0];
+    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    polynormals[0][0] = V->N.Tx;
+    polynormals[0][1] = V->N.Ty;
+    polynormals[0][2] = V->N.Tz;
+    idx = T->verts[1];
+    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    polynormals[1][0] = V->N.Tx;
+    polynormals[1][1] = V->N.Ty;
+    polynormals[1][2] = V->N.Tz;
+    idx = T->verts[2];
+    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    polynormals[2][0] = V->N.Tx;
+    polynormals[2][1] = V->N.Ty;
+    polynormals[2][2] = V->N.Tz;
+
+    //P->R[volume_counter] = 255;
+
+    idx = T->surface;
+    Material = Materials[idx];
+    texture = Surf_Text[Material.texture];
+
+    idx = T->texts[0];
+    UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    polytexts[0][0] = UV->u;
+    polytexts[0][1] = UV->v;
+    idx = T->texts[1];
+    UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    polytexts[1][0] = UV->u;
+    polytexts[1][1] = UV->v;
+    idx = T->texts[2];
+    UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    polytexts[2][0] = UV->u;
+    polytexts[2][1] = UV->v;
+
+    if (texture != NULL)//(Material.use_texture && texture != NULL)
+    {
+        T_uvNormal = uv_value_mean(polynormals, polytexts);
+        x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
+        y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
+        pix = get_pixel32(texture, x, y);
+        SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+
+        a0 = (float)a / (float)255;
+        b0 = (float)Material.RGBA.A / (float)255;
+
+        mean = a0 + b0;
+
+        R = r * a0 + Material.RGBA.R * b0;
+        G = g * a0 + Material.RGBA.G * b0;
+        B = b * a0 + Material.RGBA.B * b0;
+        //A = a + Material.RGBA.A;
+
+        r = R / mean;
+        g = G / mean;
+        b = B / mean;
+        //a = A / 2;
+    }
+    else
+    {
+        r = Material.RGBA.R;
+        g = Material.RGBA.G;
+        b = Material.RGBA.B;
+        a = Material.RGBA.A;
+    }
+
+    T_uvNormal.normal[0] = -T->N.Tx;
+    T_uvNormal.normal[1] = -T->N.Ty;
+    T_uvNormal.normal[2] = -T->N.Tz;
+
+    if (Material.smooth)
+    {
+        dot_light = dot_productFF(T_uvNormal.normal, light_vec);
+    }
+    else
+    {
+        dot_light = dot_productFF(shading_normal, light_vec);
+    }
+
+    if (dot_light < 0)
+        dot_light = abs(dot_light);
+
+    P->D[volume_counter] = T->B.Aim.dist;
+    P->trip[volume_counter] = t;
+    P->level[volume_counter] = L;
+    P->object[volume_counter] = O->index;
+    P->R[volume_counter] = r * dot_light;
+    P->G[volume_counter] = g * dot_light;
+    P->B[volume_counter] = b * dot_light;
+    P->A[volume_counter] = a;
+    volume_counter ++;
+
+    Cancel.cancel = 1;
+
+    if (volume_counter == PIXEL_VOLUME)
+        Cancel.preak = 1;
+
+    Cancel.volume_counter = volume_counter;
+    return Cancel;
+}
 
 trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, object * O, triangle * T, int volume_counter, int t, float shading_normal[3])
 {
@@ -859,6 +1012,26 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                     shading_normal[1] = -Q->N.Ty;
                     shading_normal[2] = -Q->N.Tz;
 
+                    if (Q->B.deviation <= C->Pixel_Size_In_Radians) /* Size is one pixel */
+                    {
+                        for (t = 0; t < 2; t ++)
+                        {
+                            if (Preak)
+                                break;
+                            idx = Q->trips[t];
+                            T = &O->trips_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            if (!T->B.backface)
+                            {
+                                Cancel = render_Pixel(P, C, D, L, O, T, volume_counter, t, shading_normal);
+                                volume_counter = Cancel.volume_counter;
+                                Preak = Cancel.preak;
+                                if (Cancel.cancel)
+                                    break;
+                            }
+                        }
+                        continue;
+                    }
+
                     if (Q->subdivs && L >= 1)
                     {
                         for (q0 = 0; q0 < 4; q0 ++)
@@ -881,6 +1054,26 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                                 continue;
                             }
 
+                            if (Q0->B.deviation <= C->Pixel_Size_In_Radians) /* Size is one pixel */
+                            {
+                                for (t = 0; t < 2; t ++)
+                                {
+                                    if (Preak)
+                                        break;
+                                    idx = Q0->trips[t];
+                                    T = &O->trips_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                    if (!T->B.backface)
+                                    {
+                                        Cancel = render_Pixel(P, C, D, L, O, T, volume_counter, t, shading_normal);
+                                        volume_counter = Cancel.volume_counter;
+                                        Preak = Cancel.preak;
+                                        if (Cancel.cancel)
+                                            break;
+                                    }
+                                }
+                                continue;
+                            }
+
                             if (Q0->subdivs && L == 2)
                             {
                                 for (q1 = 0; q1 < 4; q1 ++)
@@ -900,6 +1093,26 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
                                     if (aim_deviation > Q1->B.deviation)
                                     {
+                                        continue;
+                                    }
+
+                                    if (Q1->B.deviation <= C->Pixel_Size_In_Radians) /* Size is one pixel */
+                                    {
+                                        for (t = 0; t < 2; t ++)
+                                        {
+                                            if (Preak)
+                                                break;
+                                            idx = Q1->trips[t];
+                                            T = &O->trips_[2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                            if (!T->B.backface)
+                                            {
+                                                Cancel = render_Pixel(P, C, D, L, O, T, volume_counter, t, shading_normal);
+                                                volume_counter = Cancel.volume_counter;
+                                                Preak = Cancel.preak;
+                                                if (Cancel.cancel)
+                                                    break;
+                                            }
+                                        }
                                         continue;
                                     }
 

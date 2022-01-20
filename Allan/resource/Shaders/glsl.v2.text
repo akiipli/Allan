@@ -12,19 +12,19 @@ uniform mat3 CameraMatrix;
 
 layout (binding = 0) uniform Light
 {
-	vec3 Position;
-	vec3 Ambient;
+    vec3 Position;
+    vec3 Ambient;
 }
 light;
 
 out Data
 {
-	vec2 texpos;
-	vec4 Color;
-	vec3 Ambient;
-	vec3 lightPos;
-	vec3 normal;
-	float Intensity;
+    vec2 texpos;
+    vec4 Color;
+    vec3 Ambient;
+    vec3 lightPos;
+    vec3 normal;
+    float Intensity;
 }
 Out;
 
@@ -32,17 +32,17 @@ out vec3 Position;
 
 void main(void)
 {
-	vec3 normal, lightDir;
+    vec3 normal, lightDir;
 
-	gl_Position = ProjectionMatrix * vec4(position, 1);
-	Position = CameraMatrix * position;
-	Out.texpos = uv;
-	Out.Color = color;
-	normal = CameraMatrix * norm;
-	Out.lightPos = CameraMatrix * light.Position;
+    gl_Position = ProjectionMatrix * vec4(position, 1);
+    Position = CameraMatrix * position;
+    Out.texpos = uv;
+    Out.Color = color;
+    normal = CameraMatrix * norm;
+    Out.lightPos = CameraMatrix * light.Position;
     lightDir = normalize(Out.lightPos);
-	Out.normal = normal;
-	Out.Intensity = max(dot(normal, lightDir), 0.0);
-	//Out.Intensity = abs(dot(normal, lightDir));
-	Out.Ambient = (1 - light.Ambient) * (1 - Out.Intensity) + light.Ambient * Out.Intensity;
+    Out.normal = normal;
+    Out.Intensity = max(dot(normal, lightDir), 0.0);
+    //Out.Intensity = abs(dot(normal, lightDir));
+    Out.Ambient = (1 - light.Ambient) * (1 - Out.Intensity) + light.Ambient * Out.Intensity;
 }

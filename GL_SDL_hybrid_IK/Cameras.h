@@ -59,6 +59,10 @@ typedef struct
     int sidebar;
     int bottom_line;
     int uv_draw;
+
+    float View_Radius;
+    float Resolution_Radius;
+    float Pixel_Size_In_Radians;
 }
 camera;
 
@@ -123,6 +127,12 @@ void update_camera_ratio(camera * C, int hres, int vres)
         C->view_major = C->h_view;
     }
 
+    C->View_Radius = sqrt(C->h_view * C->h_view + C->v_view * C->v_view) / 2.0;
+    C->Resolution_Radius = sqrt(C->width * C->width + C->height * C->height) / 2.0;
+    C->Pixel_Size_In_Radians = C->View_Radius / C->Resolution_Radius;
+
+    //printf("Pixel Size In Radians %f\n", C->Pixel_Size_In_Radians);
+
     if (hres > vres){C->dim = hres; C->_ratio = C->h_v_ratio;} else {C->dim = vres; C->_ratio = 1.0 / C->h_v_ratio;}
 }
 
@@ -177,6 +187,10 @@ void update_camera_view(camera * C, float h_view, int hres, int vres)
         C->view_minor = C->v_view;
         C->view_major = C->h_view;
     }
+
+    C->View_Radius = sqrt(C->h_view * C->h_view + C->v_view * C->v_view) / 2.0;
+    C->Resolution_Radius = sqrt(C->width * C->width + C->height * C->height) / 2.0;
+    C->Pixel_Size_In_Radians = C->View_Radius / C->Resolution_Radius;
 
     if (hres > vres){C->dim = hres; C->_ratio = C->h_v_ratio;} else {C->dim = vres; C->_ratio = 1.0 / C->h_v_ratio;}
 }
