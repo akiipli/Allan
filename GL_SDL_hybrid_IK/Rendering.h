@@ -54,6 +54,11 @@ GLubyte line_gray[4] = {100, 100, 100, 255};
 GLubyte line_white[4] = {255, 255, 255, 255};
 GLubyte line_yellow[4] = {255, 255, 0, 255};
 
+typedef struct
+{
+    float uv[2];
+}
+uvPack;
 
 typedef struct
 {
@@ -547,10 +552,9 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
     N[2] = v1[0] * v2[1] - v1[1] * v2[0];
 }
 
-texelPack uv_value_mean(float polynormals[3][3], float polytexts[3][2])
+uvPack uv_value_mean(float polytexts[3][2])
 {
     float I_TextUV[2] = {0.0, 0.0};
-    float I_Normal[3] = {0.0, 0.0, 0.0};
 
     float M = 1.0 / 3.0;
 
@@ -562,11 +566,8 @@ texelPack uv_value_mean(float polynormals[3][3], float polytexts[3][2])
         I_TextUV[1] += polytexts[i][1] * M;
     }
 
-    // texts are flipped
-    // vertex normals at intersection point are reversed
-
-    texelPack texel_uvNormal = {{I_TextUV[0], I_TextUV[1]}, {-I_Normal[0], -I_Normal[1], -I_Normal[2]}};
-    return texel_uvNormal;
+    uvPack texel_UV = {{I_TextUV[0], I_TextUV[1]}};
+    return texel_UV;
 }
 
 texelPack uv_value(float i_point[3], float polypoints[3][3], float polynormals[3][3], float polytexts[3][2])
@@ -658,31 +659,14 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
 
     int idx, x, y;
     float dot_light;
-    vertex * V;
     uv * UV;
 
-    float polynormals[3][3];
     float polytexts[3][2];
 
-    texelPack T_uvNormal;
+    uvPack T_UV;
+    float T_Normal[3];
     SDL_Surface * texture;
     surface_Material Material;
-
-    idx = T->verts[0];
-    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polynormals[0][0] = V->N.Tx;
-    polynormals[0][1] = V->N.Ty;
-    polynormals[0][2] = V->N.Tz;
-    idx = T->verts[1];
-    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polynormals[1][0] = V->N.Tx;
-    polynormals[1][1] = V->N.Ty;
-    polynormals[1][2] = V->N.Tz;
-    idx = T->verts[2];
-    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polynormals[2][0] = V->N.Tx;
-    polynormals[2][1] = V->N.Ty;
-    polynormals[2][2] = V->N.Tz;
 
     //P->R[volume_counter] = 255;
 
@@ -705,9 +689,9 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
 
     if (texture != NULL)//(Material.use_texture && texture != NULL)
     {
-        T_uvNormal = uv_value_mean(polynormals, polytexts);
-        x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
-        y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
+        T_UV = uv_value_mean(polytexts);
+        x = abs((int)(texture->w * T_UV.uv[0])) % texture->w;
+        y = abs((int)(texture->h * T_UV.uv[1])) % texture->h;
         pix = get_pixel32(texture, x, y);
         SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
 
@@ -734,13 +718,13 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
         a = Material.RGBA.A;
     }
 
-    T_uvNormal.normal[0] = -T->N.Tx;
-    T_uvNormal.normal[1] = -T->N.Ty;
-    T_uvNormal.normal[2] = -T->N.Tz;
+    T_Normal[0] = -T->N.Tx;
+    T_Normal[1] = -T->N.Ty;
+    T_Normal[2] = -T->N.Tz;
 
     if (Material.smooth)
     {
-        dot_light = dot_productFF(T_uvNormal.normal, light_vec);
+        dot_light = dot_productFF(T_Normal, light_vec);
     }
     else
     {
