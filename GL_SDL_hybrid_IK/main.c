@@ -9109,6 +9109,8 @@ void edit_Color_Value()
             printf("edit Color Value\n");
             sprintf(Properties_Remember, "%3d", (int)Materials[currentMaterial].RGBA.Color[Color_Component]);
             Edit_Lock = 1;
+            EditCursor = 0;
+            EditString[0] = '\0';
             update_Properties_Edit("", 0, Color_Component + 1, 0);
         }
     }
