@@ -38,11 +38,14 @@ int TABULATOR = 70;
 
 int Drag_X = 0;
 int DragDelta = 0;
+int Not_Drag = 0;
+int Edit_Properties = 0;
 
 int Color;
 int Color_adjusted;
 int Drag_Color = 0;
 int Color_Component = 0;
+int Edit_Color = 0;
 
 int Drag_Shine = 0;
 float Shine;
@@ -303,6 +306,51 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
 	// files list
 
 
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+}
+
+void draw_Properties_Edit(const char * text, int s_height, int v_index, int h_index, int clear_background)
+{
+    int d_width = BUTTON_WIDTH_SHORT;
+    int p_height = s_height - DIALOG_HEIGHT - BUTTON_HEIGHT * v_index;
+    glScissor(SIDEBAR * 2 + h_index * TABULATOR, p_height, d_width, BUTTON_HEIGHT);
+
+    if (clear_background)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glViewport(SIDEBAR * 2 + h_index * TABULATOR, p_height, d_width, BUTTON_HEIGHT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, d_width, BUTTON_HEIGHT, 0, 1, -1);
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+	//glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glColor4fv(backg);
+
+    draw_Rectangle((float[8]){0, 0,
+        0, p_height,
+        d_width, p_height,
+        d_width, 0}, QUADS);
+
+	glColor4fv(white);
+
+    draw_Rectangle((float[8]){0, 0,
+        0, p_height,
+        d_width, p_height,
+        d_width, 0}, LINE_LOOP);
+
+	glColor4fv(white);
+
+	draw_Properties_Text(text, d_width, p_height, 0, 0, 0);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

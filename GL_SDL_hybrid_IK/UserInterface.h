@@ -93,6 +93,8 @@ char Name_Remember[STRLEN];
 int EditCursor = 0;
 int Edit_Lock = 0;
 
+char Properties_Remember[STRLEN];
+
 void init_EditString()
 {
     EditCursor = 0;

@@ -2826,6 +2826,12 @@ void update_Resize_Event()
 
 //                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
 
+        if (Edit_Properties)
+        {
+            Edit_Properties = 0;
+            Edit_Color = 0;
+        }
+
         if (Edit_Lock)
         {
             Edit_Lock = 0;
@@ -5821,6 +5827,26 @@ void black_out_MaterialsList()
         MatrList[currentMaterial - materials_start].color = UI_BACKL;
 }
 
+void update_Properties_Edit(const char * text, int v_index, int h_index, int blit)
+{
+    if (blit)
+    {
+        blit_ViewPort();
+    }
+
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
+    }
+
+    draw_Properties_Edit(text, screen_height, v_index, h_index, 1);
+
+    SDL_GL_SwapBuffers();
+    glDrawBuffer(GL_BACK);
+}
+
 void open_Materials_List()
 {
     Type = &Materials[currentMaterial];
@@ -5855,6 +5881,11 @@ void open_Materials_List()
     if (DIALOG_HEIGHT < screen_height)
     {
         draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES_MATERIAL, Type);
+    }
+
+    if (Edit_Properties && Edit_Color)
+    {
+        draw_Properties_Edit(EditString, screen_height, 0, Color_Component + 1, 0);
     }
 
     glDrawBuffer(GL_BACK);
@@ -6504,6 +6535,11 @@ void update_Materials_List(int update, int blit)
     if (DIALOG_HEIGHT < screen_height)
     {
         draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
+    }
+
+    if (Edit_Properties && Edit_Color)
+    {
+        draw_Properties_Edit(EditString, screen_height, 0, Color_Component + 1, 0);
     }
 
     SDL_GL_SwapBuffers();
@@ -9064,6 +9100,20 @@ void add_Material()
     }
 }
 
+void edit_Color_Value()
+{
+    if (dialog_lock)
+    {
+        if (!Edit_Lock && Materials_count > 0)
+        {
+            printf("edit Color Value\n");
+            sprintf(Properties_Remember, "%3d", (int)Materials[currentMaterial].RGBA.Color[Color_Component]);
+            Edit_Lock = 1;
+            update_Properties_Edit("", 0, Color_Component + 1, 0);
+        }
+    }
+}
+
 void rename_Material()
 {
     if (currentMaterial > 3)
@@ -9434,9 +9484,84 @@ void handle_Scene_Dialog(char letter, SDLMod mod)
 
 void handle_Material_Dialog(char letter, SDLMod mod)
 {
-    if (Edit_Lock)
+    int update = 1;
+
+    if (Edit_Lock && Edit_Properties && Edit_Color)
     {
-        int update = 1;
+        if (isdigit(letter))
+        {
+            if (EditCursor < STRLEN - 1)
+            {
+                EditString[EditCursor] = letter;
+                EditCursor ++;
+                if (EditCursor > 3)
+                {
+                    EditCursor = 3;
+                }
+
+                EditString[EditCursor] = '\0';
+            }
+        }
+        else if (letter == 13 || letter == 10) // return, enter
+        {
+            printf("Finished editing properties\n");
+
+            Edit_Lock = 0;
+            Edit_Properties = 0;
+            Edit_Color = 0;
+
+            EditCursor = 0;
+
+            update_Materials_List(1, 1);
+
+            update = 0;
+            //printf("%c%s", 13, EditString);
+            message = 0;
+        }
+        else if (letter == 8) // backspace
+        {
+            EditCursor --;
+            if (EditCursor < 0)
+                EditCursor = 0;
+            EditString[EditCursor] = '\0';
+        }
+
+        if (update)
+        {
+            if (atoi(EditString) > 255)
+            {
+                Color = 255;
+            }
+            else
+            {
+                Color = atoi(EditString);
+            }
+            Materials[currentMaterial].RGBA.Color[Color_Component] = Color;
+
+            DRAW_UI = 0;
+            UPDATE_COLORS = 1;
+            all_objects_in_frame(Camera);
+            if (subdLevel > - 1)
+            {
+                int l;
+                for (l = subdLevel; l >= 0; l --)
+                {
+                    load_id_colors_all(Camera, l, OBJECT_COLORS);
+                }
+            }
+            load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            UPDATE_COLORS = 0;
+            DRAW_UI = 1;
+            draw_Dialog();
+            SDL_GL_SwapBuffers();
+
+            message = 0;
+        }
+    }
+    else if (Edit_Lock)
+    {
         if (controlDown)
         {
             copy_and_paste(letter);
@@ -16064,6 +16189,7 @@ int main(int argc, char * args[])
                             {
                                 if (!Drag_Color && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT)
                                 {
+                                    Not_Drag = 1;
                                     Drag_X = mouse_x;
                                     if (h_index == 1)
                                     {
@@ -16670,29 +16796,40 @@ int main(int argc, char * args[])
                 {
                     if (dialog_lock)
                     {
-                        DRAW_UI = 0;
-                        UPDATE_COLORS = 1;
-                        all_objects_in_frame(Camera);
-                        if (subdLevel > - 1)
+                        if (Drag_Color && Not_Drag)
                         {
-                            int l;
-                            for (l = subdLevel; l >= 0; l --)
-                            {
-                                load_id_colors_all(Camera, l, OBJECT_COLORS);
-                            }
+                            Not_Drag = 0;
+                            Edit_Properties = 1;
+                            Edit_Color = 1;
+                            printf("Just clicked color\n");
+
+                            edit_Color_Value();
                         }
-                        load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+                        else
+                        {
+                            DRAW_UI = 0;
+                            UPDATE_COLORS = 1;
+                            all_objects_in_frame(Camera);
+                            if (subdLevel > - 1)
+                            {
+                                int l;
+                                for (l = subdLevel; l >= 0; l --)
+                                {
+                                    load_id_colors_all(Camera, l, OBJECT_COLORS);
+                                }
+                            }
+                            load_id_colors_Fan_all(Camera, OBJECT_COLORS);
 
-                        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                        UPDATE_COLORS = 0;
-                        DRAW_UI = 1;
-                        draw_Dialog();
-                        SDL_GL_SwapBuffers();
+                            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                            UPDATE_COLORS = 0;
+                            DRAW_UI = 1;
+                            draw_Dialog();
+                            SDL_GL_SwapBuffers();
+                        }
+                        Drag_Color = 0;
+                        Drag_Shine = 0;
+                        Drag_Displacement = 0;
                     }
-
-                    Drag_Color = 0;
-                    Drag_Shine = 0;
-                    Drag_Displacement = 0;
                 }
 
                 if (drag_rectangle)
@@ -16796,508 +16933,520 @@ int main(int argc, char * args[])
                 mouse_x = event.motion.x;
                 mouse_y = event.motion.y;
 
-                if (Drag_Displacement)
+                if (!Edit_Properties)
                 {
-                    DragDelta = mouse_x - Drag_X;
-                    DisplacementDelta = (float)DragDelta / 100.0;
-
-                    Displacement_adjusted = Displacement + DisplacementDelta;
-                    Displacement_adjusted = clamp_f(Displacement_adjusted, 0, 60.0);
-
-                    Materials[currentMaterial].Displacement = Displacement_adjusted;
-                    update_Materials_List(0, 0);
-
-                    SDL_GL_SwapBuffers();
-                }
-                else if (Drag_Shine)
-                {
-                    DragDelta = mouse_x - Drag_X;
-                    ShineDelta = (float)DragDelta / 100.0;
-
-                    Shine_adjusted = Shine + ShineDelta;
-                    Shine_adjusted = clamp_f(Shine_adjusted, 0, 60.0);
-
-                    Materials[currentMaterial].Shininess = Shine_adjusted;
-                    update_Materials_List(0, 0);
-
-                    SDL_GL_SwapBuffers();
-                }
-                else if (Drag_Color)
-                {
-                    DragDelta = (mouse_x - Drag_X) / 2;
-
-                    Color_adjusted = Color + DragDelta;
-                    Color_adjusted = clamp_i(Color_adjusted, 0, 255);
-                    //printf("Color_Component %d, DragDelta %d\r", Color_Component, DragDelta);
-                    Materials[currentMaterial].RGBA.Color[Color_Component] = Color_adjusted;
-                    update_Materials_List(0, 0);
-
-                    SDL_GL_SwapBuffers();
-                }
-                else if (Drag_Dialog)
-                {
-                    DIALOG_WIDTH = mouse_x - SIDEBAR;
-                    DIALOG_HEIGHT = mouse_y;
-                    if (DIALOG_HEIGHT < MIN_DIALOG_HEIGHT)
+                    if (Drag_Displacement)
                     {
-                        DIALOG_HEIGHT = MIN_DIALOG_HEIGHT;
+                        DragDelta = mouse_x - Drag_X;
+                        DisplacementDelta = (float)DragDelta / 100.0;
+
+                        Displacement_adjusted = Displacement + DisplacementDelta;
+                        Displacement_adjusted = clamp_f(Displacement_adjusted, 0, 60.0);
+
+                        Materials[currentMaterial].Displacement = Displacement_adjusted;
+                        update_Materials_List(0, 0);
+
+                        SDL_GL_SwapBuffers();
                     }
-                    if (DIALOG_WIDTH < MIN_DIALOG_WIDTH)
+                    else if (Drag_Shine)
                     {
-                        DIALOG_WIDTH = MIN_DIALOG_WIDTH;
-                    }
-                    if (DIALOG_HEIGHT > screen_height - MIN_PROPERTIES_HEIGHT)
-                    {
-                        DIALOG_HEIGHT = screen_height - MIN_PROPERTIES_HEIGHT;
-                    }
-                    LISTLENGTH = DIALOG_HEIGHT / BUTTON_HEIGHT - 1;
-                    if (LISTLENGTH > MAX_LISTLENGTH)
-                    {
-                        LISTLENGTH = MAX_LISTLENGTH;
-                        DIALOG_HEIGHT = LISTLENGTH * BUTTON_HEIGHT + 1;
-                    }
-                    draw_Dialog();
-                }
-                else if (PROPERTIES != PROPERTIES_NONE)
-                {
-                    left = SIDEBAR * 2;
-                    right = SIDEBAR + DIALOG_WIDTH;
-                    top = DIALOG_HEIGHT;
-                    bottom = screen_height;
-                    if (mouse_x > left && mouse_x < right && mouse_y > top && mouse_y < bottom)
-                    {
-                        prop_x = (mouse_x - left) / TABULATOR;
-                        prop_y = (mouse_y - top) / BUTTON_HEIGHT;
+                        DragDelta = mouse_x - Drag_X;
+                        ShineDelta = (float)DragDelta / 100.0;
 
-                        if (prop_x >= X_OFFSET) prop_x = X_OFFSET - 1;
-                        else if (prop_x < 0) prop_x = 0;
-                        if (prop_y >= Y_OFFSET) prop_y = Y_OFFSET - 1;
-                        else if (prop_y < 0) prop_y = 0;
+                        Shine_adjusted = Shine + ShineDelta;
+                        Shine_adjusted = clamp_f(Shine_adjusted, 0, 60.0);
 
-                        if (PROPERTIES == PROPERTIES_MATERIAL)
+                        Materials[currentMaterial].Shininess = Shine_adjusted;
+                        update_Materials_List(0, 0);
+
+                        SDL_GL_SwapBuffers();
+                    }
+                    else if (Drag_Color)
+                    {
+                        Not_Drag = 0;
+
+                        DragDelta = (mouse_x - Drag_X) / 2;
+
+                        Color_adjusted = Color + DragDelta;
+                        Color_adjusted = clamp_i(Color_adjusted, 0, 255);
+                        //printf("Color_Component %d, DragDelta %d\r", Color_Component, DragDelta);
+                        Materials[currentMaterial].RGBA.Color[Color_Component] = Color_adjusted;
+                        update_Materials_List(0, 0);
+
+                        SDL_GL_SwapBuffers();
+                    }
+                    else if (Drag_Dialog)
+                    {
+                        DIALOG_WIDTH = mouse_x - SIDEBAR;
+                        DIALOG_HEIGHT = mouse_y;
+                        if (DIALOG_HEIGHT < MIN_DIALOG_HEIGHT)
                         {
-                            //printf("prop_x %d\tprop_y %d\t\r", prop_x, prop_y);
+                            DIALOG_HEIGHT = MIN_DIALOG_HEIGHT;
+                        }
+                        if (DIALOG_WIDTH < MIN_DIALOG_WIDTH)
+                        {
+                            DIALOG_WIDTH = MIN_DIALOG_WIDTH;
+                        }
+                        if (DIALOG_HEIGHT > screen_height - MIN_PROPERTIES_HEIGHT)
+                        {
+                            DIALOG_HEIGHT = screen_height - MIN_PROPERTIES_HEIGHT;
+                        }
+                        LISTLENGTH = DIALOG_HEIGHT / BUTTON_HEIGHT - 1;
+                        if (LISTLENGTH > MAX_LISTLENGTH)
+                        {
+                            LISTLENGTH = MAX_LISTLENGTH;
+                            DIALOG_HEIGHT = LISTLENGTH * BUTTON_HEIGHT + 1;
+                        }
+                        draw_Dialog();
+                    }
+                    else if (PROPERTIES != PROPERTIES_NONE)
+                    {
+                        left = SIDEBAR * 2;
+                        right = SIDEBAR + DIALOG_WIDTH;
+                        top = DIALOG_HEIGHT;
+                        bottom = screen_height;
+                        if (mouse_x > left && mouse_x < right && mouse_y > top && mouse_y < bottom)
+                        {
+                            prop_x = (mouse_x - left) / TABULATOR;
+                            prop_y = (mouse_y - top) / BUTTON_HEIGHT;
 
-                            if (properties[prop_y][prop_x] != UI_BACKL)
+                            if (prop_x >= X_OFFSET) prop_x = X_OFFSET - 1;
+                            else if (prop_x < 0) prop_x = 0;
+                            if (prop_y >= Y_OFFSET) prop_y = Y_OFFSET - 1;
+                            else if (prop_y < 0) prop_y = 0;
+
+                            if (PROPERTIES == PROPERTIES_MATERIAL)
                             {
-                                //printf("rendering\t\t\r");
-                                black_out_properties();
-                                properties[prop_y][prop_x] = UI_BACKL;
-                                draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
-                                SDL_GL_SwapBuffers();
+                                //printf("prop_x %d\tprop_y %d\t\r", prop_x, prop_y);
+
+                                if (properties[prop_y][prop_x] != UI_BACKL)
+                                {
+                                    //printf("rendering\t\t\r");
+                                    black_out_properties();
+                                    properties[prop_y][prop_x] = UI_BACKL;
+                                    draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
+                                    SDL_GL_SwapBuffers();
+                                }
+                            }
+                            else if (PROPERTIES == PROPERTIES_IK)
+                            {
+                                if (properties[prop_y][prop_x] != UI_BACKL)
+                                {
+                                    //printf("rendering\t\t\r");
+                                    black_out_properties();
+                                    properties[prop_y][prop_x] = UI_BACKL;
+                                    if (Type != NULL)
+                                        draw_Properties(ikChains[currentIK]->Name, screen_height, 1, PROPERTIES_IK, Type);
+                                    else
+                                        draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
+                                    SDL_GL_SwapBuffers();
+                                }
+                            }
+                            else if (PROPERTIES == PROPERTIES_LOCATOR)
+                            {
+                                if (properties[prop_y][prop_x] != UI_BACKL)
+                                {
+                                    //printf("rendering\t\t\r");
+                                    black_out_properties();
+                                    properties[prop_y][prop_x] = UI_BACKL;
+                                    if (Type != NULL)
+                                        draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
+                                    else
+                                        draw_Properties("", screen_height, 1, PROPERTIES_LOCATOR, Type);
+                                    SDL_GL_SwapBuffers();
+                                }
+                            }
+                            else if (PROPERTIES == PROPERTIES_OBJECT)
+                            {
+                                if (properties[prop_y][prop_x] != UI_BACKL)
+                                {
+                                    //printf("rendering\t\t\r");
+                                    black_out_properties();
+                                    properties[prop_y][prop_x] = UI_BACKL;
+                                    if (Type != NULL)
+                                        draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
+                                    else
+                                        draw_Properties("", screen_height, 1, PROPERTIES, Type);
+                                    SDL_GL_SwapBuffers();
+                                }
                             }
                         }
-                        else if (PROPERTIES == PROPERTIES_IK)
-                        {
-                            if (properties[prop_y][prop_x] != UI_BACKL)
-                            {
-                                //printf("rendering\t\t\r");
-                                black_out_properties();
-                                properties[prop_y][prop_x] = UI_BACKL;
-                                if (Type != NULL)
-                                    draw_Properties(ikChains[currentIK]->Name, screen_height, 1, PROPERTIES_IK, Type);
-                                else
-                                    draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
-                                SDL_GL_SwapBuffers();
-                            }
-                        }
-                        else if (PROPERTIES == PROPERTIES_LOCATOR)
-                        {
-                            if (properties[prop_y][prop_x] != UI_BACKL)
-                            {
-                                //printf("rendering\t\t\r");
-                                black_out_properties();
-                                properties[prop_y][prop_x] = UI_BACKL;
-                                if (Type != NULL)
-                                    draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
-                                else
-                                    draw_Properties("", screen_height, 1, PROPERTIES_LOCATOR, Type);
-                                SDL_GL_SwapBuffers();
-                            }
-                        }
-                        else if (PROPERTIES == PROPERTIES_OBJECT)
-                        {
-                            if (properties[prop_y][prop_x] != UI_BACKL)
-                            {
-                                //printf("rendering\t\t\r");
-                                black_out_properties();
-                                properties[prop_y][prop_x] = UI_BACKL;
-                                if (Type != NULL)
-                                    draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
-                                else
-                                    draw_Properties("", screen_height, 1, PROPERTIES, Type);
-                                SDL_GL_SwapBuffers();
-                            }
-                        }
                     }
-                }
-                else if (curveWeights)
-                {
-                    float x_offset = mouse_x - Camera->origin_2d[0];
-                    float x = (float)x_offset / ((float)screen_width / 4.0);
-
-                    adjust_Selected_Curve_Weights(x);
-                    message = -1;
-                }
-                else if (cpWeights)
-                {
-                    float x_offset = mouse_x - Camera->origin_2d[0];
-                    float x = (float)x_offset / ((float)screen_width / 4.0);
-
-                    adjust_Selected_Cp_Weights(x);
-                    update_selected_Curves(subdLevel);
-                    message = -1;
-                }
-                else if (edgeWeights)
-                {
-                    float x_offset = mouse_x - Camera->origin_2d[0];
-                    float y_offset = mouse_y - Camera->origin_2d[1];
-
-                    float x = (float)x_offset / ((float)screen_width / 6.0);
-                    float y = (float)y_offset / ((float)screen_height / 6.0);
-
-                    adjust_Selected_Edges_Weights(x);
-                    adjust_Selected_Verts_Weights(y, subdLevel);
-                    message = -1;
-                }
-                else if (Camera_screen_lock)
-                {
-                    //subdLevel = -1;
-
-                    float d;
-                    if (object_hook)
+                    else if (curveWeights)
                     {
-                        if (DRAW_LOCATORS)
+                        float x_offset = mouse_x - Camera->origin_2d[0];
+                        float x = (float)x_offset / ((float)screen_width / 4.0);
+
+                        adjust_Selected_Curve_Weights(x);
+                        message = -1;
+                    }
+                    else if (cpWeights)
+                    {
+                        float x_offset = mouse_x - Camera->origin_2d[0];
+                        float x = (float)x_offset / ((float)screen_width / 4.0);
+
+                        adjust_Selected_Cp_Weights(x);
+                        update_selected_Curves(subdLevel);
+                        message = -1;
+                    }
+                    else if (edgeWeights)
+                    {
+                        float x_offset = mouse_x - Camera->origin_2d[0];
+                        float y_offset = mouse_y - Camera->origin_2d[1];
+
+                        float x = (float)x_offset / ((float)screen_width / 6.0);
+                        float y = (float)y_offset / ((float)screen_height / 6.0);
+
+                        adjust_Selected_Edges_Weights(x);
+                        adjust_Selected_Verts_Weights(y, subdLevel);
+                        message = -1;
+                    }
+                    else if (Camera_screen_lock)
+                    {
+                        //subdLevel = -1;
+
+                        float d;
+                        if (object_hook)
                         {
-                            T = transformers[currentLocator];
+                            if (DRAW_LOCATORS)
+                            {
+                                T = transformers[currentLocator];
+                            }
+                            else
+                            {
+                                T = objects[currentObject]->T;
+                            }
+                            d = -1.0;
                         }
                         else
                         {
-                            T = objects[currentObject]->T;
+                            T = Camera->T;
+                            d = 1.0;
                         }
-                        d = -1.0;
-                    }
-                    else
-                    {
-                        T = Camera->T;
-                        d = 1.0;
-                    }
-                    float x_offset;
-                    float y_offset;
-                    direction D;
-                    //printf("%d %d\n", mouse_x, mouse_y);
+                        float x_offset;
+                        float y_offset;
+                        direction D;
+                        //printf("%d %d\n", mouse_x, mouse_y);
 
-                    if (splitview)
-                    {
-                        if (Camera == &Camera_Top) // Top
+                        if (splitview)
                         {
-                            x_offset = mouse_x - Camera_Top.origin_2d[0];
-                            y_offset = mouse_y - Camera_Top.origin_2d[1];
-                            if (object_hook == 2) //scale
+                            if (Camera == &Camera_Top) // Top
                             {
-                                delta = (float)x_offset / ((float)screen_width / 4.0);
-                                make_Scale(delta);
-                            }
-                            else if (object_hook == 3) //rotate
-                            {
-                                delta_y = (float)y_offset / ((float)screen_height / 4.0);
-                                delta_x = (float)x_offset / ((float)screen_width / 4.0);
-                                make_Rotation_Top(delta_y, delta_x);
-                            }
-                            else // move
-                            {
-                                if (object_hook)
+                                x_offset = mouse_x - Camera_Top.origin_2d[0];
+                                y_offset = mouse_y - Camera_Top.origin_2d[1];
+                                if (object_hook == 2) //scale
                                 {
-                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width / 2 && mouse_y > 0 && mouse_y < screen_height / 2)
+                                    delta = (float)x_offset / ((float)screen_width / 4.0);
+                                    make_Scale(delta);
+                                }
+                                else if (object_hook == 3) //rotate
+                                {
+                                    delta_y = (float)y_offset / ((float)screen_height / 4.0);
+                                    delta_x = (float)x_offset / ((float)screen_width / 4.0);
+                                    make_Rotation_Top(delta_y, delta_x);
+                                }
+                                else // move
+                                {
+                                    if (object_hook)
                                     {
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-//                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
-//                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
-//                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-                                        drag_plane_View_Update(CamDist, Camera);
-                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
-                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
-
-                                        Pos[0] = D.x;
-                                        Pos[1] = D.y;
-                                        Pos[2] = D.z;
-                                    }
-                                    else if (DRAG_BUFFER)
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        direction D1;
-                                        D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width / 2, screen_height / 2, Camera_Top.h_view, Camera_Top.v_view);
-                                        D.x = -D.x;
-                                        //D.y = -D.y;
-                                        D.z = -D.z;
-                                        rotate_Vertex_I(Camera_Top.T->rotVec, D.x, D.y, D.z, &D1);
-                                        float Dir_vec[3] = {0, 0, 1};
-                                        float dot = dot_productN((normal*)&D, Dir_vec);
-
-                                        Pos[0] = Camera_Top.T->pos[0] + D1.x * (ObjDist / dot);
-                                        Pos[1] = Camera_Top.T->pos[1] + D1.y * (ObjDist / dot);
-                                        Pos[2] = Camera_Top.T->pos[2] + D1.z * (ObjDist / dot);
-                                    }
-
-                                    Delta[0] = Pos[0] - T_pos[0];
-                                    Delta[1] = Pos[1] - T_pos[1];
-                                    Delta[2] = Pos[2] - T_pos[2];
-
-                                    if (Axis_lock)
-                                    {
-                                        Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
-                                        Delta[0] = 0;
-                                        Delta[1] = 0;
-                                        Delta[2] = 0;
-                                        if (Axis_lock == 3)
+                                        if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width / 2 && mouse_y > 0 && mouse_y < screen_height / 2)
                                         {
-                                            if (VIEWS_FLIPPED)
-                                            {
-                                                if (y_offset > 0)
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                            }
-                                            else
-                                            {
-                                                if (y_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                            }
+    //                                        glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+    //                                        drag_plane_Render(CamDist, Camera, ObjDist, 0);
+    //                                        glReadPixels(mouse_x, screen_height + BOTTOM_LINE - mouse_y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+    //                                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                                            drag_plane_View_Update(CamDist, Camera);
+                                            winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
+                                            D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
+
+                                            Pos[0] = D.x;
+                                            Pos[1] = D.y;
+                                            Pos[2] = D.z;
+                                        }
+                                        else if (DRAG_BUFFER)
+                                        {
+
                                         }
                                         else
                                         {
-                                            if (x_offset > 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
-                                            else
-                                                Delta[Axis_lock - 1] = -Magnitude;
+                                            direction D1;
+                                            D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width / 2, screen_height / 2, Camera_Top.h_view, Camera_Top.v_view);
+                                            D.x = -D.x;
+                                            //D.y = -D.y;
+                                            D.z = -D.z;
+                                            rotate_Vertex_I(Camera_Top.T->rotVec, D.x, D.y, D.z, &D1);
+                                            float Dir_vec[3] = {0, 0, 1};
+                                            float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                            Pos[0] = Camera_Top.T->pos[0] + D1.x * (ObjDist / dot);
+                                            Pos[1] = Camera_Top.T->pos[1] + D1.y * (ObjDist / dot);
+                                            Pos[2] = Camera_Top.T->pos[2] + D1.z * (ObjDist / dot);
                                         }
-                                    }
-                                    make_Movement();
-                                }
-                                else
-                                {
-                                    Camera_Top.origin_2d[0] = mouse_x;
-                                    Camera_Top.origin_2d[1] = mouse_y;
-                                    D = set_Target(x_offset, y_offset, screen_width / 2.0, screen_height / 2.0, Camera_Top.h_view, Camera_Top.v_view, CamDist);
-                                    if (camera_z_move)
-                                    {
-                                        CamDist += D.x * 2;
+
+                                        Delta[0] = Pos[0] - T_pos[0];
+                                        Delta[1] = Pos[1] - T_pos[1];
+                                        Delta[2] = Pos[2] - T_pos[2];
+
+                                        if (Axis_lock)
+                                        {
+                                            Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
+                                            Delta[0] = 0;
+                                            Delta[1] = 0;
+                                            Delta[2] = 0;
+                                            if (Axis_lock == 3)
+                                            {
+                                                if (VIEWS_FLIPPED)
+                                                {
+                                                    if (y_offset > 0)
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                }
+                                                else
+                                                {
+                                                    if (y_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (x_offset > 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
+                                        }
+                                        make_Movement();
                                     }
                                     else
                                     {
-                                        if (VIEWS_FLIPPED)
+                                        Camera_Top.origin_2d[0] = mouse_x;
+                                        Camera_Top.origin_2d[1] = mouse_y;
+                                        D = set_Target(x_offset, y_offset, screen_width / 2.0, screen_height / 2.0, Camera_Top.h_view, Camera_Top.v_view, CamDist);
+                                        if (camera_z_move)
                                         {
-                                            T->target[0] -= D.x * d;
-                                            T->target[2] += D.y * d;
-                                            T->pos[0] -= D.x * d;
-                                            T->pos[2] += D.y * d;
-                                        }
-                                        else
-                                        {
-                                            T->target[0] -= D.x * d;
-                                            T->target[2] -= D.y * d;
-                                            T->pos[0] -= D.x * d;
-                                            T->pos[2] -= D.y * d;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else if (Camera == &Camera_Front) // Front
-                        {
-                            x_offset = mouse_x - Camera_Front.origin_2d[0];
-                            y_offset = mouse_y - Camera_Front.origin_2d[1];
-                            if (object_hook == 2) //scale
-                            {
-                                delta = (float)x_offset / ((float)screen_width / 4.0);
-                                make_Scale(delta);
-                            }
-                            else if (object_hook == 3) //rotate
-                            {
-                                delta_y = (float)y_offset / ((float)screen_height / 4.0);
-                                delta_x = (float)x_offset / ((float)screen_width / 4.0);
-                                make_Rotation_Front(delta_y, delta_x);
-                            }
-                            else // move
-                            {
-                                if (object_hook)
-                                {
-                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width / 2 && mouse_y > screen_height / 2 && mouse_y < screen_height)
-                                    {
-                                        drag_plane_View_Update(CamDist, Camera);
-                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
-                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
-
-                                        Pos[0] = D.x;
-                                        Pos[1] = D.y;
-                                        Pos[2] = D.z;
-                                    }
-                                    else if (DRAG_BUFFER)
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        direction D1;
-                                        D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Front.h_view, Camera_Front.v_view);
-                                        D.x = -D.x;
-                                        //D.y = -D.y;
-                                        D.z = -D.z;
-                                        rotate_Vertex_I(Camera_Front.T->rotVec, D.x, D.y, D.z, &D1);
-                                        float Dir_vec[3] = {0, 0, 1};
-                                        float dot = dot_productN((normal*)&D, Dir_vec);
-
-                                        Pos[0] = Camera_Front.T->pos[0] + D1.x * (ObjDist / dot);
-                                        Pos[1] = Camera_Front.T->pos[1] + D1.y * (ObjDist / dot);
-                                        Pos[2] = Camera_Front.T->pos[2] + D1.z * (ObjDist / dot);
-                                    }
-
-                                    Delta[0] = Pos[0] - T_pos[0];
-                                    Delta[1] = Pos[1] - T_pos[1];
-                                    Delta[2] = Pos[2] - T_pos[2];
-
-                                    if (Axis_lock)
-                                    {
-                                        Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
-                                        Delta[0] = 0;
-                                        Delta[1] = 0;
-                                        Delta[2] = 0;
-                                        if (Axis_lock == 2)
-                                        {
-                                            if (y_offset < 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
-                                            else
-                                                Delta[Axis_lock - 1] = -Magnitude;
+                                            CamDist += D.x * 2;
                                         }
                                         else
                                         {
                                             if (VIEWS_FLIPPED)
                                             {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                T->target[0] -= D.x * d;
+                                                T->target[2] += D.y * d;
+                                                T->pos[0] -= D.x * d;
+                                                T->pos[2] += D.y * d;
                                             }
                                             else
                                             {
-                                                if (x_offset > 0)
+                                                T->target[0] -= D.x * d;
+                                                T->target[2] -= D.y * d;
+                                                T->pos[0] -= D.x * d;
+                                                T->pos[2] -= D.y * d;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else if (Camera == &Camera_Front) // Front
+                            {
+                                x_offset = mouse_x - Camera_Front.origin_2d[0];
+                                y_offset = mouse_y - Camera_Front.origin_2d[1];
+                                if (object_hook == 2) //scale
+                                {
+                                    delta = (float)x_offset / ((float)screen_width / 4.0);
+                                    make_Scale(delta);
+                                }
+                                else if (object_hook == 3) //rotate
+                                {
+                                    delta_y = (float)y_offset / ((float)screen_height / 4.0);
+                                    delta_x = (float)x_offset / ((float)screen_width / 4.0);
+                                    make_Rotation_Front(delta_y, delta_x);
+                                }
+                                else // move
+                                {
+                                    if (object_hook)
+                                    {
+                                        if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width / 2 && mouse_y > screen_height / 2 && mouse_y < screen_height)
+                                        {
+                                            drag_plane_View_Update(CamDist, Camera);
+                                            winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
+                                            D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
+
+                                            Pos[0] = D.x;
+                                            Pos[1] = D.y;
+                                            Pos[2] = D.z;
+                                        }
+                                        else if (DRAG_BUFFER)
+                                        {
+
+                                        }
+                                        else
+                                        {
+                                            direction D1;
+                                            D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Front.h_view, Camera_Front.v_view);
+                                            D.x = -D.x;
+                                            //D.y = -D.y;
+                                            D.z = -D.z;
+                                            rotate_Vertex_I(Camera_Front.T->rotVec, D.x, D.y, D.z, &D1);
+                                            float Dir_vec[3] = {0, 0, 1};
+                                            float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                            Pos[0] = Camera_Front.T->pos[0] + D1.x * (ObjDist / dot);
+                                            Pos[1] = Camera_Front.T->pos[1] + D1.y * (ObjDist / dot);
+                                            Pos[2] = Camera_Front.T->pos[2] + D1.z * (ObjDist / dot);
+                                        }
+
+                                        Delta[0] = Pos[0] - T_pos[0];
+                                        Delta[1] = Pos[1] - T_pos[1];
+                                        Delta[2] = Pos[2] - T_pos[2];
+
+                                        if (Axis_lock)
+                                        {
+                                            Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
+                                            Delta[0] = 0;
+                                            Delta[1] = 0;
+                                            Delta[2] = 0;
+                                            if (Axis_lock == 2)
+                                            {
+                                                if (y_offset < 0)
                                                     Delta[Axis_lock - 1] = Magnitude;
                                                 else
                                                     Delta[Axis_lock - 1] = -Magnitude;
                                             }
+                                            else
+                                            {
+                                                if (VIEWS_FLIPPED)
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                }
+                                                else
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
+                                            }
                                         }
-                                    }
-                                    make_Movement();
-                                }
-                                else
-                                {
-                                    Camera_Front.origin_2d[0] = mouse_x;
-                                    Camera_Front.origin_2d[1] = mouse_y;
-                                    D = set_Target(x_offset, y_offset, screen_width / 2.0, screen_height / 2.0, Camera_Front.h_view, Camera_Front.v_view, CamDist);
-                                    if (camera_z_move)
-                                    {
-                                        CamDist += D.x * 2;
+                                        make_Movement();
                                     }
                                     else
                                     {
-                                        if (VIEWS_FLIPPED)
+                                        Camera_Front.origin_2d[0] = mouse_x;
+                                        Camera_Front.origin_2d[1] = mouse_y;
+                                        D = set_Target(x_offset, y_offset, screen_width / 2.0, screen_height / 2.0, Camera_Front.h_view, Camera_Front.v_view, CamDist);
+                                        if (camera_z_move)
                                         {
-                                            T->target[0] += D.x * d;
-                                            T->target[1] += D.y * d;
-                                            T->pos[0] += D.x * d;
-                                            T->pos[1] += D.y * d;
+                                            CamDist += D.x * 2;
                                         }
                                         else
-                                        {
-                                            T->target[0] -= D.x * d;
-                                            T->target[1] += D.y * d;
-                                            T->pos[0] -= D.x * d;
-                                            T->pos[1] += D.y * d;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else if (Camera == &Camera_Left) // Left
-                        {
-                            x_offset = mouse_x - Camera_Left.origin_2d[0];
-                            y_offset = mouse_y - Camera_Left.origin_2d[1];
-                            if (object_hook == 2) //scale
-                            {
-                                delta = (float)x_offset / ((float)screen_width / 4.0);
-                                make_Scale(delta);
-                            }
-                            else if (object_hook == 3) //rotate
-                            {
-                                delta_y = (float)y_offset / ((float)screen_height / 4.0);
-                                delta_x = (float)x_offset / ((float)screen_width / 4.0);
-                                make_Rotation_Left(delta_y, delta_x);
-                            }
-                            else // move
-                            {
-                                if (object_hook)
-                                {
-                                    if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > screen_height / 2 && mouse_y < screen_height)
-                                    {
-                                        drag_plane_View_Update(CamDist, Camera);
-                                        winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
-                                        D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
-
-                                        Pos[0] = D.x;
-                                        Pos[1] = D.y;
-                                        Pos[2] = D.z;
-                                    }
-                                    else if (DRAG_BUFFER)
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        direction D1;
-                                        D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Left.h_view, Camera_Left.v_view);
-                                        D.x = -D.x;
-                                        //D.y = -D.y;
-                                        D.z = -D.z;
-                                        rotate_Vertex_I(Camera_Left.T->rotVec, D.x, D.y, D.z, &D1);
-                                        float Dir_vec[3] = {0, 0, 1};
-                                        float dot = dot_productN((normal*)&D, Dir_vec);
-
-                                        Pos[0] = Camera_Left.T->pos[0] + D1.x * (ObjDist / dot);
-                                        Pos[1] = Camera_Left.T->pos[1] + D1.y * (ObjDist / dot);
-                                        Pos[2] = Camera_Left.T->pos[2] + D1.z * (ObjDist / dot);
-                                    }
-
-                                    Delta[0] = Pos[0] - T_pos[0];
-                                    Delta[1] = Pos[1] - T_pos[1];
-                                    Delta[2] = Pos[2] - T_pos[2];
-
-                                    if (Axis_lock)
-                                    {
-                                        Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
-                                        Delta[0] = 0;
-                                        Delta[1] = 0;
-                                        Delta[2] = 0;
-                                        if (Axis_lock == 2)
-                                        {
-                                            if (y_offset < 0)
-                                                Delta[Axis_lock - 1] = Magnitude;
-                                            else
-                                                Delta[Axis_lock - 1] = -Magnitude;
-                                        }
-                                        else if (Axis_lock == 3)
                                         {
                                             if (VIEWS_FLIPPED)
                                             {
-                                                if (x_offset > 0)
+                                                T->target[0] += D.x * d;
+                                                T->target[1] += D.y * d;
+                                                T->pos[0] += D.x * d;
+                                                T->pos[1] += D.y * d;
+                                            }
+                                            else
+                                            {
+                                                T->target[0] -= D.x * d;
+                                                T->target[1] += D.y * d;
+                                                T->pos[0] -= D.x * d;
+                                                T->pos[1] += D.y * d;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else if (Camera == &Camera_Left) // Left
+                            {
+                                x_offset = mouse_x - Camera_Left.origin_2d[0];
+                                y_offset = mouse_y - Camera_Left.origin_2d[1];
+                                if (object_hook == 2) //scale
+                                {
+                                    delta = (float)x_offset / ((float)screen_width / 4.0);
+                                    make_Scale(delta);
+                                }
+                                else if (object_hook == 3) //rotate
+                                {
+                                    delta_y = (float)y_offset / ((float)screen_height / 4.0);
+                                    delta_x = (float)x_offset / ((float)screen_width / 4.0);
+                                    make_Rotation_Left(delta_y, delta_x);
+                                }
+                                else // move
+                                {
+                                    if (object_hook)
+                                    {
+                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > screen_height / 2 && mouse_y < screen_height)
+                                        {
+                                            drag_plane_View_Update(CamDist, Camera);
+                                            winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
+                                            D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
+
+                                            Pos[0] = D.x;
+                                            Pos[1] = D.y;
+                                            Pos[2] = D.z;
+                                        }
+                                        else if (DRAG_BUFFER)
+                                        {
+
+                                        }
+                                        else
+                                        {
+                                            direction D1;
+                                            D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y - screen_height / 2, screen_width / 2, screen_height / 2, Camera_Left.h_view, Camera_Left.v_view);
+                                            D.x = -D.x;
+                                            //D.y = -D.y;
+                                            D.z = -D.z;
+                                            rotate_Vertex_I(Camera_Left.T->rotVec, D.x, D.y, D.z, &D1);
+                                            float Dir_vec[3] = {0, 0, 1};
+                                            float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                            Pos[0] = Camera_Left.T->pos[0] + D1.x * (ObjDist / dot);
+                                            Pos[1] = Camera_Left.T->pos[1] + D1.y * (ObjDist / dot);
+                                            Pos[2] = Camera_Left.T->pos[2] + D1.z * (ObjDist / dot);
+                                        }
+
+                                        Delta[0] = Pos[0] - T_pos[0];
+                                        Delta[1] = Pos[1] - T_pos[1];
+                                        Delta[2] = Pos[2] - T_pos[2];
+
+                                        if (Axis_lock)
+                                        {
+                                            Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
+                                            Delta[0] = 0;
+                                            Delta[1] = 0;
+                                            Delta[2] = 0;
+                                            if (Axis_lock == 2)
+                                            {
+                                                if (y_offset < 0)
                                                     Delta[Axis_lock - 1] = Magnitude;
                                                 else
                                                     Delta[Axis_lock - 1] = -Magnitude;
+                                            }
+                                            else if (Axis_lock == 3)
+                                            {
+                                                if (VIEWS_FLIPPED)
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
+                                                else
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                }
                                             }
                                             else
                                             {
@@ -17307,65 +17456,196 @@ int main(int argc, char * args[])
                                                     Delta[Axis_lock - 1] = Magnitude;
                                             }
                                         }
-                                        else
-                                        {
-                                            if (x_offset > 0)
-                                                Delta[Axis_lock - 1] = -Magnitude;
-                                            else
-                                                Delta[Axis_lock - 1] = Magnitude;
-                                        }
-                                    }
-                                    make_Movement();
-                                }
-                                else
-                                {
-                                    Camera_Left.origin_2d[0] = mouse_x;
-                                    Camera_Left.origin_2d[1] = mouse_y;
-                                    D = set_Target(x_offset, y_offset, screen_width / 2.0, screen_height / 2.0, Camera_Left.h_view, Camera_Left.v_view, CamDist);
-                                    if (camera_z_move)
-                                    {
-                                        CamDist += D.x * 2;
+                                        make_Movement();
                                     }
                                     else
                                     {
-                                        if (VIEWS_FLIPPED)
+                                        Camera_Left.origin_2d[0] = mouse_x;
+                                        Camera_Left.origin_2d[1] = mouse_y;
+                                        D = set_Target(x_offset, y_offset, screen_width / 2.0, screen_height / 2.0, Camera_Left.h_view, Camera_Left.v_view, CamDist);
+                                        if (camera_z_move)
                                         {
-                                            T->target[2] -= D.x * d;
-                                            T->target[1] += D.y * d;
-                                            T->pos[2] -= D.x * d;
-                                            T->pos[1] += D.y * d;
+                                            CamDist += D.x * 2;
                                         }
                                         else
                                         {
-                                            T->target[2] += D.x * d;
-                                            T->target[1] += D.y * d;
-                                            T->pos[2] += D.x * d;
-                                            T->pos[1] += D.y * d;
+                                            if (VIEWS_FLIPPED)
+                                            {
+                                                T->target[2] -= D.x * d;
+                                                T->target[1] += D.y * d;
+                                                T->pos[2] -= D.x * d;
+                                                T->pos[1] += D.y * d;
+                                            }
+                                            else
+                                            {
+                                                T->target[2] += D.x * d;
+                                                T->target[1] += D.y * d;
+                                                T->pos[2] += D.x * d;
+                                                T->pos[1] += D.y * d;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else if (Camera_screen_lock) // Perspective
+                            {
+                                x_offset = mouse_x - Camera->origin_2d[0];
+                                y_offset = mouse_y - Camera->origin_2d[1];
+                                if (object_hook == 2) //scale
+                                {
+                                    delta = (float)x_offset / ((float)screen_width / 4.0);
+                                    make_Scale(delta);
+                                }
+                                else if (object_hook == 3) //rotate
+                                {
+                                    delta_y = (float)y_offset / ((float)screen_height / 4.0);
+                                    delta_x = (float)x_offset / ((float)screen_width / 4.0);
+                                    make_Rotation_Front(delta_y, delta_x);
+                                }
+                                else // move
+                                {
+                                    if (object_hook)
+                                    {
+                                        if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height / 2)
+                                        {
+                                            drag_plane_View_Update(CamDist, Camera);
+                                            winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
+                                            D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
+
+                                            Pos[0] = D.x;
+                                            Pos[1] = D.y;
+                                            Pos[2] = D.z;
+                                        }
+                                        else if (DRAG_BUFFER)
+                                        {
+
+                                        }
+                                        else
+                                        {
+                                            direction D1;
+                                            D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera->h_view, Camera->v_view);
+                                            D.x = -D.x;
+                                            //D.y = -D.y;
+                                            D.z = -D.z;
+                                            rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
+                                            float Dir_vec[3] = {0, 0, 1};
+                                            float dot = dot_productN((normal*)&D, Dir_vec);
+
+                                            Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
+                                            Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
+                                            Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                        }
+
+                                        Delta[0] = Pos[0] - T_pos[0];
+                                        Delta[1] = Pos[1] - T_pos[1];
+                                        Delta[2] = Pos[2] - T_pos[2];
+
+                                        if (Axis_lock)
+                                        {
+                                            Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
+                                            Delta[0] = 0;
+                                            Delta[1] = 0;
+                                            Delta[2] = 0;
+                                            if (Axis_lock == 2)
+                                            {
+                                                if (y_offset < 0)
+                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                else
+                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                            }
+                                            else
+                                            {
+                                                if (VIEWS_FLIPPED)
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                }
+                                                else
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
+                                            }
+                                        }
+                                        make_Movement();
+                                    }
+                                    else
+                                    {
+
+                                        Camera->origin_2d[0] = mouse_x;
+                                        Camera->origin_2d[1] = mouse_y;
+                                        D = set_Target(x_offset, y_offset, screen_width / 2.0, screen_height / 2.0, Camera->h_view, Camera->v_view, CamDist);
+                                        if (camera_z_move)
+                                        {
+                                            CamDist += D.x * 2;
+                                        }
+                                        else if (camera_rotate)
+                                        {
+                                            Camera->T->rot[0] += D.y / (CamDist / 10 + 0.1);
+                                            Camera->T->rot[1] -= D.x / (CamDist / 10 + 0.1);
+                                            // to make it work, rotVec_ needs to be updated in
+                                            // update_camera
+                                            // also rotation matrix needs to decompose in order
+                                            // into rot variable
+                                        }
+                                        else
+                                        {
+                                            direction D1, D0;
+                                            float rotVec_I[3][3]; // inverse is constructed on the fly
+                                            invert_Rotation(Camera->T, rotVec_I);
+                                            rotate_Vertex_I(rotVec_I, T->pos[0], T->pos[1], T->pos[2], &D1);
+
+                                            D1.x += D.x * d;
+                                            D1.y += D.y * d;
+
+                                            rotate_Vector(Camera->T, D1.x, D1.y, D1.z, &D0);
+
+                                            T->pos[0] = D0.x;
+                                            T->pos[1] = D0.y;
+                                            T->pos[2] = D0.z;
+
+                                            rotate_Vertex_I(rotVec_I, T->target[0], T->target[1], T->target[2], &D1);
+
+                                            D1.x += D.x * d;
+                                            D1.y += D.y * d;
+
+                                            rotate_Vector(Camera->T, D1.x, D1.y, D1.z, &D0);
+
+                                            T->target[0] = D0.x;
+                                            T->target[1] = D0.y;
+                                            T->target[2] = D0.z;
                                         }
                                     }
                                 }
                             }
                         }
-                        else if (Camera_screen_lock) // Perspective
+                        else
                         {
                             x_offset = mouse_x - Camera->origin_2d[0];
                             y_offset = mouse_y - Camera->origin_2d[1];
+
                             if (object_hook == 2) //scale
                             {
-                                delta = (float)x_offset / ((float)screen_width / 4.0);
-                                make_Scale(delta);
+                                delta_1 = (float)x_offset / ((float)screen_width / 4.0);
+                                delta_2 = (float)x_offset / ((float)screen_width / 2.0);
+                                make_Scale_Persp(delta_1, delta_2);
                             }
                             else if (object_hook == 3) //rotate
                             {
                                 delta_y = (float)y_offset / ((float)screen_height / 4.0);
-                                delta_x = (float)x_offset / ((float)screen_width / 4.0);
-                                make_Rotation_Front(delta_y, delta_x);
+                                delta_1 = (float)x_offset / ((float)screen_width / 4.0);
+                                delta_2 = (float)x_offset / ((float)screen_width / 2.0);
+                                make_Rotation_Persp(delta_y, delta_1, delta_2);
                             }
                             else // move
                             {
                                 if (object_hook)
                                 {
-                                    if (DRAG_BUFFER && mouse_x > SIDEBAR + screen_width / 2 && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height / 2)
+                                    if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height)
                                     {
                                         drag_plane_View_Update(CamDist, Camera);
                                         winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
@@ -17382,7 +17662,7 @@ int main(int argc, char * args[])
                                     else
                                     {
                                         direction D1;
-                                        D = screen_point_to_vector(mouse_x - SIDEBAR - screen_width / 2, mouse_y, screen_width / 2, screen_height / 2, Camera->h_view, Camera->v_view);
+                                        direction D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
                                         D.x = -D.x;
                                         //D.y = -D.y;
                                         D.z = -D.z;
@@ -17405,6 +17685,7 @@ int main(int argc, char * args[])
                                         Delta[0] = 0;
                                         Delta[1] = 0;
                                         Delta[2] = 0;
+
                                         if (Axis_lock == 2)
                                         {
                                             if (y_offset < 0)
@@ -17412,21 +17693,95 @@ int main(int argc, char * args[])
                                             else
                                                 Delta[Axis_lock - 1] = -Magnitude;
                                         }
-                                        else
+                                        else if (Axis_lock == 1)
                                         {
-                                            if (VIEWS_FLIPPED)
+                                            if (Camera == &Camera_Top)
                                             {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                if (VIEWS_FLIPPED)
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
                                                 else
-                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
                                             }
                                             else
                                             {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                if (VIEWS_FLIPPED)
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                }
                                                 else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (Camera == &Camera_Top)
+                                            {
+                                                if (VIEWS_FLIPPED)
+                                                {
+                                                    if (y_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
+                                                else
+                                                {
+                                                    if (y_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
+                                            }
+                                            else if (Camera == &Camera_Left)
+                                            {
+                                                if (VIEWS_FLIPPED)
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
+                                                else
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (VIEWS_FLIPPED)
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                }
+                                                else
+                                                {
+                                                    if (x_offset > 0)
+                                                        Delta[Axis_lock - 1] = Magnitude;
+                                                    else
+                                                        Delta[Axis_lock - 1] = -Magnitude;
+                                                }
                                             }
                                         }
                                     }
@@ -17434,18 +17789,17 @@ int main(int argc, char * args[])
                                 }
                                 else
                                 {
-
                                     Camera->origin_2d[0] = mouse_x;
                                     Camera->origin_2d[1] = mouse_y;
-                                    D = set_Target(x_offset, y_offset, screen_width / 2.0, screen_height / 2.0, Camera->h_view, Camera->v_view, CamDist);
+                                    D = set_Target(x_offset, y_offset, screen_width, screen_height, Camera->h_view, Camera->v_view, CamDist);
                                     if (camera_z_move)
                                     {
                                         CamDist += D.x * 2;
                                     }
                                     else if (camera_rotate)
                                     {
-                                        Camera->T->rot[0] += D.y / (CamDist / 10 + 0.1);
-                                        Camera->T->rot[1] -= D.x / (CamDist / 10 + 0.1);
+                                        Camera->T->rot[0] += D.y / (CamDist / 10 + 0.1);;
+                                        Camera->T->rot[1] -= D.x / (CamDist / 10 + 0.1);;
                                         // to make it work, rotVec_ needs to be updated in
                                         // update_camera
                                         // also rotation matrix needs to decompose in order
@@ -17481,724 +17835,512 @@ int main(int argc, char * args[])
                                 }
                             }
                         }
+                        message = -1;
                     }
-                    else
+                    else if (drag_rectangle)
                     {
-                        x_offset = mouse_x - Camera->origin_2d[0];
-                        y_offset = mouse_y - Camera->origin_2d[1];
+                        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+                        UPDATEDRAG = 1;
+                        if (subdLevel > -1)
+                            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, 0);
+                        else
+                            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                        UPDATEDRAG = 0;
+                        if (mouse_x < SIDEBAR)
+                            mouse_x = SIDEBAR;
+                        else if (mouse_x > SIDEBAR + screen_width)
+                            mouse_x = SIDEBAR + screen_width;
+                        if (mouse_y > screen_height)
+                            mouse_y = screen_height;
+                        Drag_Rectangle.x1 = mouse_x;
+                        Drag_Rectangle.y1 = mouse_y;
+                        if (mouse_x < Drag_Rectangle.x0)
+                        {
+                            Drag_Rectangle.x = mouse_x;
+                            Drag_Rectangle.w = Drag_Rectangle.x0 - Drag_Rectangle.x1;
+                            cull_Selection = 1;
+                        }
+                        else
+                        {
+                            Drag_Rectangle.x = Drag_Rectangle.x0;
+                            Drag_Rectangle.w = Drag_Rectangle.x1 - Drag_Rectangle.x0;
+                            cull_Selection = 0;
+                        }
+                        handle_ControlDown();
+                        if (mouse_y < Drag_Rectangle.y0)
+                        {
+                            Drag_Rectangle.y = screen_height + BOTTOM_LINE - Drag_Rectangle.y0;
+                            Drag_Rectangle.h = Drag_Rectangle.y0 - Drag_Rectangle.y1;
+                        }
+                        else
+                        {
+                            Drag_Rectangle.y = screen_height + BOTTOM_LINE - mouse_y;
+                            Drag_Rectangle.h = Drag_Rectangle.y1 - Drag_Rectangle.y0;
+                        }
+                        if (subdLevel > -1)
+                            poly_Render(tripsRender, wireframe, splitview, CamDist, 1, 0);
+                        else
+                            poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+                        glDrawBuffer(GL_BACK);
+                        message = 0;
+                    }
+                    else if (mouse_button_down && mouse_x > SIDEBAR && mouse_y < screen_height)
+                    {
+                        rendermode = ID_RENDER;
 
-                        if (object_hook == 2) //scale
+                        ELEMENT_ARRAYS = 0;
+                        init_Hint();
+
+                        int level, idx;
+
+                        if (subdLevel > -1)
                         {
-                            delta_1 = (float)x_offset / ((float)screen_width / 4.0);
-                            delta_2 = (float)x_offset / ((float)screen_width / 2.0);
-                            make_Scale_Persp(delta_1, delta_2);
-                        }
-                        else if (object_hook == 3) //rotate
-                        {
-                            delta_y = (float)y_offset / ((float)screen_height / 4.0);
-                            delta_1 = (float)x_offset / ((float)screen_width / 4.0);
-                            delta_2 = (float)x_offset / ((float)screen_width / 2.0);
-                            make_Rotation_Persp(delta_y, delta_1, delta_2);
-                        }
-                        else // move
-                        {
-                            if (object_hook)
+                            level = subdLevel; // because large polygon counts
+                            if (LOCAT_ID_RENDER && Object_Mode)
                             {
-                                if (DRAG_BUFFER && mouse_x > SIDEBAR && mouse_x < SIDEBAR + screen_width - 1 && mouse_y > 0 && mouse_y < screen_height)
-                                {
-                                    drag_plane_View_Update(CamDist, Camera);
-                                    winZ = Windepth[((int)drag_depth_Height - mouse_y) * (int)drag_depth_Width + mouse_x];
-                                    D = unproject_screen_point(mouse_x, screen_height + BOTTOM_LINE - mouse_y, winZ);
 
-                                    Pos[0] = D.x;
-                                    Pos[1] = D.y;
-                                    Pos[2] = D.z;
+                            }
+                            else if (Object_Mode)
+                            {
+                                load_id_colors_all(Camera, level, OBJECT_ID_COLORS);
+                            }
+                            else if (Polygon_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                                load_id_colors_current(O, level, POLYGON_ID_COLORS);
+                            }
+                            else if (Edge_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                            }
+                            else if (Vertex_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                            }
+                            else if (Bone_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                            }
+                        }
+                        else
+                        {
+                            level = -1;
+                            if (LOCAT_ID_RENDER && Object_Mode)
+                            {
+
+                            }
+                            else if (Object_Mode)
+                            {
+                                load_id_colors_Fan_all(Camera, OBJECT_ID_COLORS);
+                            }
+                            else if (Polygon_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                                load_id_colors_Fan_current(O, POLYGON_ID_COLORS);
+                            }
+                            else if (Edge_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                            }
+                            else if (Vertex_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                            }
+                            else if (Bone_Mode)
+                            {
+                                Camera->objects[0] = currentObject;
+                                Camera->object_count = 1;
+                            }
+                        }
+                        UPDATE_COLORS = 1;
+                        DRAW_UI = 0;
+                        if (Object_Mode)
+                        {
+                            if (Curve_Mode)
+                            {
+                                CURVE_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                CURVE_ID_RENDER = 0;
+                            }
+                            else
+                            {
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                            }
+                        }
+                        else if (LOCAT_ID_RENDER && Object_Mode)
+                        {
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                        }
+                        else if (Vertex_Mode)
+                        {
+                            if (Curve_Mode)
+                            {
+                                CPS_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                CPS_ID_RENDER = 0;
+                            }
+                            else
+                            {
+                                VERTS_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                VERTS_ID_RENDER = 0;
+                            }
+                        }
+                        else if (Edge_Mode)
+                        {
+                            if (Curve_Mode)
+                            {
+                                SEGMENTS_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                SEGMENTS_ID_RENDER = 0;
+                            }
+                            else
+                            {
+                                EDGES_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                EDGES_ID_RENDER = 0;
+                            }
+                        }
+                        else if (Polygon_Mode)
+                        {
+                            POLYS_ID_RENDER = 1;
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                            POLYS_ID_RENDER = 0;
+                        }
+                        else if (Bone_Mode)
+                        {
+                            BONES_ID_RENDER = 1;
+                            poly_Render(0, 0, splitview, CamDist, 0, level);
+                            BONES_ID_RENDER = 0;
+                        }
+
+                        //SDL_Delay(delay_ms);
+
+                        GLubyte pixel[4 * 81];
+                        glReadPixels(mouse_x - 4, screen_height + BOTTOM_LINE - mouse_y - 4, 9, 9, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+                        //printf("%u %u %u %u\n", pixel[0], pixel[1], pixel[2], pixel[3]);
+                        rendermode = POLY_RENDER;
+
+                        int u, p, o;
+
+                        for (p = 0; p < 81; p ++)
+                        {
+                            pixel_id[p] = (GLubyte)pixel[0 + p * 4] * 255 * 255 * 255 + (GLubyte)pixel[1 + p * 4] * 255 * 255 + (GLubyte)pixel[2 + p * 4] * 255 + (GLubyte)pixel[3 + p * 4];
+                        }
+
+                        for (p = 0; p < 81; p ++)
+                        {
+                            o = pixel_id[p_index[p]];
+                            if (Object_Mode && Curve_Mode)
+                            {
+                                if (o > -1 && o < curvesIndex)
+                                {
+                                    C = curves[o];
+
+                                    if (add_selection_mode)
+                                    {
+                                        C->selected = 1;
+                                        if (selected_curves_count < CURVES)
+                                            selected_curves[selected_curves_count ++] = o;
+                                    }
+                                    else
+                                    {
+                                        C->selected = 0;
+                                    }
+                                    break;
                                 }
-                                else if (DRAG_BUFFER)
+                            }
+                            else if (Object_Mode && LOCAT_ID_RENDER && o < transformerIndex && o >= 0)
+                            {
+                                T = transformers[o];
+                                if (add_selection_mode)
                                 {
-
+                                    T->selected = 1;
+                                    currentLocator = o;
+                                    //LocatorSize = T->LocatorSize;
+                                    select_Transformer_Bone(T);
+                                    select_Transformer_IK(T);
+                                    select_Deformer();
                                 }
                                 else
                                 {
-                                    direction D1;
-                                    direction D = screen_point_to_vector(mouse_x - SIDEBAR, mouse_y, screen_width, screen_height, Camera->h_view, Camera->v_view);
-                                    D.x = -D.x;
-                                    //D.y = -D.y;
-                                    D.z = -D.z;
-                                    rotate_Vertex_I(Camera->T->rotVec, D.x, D.y, D.z, &D1);
-                                    float Dir_vec[3] = {0, 0, 1};
-                                    float dot = dot_productN((normal*)&D, Dir_vec);
-
-                                    Pos[0] = Camera->T->pos[0] + D1.x * (ObjDist / dot);
-                                    Pos[1] = Camera->T->pos[1] + D1.y * (ObjDist / dot);
-                                    Pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
+                                    T->selected = 0;
                                 }
-
-                                Delta[0] = Pos[0] - T_pos[0];
-                                Delta[1] = Pos[1] - T_pos[1];
-                                Delta[2] = Pos[2] - T_pos[2];
-
-                                if (Axis_lock)
+                                break;
+                            }
+                            else if (Object_Mode && o < objectIndex && o >= 0)
+                            {
+                                sels_start[current_sel_type] = 0;
+                                O = objects[o];
+                                if (add_selection_mode)
                                 {
-                                    Magnitude = sqrt(Delta[0] * Delta[0] + Delta[1] * Delta[1] + Delta[2] * Delta[2]);
-                                    Delta[0] = 0;
-                                    Delta[1] = 0;
-                                    Delta[2] = 0;
-
-                                    if (Axis_lock == 2)
+                                    currentObject = o;
+                                    if (!O->selected)
                                     {
-                                        if (y_offset < 0)
-                                            Delta[Axis_lock - 1] = Magnitude;
-                                        else
-                                            Delta[Axis_lock - 1] = -Magnitude;
+                                        O->selected = 1;
+                                        selected_objects[selected_object_count ++] = o;
                                     }
-                                    else if (Axis_lock == 1)
+                                }
+                                else
+                                {
+                                    if (O->selected && selected_object_count > 1)
                                     {
-                                        if (Camera == &Camera_Top)
+                                        O->selected = 0;
+                                        assert_Object_Selection();
+                                    }
+                                }
+                                break;
+                                //printf("%s\n", objects[currentObject].Name);
+                            }
+                            else if (Polygon_Mode && o < objects[currentObject]->polycount && o >= 0)
+                            {
+                                polygon * P = &O->polys[o / ARRAYSIZE][o % ARRAYSIZE];
+                                if (add_selection_mode)
+                                {
+                                    if (P->selected == 0)
+                                    {
+                                        assignSelectionToQuads(O, P, 1);
+                                        O->last_selected_polys[0] = O->last_selected_polys[1];
+                                        O->last_selected_polys[1] = P->index;
+                                    }
+                                }
+                                else
+                                {
+                                    if (P->selected == 1)
+                                    {
+                                        assignSelectionToQuads(O, P, 0);
+                                    }
+                                }
+                                load_id_colors_polygon(O, P, OBJECT_COLORS);
+                                break;
+                            }
+                            else if (Edge_Mode)
+                            {
+                                if (Curve_Mode)
+                                {
+                                    curve_segment * S;
+
+                                    if (o > -1 && o < segmentIndex)
+                                    {
+                                        S = segments[o];
+
+                                        //printf("cp vertex id %d\n", o);
+                                        if (add_selection_mode)
                                         {
-                                            if (VIEWS_FLIPPED)
+                                            S->selected = 1;
+                                            if (selected_segments_count < SEGMENTS)
+                                                selected_segments[selected_segments_count ++] = o;
+                                            if (S->E != NULL)
                                             {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                            }
-                                            else
-                                            {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                S->E->selected = 1;
                                             }
                                         }
                                         else
                                         {
-                                            if (VIEWS_FLIPPED)
+                                            S->selected = 0;
+                                            if (S->E != NULL)
                                             {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                S->E->selected = 0;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    uv_edge * UVE;
+                                    edge * E;
+                                    if (Camera->uv_draw)
+                                    {
+                                        if (o > -1 && o < O->uvedcount)
+                                        {
+                                            UVE = &O->uveds[o / ARRAYSIZE][o % ARRAYSIZE];
+                                            if (add_selection_mode)
+                                            {
+                                                UVE->selected = 1;
                                             }
                                             else
                                             {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                UVE->selected = 0;
                                             }
+                                            idx = UVE->edge;
+                                            if (idx > -1 && idx < O->edgecount)
+                                            {
+                                                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                E->selected = UVE->selected;
+                                                if (E->selected && selected_edges_count < SELEDGES)
+                                                    selected_edges[selected_edges_count ++] = E;
+                                            }
+                                            break;
                                         }
                                     }
                                     else
                                     {
-                                        if (Camera == &Camera_Top)
+                                        if (o > -1 && o < O->edgecount)
                                         {
-                                            if (VIEWS_FLIPPED)
+                                            E = &O->edges[o / ARRAYSIZE][o % ARRAYSIZE];
+                                            if (add_selection_mode)
                                             {
-                                                if (y_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                E->selected = 1;
+                                                O->last_selected_edges[0] = O->last_selected_edges[1];
+                                                O->last_selected_edges[1] = E->index;
+                                                if (selected_edges_count < SELEDGES)
+                                                    selected_edges[selected_edges_count ++] = E;
                                             }
                                             else
                                             {
-                                                if (y_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                E->selected = 0;
                                             }
+                                            for (u = 0; u < E->uv_edcount; u ++)
+                                            {
+                                                idx = E->uv_edges[u];
+                                                if (idx > -1 && idx < O->uvedcount)
+                                                {
+                                                    UVE = &O->uveds[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                    UVE->selected = E->selected;
+                                                }
+                                            }
+                                            break;
                                         }
-                                        else if (Camera == &Camera_Left)
+                                    }
+                                }
+                            }
+                            else if (Vertex_Mode)
+                            {
+                                if (Curve_Mode)
+                                {
+                                    cp * CP;
+
+                                    if (o > -1 && o < cpsIndex)
+                                    {
+                                        CP = cps[o];
+
+                                        //printf("cp vertex id %d\n", o);
+                                        if (add_selection_mode)
                                         {
-                                            if (VIEWS_FLIPPED)
+                                            CP->selected = 1;
+                                            if (selected_cps_count < CPS)
+                                                selected_cps[selected_cps_count ++] = o;
+                                            if (CP->vert != NULL)
                                             {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                            }
-                                            else
-                                            {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                CP->vert->selected = 1;
                                             }
                                         }
                                         else
                                         {
-                                            if (VIEWS_FLIPPED)
+                                            CP->selected = 0;
+                                            if (CP->vert != NULL)
                                             {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = -Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = Magnitude;
+                                                CP->vert->selected = 0;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    uv * UV;
+                                    vertex * V;
+                                    if (Camera->uv_draw)
+                                    {
+                                        if (o > -1 && o < O->textcount)
+                                        {
+                                            UV = &O->uvtex[o / ARRAYSIZE][o % ARRAYSIZE];
+                                            if (add_selection_mode)
+                                            {
+                                                UV->selected = 1;
                                             }
                                             else
                                             {
-                                                if (x_offset > 0)
-                                                    Delta[Axis_lock - 1] = Magnitude;
-                                                else
-                                                    Delta[Axis_lock - 1] = -Magnitude;
+                                                UV->selected = 0;
                                             }
+                                            idx = UV->vert;
+                                            if (idx > -1 && idx < O->vertcount)
+                                            {
+                                                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                V->selected = UV->selected;
+                                                if (V->selected && selected_verts_count < CPS)
+                                                    selected_verts[selected_verts_count ++] = V;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (o > -1 && o < O->vertcount)
+                                        {
+                                            V = &O->verts[o / ARRAYSIZE][o % ARRAYSIZE];
+                                            if (add_selection_mode)
+                                            {
+                                                V->selected = 1;
+                                                O->last_selected_verts[0] = O->last_selected_verts[1];
+                                                O->last_selected_verts[1] = V->index;
+                                                if (selected_verts_count < CPS)
+                                                    selected_verts[selected_verts_count ++] = V;
+                                            }
+                                            else
+                                            {
+                                                V->selected = 0;
+                                            }
+                                            for (u = 0; u < V->uv_vertcount; u ++)
+                                            {
+                                                idx = V->uv_verts[u];
+                                                if (idx > -1 && idx < O->textcount)
+                                                {
+                                                    UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                    UV->selected = V->selected;
+                                                }
+                                            }
+                                            break;
                                         }
                                     }
                                 }
-                                make_Movement();
                             }
-                            else
+                            else if (Bone_Mode && o < bonesIndex && o >= 0)
                             {
-                                Camera->origin_2d[0] = mouse_x;
-                                Camera->origin_2d[1] = mouse_y;
-                                D = set_Target(x_offset, y_offset, screen_width, screen_height, Camera->h_view, Camera->v_view, CamDist);
-                                if (camera_z_move)
-                                {
-                                    CamDist += D.x * 2;
-                                }
-                                else if (camera_rotate)
-                                {
-                                    Camera->T->rot[0] += D.y / (CamDist / 10 + 0.1);;
-                                    Camera->T->rot[1] -= D.x / (CamDist / 10 + 0.1);;
-                                    // to make it work, rotVec_ needs to be updated in
-                                    // update_camera
-                                    // also rotation matrix needs to decompose in order
-                                    // into rot variable
-                                }
-                                else
-                                {
-                                    direction D1, D0;
-                                    float rotVec_I[3][3]; // inverse is constructed on the fly
-                                    invert_Rotation(Camera->T, rotVec_I);
-                                    rotate_Vertex_I(rotVec_I, T->pos[0], T->pos[1], T->pos[2], &D1);
-
-                                    D1.x += D.x * d;
-                                    D1.y += D.y * d;
-
-                                    rotate_Vector(Camera->T, D1.x, D1.y, D1.z, &D0);
-
-                                    T->pos[0] = D0.x;
-                                    T->pos[1] = D0.y;
-                                    T->pos[2] = D0.z;
-
-                                    rotate_Vertex_I(rotVec_I, T->target[0], T->target[1], T->target[2], &D1);
-
-                                    D1.x += D.x * d;
-                                    D1.y += D.y * d;
-
-                                    rotate_Vector(Camera->T, D1.x, D1.y, D1.z, &D0);
-
-                                    T->target[0] = D0.x;
-                                    T->target[1] = D0.y;
-                                    T->target[2] = D0.z;
-                                }
-                            }
-                        }
-                    }
-                    message = -1;
-                }
-                else if (drag_rectangle)
-                {
-                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-                    UPDATEDRAG = 1;
-                    if (subdLevel > -1)
-                        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, 0);
-                    else
-                        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                    UPDATEDRAG = 0;
-                    if (mouse_x < SIDEBAR)
-                        mouse_x = SIDEBAR;
-                    else if (mouse_x > SIDEBAR + screen_width)
-                        mouse_x = SIDEBAR + screen_width;
-                    if (mouse_y > screen_height)
-                        mouse_y = screen_height;
-                    Drag_Rectangle.x1 = mouse_x;
-                    Drag_Rectangle.y1 = mouse_y;
-                    if (mouse_x < Drag_Rectangle.x0)
-                    {
-                        Drag_Rectangle.x = mouse_x;
-                        Drag_Rectangle.w = Drag_Rectangle.x0 - Drag_Rectangle.x1;
-                        cull_Selection = 1;
-                    }
-                    else
-                    {
-                        Drag_Rectangle.x = Drag_Rectangle.x0;
-                        Drag_Rectangle.w = Drag_Rectangle.x1 - Drag_Rectangle.x0;
-                        cull_Selection = 0;
-                    }
-                    handle_ControlDown();
-                    if (mouse_y < Drag_Rectangle.y0)
-                    {
-                        Drag_Rectangle.y = screen_height + BOTTOM_LINE - Drag_Rectangle.y0;
-                        Drag_Rectangle.h = Drag_Rectangle.y0 - Drag_Rectangle.y1;
-                    }
-                    else
-                    {
-                        Drag_Rectangle.y = screen_height + BOTTOM_LINE - mouse_y;
-                        Drag_Rectangle.h = Drag_Rectangle.y1 - Drag_Rectangle.y0;
-                    }
-                    if (subdLevel > -1)
-                        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, 0);
-                    else
-                        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
-                    glDrawBuffer(GL_BACK);
-                    message = 0;
-                }
-                else if (mouse_button_down && mouse_x > SIDEBAR && mouse_y < screen_height)
-                {
-                    rendermode = ID_RENDER;
-
-                    ELEMENT_ARRAYS = 0;
-                    init_Hint();
-
-                    int level, idx;
-
-                    if (subdLevel > -1)
-                    {
-                        level = subdLevel; // because large polygon counts
-                        if (LOCAT_ID_RENDER && Object_Mode)
-                        {
-
-                        }
-                        else if (Object_Mode)
-                        {
-                            load_id_colors_all(Camera, level, OBJECT_ID_COLORS);
-                        }
-                        else if (Polygon_Mode)
-                        {
-                            Camera->objects[0] = currentObject;
-                            Camera->object_count = 1;
-                            load_id_colors_current(O, level, POLYGON_ID_COLORS);
-                        }
-                        else if (Edge_Mode)
-                        {
-                            Camera->objects[0] = currentObject;
-                            Camera->object_count = 1;
-                        }
-                        else if (Vertex_Mode)
-                        {
-                            Camera->objects[0] = currentObject;
-                            Camera->object_count = 1;
-                        }
-                        else if (Bone_Mode)
-                        {
-                            Camera->objects[0] = currentObject;
-                            Camera->object_count = 1;
-                        }
-                    }
-                    else
-                    {
-                        level = -1;
-                        if (LOCAT_ID_RENDER && Object_Mode)
-                        {
-
-                        }
-                        else if (Object_Mode)
-                        {
-                            load_id_colors_Fan_all(Camera, OBJECT_ID_COLORS);
-                        }
-                        else if (Polygon_Mode)
-                        {
-                            Camera->objects[0] = currentObject;
-                            Camera->object_count = 1;
-                            load_id_colors_Fan_current(O, POLYGON_ID_COLORS);
-                        }
-                        else if (Edge_Mode)
-                        {
-                            Camera->objects[0] = currentObject;
-                            Camera->object_count = 1;
-                        }
-                        else if (Vertex_Mode)
-                        {
-                            Camera->objects[0] = currentObject;
-                            Camera->object_count = 1;
-                        }
-                        else if (Bone_Mode)
-                        {
-                            Camera->objects[0] = currentObject;
-                            Camera->object_count = 1;
-                        }
-                    }
-                    UPDATE_COLORS = 1;
-                    DRAW_UI = 0;
-                    if (Object_Mode)
-                    {
-                        if (Curve_Mode)
-                        {
-                            CURVE_ID_RENDER = 1;
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                            CURVE_ID_RENDER = 0;
-                        }
-                        else
-                        {
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                        }
-                    }
-                    else if (LOCAT_ID_RENDER && Object_Mode)
-                    {
-                        poly_Render(0, 0, splitview, CamDist, 0, level);
-                    }
-                    else if (Vertex_Mode)
-                    {
-                        if (Curve_Mode)
-                        {
-                            CPS_ID_RENDER = 1;
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                            CPS_ID_RENDER = 0;
-                        }
-                        else
-                        {
-                            VERTS_ID_RENDER = 1;
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                            VERTS_ID_RENDER = 0;
-                        }
-                    }
-                    else if (Edge_Mode)
-                    {
-                        if (Curve_Mode)
-                        {
-                            SEGMENTS_ID_RENDER = 1;
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                            SEGMENTS_ID_RENDER = 0;
-                        }
-                        else
-                        {
-                            EDGES_ID_RENDER = 1;
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                            EDGES_ID_RENDER = 0;
-                        }
-                    }
-                    else if (Polygon_Mode)
-                    {
-                        POLYS_ID_RENDER = 1;
-                        poly_Render(0, 0, splitview, CamDist, 0, level);
-                        POLYS_ID_RENDER = 0;
-                    }
-                    else if (Bone_Mode)
-                    {
-                        BONES_ID_RENDER = 1;
-                        poly_Render(0, 0, splitview, CamDist, 0, level);
-                        BONES_ID_RENDER = 0;
-                    }
-
-                    //SDL_Delay(delay_ms);
-
-                    GLubyte pixel[4 * 81];
-                    glReadPixels(mouse_x - 4, screen_height + BOTTOM_LINE - mouse_y - 4, 9, 9, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-                    //printf("%u %u %u %u\n", pixel[0], pixel[1], pixel[2], pixel[3]);
-                    rendermode = POLY_RENDER;
-
-                    int u, p, o;
-
-                    for (p = 0; p < 81; p ++)
-                    {
-                        pixel_id[p] = (GLubyte)pixel[0 + p * 4] * 255 * 255 * 255 + (GLubyte)pixel[1 + p * 4] * 255 * 255 + (GLubyte)pixel[2 + p * 4] * 255 + (GLubyte)pixel[3 + p * 4];
-                    }
-
-                    for (p = 0; p < 81; p ++)
-                    {
-                        o = pixel_id[p_index[p]];
-                        if (Object_Mode && Curve_Mode)
-                        {
-                            if (o > -1 && o < curvesIndex)
-                            {
-                                C = curves[o];
-
+                                bone * B = bones[o];
                                 if (add_selection_mode)
                                 {
-                                    C->selected = 1;
-                                    if (selected_curves_count < CURVES)
-                                        selected_curves[selected_curves_count ++] = o;
+                                    currentBone = B->index;
+                                    B->selected = 1;
                                 }
                                 else
                                 {
-                                    C->selected = 0;
+                                    B->selected = 0;
                                 }
                                 break;
                             }
                         }
-                        else if (Object_Mode && LOCAT_ID_RENDER && o < transformerIndex && o >= 0)
-                        {
-                            T = transformers[o];
-                            if (add_selection_mode)
-                            {
-                                T->selected = 1;
-                                currentLocator = o;
-                                //LocatorSize = T->LocatorSize;
-                                select_Transformer_Bone(T);
-                                select_Transformer_IK(T);
-                                select_Deformer();
-                            }
-                            else
-                            {
-                                T->selected = 0;
-                            }
-                            break;
-                        }
-                        else if (Object_Mode && o < objectIndex && o >= 0)
-                        {
-                            sels_start[current_sel_type] = 0;
-                            O = objects[o];
-                            if (add_selection_mode)
-                            {
-                                currentObject = o;
-                                if (!O->selected)
-                                {
-                                    O->selected = 1;
-                                    selected_objects[selected_object_count ++] = o;
-                                }
-                            }
-                            else
-                            {
-                                if (O->selected && selected_object_count > 1)
-                                {
-                                    O->selected = 0;
-                                    assert_Object_Selection();
-                                }
-                            }
-                            break;
-                            //printf("%s\n", objects[currentObject].Name);
-                        }
-                        else if (Polygon_Mode && o < objects[currentObject]->polycount && o >= 0)
-                        {
-                            polygon * P = &O->polys[o / ARRAYSIZE][o % ARRAYSIZE];
-                            if (add_selection_mode)
-                            {
-                                if (P->selected == 0)
-                                {
-                                    assignSelectionToQuads(O, P, 1);
-                                    O->last_selected_polys[0] = O->last_selected_polys[1];
-                                    O->last_selected_polys[1] = P->index;
-                                }
-                            }
-                            else
-                            {
-                                if (P->selected == 1)
-                                {
-                                    assignSelectionToQuads(O, P, 0);
-                                }
-                            }
-                            load_id_colors_polygon(O, P, OBJECT_COLORS);
-                            break;
-                        }
-                        else if (Edge_Mode)
-                        {
-                            if (Curve_Mode)
-                            {
-                                curve_segment * S;
 
-                                if (o > -1 && o < segmentIndex)
-                                {
-                                    S = segments[o];
-
-                                    //printf("cp vertex id %d\n", o);
-                                    if (add_selection_mode)
-                                    {
-                                        S->selected = 1;
-                                        if (selected_segments_count < SEGMENTS)
-                                            selected_segments[selected_segments_count ++] = o;
-                                        if (S->E != NULL)
-                                        {
-                                            S->E->selected = 1;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        S->selected = 0;
-                                        if (S->E != NULL)
-                                        {
-                                            S->E->selected = 0;
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                uv_edge * UVE;
-                                edge * E;
-                                if (Camera->uv_draw)
-                                {
-                                    if (o > -1 && o < O->uvedcount)
-                                    {
-                                        UVE = &O->uveds[o / ARRAYSIZE][o % ARRAYSIZE];
-                                        if (add_selection_mode)
-                                        {
-                                            UVE->selected = 1;
-                                        }
-                                        else
-                                        {
-                                            UVE->selected = 0;
-                                        }
-                                        idx = UVE->edge;
-                                        if (idx > -1 && idx < O->edgecount)
-                                        {
-                                            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                            E->selected = UVE->selected;
-                                            if (E->selected && selected_edges_count < SELEDGES)
-                                                selected_edges[selected_edges_count ++] = E;
-                                        }
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    if (o > -1 && o < O->edgecount)
-                                    {
-                                        E = &O->edges[o / ARRAYSIZE][o % ARRAYSIZE];
-                                        if (add_selection_mode)
-                                        {
-                                            E->selected = 1;
-                                            O->last_selected_edges[0] = O->last_selected_edges[1];
-                                            O->last_selected_edges[1] = E->index;
-                                            if (selected_edges_count < SELEDGES)
-                                                selected_edges[selected_edges_count ++] = E;
-                                        }
-                                        else
-                                        {
-                                            E->selected = 0;
-                                        }
-                                        for (u = 0; u < E->uv_edcount; u ++)
-                                        {
-                                            idx = E->uv_edges[u];
-                                            if (idx > -1 && idx < O->uvedcount)
-                                            {
-                                                UVE = &O->uveds[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                                UVE->selected = E->selected;
-                                            }
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        else if (Vertex_Mode)
+                        if (Object_Mode && LOCAT_ID_RENDER)
                         {
-                            if (Curve_Mode)
-                            {
-                                cp * CP;
 
-                                if (o > -1 && o < cpsIndex)
-                                {
-                                    CP = cps[o];
-
-                                    //printf("cp vertex id %d\n", o);
-                                    if (add_selection_mode)
-                                    {
-                                        CP->selected = 1;
-                                        if (selected_cps_count < CPS)
-                                            selected_cps[selected_cps_count ++] = o;
-                                        if (CP->vert != NULL)
-                                        {
-                                            CP->vert->selected = 1;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        CP->selected = 0;
-                                        if (CP->vert != NULL)
-                                        {
-                                            CP->vert->selected = 0;
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                uv * UV;
-                                vertex * V;
-                                if (Camera->uv_draw)
-                                {
-                                    if (o > -1 && o < O->textcount)
-                                    {
-                                        UV = &O->uvtex[o / ARRAYSIZE][o % ARRAYSIZE];
-                                        if (add_selection_mode)
-                                        {
-                                            UV->selected = 1;
-                                        }
-                                        else
-                                        {
-                                            UV->selected = 0;
-                                        }
-                                        idx = UV->vert;
-                                        if (idx > -1 && idx < O->vertcount)
-                                        {
-                                            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                            V->selected = UV->selected;
-                                            if (V->selected && selected_verts_count < CPS)
-                                                selected_verts[selected_verts_count ++] = V;
-                                        }
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    if (o > -1 && o < O->vertcount)
-                                    {
-                                        V = &O->verts[o / ARRAYSIZE][o % ARRAYSIZE];
-                                        if (add_selection_mode)
-                                        {
-                                            V->selected = 1;
-                                            O->last_selected_verts[0] = O->last_selected_verts[1];
-                                            O->last_selected_verts[1] = V->index;
-                                            if (selected_verts_count < CPS)
-                                                selected_verts[selected_verts_count ++] = V;
-                                        }
-                                        else
-                                        {
-                                            V->selected = 0;
-                                        }
-                                        for (u = 0; u < V->uv_vertcount; u ++)
-                                        {
-                                            idx = V->uv_verts[u];
-                                            if (idx > -1 && idx < O->textcount)
-                                            {
-                                                UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                                                UV->selected = V->selected;
-                                            }
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
                         }
-                        else if (Bone_Mode && o < bonesIndex && o >= 0)
+                        else if (Object_Mode || Polygon_Mode)
                         {
-                            bone * B = bones[o];
-                            if (add_selection_mode)
-                            {
-                                currentBone = B->index;
-                                B->selected = 1;
-                            }
+                            if (subdLevel > -1)
+                            load_id_colors_No_Surface(Camera, level);
                             else
-                            {
-                                B->selected = 0;
-                            }
-                            break;
+                            load_id_colors_Fan_all(Camera, OBJECT_COLORS);
                         }
+
+                        DRAW_UI = 1;
+
+                        SDL_GL_SwapBuffers();
+
+                        message = 0;
                     }
-
-                    if (Object_Mode && LOCAT_ID_RENDER)
+                    else
                     {
-
+                        message = 0;
                     }
-                    else if (Object_Mode || Polygon_Mode)
-                    {
-                        if (subdLevel > -1)
-                        load_id_colors_No_Surface(Camera, level);
-                        else
-                        load_id_colors_Fan_all(Camera, OBJECT_COLORS);
-                    }
-
-                    DRAW_UI = 1;
-
-                    SDL_GL_SwapBuffers();
-
-                    message = 0;
-                }
-                else
-                {
-                    message = 0;
                 }
 
             }
@@ -19772,63 +19914,76 @@ int main(int argc, char * args[])
                     EditCursor = 0;
                     EditString[EditCursor] = '\0';
                     printf("Edit finishing!\n");
-                    if (dialog_type == SAVES_DIALOG)
+
+                    if (Edit_Properties)
                     {
-                        sprintf(scene_files_dir, "%s", Name_Remember);
-                        update_Saves_List(1, 0);
+                        Edit_Properties = 0;
+                        Edit_Color = 0;
+                        if (dialog_type == MATERIAL_DIALOG)
+                        {
+                            update_Materials_List(1, 0);
+                        }
                     }
-                    else if (dialog_type == LOADING_DIALOG)
+                    else
                     {
-                        sprintf(scene_files_dir, "%s", Name_Remember);
-                        update_Loading_List(1, 0);
-                    }
-                    else if (dialog_type == BONE_DIALOG)
-                    {
-                        sprintf(Bone_Names[BoneIndex], "%s", Name_Remember);
-                        set_Bone_H_Button(-1);
-                        update_Bones_List(1, 0);
-                    }
-                    else if (dialog_type == IK_DIALOG)
-                    {
-                        sprintf(IK_Names[IKIndex], "%s", Name_Remember);
-                        set_IK_H_Button(-1);
-                        update_IK_List(1, 0);
-                    }
-                    else if (dialog_type == ITEM_DIALOG)
-                    {
-                        sprintf(Item_Names[ItemIndex], "%s", Name_Remember);
-                        set_Item_H_Button(-1);
-                        update_Items_List(1, 0);
-                    }
-                    else if (dialog_type == POSE_DIALOG)
-                    {
-                        sprintf(Pose_Names[PoseIndex], "%s", Name_Remember);
-                        set_Pose_H_Button(-1);
-                        update_Poses_List(1, 0);
-                    }
-                    else if (dialog_type == HIER_DIALOG)
-                    {
-                        sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
-                        set_Hier_H_Button(-1);
-                        update_Hierarchys_List(1, 0);
-                    }
-                    else if (dialog_type == SELS_DIALOG)
-                    {
-                        sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", Name_Remember);
-                        set_Sels_H_Button(-1);
-                        update_Selections_List(1, 0);
-                    }
-                    else if (dialog_type == SUBC_DIALOG)
-                    {
-                        sprintf(Subcharacter_Names[SubcharacterIndex], "%s", Name_Remember);
-                        set_Subc_H_Button(-1);
-                        update_Subcharacters_List(1, 0);
-                    }
-                    else if (dialog_type == MATERIAL_DIALOG)
-                    {
-                        sprintf(Materials[currentMaterial].Name, "%s", Name_Remember);
-                        set_Material_H_Button(-1);
-                        update_Materials_List(1, 0);
+                        if (dialog_type == SAVES_DIALOG)
+                        {
+                            sprintf(scene_files_dir, "%s", Name_Remember);
+                            update_Saves_List(1, 0);
+                        }
+                        else if (dialog_type == LOADING_DIALOG)
+                        {
+                            sprintf(scene_files_dir, "%s", Name_Remember);
+                            update_Loading_List(1, 0);
+                        }
+                        else if (dialog_type == BONE_DIALOG)
+                        {
+                            sprintf(Bone_Names[BoneIndex], "%s", Name_Remember);
+                            set_Bone_H_Button(-1);
+                            update_Bones_List(1, 0);
+                        }
+                        else if (dialog_type == IK_DIALOG)
+                        {
+                            sprintf(IK_Names[IKIndex], "%s", Name_Remember);
+                            set_IK_H_Button(-1);
+                            update_IK_List(1, 0);
+                        }
+                        else if (dialog_type == ITEM_DIALOG)
+                        {
+                            sprintf(Item_Names[ItemIndex], "%s", Name_Remember);
+                            set_Item_H_Button(-1);
+                            update_Items_List(1, 0);
+                        }
+                        else if (dialog_type == POSE_DIALOG)
+                        {
+                            sprintf(Pose_Names[PoseIndex], "%s", Name_Remember);
+                            set_Pose_H_Button(-1);
+                            update_Poses_List(1, 0);
+                        }
+                        else if (dialog_type == HIER_DIALOG)
+                        {
+                            sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
+                            set_Hier_H_Button(-1);
+                            update_Hierarchys_List(1, 0);
+                        }
+                        else if (dialog_type == SELS_DIALOG)
+                        {
+                            sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", Name_Remember);
+                            set_Sels_H_Button(-1);
+                            update_Selections_List(1, 0);
+                        }
+                        else if (dialog_type == SUBC_DIALOG)
+                        {
+                            sprintf(Subcharacter_Names[SubcharacterIndex], "%s", Name_Remember);
+                            set_Subc_H_Button(-1);
+                            update_Subcharacters_List(1, 0);
+                        }
+                        else if (dialog_type == MATERIAL_DIALOG)
+                        {
+                            sprintf(Materials[currentMaterial].Name, "%s", Name_Remember);
+                            set_Material_H_Button(-1);
+                            update_Materials_List(1, 0);
+                        }
                     }
                 }
                 else
