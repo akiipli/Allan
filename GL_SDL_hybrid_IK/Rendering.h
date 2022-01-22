@@ -183,7 +183,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
     int l, l0;
 
-    if (level > 2) level = 2;
+    if (level > 3) level = 3;
 
     if (level > -1) // has levels
     {
@@ -359,6 +359,27 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                 for (v = 0; v < P->edgecount; v ++)
                 {
+                    idx = O->vertcount + P->edges[v];
+
+                    V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    l = 0;
+
+                    while (l < level) // delegates to current subdivision
+                    {
+                        l ++;
+                        V = V->vert;
+                    }
+
+                    dot = dot_productFF(V->aim_vec, polyAim.vec);
+
+                    if (dot < Dot)
+                    {
+                        Dot = dot;
+                    }
+
+                    /////
+
                     idx = P->verts[v];
 
                     V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -911,10 +932,10 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 {
     trianges_cancel Cancel;
 
-    int i, idx, k, o, q, q0, q1;
+    int i, idx, k, o, q, q0, q1, q2;
     //edge * E;
     polygon * P0;
-    quadrant * Q, * Q0, * Q1;
+    quadrant * Q, * Q0, * Q1, * Q2;
     triangle * T;
     object * O;
 
@@ -941,7 +962,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
     float shading_normal[3];
 
-    if (L > 2) L = 2;
+    if (L > 3) L = 3;
 
     for (o = 0; o < C->object_count; o ++)
     {
@@ -1006,7 +1027,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                             T = &O->trips_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
                             if (!T->B.backface)
                             {
-                                Cancel = render_Pixel(P, C, D, L, O, T, volume_counter, t, shading_normal);
+                                Cancel = render_Pixel(P, C, D, 0, O, T, volume_counter, t, shading_normal);
                                 volume_counter = Cancel.volume_counter;
                                 Preak = Cancel.preak;
                                 if (Cancel.cancel)
@@ -1048,7 +1069,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                                     T = &O->trips_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
                                     if (!T->B.backface)
                                     {
-                                        Cancel = render_Pixel(P, C, D, L, O, T, volume_counter, t, shading_normal);
+                                        Cancel = render_Pixel(P, C, D, 1, O, T, volume_counter, t, shading_normal);
                                         volume_counter = Cancel.volume_counter;
                                         Preak = Cancel.preak;
                                         if (Cancel.cancel)
@@ -1058,7 +1079,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                                 continue;
                             }
 
-                            if (Q0->subdivs && L == 2)
+                            if (Q0->subdivs && L >= 2)
                             {
                                 for (q1 = 0; q1 < 4; q1 ++)
                                 {
@@ -1090,7 +1111,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                                             T = &O->trips_[2][idx / ARRAYSIZE][idx % ARRAYSIZE];
                                             if (!T->B.backface)
                                             {
-                                                Cancel = render_Pixel(P, C, D, L, O, T, volume_counter, t, shading_normal);
+                                                Cancel = render_Pixel(P, C, D, 2, O, T, volume_counter, t, shading_normal);
                                                 volume_counter = Cancel.volume_counter;
                                                 Preak = Cancel.preak;
                                                 if (Cancel.cancel)
@@ -1100,25 +1121,93 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                                         continue;
                                     }
 
-                                    for (t = 0; t < 2; t ++)
+                                    if (Q1->subdivs && L >= 3)
                                     {
-                                        if (Preak)
-                                            break;
-
-                                        idx = Q1->trips[t];
-
-                                        T = &O->trips_[2][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                                        if (!T->B.backface)
+                                        for (q2 = 0; q2 < 4; q2 ++)
                                         {
-                                            Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t, shading_normal);
-
-                                            volume_counter = Cancel.volume_counter;
-
-                                            Preak = Cancel.preak;
-
-                                            if (Cancel.cancel)
+                                            if (Preak)
                                                 break;
+
+                                            idx = Q1->quads[q2];
+                                            Q2 = &O->quads_[3][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                            if (Q2->B.backface)
+                                            {
+                                                continue;
+                                            }
+
+                                            aim_deviation = acos(dot_productN(D, Q2->B.Aim.vec));
+
+                                            if (aim_deviation > Q2->B.deviation)
+                                            {
+                                                continue;
+                                            }
+
+                                            if (Q2->B.deviation <= C->Pixel_Size_In_Radians) /* Size is one pixel */
+                                            {
+                                                for (t = 0; t < 2; t ++)
+                                                {
+                                                    if (Preak)
+                                                        break;
+                                                    idx = Q2->trips[t];
+                                                    T = &O->trips_[3][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                                    if (!T->B.backface)
+                                                    {
+                                                        Cancel = render_Pixel(P, C, D, 3, O, T, volume_counter, t, shading_normal);
+                                                        volume_counter = Cancel.volume_counter;
+                                                        Preak = Cancel.preak;
+                                                        if (Cancel.cancel)
+                                                            break;
+                                                    }
+                                                }
+                                                continue;
+                                            }
+
+                                            for (t = 0; t < 2; t ++)
+                                            {
+                                                if (Preak)
+                                                    break;
+
+                                                idx = Q2->trips[t];
+
+                                                T = &O->trips_[3][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                                if (!T->B.backface)
+                                                {
+                                                    Cancel = render_Triangles(P, C, D, 3, O, T, volume_counter, t, shading_normal);
+
+                                                    volume_counter = Cancel.volume_counter;
+
+                                                    Preak = Cancel.preak;
+
+                                                    if (Cancel.cancel)
+                                                        break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        for (t = 0; t < 2; t ++)
+                                        {
+                                            if (Preak)
+                                                break;
+
+                                            idx = Q1->trips[t];
+
+                                            T = &O->trips_[2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                            if (!T->B.backface)
+                                            {
+                                                Cancel = render_Triangles(P, C, D, 2, O, T, volume_counter, t, shading_normal);
+
+                                                volume_counter = Cancel.volume_counter;
+
+                                                Preak = Cancel.preak;
+
+                                                if (Cancel.cancel)
+                                                    break;
+                                            }
                                         }
                                     }
                                 }
@@ -1132,11 +1221,11 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
                                     idx = Q0->trips[t];
 
-                                    T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                    T = &O->trips_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                                     if (!T->B.backface)
                                     {
-                                        Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t, shading_normal);
+                                        Cancel = render_Triangles(P, C, D, 1, O, T, volume_counter, t, shading_normal);
 
                                         volume_counter = Cancel.volume_counter;
 
@@ -1158,11 +1247,11 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
                             idx = Q->trips[t];
 
-                            T = &O->trips_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            T = &O->trips_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                             if (!T->B.backface)
                             {
-                                Cancel = render_Triangles(P, C, D, L, O, T, volume_counter, t, shading_normal);
+                                Cancel = render_Triangles(P, C, D, 0, O, T, volume_counter, t, shading_normal);
 
                                 volume_counter = Cancel.volume_counter;
 

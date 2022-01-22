@@ -9484,6 +9484,28 @@ void handle_Scene_Dialog(char letter, SDLMod mod)
     }
 }
 
+void update_UI_With_Id_Colors()
+{
+    DRAW_UI = 0;
+    UPDATE_COLORS = 1;
+    all_objects_in_frame(Camera);
+    if (subdLevel > - 1)
+    {
+        int l;
+        for (l = subdLevel; l >= 0; l --)
+        {
+            load_id_colors_all(Camera, l, OBJECT_COLORS);
+        }
+    }
+    load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    UPDATE_COLORS = 0;
+    DRAW_UI = 1;
+    draw_Dialog();
+    SDL_GL_SwapBuffers();
+}
+
 void handle_Material_Dialog(char letter, SDLMod mod)
 {
     int update = 1;
@@ -9540,24 +9562,7 @@ void handle_Material_Dialog(char letter, SDLMod mod)
             }
             Materials[currentMaterial].RGBA.Color[Color_Component] = Color;
 
-            DRAW_UI = 0;
-            UPDATE_COLORS = 1;
-            all_objects_in_frame(Camera);
-            if (subdLevel > - 1)
-            {
-                int l;
-                for (l = subdLevel; l >= 0; l --)
-                {
-                    load_id_colors_all(Camera, l, OBJECT_COLORS);
-                }
-            }
-            load_id_colors_Fan_all(Camera, OBJECT_COLORS);
-
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-            UPDATE_COLORS = 0;
-            DRAW_UI = 1;
-            draw_Dialog();
-            SDL_GL_SwapBuffers();
+            update_UI_With_Id_Colors();
 
             message = 0;
         }
@@ -16809,24 +16814,7 @@ int main(int argc, char * args[])
                         }
                         else
                         {
-                            DRAW_UI = 0;
-                            UPDATE_COLORS = 1;
-                            all_objects_in_frame(Camera);
-                            if (subdLevel > - 1)
-                            {
-                                int l;
-                                for (l = subdLevel; l >= 0; l --)
-                                {
-                                    load_id_colors_all(Camera, l, OBJECT_COLORS);
-                                }
-                            }
-                            load_id_colors_Fan_all(Camera, OBJECT_COLORS);
-
-                            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                            UPDATE_COLORS = 0;
-                            DRAW_UI = 1;
-                            draw_Dialog();
-                            SDL_GL_SwapBuffers();
+                            update_UI_With_Id_Colors();
                         }
                         Drag_Color = 0;
                         Drag_Shine = 0;
@@ -20350,7 +20338,7 @@ int main(int argc, char * args[])
         {
             //calculate_Triangle_Tangents(O);
         }
-        else if (message == 78)
+        else if (message == 78) // 40 for K
         {
             find_Camera_Objects();
             Camera = find_View(mouse_x, mouse_y, splitview);
