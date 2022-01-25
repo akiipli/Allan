@@ -253,7 +253,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
                             }
                         }
 
-                        Q->B.deviation = acos(Dot) + (C->Pixel_Size_In_Radians / (l + 2)); // adding slight radius
+                        Q->B.deviation = acos(Dot) + C->Pixel_Size_In_Radians; // adding slight radius
                         Q->B.Aim.dist = polyAim.dist;
                         Q->B.Aim.vec[0] = polyAim.vec[0];
                         Q->B.Aim.vec[1] = polyAim.vec[1];
@@ -297,7 +297,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
                             }
                         }
 
-                        Q->B.deviation = acos(Dot) + (C->Pixel_Size_In_Radians / (l + 2)); // adding slight radius
+                        Q->B.deviation = acos(Dot) + C->Pixel_Size_In_Radians; // adding slight radius
                         Q->B.Aim.dist = polyAim.dist;
                         Q->B.Aim.vec[0] = polyAim.vec[0];
                         Q->B.Aim.vec[1] = polyAim.vec[1];
@@ -577,11 +577,11 @@ uvPack uv_value_mean(float polytexts[4][2])
 {
     float I_TextUV[2] = {0.0, 0.0};
 
-    float M = 1.0 / 4.0;
+    float M = 1.0 / 2.0;
 
     int i;
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < 2; i++)
     {
         I_TextUV[0] += polytexts[i][0] * M;
         I_TextUV[1] += polytexts[i][1] * M;
@@ -682,7 +682,7 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
     float dot_light;
     uv * UV;
 
-    float polytexts[4][2];
+    float polytexts[2][2];
 
     uvPack Q_UV;
     float Q_Normal[3];
@@ -699,18 +699,10 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
     UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
     polytexts[0][0] = UV->u;
     polytexts[0][1] = UV->v;
-    idx = Q->texts[1];
+    idx = Q->texts[2];
     UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
     polytexts[1][0] = UV->u;
     polytexts[1][1] = UV->v;
-    idx = Q->texts[2];
-    UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polytexts[2][0] = UV->u;
-    polytexts[2][1] = UV->v;
-    idx = Q->texts[3];
-    UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polytexts[3][0] = UV->u;
-    polytexts[3][1] = UV->v;
 
     if (texture != NULL)//(Material.use_texture && texture != NULL)
     {

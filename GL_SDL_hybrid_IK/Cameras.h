@@ -17,6 +17,8 @@ Copyright <2018> <Allan Kiipli>
 
 #define CAMERAS 5
 
+#define PIXEL_SIZE_ADJUSTMENT 1.5
+
 float CamDist = 10;
 
 float persp_Near = 0.001;
@@ -127,8 +129,8 @@ void update_camera_ratio(camera * C, int hres, int vres)
         C->view_major = C->h_view;
     }
 
-    C->View_Radius = sqrt(C->h_view * C->h_view + C->v_view * C->v_view) / 2.0;
-    C->Resolution_Radius = sqrt(C->width * C->width + C->height * C->height) / 2.0;
+    C->View_Radius = sqrt(C->h_view * C->h_view + C->v_view * C->v_view) * PIXEL_SIZE_ADJUSTMENT;
+    C->Resolution_Radius = sqrt(C->width * C->width + C->height * C->height) * PIXEL_SIZE_ADJUSTMENT;
     C->Pixel_Size_In_Radians = C->View_Radius / C->Resolution_Radius;
 
     //printf("Pixel Size In Radians %f\n", C->Pixel_Size_In_Radians);
@@ -188,8 +190,8 @@ void update_camera_view(camera * C, float h_view, int hres, int vres)
         C->view_major = C->h_view;
     }
 
-    C->View_Radius = sqrt(C->h_view * C->h_view + C->v_view * C->v_view) / 2.0;
-    C->Resolution_Radius = sqrt(C->width * C->width + C->height * C->height) / 2.0;
+    C->View_Radius = sqrt(C->h_view * C->h_view + C->v_view * C->v_view) * PIXEL_SIZE_ADJUSTMENT;
+    C->Resolution_Radius = sqrt(C->width * C->width + C->height * C->height) * PIXEL_SIZE_ADJUSTMENT;
     C->Pixel_Size_In_Radians = C->View_Radius / C->Resolution_Radius;
 
     if (hres > vres){C->dim = hres; C->_ratio = C->h_v_ratio;} else {C->dim = vres; C->_ratio = 1.0 / C->h_v_ratio;}
