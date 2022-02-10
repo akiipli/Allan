@@ -988,6 +988,10 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
 
             if (P0->subdivs)
             {
+                shading_normal[0] = -P0->N.Tx;
+                shading_normal[1] = -P0->N.Ty;
+                shading_normal[2] = -P0->N.Tz;
+
                 for (q = 0; q < P0->edgecount; q ++)
                 {
                     if (Preak)
@@ -1008,10 +1012,6 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, int L, objec
                     {
                         continue;
                     }
-
-                    shading_normal[0] = -Q->N.Tx;
-                    shading_normal[1] = -Q->N.Ty;
-                    shading_normal[2] = -Q->N.Tz;
 
                     if (Q->B.deviation < C->Pixel_Size_In_Radians) /* Size is one pixel */
                     {
@@ -1494,9 +1494,6 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-            shading_normal[0] = -P0->N.Tx;
-            shading_normal[1] = -P0->N.Ty;
-            shading_normal[2] = -P0->N.Tz;
 /*
             dot = dot_product(&polynormal, D);
 */
@@ -1506,6 +1503,10 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
             {
                 continue;
             }
+
+            shading_normal[0] = -P0->N.Tx;
+            shading_normal[1] = -P0->N.Ty;
+            shading_normal[2] = -P0->N.Tz;
 
             for (t = 0; t < P0->tripcount; t ++)
             {
