@@ -1473,6 +1473,8 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
 
     polygroup * G0;
 
+    float shading_normal[3];
+
     for (o = 0; o < C->object_count; o ++)
     {
         if (Preak)
@@ -1491,11 +1493,11 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
             idx = G0->indices[i];
 
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
-/*
-            polynormal.x = -P0->N.Tx;
-            polynormal.y = -P0->N.Ty;
-            polynormal.z = -P0->N.Tz;
 
+            shading_normal[0] = -P0->N.Tx;
+            shading_normal[1] = -P0->N.Ty;
+            shading_normal[2] = -P0->N.Tz;
+/*
             dot = dot_product(&polynormal, D);
 */
             aim_deviation = acos(dot_productN(D, P0->B.Aim.vec));
@@ -1618,7 +1620,7 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
                         }
                         else
                         {
-                            dot_light = dot_productN(&polynormal, light_vec);
+                            dot_light = dot_productFF(shading_normal, light_vec);
                         }
 
                         if (dot_light < 0)
