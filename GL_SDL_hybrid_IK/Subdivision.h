@@ -1550,34 +1550,69 @@ void tune_In_Subdivision_Shape_transformed(object * O)
 
     int p;
     float Tx, Ty, Tz;
+    float dist, weight;
 
     edge * E0;
     polygon * P;
+    direction_Pack D;
 
     if (O->curve_count > 0)
     {
-        /* calculate edge pairs */
-
-        start = O->vertcount + O->edgecount;
+        /* calculate polygon flatness */
 
         for (p = 0; p < O->polycount; p ++)
         {
             P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-            idx = start + p;
-            V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
 
-            if (V->patch)
+            if (P->patch)
             {
-                P->vec[0] = 0.0;
-                P->vec[1] = 0.0;
-                P->vec[2] = 0.0;
+                P->center[0] = 0;
+                P->center[1] = 0;
+                P->center[2] = 0;
+                P->dist = 0;
+                P->vec[0] = 0;
+                P->vec[1] = 0;
+                P->vec[2] = 0;
             }
         }
 
+        for (e = 0; e < O->edgecount; e ++) // find edge polys and center verts
+        {
+            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+            if (E->patch)
+            {
+                D = length_AB_(E->B.Tx, E->B.Ty, E->B.Tz, E->Mx, E->My, E->Mz); // edge lift
+
+                idx = E->polys[0];
+                P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                P0->center[0] += E->Mx;
+                P0->center[1] += E->My;
+                P0->center[2] += E->Mz;
+                P0->dist += D.distance;
+
+                if (E->polycount > 1)
+                {
+
+                    idx = E->polys[1];
+                    P1 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    P1->center[0] += E->Mx;
+                    P1->center[1] += E->My;
+                    P1->center[2] += E->Mz;
+                    P1->dist += D.distance;
+                }
+
+            }
+        }
+
+        /* calculate edge pairs */
+
         for (p = 0; p < O->polycount; p ++)
         {
             P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-            idx = start + p;
+            idx = O->vertcount + O->edgecount + p;
             V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
 
             if (V->patch)
@@ -1585,20 +1620,20 @@ void tune_In_Subdivision_Shape_transformed(object * O)
                 /* create paired edge weights */
                 if (P->edgecount % 2) // if uneven
                 {
-                    for (e = 0; e < P->edgecount; e ++)
-                    {
-                        /* find composite vector for each vertex edges */
-
-                        idx = P->edges[e];
-                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-
-                        idx = P->edges[(e + 1) % P->edgecount];
-                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                        P->vec[0] += (E0->vec[0] + E->vec[0]) * 0.5;
-                        P->vec[1] += (E0->vec[1] + E->vec[1]) * 0.5;
-                        P->vec[2] += (E0->vec[2] + E->vec[2]) * 0.5;
-                    }
+//                    for (e = 0; e < P->edgecount; e ++)
+//                    {
+//                        /* find composite vector for each vertex edges */
+//
+//                        idx = P->edges[e];
+//                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+//
+//                        idx = P->edges[(e + 1) % P->edgecount];
+//                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
+//
+//                        P->vec[0] += (E0->vec[0] + E->vec[0]) * 0.5;
+//                        P->vec[1] += (E0->vec[1] + E->vec[1]) * 0.5;
+//                        P->vec[2] += (E0->vec[2] + E->vec[2]) * 0.5;
+//                    }
                 }
                 else // if even
                 {
@@ -1625,18 +1660,50 @@ void tune_In_Subdivision_Shape_transformed(object * O)
         for (p = 0; p < O->polycount; p ++)
         {
             P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-            idx = start + p;
+            idx = O->vertcount + O->edgecount + p;
             V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE]; // polys center;
 
             if (V->patch)
             {
-                V->Tx = P->B.Tx + P->vec[0];
-                V->Ty = P->B.Ty + P->vec[1];
-                V->Tz = P->B.Tz + P->vec[2];
+                if (Patch_Mode)
+                {
+                    Tx = P->center[0] / (float)V->edgecount;
+                    Ty = P->center[1] / (float)V->edgecount;
+                    Tz = P->center[2] / (float)V->edgecount;
 
-                V->vec[0] = P->vec[0];
-                V->vec[1] = P->vec[1];
-                V->vec[2] = P->vec[2];
+                    P->dist /= ((float)V->edgecount / 2.0);
+                    P->dist *= edge_divisor;
+
+                    if (P->dist == 0)
+                    {
+                        P->dist = min_dist;
+                    }
+
+                    D = length_AB_(P->B.Tx, P->B.Ty, P->B.Tz, Tx, Ty, Tz); // median lift
+
+                    weight = D.distance / P->dist; // lift
+
+                    if (P->edgecount % 2) // if uneven
+                    {
+                        dist = ((D.distance + P->dist) / 2.0) * weight;
+
+                        V->Tx = Tx + V->N.Tx * dist;
+                        V->Ty = Ty + V->N.Ty * dist;
+                        V->Tz = Tz + V->N.Tz * dist;
+                    }
+                    else
+                    {
+                        V->Tx = P->B.Tx + P->vec[0];
+                        V->Ty = P->B.Ty + P->vec[1];
+                        V->Tz = P->B.Tz + P->vec[2];
+                    }
+                }
+                else
+                {
+                    V->Tx = P->B.Tx;
+                    V->Ty = P->B.Ty;
+                    V->Tz = P->B.Tz;
+                }
             }
         }
     }
