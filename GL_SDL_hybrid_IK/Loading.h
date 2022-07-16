@@ -1645,7 +1645,7 @@ int read_Segments_file(Segments_In * SEG_IN, char * fileName)
                 }
                 else
                 {
-                    S->weight = 0;
+                    S->weight = 0.0;
                     S->weight_init = 0.0;
                 }
             }

@@ -17,7 +17,6 @@ look for CUBECOMMENT
 
 /*CORRECT IT*/
 
-
 int ROTATION = 0;
 int MOVEMENT = 0;
 int SCALE = 0;
@@ -18563,13 +18562,9 @@ int main(int argc, char * args[])
 
                     if (O0 != NULL)
                     {
-                        generate_Inside_Edges_Smoothness(O, subdLevel);
-                        generate_Edges_Smoothness(O0);
                         if (O0->subdlevel > -1)
                         {
                             scan_for_Object_Patches(O0, subdLevel);
-                            assign_Edges_Smoothness_To_Subedges(O0);
-                            generate_Corner_Edges_Smoothness(O0);
                         }
                     }
                 }
@@ -18640,7 +18635,6 @@ int main(int argc, char * args[])
             update_Curves(subdLevel);
 
             scan_for_Objects_Patches(subdLevel);
-            assign_Edges_Smoothness_To_Objects(subdLevel);
 
 //            if (curvesIndex > 0)
 //            {
@@ -18999,13 +18993,9 @@ int main(int argc, char * args[])
                             if (r)
                             {
                                 ordered_Verts_Selection(O);
-                                generate_Inside_Edges_Smoothness(O, subdLevel);
-                                generate_Edges_Smoothness(O);
                                 if (O->subdlevel > -1)
                                 {
                                     scan_for_Object_Patches(O, O->subdlevel);
-                                    assign_Edges_Smoothness_To_Subedges(O);
-                                    generate_Corner_Edges_Smoothness(O);
                                 }
 
                                 curve * C = curves[curvesIndex - 1];

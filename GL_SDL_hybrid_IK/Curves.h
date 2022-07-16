@@ -1120,8 +1120,8 @@ int add_Curve_Segment_To_Verts(curve * C, vertex * V, object * O)
         S->E = NULL;
         S->index = segmentIndex;
         segments[segmentIndex ++] = S;
-        S->weight = 0.0;
-        S->weight_init = 0.0;
+        S->weight = 1.0;
+        S->weight_init = 1.0;
     }
 
     C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
@@ -1212,8 +1212,8 @@ int add_Curve_Segment(curve * C)
     S->E = NULL;
     S->index = segmentIndex;
     segments[segmentIndex ++] = S;
-    S->weight = 0.0;
-    S->weight_init = 0.0;
+    S->weight = 1.0;
+    S->weight_init = 1.0;
 
     C->cps = realloc(C->cps, (C->cps_count + 1) * sizeof(cp*));
 
@@ -1344,8 +1344,8 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
         S->E = NULL;
         S->index = segmentIndex;
         segments[segmentIndex ++] = S;
-        S->weight = 0.0;
-        S->weight_init = 0.0;
+        S->weight = 1.0;
+        S->weight_init = 1.0;
     }
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
@@ -1449,8 +1449,8 @@ int add_New_Curve(float pos[3], int open)
     S->E = NULL;
     S->index = segmentIndex;
     segments[segmentIndex ++] = S;
-    S->weight = 0.0;
-    S->weight_init = 0.0;
+    S->weight = 1.0;
+    S->weight_init = 1.0;
 
     C->segments = realloc(C->segments, (C->segment_count + 1) * sizeof(curve_segment*));
     if (C->segments == NULL) return 0;
@@ -1943,8 +1943,8 @@ void clear_Selected_Segments_Weights()
 
             if (S->selected)
             {
-                S->weight = 0;
-                S->weight_init = 0;
+                S->weight = 0.0;
+                S->weight_init = 0.0;
                 assign_Segment_Weight_Recursive(S);
             }
         }
@@ -1964,8 +1964,8 @@ void clear_Selected_Curves_Weights()
         for (s = 0; s < C->segment_count; s ++)
         {
             S = C->segments[s];
-            S->weight = 0;
-            S->weight_init = 0;
+            S->weight = 0.0;
+            S->weight_init = 0.0;
             assign_Segment_Weight_Recursive(S);
         }
     }
@@ -2463,8 +2463,8 @@ int create_Object_Curve(object * O)
                 S->selected = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
-                S->weight = 0.0;
-                S->weight_init = 0.0;
+                S->weight = 1.0;
+                S->weight_init = 1.0;
 
                 E->S = S;
                 S->E = E;
@@ -2505,8 +2505,8 @@ int create_Object_Curve(object * O)
                         S->selected = 0;
                         S->index = segmentIndex;
                         segments[segmentIndex ++] = S;
-                        S->weight = 0.0;
-                        S->weight_init = 0.0;
+                        S->weight = 1.0;
+                        S->weight_init = 1.0;
 
                         E->S = S;
                         S->E = E;
@@ -2537,8 +2537,8 @@ int create_Object_Curve(object * O)
                 S->selected = 0;
                 S->index = segmentIndex;
                 segments[segmentIndex ++] = S;
-                S->weight = 0.0;
-                S->weight_init = 0.0;
+                S->weight = 1.0;
+                S->weight_init = 1.0;
 
                 r = add_Curve_Segment_To_Verts(C, V, O);
                 if (r)
@@ -3282,274 +3282,6 @@ void convert_Curves_To_Cp_Selection()
         if (C->selected)
         {
             convert_To_Cp_Selection(C);
-        }
-    }
-}
-
-void generate_Inside_Edges_Smoothness(object * O, int level)
-{
-    int l, e;//, v, idx, start;
-
-//    vertex * V;
-    edge * E;//, * E0;
-
-    if (level > O->subdlevel)
-    {
-        level = O->subdlevel;
-    }
-
-    for (l = 0; l <= level; l ++)
-    {
-
-        for (e = 0; e < O->edgecount_[l]; e ++)
-        {
-            E = &O->edges_[l][e / ARRAYSIZE][e % ARRAYSIZE];
-
-            E->smooth = 2;
-        }
-        /*
-        if (l == 0)
-        {
-            start = O->vertcount + O->edgecount;
-        }
-        else
-        {
-            start = O->vertcount_[l - 1] + O->edgecount_[l - 1];
-        }
-
-        for (v = start; v < O->vertcount_[l]; v ++)
-        {
-            V = &O->verts_[l][v / ARRAYSIZE][v % ARRAYSIZE];
-
-            if (V->patch)
-            {
-                for (e = 0; e < V->edgecount; e ++)
-                {
-                    idx = V->edges[e];
-
-                    E = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                    E->smooth = 2;
-
-                    E0 = E->perimeter;
-
-                    if (E0 != NULL && E0->S == NULL)
-                        E0->smooth = 2;
-                }
-            }
-        }
-        */
-    }
-}
-
-void generate_Edges_Smoothness(object * O)
-{
-    int e, e0, e1, v, idx, start, condition;
-
-    vertex * V;
-    edge * E,  * E0, * E1;
-    curve_segment * S, * S0;
-
-    for (e = 0; e < O->edgecount; e ++)
-    {
-        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-
-        E->smooth = 0;
-    }
-
-    for (v = 0; v < O->vertcount; v ++)
-    {
-        V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-
-        if (V->control_point != NULL)
-        {
-            for (e = 0; e < V->edgecount; e ++)
-            {
-                idx = V->edges[e];
-
-                E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                condition = 0;
-
-                if (E->S != NULL)
-                {
-                    S = E->S;
-
-                    start = e + 1;
-
-                    for (e0 = start; e0 < V->edgecount; e0 ++)
-                    {
-                        idx = V->edges[e0];
-
-                        E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                        if (E0->S != NULL)
-                        {
-                            S0 = E0->S;
-
-                            if (S0->Curve == S->Curve)
-                            {
-                                condition = 1;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (condition)
-                {
-                    for (e1 = 0; e1 < V->edgecount; e1 ++)
-                    {
-                        idx = V->edges[e1];
-
-                        E1 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                        if (E1 == E || E1 == E0)
-                        {
-                            continue;
-                        }
-
-                        if (E1->S != NULL)
-                        {
-                            E1->smooth = 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void generate_Corner_Edges_Smoothness(object * O)
-{
-    int e, e0, v, idx, start;
-    int l, smooth;
-
-    vertex * V, * V0, * V1;
-    edge * E, * E0;
-
-    for (l = 0; l <= O->subdlevel; l ++)
-    {
-        if (l == 0)
-        {
-            start = O->vertcount + O->edgecount; // patch vertex start
-        }
-        else
-        {
-            start = O->vertcount_[l - 1] + O->edgecount_[l - 1];
-        }
-
-        for (v = start; v < O->vertcount_[l]; v ++)
-        {
-            V = &O->verts_[l][v / ARRAYSIZE][v % ARRAYSIZE];
-
-            if (V->patch) // use after patches scan
-            {
-                for (e = 0; e < V->edgecount; e ++)
-                {
-                    idx = V->edges[e];
-
-                    E = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                    idx = E->verts[1]; // patch verts take place 0
-
-                    V0 = &O->verts_[l][idx / ARRAYSIZE][idx % ARRAYSIZE]; // vertex in perimeter
-
-                    if (V0->vert != NULL)
-                    {
-                        V1 = V0->vert; // perimeter vertex is corner vertex in next level
-
-                        // look for smooth edges
-
-                        smooth = 2;
-
-                        for (e0 = 0; e0 < V1->edgecount; e0 ++)
-                        {
-                            idx = V1->edges[e0];
-
-                            E0 = &O->edges_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                            if (E0->smooth != 2)
-                            {
-                                smooth = E0->smooth;
-                                break;
-                            }
-                        }
-
-                        if (smooth != 2)
-                        {
-                            //printf("%d ", smooth);
-
-                            for (e0 = 0; e0 < V1->edgecount; e0 ++)
-                            {
-                                idx = V1->edges[e0];
-
-                                E0 = &O->edges_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                                E0->smooth = smooth;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void assign_Edge_Smooth_Recursive(object * O, edge * E, int l)
-{
-    int idx;
-    edge * E0, * E1;
-
-    idx = E->edges[0];
-    E0 = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    E0->smooth = E->smooth;
-    if (E0->subdivs)
-    {
-        assign_Edge_Smooth_Recursive(O, E0, l + 1);
-    }
-
-    idx = E->edges[1];
-    E1 = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    E1->smooth = E->smooth;
-    if (E1->subdivs)
-    {
-        assign_Edge_Smooth_Recursive(O, E1, l + 1);
-    }
-}
-
-void assign_Edges_Smoothness_To_Subedges(object * O)
-{
-    int e;
-    edge * E;
-
-    for (e = 0; e < O->edgecount; e ++)
-    {
-        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-
-        if (E->S != NULL && E->subdivs)
-        {
-            assign_Edge_Smooth_Recursive(O, E, 0);
-        }
-    }
-}
-
-void assign_Edges_Smoothness_To_Objects(int level)
-{
-    int o;
-
-    object * O;
-
-    for (o = 0; o < objectIndex; o ++)
-    {
-        O = objects[o];
-
-        if (O->curve_count > 0)
-        {
-            generate_Inside_Edges_Smoothness(O, level);
-            generate_Edges_Smoothness(O);
-            assign_Edges_Smoothness_To_Subedges(O);
-            generate_Corner_Edges_Smoothness(O);
         }
     }
 }

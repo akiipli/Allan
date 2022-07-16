@@ -12,8 +12,7 @@ Copyright <2018> <Allan Kiipli>
 #define OBJECTS 1000
 #define OBJECTARRAY 10000 // these enable big files in
 #define ARRAYSIZE 10000   //
-#define SUBD 4
-#define SUBD_SHAPE 3
+#define SUBD 5
 
 #define PIXEL_VOLUME 100
 
@@ -149,7 +148,7 @@ struct vertex
     cp * control_point;
     object * O;
     int patch;
-
+    float vec[3];
     float aim_vec[3];
 };
 
@@ -230,11 +229,10 @@ struct edge
     edge * perimeter; // inside edge has index for perimeter one level above
     float A[3]; // begin
     float C[3]; // end
-    float height;
+
     int patch;
     object * O;
     float vec[3];
-    int smooth; // 0 is sharp, 1 is perimeter smooth edge, 2 is inside edge
 };
 
 void print_edge(edge * E)
@@ -316,9 +314,6 @@ typedef struct
     box_3d B;
     box_2d B2;
 
-    float center[3]; // for curve based subdivision, normally it equals mean center
-    float dist;
-    float weight;
     int patch;
     float vec[3];
 }
@@ -370,8 +365,6 @@ typedef struct
     box_3d B;
     box_2d B2;
 
-    float center[3]; // for curve based subdivision, normally it equals mean center
-    float dist;
     int patch;
     float vec[3];
 }

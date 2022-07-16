@@ -5593,7 +5593,7 @@ void render_Corner_Edge_Smooth_Labels(int width, int height, object * O, int l)
                                 if (result && label_count < LABELS)
                                 {
                                     L = labels[label_count ++];
-                                    sprintf(L->text, "%d", E0->smooth);
+//                                    sprintf(L->text, "%d", E0->smooth);
                                     L->x = coords[0] - 100;
                                     L->y = height - coords[1] + 20;
                                 }
@@ -5644,7 +5644,7 @@ void render_Corner_Edge_Smooth_Labels(int width, int height, object * O, int l)
                                 if (result && label_count < LABELS)
                                 {
                                     L = labels[label_count ++];
-                                    sprintf(L->text, "%d", E0->smooth);
+//                                    sprintf(L->text, "%d", E0->smooth);
                                     L->x = coords[0] - 100;
                                     L->y = height - coords[1] + 20;
                                 }
@@ -5705,7 +5705,7 @@ void render_Edge_Smooth_Labels(int width, int height, object * O, int l)
                         if (result && label_count < LABELS)
                         {
                             L = labels[label_count ++];
-                            sprintf(L->text, "%d", E->perimeter->smooth);
+//                            sprintf(L->text, "%d", E->perimeter->smooth);
                             L->x = coords[0] - 100;
                             L->y = height - coords[1] + 20;
                         }
@@ -5742,7 +5742,7 @@ void render_Edge_Smooth_Labels(int width, int height, object * O, int l)
                         if (result && label_count < LABELS)
                         {
                             L = labels[label_count ++];
-                            sprintf(L->text, "%d", E->perimeter->smooth);
+//                            sprintf(L->text, "%d", E->perimeter->smooth);
                             L->x = coords[0] - 100;
                             L->y = height - coords[1] + 20;
                         }
