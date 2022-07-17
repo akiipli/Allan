@@ -18,7 +18,7 @@ Copyright <2018> <Allan Kiipli>
 // bounding boxes and coordinates. This for 3d tuning only. UVs stay undeformed.
 // Cage is deformed and vertexes update transformed coordinates.
 
-int curve_subdiv = 4;
+int curve_subdiv = 2;
 float edge_divisor = 1.0;
 int Patch_Mode = 1;
 
