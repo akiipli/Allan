@@ -367,8 +367,6 @@ typedef struct
 
     int patch;
     float vec[3];
-    float center[3];
-    float dist;
 }
 polygon;
 
