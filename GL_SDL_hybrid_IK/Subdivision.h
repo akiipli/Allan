@@ -906,7 +906,7 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
             E->My = My;
             E->Mz = Mz;
         }
-        else if (Patch_Mode && E->patch && L < curve_subdiv)
+        else if (Patch_Mode && E->patch && L < curve_subdiv && e >= (O->edgecount_[L1] - O->quadcount_[L1]))
         {
             /* find V0 and V1 crossing */
 
