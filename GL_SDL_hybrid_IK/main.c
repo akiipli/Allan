@@ -11425,6 +11425,8 @@ void set_Bind_Mode()
 
         update_Deformer_Objects_Curves_To_Original_Coordinates();
 
+        update_Curves(subdLevel);
+
         if (Curve_Mode)
         {
             Curve_Mode = 0;
