@@ -78,6 +78,30 @@ struct deformer
     pose * P;
 };
 
+void insert_Deformer_keyframe(deformer * D, int frame)
+{
+    transformer * T;
+    int t;
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        T = D->Transformers[t];
+        insert_keyframe(T, frame, 1, D->Delta);
+    }
+}
+
+void delete_Deformer_keyframe(deformer * D, int frame)
+{
+    transformer * T;
+    int t;
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        T = D->Transformers[t];
+        delete_keyframe(T, frame);
+    }
+}
+
 void free_Deformer(deformer * D)
 {
     free(D->Name);

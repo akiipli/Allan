@@ -22,6 +22,11 @@ int MOVEMENT = 0;
 int SCALE = 0;
 int RESET = 0;
 
+int frame, f, result;
+int currentFrame = 0;
+int frames[10] = {0, 20, 40, 60, 80, 100, 120, 140, 160, 180};
+int frames_Count = 10;
+
 #define CUBEINDEX 7
 
 #define DEBUG_WITHOUT_IL 0 //  change this to 1
@@ -53,6 +58,7 @@ int RESET = 0;
 #define SCREEN_HEIGHT 400
 #define SCREEN_BPP 32
 
+#include "Timeline.h"
 #include "Transformer.h"
 #include "Object.h"
 #include "Curves.h"
@@ -6574,7 +6580,7 @@ void update_Selections_List(int update, int blit)
     glDrawBuffer(GL_BACK);
 }
 
-void apply_Pose_position_Play(deformer * D, pose * P, float Delta[3])
+void apply_Pose_position_Play(deformer * D, float Delta[3])
 {
     if (!BIND_POSE)
     {
@@ -6620,7 +6626,7 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
         paste_Pose_position(D, P);
 
         if (!linear_pose)
-            apply_Pose_position_Play(D, P, Delta);
+            apply_Pose_position_Play(D, Delta);
 
         //paste_Pose_rotation(D, P);
 
@@ -6929,6 +6935,324 @@ void update_Deformed_View(deformer * D, int update)
             }
         }
     }
+}
+
+void init_Timeline_Segments(deformer * D)
+{
+    timeline * Tm;
+    transformer * T;
+    int t;
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        T = D->Transformers[t];
+
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+            Tm->current_Segment = 0;
+        }
+    }
+}
+
+void deformer_Keyframe_Player()
+{
+    printf("deformer Keyframe Player\n");
+
+    timeline * Tm;
+
+    int t, u, o, f, d;
+
+//    pose * P;
+    object * O, * O0;
+    deformer * D;
+    deformer * D0;
+//    transformer * T;
+
+    ROTATED_POSE = 1;
+
+    int deformerSelector = currentDeformer_Node;
+    D0 = deformers[deformerSelector];
+
+    float rotation = 0.03;
+    float movement = 0.02;
+
+    float rot[3];
+    float delta[3];
+    memcpy(rot, (float[3]){0, 0, 0}, sizeof(float[3]));
+    memcpy(delta, (float[3]){0, 0, 0}, sizeof(float[3]));
+
+    Update_Objects_Count = 0;
+
+    int condition;
+
+    DRAW_UI = 1;
+
+    //ELEMENT_ARRAYS = 1;
+    init_Hint();
+
+    if (subdLevel > -1)
+    {
+        load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
+    }
+    else
+    {
+        load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+    }
+
+    UPDATE_COLORS = 1;
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    UPDATE_COLORS = 0;
+
+    DRAW_UI = 0;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+
+        D->P = init_Deformer_P(D);
+
+        init_Timeline_Segments(D);
+
+        for (o = 0; o < D->Objects_Count; o ++)
+        {
+            O = D->Objects[o];
+            condition = 1;
+            for (u = 0; u < Update_Objects_Count; u ++)
+            {
+                if (Update_Objects[u] == O)
+                {
+                    condition = 0;
+                    break;
+                }
+            }
+            if (condition)
+            {
+                Update_Objects[Update_Objects_Count ++] = O;
+            }
+        }
+        Transformer_Objects_Count = 0;
+        for (t = 0; t < D->Transformers_Count; t ++)
+        {
+            if (D->Transformers[t]->Object != NULL)
+            {
+                Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
+            }
+        }
+    }
+
+    int Preak = 0;
+    int theme = 0;
+    int frame = 0;
+    int Time_frames = 200; // keyframe may not exceed it
+
+    for (f = 0; f >= 0; f ++)
+    {
+        frame = f % Time_frames;
+
+        if (Preak)
+        {
+            break;
+        }
+
+        if (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_VIDEORESIZE)
+            {
+                DRAW_UI = 1;
+                update_Resize_Event();
+                poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+                DRAW_UI = 0;
+            }
+            else if (event.type == SDL_KEYUP)
+            {
+                if (event.key.keysym.sym == SDLK_ESCAPE)
+                {
+                    Preak = 1;
+                }
+            }
+            else if (event.type == SDL_KEYDOWN)
+            {
+                mod = event.key.keysym.mod;
+                if (event.key.keysym.sym == SDLK_e)
+                {
+                    export_OBJ_Format();
+                }
+                else if (event.key.keysym.sym == SDLK_f)
+                {
+                    TURNTABLE = !TURNTABLE;
+                }
+                else if (event.key.keysym.sym == SDLK_l)
+                {
+                    LIGHTSHOW = !LIGHTSHOW;
+                }
+                else if (event.key.keysym.sym == SDLK_TAB)
+                {
+                    if (mod & KMOD_SHIFT)
+                    {
+                        deformerSelector --;
+                    }
+                    else
+                    {
+                        deformerSelector ++;
+                    }
+                    deformerSelector = abs(deformerSelector % deformerIndex);
+                    D0 = deformers[deformerSelector];
+                }
+                else if (event.key.keysym.sym == SDLK_UP)
+                {
+                    if (mod & KMOD_SHIFT)
+                    {
+                        if (delta[2] < 0)
+                            delta[2] = 0;
+                        else
+                            delta[2] = -movement;
+                    }
+                    else
+                    {
+                        if (rot[0] > 0)
+                            rot[0] = 0;
+                        else
+                            rot[0] = rotation;
+                    }
+                }
+                else if (event.key.keysym.sym == SDLK_DOWN)
+                {
+                    if (mod & KMOD_SHIFT)
+                    {
+                        if (delta[2] > 0)
+                            delta[2] = 0;
+                        else
+                            delta[2] = movement;
+                    }
+                    else
+                    {
+                        if (rot[0] < 0)
+                            rot[0] = 0;
+                        else
+                            rot[0] = -rotation;
+                    }
+                }
+                else if (event.key.keysym.sym == SDLK_LEFT)
+                {
+                    if (mod & KMOD_SHIFT)
+                    {
+                        if (delta[0] < 0)
+                            delta[0] = 0;
+                        else
+                            delta[0] = -movement;
+                    }
+                    else
+                    {
+                        if (rot[1] > 0)
+                            rot[1] = 0;
+                        else
+                            rot[1] = rotation;
+                    }
+                }
+                else if (event.key.keysym.sym == SDLK_RIGHT)
+                {
+                    if (mod & KMOD_SHIFT)
+                    {
+                        if (delta[0] > 0)
+                            delta[0] = 0;
+                        else
+                            delta[0] = movement;
+                    }
+                    else
+                    {
+                        if (rot[1] < 0)
+                            rot[1] = 0;
+                        else
+                            rot[1] = -rotation;
+                    }
+                }
+            }
+        }
+
+        D0->Delta[0] += delta[0];
+        D0->Delta[2] += delta[2];
+
+        D0->rot[0] = rot[0]; /* since we are not submitting rotVec_ matrix */
+        D0->rot[1] = rot[1]; /* else it should increment */
+
+        rotate_vertex_groups_D_Init();
+        for (d = 0; d < deformerIndex; d ++)
+        {
+            D = deformers[d];
+
+            if (D->rot[0] != 0)
+                rotate_axis(D->rot[0], D->rotVec[1], D->rotVec[2], D->rotVec[1], D->rotVec[2]);
+            if (D->rot[1] != 0)
+                rotate_axis(D->rot[1], D->rotVec[2], D->rotVec[0], D->rotVec[2], D->rotVec[0]);
+
+            if (D->Transformers_Count > 0)
+            {
+                T = D->Transformers[0];
+
+                if (T->Timeline != NULL)
+                {
+                    Tm = T->Timeline;
+                    if (Tm->key_frames > 0 && f < Tm->Frames[Tm->key_frames - 1])
+                    {
+                        if (D->play < 0)
+                        {
+                            create_Inbetween_Frame_Pose(D, frame);
+                        }
+                    }
+                }
+
+                apply_Pose_position_(D, D->P, D->Delta);
+
+                update_Deformer_Objects_Curves_Coordinates(D);
+                update_Deformer_object_Curves(D, subdLevel);
+                update_Deformer_object_Curves(D, subdLevel);
+            }
+        }
+
+        update_rotate_bounding_box();
+
+        if (subdLevel > -1)
+        {
+            for (o = 0; o < Update_Objects_Count; o ++)
+            {
+                O = Update_Objects[o];
+                if (O->deforms)
+                {
+                    tune_subdivide_post_transformed(O, subdLevel);
+                }
+            }
+        }
+
+        for (o = 0; o < Transformer_Objects_Count; o++)
+        {
+            O0 = Transformer_Objects[o];
+
+            rotate_verts(O0, *O0->T);
+            if (O->deforms)
+            {
+                tune_subdivide_post_transformed(O0, subdLevel);
+            }
+        }
+        if (TURNTABLE && Camera == &Camera_Persp)
+        {
+            Camera->T->rot[1] += 0.01;
+            rotate_Camera(Camera, CamDist);
+            update_camera(Camera, CamDist);
+        }
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+        if (SHADERS && LIGHTSHOW)
+        {
+            update_Light(Light_Themes[theme % Themes]);
+            theme ++;
+            init_lights();
+        }
+    }
+
+    DRAW_UI = 1;
 }
 
 void deformer_Player()
@@ -10090,6 +10414,25 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
         deformer * D = P->D;
         set_Deformer_current_pose(P);
         apply_Pose(D, P, 1);
+    }
+    else if (letter == 'i' && (mod & KMOD_CTRL))
+    {
+        if (deformerIndex > 0 && currentDeformer >= 0 && currentFrame < frames_Count)
+        {
+            frame = frames[currentFrame ++];
+
+            D = deformers[currentDeformer];
+            insert_Deformer_keyframe(D, frame);
+            if (D->Transformers_Count > 0)
+            {
+                T = D->Transformers[0];
+                printf("\n ,%d, ", frame);
+                for (f = 0; f < T->Timeline->key_frames; f ++)
+                {
+                    printf("%d ", T->Timeline->Frames[f]);
+                }
+            }
+        }
     }
 }
 
@@ -19455,10 +19798,19 @@ int main(int argc, char * args[])
             }
             else if (mod & KMOD_ALT)
             {
+                altDown = 0;
+                add_selection_mode = 1;
+                SDL_SetCursor(Arrow);
+                if (!BIND_POSE && deformerIndex > 0)
+                {
+                    deformer_Keyframe_Player();
+                }
+                /*
                 if (DRAW_LOCATORS)
                 {
                     select_Deformer();
                 }
+                */
             }
             else
             {
@@ -19515,6 +19867,54 @@ int main(int argc, char * args[])
             {
                 open_ImagesDir();
             }
+
+            else if (mod & KMOD_CTRL)
+            {
+                /*
+                if (deformerIndex > 0 && currentDeformer >= 0)
+                {
+                    frame = frames[currentFrame ++];
+                    if (currentFrame >= frames_Count)
+                        currentFrame = 0;
+                    D = deformers[currentDeformer];
+                    insert_Deformer_keyframe(D, frame);
+                    if (D->Transformers_Count > 0)
+                    {
+                        T = D->Transformers[0];
+                        printf("\n ,%d, ", frame);
+                        for (f = 0; f < T->Timeline->key_frames; f ++)
+                        {
+                            printf("%d ", T->Timeline->Frames[f]);
+                        }
+                    }
+                }
+                */
+            }
+            else if (mod & KMOD_ALT)
+            {
+                if (deformerIndex > 0 && currentDeformer >= 0)
+                {
+                    currentFrame --;
+                    if (currentFrame < 0)
+                    {
+                        currentFrame = 0;
+                    }
+                    frame = frames[currentFrame];
+                    D = deformers[currentDeformer];
+                    delete_Deformer_keyframe(D, frame);
+
+                    if (D->Transformers_Count > 0)
+                    {
+                        T = D->Transformers[0];
+                        printf("\n ,%d, ", frame);
+                        for (f = 0; f < T->Timeline->key_frames; f ++)
+                        {
+                            printf("%d ", T->Timeline->Frames[f]);
+                        }
+                    }
+                }
+            }
+
             else
             {
                 open_Img();

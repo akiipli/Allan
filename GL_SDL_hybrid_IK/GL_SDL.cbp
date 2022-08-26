@@ -61,6 +61,7 @@
 		<Unit filename="Shaders.h" />
 		<Unit filename="Subcharacters.h" />
 		<Unit filename="Subdivision.h" />
+		<Unit filename="Timeline.h" />
 		<Unit filename="Transformer.h" />
 		<Unit filename="Transforms.h" />
 		<Unit filename="UserInterface.h" />
@@ -71,9 +72,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
 			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>

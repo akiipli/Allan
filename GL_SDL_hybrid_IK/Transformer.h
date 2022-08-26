@@ -231,6 +231,7 @@ struct transformer
     float LocatorSize;
     int pin; //x 1, y 2, z 3
     constraint * Constraint;
+    timeline * Timeline;
 };
 
 transformer * child_collection[TRANSFORMERS];
@@ -320,6 +321,73 @@ void remove_Child(transformer * T, transformer * parent, transformer * newparent
     }
 }
 
+int init_timeline(transformer * T)
+{
+    timeline * Tm;
+
+    Tm = malloc(sizeof(timeline));
+    if (Tm != NULL)
+    {
+        Tm->key_frames = 0;
+        Tm->Frames = NULL;
+        Tm->Values = NULL;
+        T->Timeline = Tm;
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int delete_keyframe(transformer * T, int frame)
+{
+    timeline * Tm;
+    int f, index, condition;
+
+    if (T->Timeline != NULL)
+    {
+        Tm = T->Timeline;
+        condition = 0;
+
+        for (f = 0; f < Tm->key_frames; f ++)
+        {
+            if (Tm->Frames[f] == frame)
+            {
+                index = f;
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            Tm->key_frames --;
+            for (f = index; f < Tm->key_frames; f ++)
+            {
+                Tm->Frames[f] = Tm->Frames[f + 1];
+//                memcpy(Tm->Values[f].scl, Tm->Values[f + 1].scl, sizeof(float[3]));
+//                memcpy(Tm->Values[f].rot, Tm->Values[f + 1].rot, sizeof(float[3]));
+//                memcpy(Tm->Values[f].pos, Tm->Values[f + 1].pos, sizeof(float[3]));
+                memcpy(Tm->Values[f].rotVec_, Tm->Values[f + 1].rotVec_, sizeof(float[3][3]));
+                memcpy(Tm->Values[f].scl_vec, Tm->Values[f + 1].scl_vec, sizeof(float[3]));
+            }
+            if (f - 1 >= 0)
+                return Tm->Frames[f - 1];
+            else
+                return -1;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 void init_transformer(transformer * T, transformer * parent, char * Name)
 {
     if (transformerIndex < TRANSFORMERS)
@@ -364,6 +432,7 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         T->LocatorSize = LocatorSize;
         T->pin = 0;
         T->Constraint = NULL;
+        T->Timeline = NULL;
     }
 }
 
@@ -689,6 +758,189 @@ void rotate_Vertex_I(float rotVec_I[3][3], float x, float y, float z, direction 
     D->x = rotVec_I[0][0] * x + rotVec_I[1][0] * y + rotVec_I[2][0] * z;
     D->y = rotVec_I[0][1] * x + rotVec_I[1][1] * y + rotVec_I[2][1] * z;
     D->z = rotVec_I[0][2] * x + rotVec_I[1][2] * y + rotVec_I[2][2] * z;
+}
+
+int insert_keyframe(transformer * T, int frame, int relative_pos, float Delta[3])
+{
+    if (T == NULL)
+        return 0;
+
+    timeline * Tm;
+    int result, f, index, condition;
+
+//    float rotVec_I[3][3];
+
+    if (T->Timeline == NULL)
+    {
+        result = init_timeline(T);
+
+        if (result)
+        {
+            Tm = T->Timeline;
+            Tm->Frames = malloc(sizeof(int));
+            if (Tm->Frames != NULL)
+            {
+                Tm->Values = malloc(sizeof(transformer_values));
+            }
+            else
+            {
+                return 0;
+            }
+            if (Tm->Values == NULL)
+            {
+                return 0;
+            }
+            else
+            {
+                Tm->key_frames = 1;
+                Tm->Frames[0] = frame;
+//                memcpy(Tm->Values[0].scl, T->scl, sizeof(float[3]));
+//                memcpy(Tm->Values[0].rot, T->rot, sizeof(float[3]));
+                if (relative_pos)
+                {
+                    Tm->Values[0].pos[0] = T->pos[0] - Delta[0];
+                    Tm->Values[0].pos[1] = T->pos[1] - Delta[1];
+                    Tm->Values[0].pos[2] = T->pos[2] - Delta[2];
+                }
+                else
+                {
+                   memcpy(Tm->Values[0].pos, T->pos, sizeof(float[3]));
+                }
+
+                memcpy(Tm->Values[0].scl_vec, T->scl_vec, sizeof(float[3]));
+                memcpy(Tm->Values[0].rotVec_, T->rotVec_, sizeof(float[3][3]));
+                /*
+                if (T->parent != NULL)
+                {
+                    invert_Rotation(T->parent, rotVec_I);
+                }
+                else
+                {
+                    invert_Rotation(T, rotVec_I);
+                }
+                rotate_matrix_I(Tm->Values[0].rotVec_, T->rotVec_, rotVec_I);
+                */
+                return 1;
+            }
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        Tm = T->Timeline;
+        index = 0;
+        condition = 0;
+        for (f = 0; f < Tm->key_frames; f ++)
+        {
+            if (Tm->Frames[f] == frame)
+            {
+                index = f;
+                break;
+            }
+            else if (Tm->Frames[f] > frame)
+            {
+                index = f;
+                condition = 1;
+                break;
+            }
+        }
+
+        if (Tm->Frames[Tm->key_frames - 1] < frame)
+        {
+            index = Tm->key_frames;
+            condition = 1;
+        }
+
+        if (condition)
+        {
+            Tm->key_frames ++;
+            Tm->Frames = realloc(Tm->Frames, Tm->key_frames * sizeof(int));
+            if (Tm->Frames != NULL)
+            {
+                Tm->Values = realloc(Tm->Values, Tm->key_frames * sizeof(transformer_values));
+            }
+            else
+            {
+                return 0;
+            }
+            if (Tm->Values == NULL)
+            {
+                return 0;
+            }
+            else
+            {
+                for (f = Tm->key_frames - 1; f > index; f --)
+                {
+                    Tm->Frames[f] = Tm->Frames[f - 1];
+//                    memcpy(Tm->Values[f].scl, Tm->Values[f - 1].scl, sizeof(float[3]));
+//                    memcpy(Tm->Values[f].rot, Tm->Values[f - 1].rot, sizeof(float[3]));
+                    memcpy(Tm->Values[f].pos, Tm->Values[f - 1].pos, sizeof(float[3]));
+                    memcpy(Tm->Values[f].scl_vec, Tm->Values[f - 1].scl_vec, sizeof(float[3]));
+                    memcpy(Tm->Values[f].rotVec_, Tm->Values[f - 1].rotVec_, sizeof(float[3][3]));
+                }
+                Tm->Frames[index] = frame;
+//                memcpy(Tm->Values[index].scl, T->scl, sizeof(float[3]));
+//                memcpy(Tm->Values[index].rot, T->rot, sizeof(float[3]));
+                if (relative_pos)
+                {
+                    Tm->Values[index].pos[0] = T->pos[0] - Delta[0];
+                    Tm->Values[index].pos[1] = T->pos[1] - Delta[1];
+                    Tm->Values[index].pos[2] = T->pos[2] - Delta[2];
+                }
+                else
+                {
+                    memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
+                }
+                memcpy(Tm->Values[index].scl_vec, T->scl_vec, sizeof(float[3]));
+                memcpy(Tm->Values[index].rotVec_, T->rotVec_, sizeof(float[3][3]));
+/*
+                if (T->parent != NULL)
+                {
+                    invert_Rotation(T->parent, rotVec_I);
+                }
+                else
+                {
+                    invert_Rotation(T, rotVec_I);
+                }
+                rotate_matrix_I(Tm->Values[index].rotVec_, T->rotVec_, rotVec_I);
+*/
+                return 1;
+            }
+        }
+        else
+        {
+            Tm->Frames[index] = frame;
+//            memcpy(Tm->Values[index].scl, T->scl, sizeof(float[3]));
+//            memcpy(Tm->Values[index].rot, T->rot, sizeof(float[3]));
+            if (relative_pos)
+            {
+                Tm->Values[index].pos[0] = T->pos[0] - Delta[0];
+                Tm->Values[index].pos[1] = T->pos[1] - Delta[1];
+                Tm->Values[index].pos[2] = T->pos[2] - Delta[2];
+            }
+            else
+            {
+                memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
+            }
+            memcpy(Tm->Values[index].scl_vec, T->scl_vec, sizeof(float[3]));
+            memcpy(Tm->Values[index].rotVec_, T->rotVec_, sizeof(float[3][3]));
+/*
+            if (T->parent != NULL)
+            {
+                invert_Rotation(T->parent, rotVec_I);
+            }
+            else
+            {
+                invert_Rotation(T, rotVec_I);
+            }
+            rotate_matrix_I(Tm->Values[index].rotVec_, T->rotVec_, rotVec_I);
+*/
+            return 1;
+        }
+    }
 }
 
 void rotate_axis(float angle, float axis1[3], float axis2[3], float result1[3], float result2[3])
