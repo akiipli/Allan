@@ -198,6 +198,11 @@ void free_Transformer(transformer * T)
     free(T->Name);
     free(T->childs);
     free(T->Selections);
+    if (T->Timeline != NULL)
+    {
+        free_Timeline(T->Timeline);
+        free(T->Timeline);
+    }
 }
 
 void free_transformers()

@@ -13,7 +13,7 @@ Copyright <2018> <Allan Kiipli>
 
 #define STRLEN 256
 
-#define SCENE_EXT_NUM 9
+#define SCENE_EXT_NUM 10
 
 #define SIDEBAR 100
 #define BOTTOM_LINE 20

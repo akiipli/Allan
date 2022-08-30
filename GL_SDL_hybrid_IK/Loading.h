@@ -77,6 +77,12 @@ Segments_In;
 
 typedef struct
 {
+    int keyframesIndex;
+}
+Keyframes_In;
+
+typedef struct
+{
     int t_index, obj_count, b_index, i_index;
 }
 hierarchys_pack;
@@ -1661,6 +1667,113 @@ int read_Segments_file(Segments_In * SEG_IN, char * fileName)
     return 1;
 }
 
+int read_Keyframes_file(Keyframes_In * KEYFR_IN, char * fileName, int t_index)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    int t, f;
+    unsigned t_address;
+
+    transformer * T;
+    timeline * Tm;
+
+    int k_index = 0;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Keyframes\n", buff) == 0)
+        {
+            for (t = transformerIndex - t_index; t < transformerIndex; t ++)
+            {
+                T = transformers[t];
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &t_address);
+
+                if (t_address != 0 && T->address == t_address)
+                {
+                    result = init_timeline(T);
+
+                    if (result == 0)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        Tm = T->Timeline;
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%d", &Tm->key_frames);
+
+                        Tm->Frames = malloc(Tm->key_frames * sizeof(int));
+                        if (Tm->Frames == NULL)
+                        {
+                            Tm->key_frames = 0;
+                            return 0;
+                        }
+                        else
+                        {
+                            Tm->Values = malloc(Tm->key_frames * sizeof(transformer_values));
+                            Tm->Acceleration = malloc(Tm->key_frames * sizeof(acceleration));
+                        }
+                        if (Tm->Values == NULL || Tm->Acceleration == NULL)
+                        {
+                            Tm->key_frames = 0;
+                            return 0;
+                        }
+                        else
+                        {
+                            for (f = 0; f < Tm->key_frames; f ++)
+                            {
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%d", &Tm->Frames[f]);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%f %f %f", &Tm->Values[f].scl[0], &Tm->Values[f].scl[1], &Tm->Values[f].scl[2]);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%f %f %f", &Tm->Values[f].rot[0], &Tm->Values[f].rot[1], &Tm->Values[f].rot[2]);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%f %f %f", &Tm->Values[f].pos[0], &Tm->Values[f].pos[1], &Tm->Values[f].pos[2]);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%f %f %f", &Tm->Values[f].scl_vec[0], &Tm->Values[f].scl_vec[1], &Tm->Values[f].scl_vec[2]);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%f %f %f %f %f %f %f %f %f",
+                                        &Tm->Values[f].rotVec_[0][0], &Tm->Values[f].rotVec_[0][1], &Tm->Values[f].rotVec_[0][2],
+                                        &Tm->Values[f].rotVec_[1][0], &Tm->Values[f].rotVec_[1][1], &Tm->Values[f].rotVec_[1][2],
+                                        &Tm->Values[f].rotVec_[2][0], &Tm->Values[f].rotVec_[2][1], &Tm->Values[f].rotVec_[2][2]);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%d", &Tm->Acceleration[f].segment_type);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%f", &Tm->Acceleration[f].a_exponent);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%f", &Tm->Acceleration[f].b_exponent);
+                            }
+                        }
+                    }
+                    k_index ++;
+                }
+            }
+        }
+        else
+        {
+            fclose(fp);
+            return 0;
+        }
+    }
+
+    KEYFR_IN->keyframesIndex = k_index;
+
+    fclose(fp);
+    return 1;
+}
+
 int read_Curves_file(Curves_In * CURV_IN, char * fileName)
 {
     FILE * fp;
@@ -3171,6 +3284,41 @@ void null_Loaded_Addresses(hierarchys_pack hP)
     {
         I = ikChains[i];
         I->address = 0;
+    }
+}
+
+void load_Keyframes(char * path, int loaded_transformers)
+{
+    char Path[STRLEN];
+    DIR * dir;
+    struct dirent * ent;
+
+    int result;
+
+    if ((dir = opendir(path)) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            Path[0] = '\0';
+            strcat(Path, path);
+            strcat(Path, "/");
+            strcat(Path, ent->d_name);
+            if (isFile(Path))
+            {
+                if (strcmp(ent->d_name, "Keyframes.txt") == 0)
+                {
+                    result = 0;
+                    printf("KEYFRAMES\n");
+                    Keyframes_In * KEYFRAMES_IN = calloc(1, sizeof(Keyframes_In));
+                    result = read_Keyframes_file(KEYFRAMES_IN, Path, loaded_transformers);
+                    if (result)
+                    {
+                        printf("%d\n", KEYFRAMES_IN->keyframesIndex);
+                    }
+                    free(KEYFRAMES_IN);
+                }
+            }
+        }
     }
 }
 

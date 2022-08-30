@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1010;
+int saving_version = 1011;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -38,6 +38,7 @@ void init_scene_extensions()
     sprintf(scene_extensions[6], "Subcharacters");
     sprintf(scene_extensions[7], "SubcharacterP");
     sprintf(scene_extensions[8], "Curves");
+    sprintf(scene_extensions[9], "Keyframes");
 
     sprintf(scene_files_dir, "%s", "c:/Trips Code/Scenes IK");
 
@@ -275,6 +276,92 @@ void save_version(char * scene_folder)
         fprintf(F, "\n");
         fclose(F);
     }
+}
+
+int save_Keyframes(char * keyframes_files_dir)
+{
+    char dirfile[STRLEN];
+
+    int t, f;
+
+    transformer * T;
+    timeline * Tm;
+
+    dirfile[0] = '\0';
+    strcat(dirfile, keyframes_files_dir);
+    strcat(dirfile, "/");
+
+    strcat(dirfile, "Keyframes");
+    strcat(dirfile, ".txt");
+
+    FILE * F;
+    F = fopen(dirfile, "w");
+    if (F == NULL) return 0;
+
+    fprintf(F, "Keyframes\n");
+
+    /*
+    typedef struct
+    {
+        float scl[3];
+        float rot[3];
+        float pos[3];
+        float scl_vec[3];
+        float rotVec_[3][3];
+    }
+    transformer_values;
+    typedef struct
+    {
+        int segment_type;
+        float a_exponent;
+        float b_exponent;
+    }
+    acceleration;
+    typedef struct
+    {
+        int key_frames;
+        int * Frames;
+        transformer_values * Values;
+        int current_Segment;
+        acceleration * Acceleration;
+    }
+    timeline;
+    */
+
+    for (t = CUBEINDEX; t < transformerIndex; t ++) /*CUBECOMMENT*/
+    {
+        T = transformers[t];
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+            fprintf(F, "%u\n", (unsigned)T);
+            fprintf(F, "%d\n", Tm->key_frames);
+
+            for (f = 0; f < Tm->key_frames; f ++)
+            {
+                fprintf(F, "%d\n", Tm->Frames[f]);
+                fprintf(F, "%f %f %f\n", Tm->Values[f].scl[0], Tm->Values[f].scl[1], Tm->Values[f].scl[2]);
+                fprintf(F, "%f %f %f\n", Tm->Values[f].rot[0], Tm->Values[f].rot[1], Tm->Values[f].rot[2]);
+                fprintf(F, "%f %f %f\n", Tm->Values[f].pos[0], Tm->Values[f].pos[1], Tm->Values[f].pos[2]);
+                fprintf(F, "%f %f %f\n", Tm->Values[f].scl_vec[0], Tm->Values[f].scl_vec[1], Tm->Values[f].scl_vec[2]);
+                fprintf(F, "%f %f %f %f %f %f %f %f %f\n",
+                        Tm->Values[f].rotVec_[0][0], Tm->Values[f].rotVec_[0][1], Tm->Values[f].rotVec_[0][2],
+                        Tm->Values[f].rotVec_[1][0], Tm->Values[f].rotVec_[1][1], Tm->Values[f].rotVec_[1][2],
+                        Tm->Values[f].rotVec_[2][0], Tm->Values[f].rotVec_[2][1], Tm->Values[f].rotVec_[2][2]);
+                fprintf(F, "%d\n", Tm->Acceleration[f].segment_type);
+                fprintf(F, "%f\n", Tm->Acceleration[f].a_exponent);
+                fprintf(F, "%f\n", Tm->Acceleration[f].b_exponent);
+            }
+        }
+        else
+        {
+            fprintf(F, "%u\n", 0);
+        }
+    }
+    fprintf(F, "\n");
+    fclose(F);
+
+    return 1;
 }
 
 int save_Curves(char * curves_files_dir)

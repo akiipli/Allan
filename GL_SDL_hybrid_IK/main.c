@@ -6960,6 +6960,7 @@ void deformer_Keyframe_Player()
     printf("deformer Keyframe Player\n");
 
     timeline * Tm;
+    transformer * T;
 
     int t, u, o, f, d;
 
@@ -7014,31 +7015,39 @@ void deformer_Keyframe_Player()
 
         D->P = init_Deformer_P(D);
 
-        init_Timeline_Segments(D);
+        if (D->Transformers_Count > 0)
+        {
+            T = D->Transformers[0];
 
-        for (o = 0; o < D->Objects_Count; o ++)
-        {
-            O = D->Objects[o];
-            condition = 1;
-            for (u = 0; u < Update_Objects_Count; u ++)
+            if (T->Timeline != NULL)
             {
-                if (Update_Objects[u] == O)
+                init_Timeline_Segments(D);
+
+                for (o = 0; o < D->Objects_Count; o ++)
                 {
-                    condition = 0;
-                    break;
+                    O = D->Objects[o];
+                    condition = 1;
+                    for (u = 0; u < Update_Objects_Count; u ++)
+                    {
+                        if (Update_Objects[u] == O)
+                        {
+                            condition = 0;
+                            break;
+                        }
+                    }
+                    if (condition)
+                    {
+                        Update_Objects[Update_Objects_Count ++] = O;
+                    }
                 }
-            }
-            if (condition)
-            {
-                Update_Objects[Update_Objects_Count ++] = O;
-            }
-        }
-        Transformer_Objects_Count = 0;
-        for (t = 0; t < D->Transformers_Count; t ++)
-        {
-            if (D->Transformers[t]->Object != NULL)
-            {
-                Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
+                Transformer_Objects_Count = 0;
+                for (t = 0; t < D->Transformers_Count; t ++)
+                {
+                    if (D->Transformers[t]->Object != NULL)
+                    {
+                        Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
+                    }
+                }
             }
         }
     }
@@ -7202,13 +7211,12 @@ void deformer_Keyframe_Player()
                             create_Inbetween_Frame_Pose(D, frame);
                         }
                     }
+                    apply_Pose_position_(D, D->P, D->Delta);
+
+                    update_Deformer_Objects_Curves_Coordinates(D);
+                    update_Deformer_object_Curves(D, subdLevel);
+                    update_Deformer_object_Curves(D, subdLevel);
                 }
-
-                apply_Pose_position_(D, D->P, D->Delta);
-
-                update_Deformer_Objects_Curves_Coordinates(D);
-                update_Deformer_object_Curves(D, subdLevel);
-                update_Deformer_object_Curves(D, subdLevel);
             }
         }
 
@@ -13726,6 +13734,11 @@ void save_load_Scene()
             strcat(Path, "Curves");
             save_Curves(Path);
 
+            Path[0] = '\0';
+            strcat(Path, scene_files_dir);
+            strcat(Path, "/");
+            strcat(Path, "Keyframes");
+            save_Keyframes(Path);
         }
 
         if (flip)
@@ -13848,6 +13861,15 @@ void save_load_Scene()
             }
 
             assign_Poses(pose_count, defr_count);
+
+            if (loading_version >= 1011)
+            {
+                Path[0] = '\0';
+                strcat(Path, scene_files_dir);
+                strcat(Path, "/");
+                strcat(Path, "Keyframes");
+                load_Keyframes(Path, hP.t_index);
+            }
 
             null_Loaded_Addresses(hP);
 
@@ -14936,6 +14958,7 @@ int main(int argc, char * args[])
     Button_scene_ext[6].func = &set_Button_scene_ext;
     Button_scene_ext[7].func = &set_Button_scene_ext;
     Button_scene_ext[8].func = &set_Button_scene_ext;
+    Button_scene_ext[9].func = &set_Button_scene_ext;
 
     Button_item[0].func = &set_Button_item;
     Button_item[1].func = &set_Button_item;

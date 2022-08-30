@@ -111,7 +111,32 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame)
                 if (frame11 > frame00)
                 {
                     b = (float)(f - frame00) / (float)(frame11 - frame00);
-                    a = 1.0 - b;
+                    if (Tm->Acceleration[frame0].segment_type == ACCELERATION_END)
+                    {
+                        //b *= b; // accelerated interpolation
+                        b = pow(b, Tm->Acceleration[frame0].b_exponent);
+                        a = 1.0 - b;
+                    }
+                    else if (Tm->Acceleration[frame0].segment_type == ACCELERATION_START)
+                    {
+                        a = 1.0 - b;
+                        //a *= a; // slowdown motion
+                        a = pow(a, Tm->Acceleration[frame0].a_exponent);
+                        b = 1.0 - a; // both active yields mid acceleration
+                    }
+                    else if (Tm->Acceleration[frame0].segment_type == ACCELERATION_MID)
+                    {
+                        //b *= b; // accelerated interpolation
+                        b = pow(b, Tm->Acceleration[frame0].b_exponent);
+                        a = 1.0 - b;
+                        //a *= a; // slowdown motion
+                        a = pow(a, Tm->Acceleration[frame0].a_exponent);
+                        b = 1.0 - a; // both active yields mid acceleration
+                    }
+                    else if (Tm->Acceleration[frame0].segment_type == ACCELERATION_NONE)
+                    {
+                        a = 1.0 - b;
+                    }
                 }
                 else
                 {

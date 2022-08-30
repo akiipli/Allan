@@ -331,6 +331,7 @@ int init_timeline(transformer * T)
         Tm->key_frames = 0;
         Tm->Frames = NULL;
         Tm->Values = NULL;
+        Tm->Acceleration = NULL;
         T->Timeline = Tm;
         return 1;
     }
@@ -366,11 +367,8 @@ int delete_keyframe(transformer * T, int frame)
             for (f = index; f < Tm->key_frames; f ++)
             {
                 Tm->Frames[f] = Tm->Frames[f + 1];
-//                memcpy(Tm->Values[f].scl, Tm->Values[f + 1].scl, sizeof(float[3]));
-//                memcpy(Tm->Values[f].rot, Tm->Values[f + 1].rot, sizeof(float[3]));
-//                memcpy(Tm->Values[f].pos, Tm->Values[f + 1].pos, sizeof(float[3]));
-                memcpy(Tm->Values[f].rotVec_, Tm->Values[f + 1].rotVec_, sizeof(float[3][3]));
-                memcpy(Tm->Values[f].scl_vec, Tm->Values[f + 1].scl_vec, sizeof(float[3]));
+                memcpy(&Tm->Acceleration[f], &Tm->Acceleration[f + 1], sizeof(acceleration));
+                memcpy(&Tm->Values[f], &Tm->Values[f + 1], sizeof(transformer_values));
             }
             if (f - 1 >= 0)
                 return Tm->Frames[f - 1];
@@ -781,21 +779,27 @@ int insert_keyframe(transformer * T, int frame, int relative_pos, float Delta[3]
             if (Tm->Frames != NULL)
             {
                 Tm->Values = malloc(sizeof(transformer_values));
+                Tm->Acceleration = malloc(sizeof(acceleration));
             }
             else
             {
+                Tm->key_frames = 0;
                 return 0;
             }
-            if (Tm->Values == NULL)
+            if (Tm->Values == NULL || Tm->Acceleration == NULL)
             {
+                Tm->key_frames = 0;
                 return 0;
             }
             else
             {
                 Tm->key_frames = 1;
                 Tm->Frames[0] = frame;
-//                memcpy(Tm->Values[0].scl, T->scl, sizeof(float[3]));
-//                memcpy(Tm->Values[0].rot, T->rot, sizeof(float[3]));
+                Tm->Acceleration[0].segment_type = ACCELERATION_DEFAULT;
+                Tm->Acceleration[0].a_exponent = ACCELERATION_DEFAULT_OUT;
+                Tm->Acceleration[0].b_exponent = ACCELERATION_DEFAULT_IN;
+                memcpy(Tm->Values[0].scl, T->scl, sizeof(float[3]));
+                memcpy(Tm->Values[0].rot, T->rot, sizeof(float[3]));
                 if (relative_pos)
                 {
                     Tm->Values[0].pos[0] = T->pos[0] - Delta[0];
@@ -861,13 +865,16 @@ int insert_keyframe(transformer * T, int frame, int relative_pos, float Delta[3]
             if (Tm->Frames != NULL)
             {
                 Tm->Values = realloc(Tm->Values, Tm->key_frames * sizeof(transformer_values));
+                Tm->Acceleration = realloc(Tm->Acceleration, Tm->key_frames * sizeof(acceleration));
             }
             else
             {
+                Tm->key_frames = 0;
                 return 0;
             }
-            if (Tm->Values == NULL)
+            if (Tm->Values == NULL || Tm->Acceleration == NULL)
             {
+                Tm->key_frames = 0;
                 return 0;
             }
             else
@@ -875,15 +882,15 @@ int insert_keyframe(transformer * T, int frame, int relative_pos, float Delta[3]
                 for (f = Tm->key_frames - 1; f > index; f --)
                 {
                     Tm->Frames[f] = Tm->Frames[f - 1];
-//                    memcpy(Tm->Values[f].scl, Tm->Values[f - 1].scl, sizeof(float[3]));
-//                    memcpy(Tm->Values[f].rot, Tm->Values[f - 1].rot, sizeof(float[3]));
-                    memcpy(Tm->Values[f].pos, Tm->Values[f - 1].pos, sizeof(float[3]));
-                    memcpy(Tm->Values[f].scl_vec, Tm->Values[f - 1].scl_vec, sizeof(float[3]));
-                    memcpy(Tm->Values[f].rotVec_, Tm->Values[f - 1].rotVec_, sizeof(float[3][3]));
+                    memcpy(&Tm->Acceleration[f], &Tm->Acceleration[f - 1], sizeof(acceleration));
+                    memcpy(&Tm->Values[f], &Tm->Values[f - 1], sizeof(transformer_values));
                 }
                 Tm->Frames[index] = frame;
-//                memcpy(Tm->Values[index].scl, T->scl, sizeof(float[3]));
-//                memcpy(Tm->Values[index].rot, T->rot, sizeof(float[3]));
+                Tm->Acceleration[index].segment_type = ACCELERATION_DEFAULT;
+                Tm->Acceleration[index].a_exponent = ACCELERATION_DEFAULT_OUT;
+                Tm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
+                memcpy(Tm->Values[index].scl, T->scl, sizeof(float[3]));
+                memcpy(Tm->Values[index].rot, T->rot, sizeof(float[3]));
                 if (relative_pos)
                 {
                     Tm->Values[index].pos[0] = T->pos[0] - Delta[0];
@@ -913,8 +920,11 @@ int insert_keyframe(transformer * T, int frame, int relative_pos, float Delta[3]
         else
         {
             Tm->Frames[index] = frame;
-//            memcpy(Tm->Values[index].scl, T->scl, sizeof(float[3]));
-//            memcpy(Tm->Values[index].rot, T->rot, sizeof(float[3]));
+            Tm->Acceleration[index].segment_type = ACCELERATION_DEFAULT;
+            Tm->Acceleration[index].a_exponent = ACCELERATION_DEFAULT_OUT;
+            Tm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
+            memcpy(Tm->Values[index].scl, T->scl, sizeof(float[3]));
+            memcpy(Tm->Values[index].rot, T->rot, sizeof(float[3]));
             if (relative_pos)
             {
                 Tm->Values[index].pos[0] = T->pos[0] - Delta[0];

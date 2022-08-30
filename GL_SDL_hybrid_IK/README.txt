@@ -3,6 +3,12 @@
 Author here is:
 Allan Kiipli
 
+3:14 PM 8/30/2022
+Timeline introduction. Timeline is integrated into transformer. Loading and saving for keyframes. Ctrl + I places
+preset keyframes for current Deformer in Poses tab. Close Poses tab and press Alt + D to play back once.
+Issues: placing keyframes with rotated deformer may yield unwanted results. Rotated deformer means that transformer 0 is
+rotated.
+
 12:32 PM 1/13/2022
 Rendering gone to pthreads. 8 threads speed up testing.
 
