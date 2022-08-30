@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+10:48 PM 8/30/2022
+Timeline UI. Alt + T to switch Timeline on. Lists Deformers keyframes based on 0th transformer. Inserting keyframes
+is possible with Poses tab open at current keyframe. This can be changed with clicking on Timeline. With Ctrl + I.
+Deleting keyframe without tab Alt + I.
+
 3:14 PM 8/30/2022
 Timeline introduction. Timeline is integrated into transformer. Loading and saving for keyframes. Ctrl + I places
 preset keyframes for current Deformer in Poses tab. Close Poses tab and press Alt + D to play back once.

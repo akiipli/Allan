@@ -24,8 +24,9 @@ int RESET = 0;
 
 int frame, f, result;
 int currentFrame = 0;
-int frames[10] = {0, 20, 40, 60, 80, 100, 120, 140, 160, 180};
-int frames_Count = 10;
+float a, b;
+int TimelineStart = 0;
+int TimelineEnd = 201;
 
 #define CUBEINDEX 7
 
@@ -504,6 +505,7 @@ void make_osd(object * O)
     p += sprintf(&osd_font[p], "locators\t%d\n", DRAW_LOCATORS);
     p += sprintf(&osd_font[p], "curves\t%d\n", curve_Draw);
     p += sprintf(&osd_font[p], "edges\t%d\n", edgedraw);
+    p += sprintf(&osd_font[p], "frame\t%d\n", currentFrame);
 
 }
 
@@ -2432,6 +2434,95 @@ direction set_Target(float m_offset_x, float m_offset_y, float hres, float vres,
     return D;
 }
 
+void Draw_Timeline()
+{
+    int w = screen_width;
+    int h = BUTTON_HEIGHT;
+
+    glScissor(SIDEBAR, BOTTOM_LINE, w, h);
+    glViewport(SIDEBAR, BOTTOM_LINE, w, h);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glClearColor(0.8, 0.5, 0.3, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glOrtho(0, w, h, 0, 1, -1);
+
+	GLfloat white[4] = {1, 1, 1, 1};
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+	glColor4fv(white);
+
+	//glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	/*draw frame*/
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(0, 0);
+	glVertex2f(0, h);
+	glVertex2f(w, h);
+	glVertex2f(w, 0);
+	glEnd();
+
+	glBegin(GL_LINES);
+
+	float tickw = (float)(screen_width) / (float)(TimelineEnd - TimelineStart);
+	int vline, f;
+
+	timeline * Tm;
+
+	if (deformerIndex > 0 && currentDeformer < deformerIndex)
+    {
+        D = deformers[currentDeformer];
+        if (D->Transformers_Count > 0)
+        {
+            T = D->Transformers[0];
+            if (T->Timeline != NULL)
+            {
+                Tm = T->Timeline;
+                glColor4fv(grayb);
+                for (f = 0; f < Tm->key_frames; f++)
+                {
+                    if (Tm->Frames[f] >= TimelineStart && Tm->Frames[f] < TimelineEnd)
+                    {
+                        vline = (int)((Tm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0));
+                        glBegin(GL_LINES);
+                        glVertex2f(vline, 0);
+                        glVertex2f(vline, h);
+                        glEnd();
+                    }
+                }
+            }
+        }
+    }
+
+	glColor4fv(white);
+
+	vline = (int)((currentFrame - TimelineStart) * tickw);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(vline, 0);
+	glVertex2f(vline, h);
+	glVertex2f(vline + tickw, h);
+	glVertex2f(vline + tickw, 0);
+	glEnd();
+
+	char label[STRLEN];
+
+	glColor4fv(black);
+	sprintf(label, "%d", currentFrame);
+	draw_text(label, vline - (tickw / 2.0), 10, 8, 0);
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+}
+
 void Draw_Rectangle()
 {
     glViewport(Drag_Rectangle.x, Drag_Rectangle.y, Drag_Rectangle.w, Drag_Rectangle.h);
@@ -2796,6 +2887,11 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
     if (!drag_rectangle && SHADERS && HINTS)
     {
         display_font(Hint, screen_width, screen_height, 0);
+    }
+
+    if (DRAW_TIMELINE)
+    {
+        Draw_Timeline();
     }
 
     if (Swap)
@@ -10425,9 +10521,9 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
     }
     else if (letter == 'i' && (mod & KMOD_CTRL))
     {
-        if (deformerIndex > 0 && currentDeformer >= 0 && currentFrame < frames_Count)
+        if (deformerIndex > 0 && currentDeformer >= 0)
         {
-            frame = frames[currentFrame ++];
+            frame = currentFrame;
 
             D = deformers[currentDeformer];
             insert_Deformer_keyframe(D, frame);
@@ -15830,6 +15926,14 @@ int main(int argc, char * args[])
                     else if (dialog_lock)
                     {
                         int index = mouse_y / BUTTON_HEIGHT;
+                        if (DRAW_TIMELINE && mouse_x > SIDEBAR && mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y > screen_height - BUTTON_HEIGHT)
+                        {
+                            b = (float)(mouse_x - SIDEBAR) / (float)screen_width;
+                            a = 1.0 - b;
+                            currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
+                            printf("Timeline %d\n", currentFrame);
+                            draw_Dialog();
+                        }
                         if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && index < LISTLENGTH && mouse_y < DIALOG_HEIGHT)
                         {
                             if (dialog_type == SAVES_DIALOG)
@@ -16559,7 +16663,7 @@ int main(int argc, char * args[])
 
                         /* Properties panel */
 
-                        else if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && mouse_y > DIALOG_HEIGHT && mouse_y < screen_height)
+                        else if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && mouse_y > DIALOG_HEIGHT && mouse_y < screen_height - (BUTTON_HEIGHT * DRAW_TIMELINE))
                         {
                             int h_index;
                             h_index = (mouse_x - SIDEBAR * 2) / TABULATOR;
@@ -16656,6 +16760,13 @@ int main(int argc, char * args[])
                                 }
                             }
                         }
+                    }
+                    else if (!Camera_screen_lock && DRAW_TIMELINE && mouse_x > SIDEBAR && mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y > screen_height - BUTTON_HEIGHT)
+                    {
+                        b = (float)(mouse_x - SIDEBAR) / (float)screen_width;
+                        a = 1.0 - b;
+                        currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
+                        printf("Timeline %d %d %d\n", currentFrame, mouse_x - SIDEBAR, mouse_y - (screen_height - BUTTON_HEIGHT));
                     }
                     else if (!Camera_screen_lock && mouse_x > SIDEBAR && mouse_y < screen_height)
                     {
@@ -19073,6 +19184,10 @@ int main(int argc, char * args[])
                 if (t < 0) t = Surf_Text_c - 1;
                 Materials[O->surface].texture = t;
             }
+            else if (mod & KMOD_ALT)
+            {
+                DRAW_TIMELINE = !DRAW_TIMELINE;
+            }
             else
             {
                 int m;
@@ -19917,12 +20032,7 @@ int main(int argc, char * args[])
             {
                 if (deformerIndex > 0 && currentDeformer >= 0)
                 {
-                    currentFrame --;
-                    if (currentFrame < 0)
-                    {
-                        currentFrame = 0;
-                    }
-                    frame = frames[currentFrame];
+                    frame = currentFrame;
                     D = deformers[currentDeformer];
                     delete_Deformer_keyframe(D, frame);
 

@@ -33,6 +33,7 @@ from corner.
 #define X_OFFSET 5
 #define Y_OFFSET 10
 
+int DRAW_TIMELINE = 1;
 int PROPERTIES = 0;
 int TABULATOR = 70;
 
@@ -111,12 +112,12 @@ void draw_Properties_Text(const char * text, int width, int height, int index, i
 void draw_Properties_List(int s_height, int clear_background, int type, void * subject)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
-    int p_height = s_height - DIALOG_HEIGHT;
-    glScissor(SIDEBAR * 2, BOTTOM_LINE, d_width, p_height);
+    int p_height = s_height - DIALOG_HEIGHT - (BUTTON_HEIGHT * DRAW_TIMELINE);
+    glScissor(SIDEBAR * 2, BOTTOM_LINE + (BUTTON_HEIGHT * DRAW_TIMELINE), d_width, p_height);
     if (clear_background)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glViewport(SIDEBAR * 2, BOTTOM_LINE, d_width, p_height);
+    glViewport(SIDEBAR * 2, BOTTOM_LINE + (BUTTON_HEIGHT * DRAW_TIMELINE), d_width, p_height);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -360,13 +361,13 @@ void draw_Properties_Edit(const char * text, int s_height, int v_index, int h_in
 void draw_Properties(const char * text, int s_height, int clear_background, int type, void * subject)
 {
     int d_width = DIALOG_WIDTH;
-    int p_height = s_height - DIALOG_HEIGHT;
-    glScissor(SIDEBAR, BUTTON_HEIGHT, d_width, p_height);
+    int p_height = s_height - DIALOG_HEIGHT - (BUTTON_HEIGHT * DRAW_TIMELINE);
+    glScissor(SIDEBAR, BUTTON_HEIGHT + (BUTTON_HEIGHT * DRAW_TIMELINE), d_width, p_height);
 
     if (clear_background)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glViewport(SIDEBAR, BUTTON_HEIGHT, d_width, p_height);
+    glViewport(SIDEBAR, BUTTON_HEIGHT + (BUTTON_HEIGHT * DRAW_TIMELINE), d_width, p_height);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
