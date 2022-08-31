@@ -7027,11 +7027,11 @@ void update_Deformed_View(deformer * D, int update)
     }
 }
 
-void init_Timeline_Segments(deformer * D)
+void init_Timeline_Segments(deformer * D, int TimelineStart)
 {
     timeline * Tm;
     transformer * T;
-    int t;
+    int t, f;
 
     for (t = 0; t < D->Transformers_Count; t ++)
     {
@@ -7041,6 +7041,14 @@ void init_Timeline_Segments(deformer * D)
         {
             Tm = T->Timeline;
             Tm->current_Segment = 0;
+            for (f = 0; f < Tm->key_frames; f ++)
+            {
+                Tm->current_Segment = f;
+                if (Tm->Frames[f] >= TimelineStart)
+                {
+                    break;
+                }
+            }
         }
     }
 }
@@ -7111,7 +7119,7 @@ void deformer_Keyframe_Player()
 
             if (T->Timeline != NULL)
             {
-                init_Timeline_Segments(D);
+                init_Timeline_Segments(D, TimelineStart);
 
                 for (o = 0; o < D->Objects_Count; o ++)
                 {
@@ -7145,9 +7153,9 @@ void deformer_Keyframe_Player()
     int Preak = 0;
     int theme = 0;
     int frame = 0;
-    int Time_frames = 200; // keyframe may not exceed it
+    int Time_frames = TimelineEnd - TimelineStart; // keyframe may not exceed it
 
-    for (f = 0; f >= 0; f ++)
+    for (f = TimelineStart; f >= 0; f ++)
     {
         frame = f % Time_frames;
 
