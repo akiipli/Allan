@@ -15,6 +15,7 @@ Copyright <2018> <Allan Kiipli>
 
 #define SCENE_EXT_NUM 10
 
+#define TIMELINE_ENTRY 30
 #define SIDEBAR 100
 #define BOTTOM_LINE 20
 #define BUTTON_HEIGHT 20
@@ -94,6 +95,7 @@ int EditCursor = 0;
 int Edit_Lock = 0;
 
 char Properties_Remember[STRLEN];
+char Timeline_Value[STRLEN];
 
 void init_EditString()
 {

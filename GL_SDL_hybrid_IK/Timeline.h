@@ -22,6 +22,9 @@ int TimelineStart = 0;
 int TimelineEnd = 201;
 int Drag_Timeline = 0;
 
+int highlight_start = 0;
+int highlight_end = 0;
+
 typedef struct
 {
     float scl[3];

@@ -114,6 +114,7 @@ int RESET = 0;
 #define IMG_DIALOG 11
 #define SAVES_DIALOG 12
 #define LOADING_DIALOG 13
+#define TIMELINE_DIALOG 14
 
 #define obj_EXTENSION 0
 #define OBJ_EXTENSION 1
@@ -2428,8 +2429,9 @@ direction set_Target(float m_offset_x, float m_offset_y, float hres, float vres,
     return D;
 }
 
-void Draw_Timeline()
+void Draw_Timeline(int highlight_start, int highlight_end)
 {
+	char label[STRLEN];
     int w = screen_width;
     int h = BUTTON_HEIGHT;
 
@@ -2457,15 +2459,15 @@ void Draw_Timeline()
 
 	/*draw frame*/
 	glBegin(GL_LINE_LOOP);
-	glVertex2f(0, 0);
-	glVertex2f(0, h);
-	glVertex2f(w, h);
-	glVertex2f(w, 0);
+	glVertex2f(TIMELINE_ENTRY, 0);
+	glVertex2f(TIMELINE_ENTRY, h);
+	glVertex2f(w - TIMELINE_ENTRY, h);
+	glVertex2f(w - TIMELINE_ENTRY, 0);
 	glEnd();
 
 	glBegin(GL_LINES);
 
-	float tickw = (float)(screen_width) / (float)(TimelineEnd - TimelineStart);
+	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
 	int vline, f;
 
 	timeline * Tm;
@@ -2484,7 +2486,7 @@ void Draw_Timeline()
                 {
                     if (Tm->Frames[f] >= TimelineStart && Tm->Frames[f] < TimelineEnd)
                     {
-                        vline = (int)((Tm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0));
+                        vline = (int)((Tm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0) + TIMELINE_ENTRY);
                         glBegin(GL_LINES);
                         glVertex2f(vline, 0);
                         glVertex2f(vline, h);
@@ -2497,7 +2499,7 @@ void Draw_Timeline()
 
 	glColor4fv(white);
 
-	vline = (int)((currentFrame - TimelineStart) * tickw);
+	vline = (int)((currentFrame - TimelineStart) * tickw + TIMELINE_ENTRY);
 
 	glBegin(GL_LINE_LOOP);
 	glVertex2f(vline, 0);
@@ -2506,11 +2508,25 @@ void Draw_Timeline()
 	glVertex2f(vline + tickw, 0);
 	glEnd();
 
-	char label[STRLEN];
-
 	glColor4fv(black);
 	sprintf(label, "%d", currentFrame);
 	draw_text(label, vline - (tickw / 2.0), 10, 8, 0);
+
+	if (highlight_start)
+        glColor4fv(backl);
+    else
+        glColor4fv(black);
+
+	sprintf(label, "%d", TimelineStart);
+	draw_text(label, 10, 20, 8, 0);
+
+	if (highlight_end)
+        glColor4fv(backl);
+    else
+        glColor4fv(black);
+
+	sprintf(label, "%d", TimelineEnd);
+	draw_text(label, screen_width - TIMELINE_ENTRY, 20, 8, 0);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
@@ -2885,7 +2901,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
 
     if (DRAW_TIMELINE)
     {
-        Draw_Timeline();
+        Draw_Timeline(highlight_start, highlight_end);
     }
 
     if (Swap)
@@ -3123,6 +3139,21 @@ camera * find_View(int mouse_x, int mouse_y, int splitview)
     else
     {
         Camera->sidebar = 0;
+        if (DRAW_TIMELINE)
+        {
+            if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
+            {
+                Camera->time_line = 1;
+            }
+            else
+            {
+                Camera->time_line = 0;
+            }
+        }
+        else
+        {
+            Camera->time_line = 0;
+        }
         if (mouse_y > screen_height)
         {
             Camera->bottom_line = 1;
@@ -9534,6 +9565,60 @@ void add_Material()
     }
 }
 
+void update_Timeline_Edit(const char * text, int blit)
+{
+    if (highlight_start)
+    {
+        TimelineStart = atoi(text);
+        if (TimelineStart >= TimelineEnd)
+        {
+            TimelineStart = TimelineEnd - 1;
+        }
+    }
+    else if (highlight_end)
+    {
+        TimelineEnd = atoi(text);
+        if (TimelineEnd <= TimelineStart)
+        {
+            TimelineEnd = TimelineStart + 1;
+        }
+    }
+
+    if (blit)
+    {
+        blit_ViewPort();
+    }
+
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+
+    Draw_Timeline(highlight_start, highlight_end);
+
+    SDL_GL_SwapBuffers();
+    glDrawBuffer(GL_BACK);
+}
+
+void edit_Timeline_Value()
+{
+    if (dialog_lock)
+    {
+        dialog_type = TIMELINE_DIALOG;
+
+        if (!Edit_Lock)
+        {
+            if (highlight_start)
+                sprintf(Name_Remember, "%3d", TimelineStart);
+            else if (highlight_end)
+                sprintf(Name_Remember, "%3d", TimelineEnd);
+            Edit_Lock = 1;
+            EditCursor = 1;
+            EditString[0] = '0';
+            EditString[1] = '\0';
+            sprintf(Timeline_Value, "%s", EditString);
+            update_Timeline_Edit(Timeline_Value, 1);
+        }
+    }
+}
+
 void edit_Color_Value()
 {
     if (dialog_lock)
@@ -9850,6 +9935,65 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
                     print_Deformer_IK_Chains(D);
             }
         }
+    }
+}
+
+void handle_Timeline(char letter, SDLMod mod)
+{
+    if (Edit_Lock)
+    {
+        int update = 1;
+        if (isdigit(letter))
+        {
+            if (EditCursor < STRLEN - 1)
+            {
+                EditString[EditCursor] = letter;
+                EditCursor ++;
+                EditString[EditCursor] = '\0';
+            }
+        }
+        else if (letter == 13 || letter == 10) // return, enter
+        {
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Timeline_Value, "%s", EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                update = 0;
+                sprintf(Timeline_Value, "%s", Name_Remember);
+            }
+
+            if (highlight_start)
+            {
+                TimelineStart = atoi(Timeline_Value);
+            }
+            else if (highlight_end)
+            {
+                TimelineEnd = atoi(Timeline_Value);
+            }
+
+            dialog_lock = 0;
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            EditCursor = 0;
+            printf("Edit finishing!\n");
+        }
+        else if (letter == 8) // backspace
+        {
+            EditCursor --;
+            if (EditCursor < 0)
+                EditCursor = 0;
+            EditString[EditCursor] = '\0';
+        }
+        if (update)
+        {
+            sprintf(Timeline_Value, "%s", EditString);
+            update_Timeline_Edit(Timeline_Value, 1);
+        }
+
+        message = 0;
     }
 }
 
@@ -10870,7 +11014,11 @@ void handle_dialog(char letter, SDLMod mod)
         DRAW_UI = 1;
     }
 
-    if (dialog_type == SAVES_DIALOG)
+    if (dialog_type == TIMELINE_DIALOG)
+    {
+        handle_Timeline(letter, mod);
+    }
+    else if (dialog_type == SAVES_DIALOG)
     {
         handle_Scene_Dialog(letter, mod);
         if (!Edit_Lock && letter == '`')
@@ -15358,6 +15506,60 @@ int main(int argc, char * args[])
                         message = -1;
                     }
                 }
+                else if (Camera->time_line && !Camera_screen_lock && !Drag_Dialog)
+                {
+                    if (dialog_lock)
+                    {
+                        b = (float)(mouse_x - (SIDEBAR + TIMELINE_ENTRY)) / (float)(screen_width - TIMELINE_ENTRY * 2);
+                        a = 1.0 - b;
+                        currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
+                        if (currentFrame < TimelineStart)
+                        {
+                            currentFrame = TimelineStart;
+                        }
+                        if (currentFrame >= TimelineEnd)
+                        {
+                            currentFrame = TimelineEnd - 1;
+                        }
+                        printf("\tTimeline %d\n", currentFrame);
+                        Drag_Timeline = 1;
+                    }
+                    else
+                    {
+                        if (mouse_x < SIDEBAR + TIMELINE_ENTRY)
+                        {
+                            printf("TimelineStart\n");
+                            dialog_lock = 1;
+                            edit_Timeline_Value();
+                        }
+                        else if (mouse_x > SIDEBAR + screen_width - TIMELINE_ENTRY)
+                        {
+                            printf("TimelineEnd\n");
+                            dialog_lock = 1;
+                            edit_Timeline_Value();
+                        }
+                        else
+                        {
+                            b = (float)(mouse_x - (SIDEBAR + TIMELINE_ENTRY)) / (float)(screen_width - TIMELINE_ENTRY * 2);
+                            a = 1.0 - b;
+                            currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
+                            if (currentFrame < TimelineStart)
+                            {
+                                currentFrame = TimelineStart;
+                            }
+                            if (currentFrame >= TimelineEnd)
+                            {
+                                currentFrame = TimelineEnd - 1;
+                            }
+                            printf("\tTimeline %d\n", currentFrame);
+                            Drag_Timeline = 1;
+                        }
+                    }
+                    if (dialog_lock)
+                    {
+                        draw_Dialog();
+                    }
+                }
                 else if (event.button.button == SDL_BUTTON_WHEELUP)
                 {
                     if (dialog_lock)
@@ -15928,15 +16130,6 @@ int main(int argc, char * args[])
                     else if (dialog_lock)
                     {
                         int index = mouse_y / BUTTON_HEIGHT;
-                        if (DRAW_TIMELINE && mouse_x > SIDEBAR && mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y > screen_height - BUTTON_HEIGHT)
-                        {
-                            b = (float)(mouse_x - SIDEBAR) / (float)screen_width;
-                            a = 1.0 - b;
-                            currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
-                            printf("\tTimeline %d\n", currentFrame);
-                            Drag_Timeline = 1;
-                            draw_Dialog();
-                        }
                         if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && index < LISTLENGTH && mouse_y < DIALOG_HEIGHT)
                         {
                             if (dialog_type == SAVES_DIALOG)
@@ -16764,14 +16957,6 @@ int main(int argc, char * args[])
                             }
                         }
                     }
-                    else if (!Camera_screen_lock && DRAW_TIMELINE && mouse_x > SIDEBAR && mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y > screen_height - BUTTON_HEIGHT)
-                    {
-                        b = (float)(mouse_x - SIDEBAR) / (float)screen_width;
-                        a = 1.0 - b;
-                        currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
-                        printf("\tTimeline %d\n", currentFrame);
-                        Drag_Timeline = 1;
-                    }
                     else if (!Camera_screen_lock && mouse_x > SIDEBAR && mouse_y < screen_height)
                     {
                         mouse_button_down = 1;
@@ -17418,24 +17603,68 @@ int main(int argc, char * args[])
                 mouse_x = event.motion.x;
                 mouse_y = event.motion.y;
 
-                if (Drag_Timeline)
-                {
-                    b = (float)(mouse_x - SIDEBAR) / (float)screen_width;
-                    a = 1.0 - b;
-                    currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
-                    if (currentFrame < TimelineStart)
-                    {
-                        currentFrame = TimelineStart;
-                    }
-                    if (currentFrame >= TimelineEnd)
-                    {
-                        currentFrame = TimelineEnd - 1;
-                    }
-                    printf("\r%d     ", currentFrame);
-                }
-
                 if (!Edit_Properties)
                 {
+                    if (Drag_Timeline)
+                    {
+                        b = (float)(mouse_x - (SIDEBAR + TIMELINE_ENTRY)) / (float)(screen_width - TIMELINE_ENTRY * 2);
+                        a = 1.0 - b;
+                        currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
+                        if (currentFrame < TimelineStart)
+                        {
+                            currentFrame = TimelineStart;
+                        }
+                        if (currentFrame >= TimelineEnd)
+                        {
+                            currentFrame = TimelineEnd - 1;
+                        }
+                        printf("\r%d     ", currentFrame);
+                    }
+                    else if (DRAW_TIMELINE && !dialog_lock)
+                    {
+                        if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
+                        {
+                            if (mouse_x < SIDEBAR + TIMELINE_ENTRY)
+                            {
+                                if (highlight_start == 0)
+                                {
+                                    highlight_start = 1;
+                                    Draw_Timeline(highlight_start, highlight_end);
+                                    SDL_GL_SwapBuffers();
+                                }
+                            }
+                            else if (mouse_x > SIDEBAR + screen_width - TIMELINE_ENTRY)
+                            {
+                                if (highlight_end == 0)
+                                {
+                                    highlight_end = 1;
+                                    Draw_Timeline(highlight_start, highlight_end);
+                                    SDL_GL_SwapBuffers();
+                                }
+                            }
+                            else
+                            {
+                                if (highlight_start != 0 || highlight_end != 0)
+                                {
+                                    highlight_start = 0;
+                                    highlight_end = 0;
+                                    Draw_Timeline(highlight_start, highlight_end);
+                                    SDL_GL_SwapBuffers();
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (highlight_start != 0 || highlight_end != 0)
+                            {
+                                highlight_start = 0;
+                                highlight_end = 0;
+                                Draw_Timeline(highlight_start, highlight_end);
+                                SDL_GL_SwapBuffers();
+                            }
+                        }
+                    }
+
                     if (Drag_Displacement)
                     {
                         DragDelta = mouse_x - Drag_X;
@@ -20474,7 +20703,13 @@ int main(int argc, char * args[])
                     }
                     else
                     {
-                        if (dialog_type == SAVES_DIALOG)
+                        if (dialog_type == TIMELINE_DIALOG)
+                        {
+                            dialog_lock = 0;
+                            sprintf(Timeline_Value, "%s", Name_Remember);
+                            update_Timeline_Edit(Timeline_Value, 1);
+                        }
+                        else if (dialog_type == SAVES_DIALOG)
                         {
                             sprintf(scene_files_dir, "%s", Name_Remember);
                             update_Saves_List(1, 0);

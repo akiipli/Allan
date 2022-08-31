@@ -60,6 +60,7 @@ typedef struct
     float _ratio;
     int sidebar;
     int bottom_line;
+    int time_line;
     int uv_draw;
 
     float View_Radius;
@@ -309,6 +310,7 @@ void init_camera(camera * C, char * Name, int hres, int vres, float CamDist, int
 
     C->sidebar = 0;
     C->bottom_line = 0;
+    C->time_line = 0;
     C->uv_draw = 0;
 }
 
