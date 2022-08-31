@@ -2472,9 +2472,9 @@ void Draw_Timeline(int highlight_start, int highlight_end)
 
 	timeline * Tm;
 
-	if (deformerIndex > 0 && currentDeformer < deformerIndex)
+	if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
     {
-        D = deformers[currentDeformer];
+        D = deformers[currentDeformer_Node];
         if (D->Transformers_Count > 0)
         {
             T = D->Transformers[0];
@@ -10667,11 +10667,11 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
     }
     else if (letter == 'i' && (mod & KMOD_CTRL))
     {
-        if (deformerIndex > 0 && currentDeformer >= 0)
+        if (deformerIndex > 0 && currentDeformer_Node >= 0)
         {
             frame = currentFrame;
 
-            D = deformers[currentDeformer];
+            D = deformers[currentDeformer_Node];
             insert_Deformer_keyframe(D, frame);
             if (D->Transformers_Count > 0)
             {
@@ -20266,12 +20266,12 @@ int main(int argc, char * args[])
             else if (mod & KMOD_CTRL)
             {
                 /*
-                if (deformerIndex > 0 && currentDeformer >= 0)
+                if (deformerIndex > 0 && currentDeformer_Node >= 0)
                 {
                     frame = frames[currentFrame ++];
                     if (currentFrame >= frames_Count)
                         currentFrame = 0;
-                    D = deformers[currentDeformer];
+                    D = deformers[currentDeformer_Node];
                     insert_Deformer_keyframe(D, frame);
                     if (D->Transformers_Count > 0)
                     {
@@ -20287,10 +20287,10 @@ int main(int argc, char * args[])
             }
             else if (mod & KMOD_ALT)
             {
-                if (deformerIndex > 0 && currentDeformer >= 0)
+                if (deformerIndex > 0 && currentDeformer_Node >= 0)
                 {
                     frame = currentFrame;
-                    D = deformers[currentDeformer];
+                    D = deformers[currentDeformer_Node];
                     delete_Deformer_keyframe(D, frame);
 
                     if (D->Transformers_Count > 0)

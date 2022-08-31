@@ -98,7 +98,11 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame)
         {
             Tm = T->Timeline;
 
-            if (Tm->current_Segment < Tm->key_frames)
+            if (frame < Tm->Frames[Tm->current_Segment] || frame > Tm->Frames[Tm->key_frames - 1])
+            {
+
+            }
+            else if (Tm->current_Segment < Tm->key_frames)
             {
                 f = frame % (Tm->Frames[Tm->key_frames - 1]);
 
