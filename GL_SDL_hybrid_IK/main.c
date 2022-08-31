@@ -2955,6 +2955,12 @@ void update_Resize_Event()
         DIALOG_WIDTH = MIN_DIALOG_WIDTH;
         DIALOG_HEIGHT = MIN_DIALOG_HEIGHT;
         LISTLENGTH = DIALOG_HEIGHT / BUTTON_HEIGHT - 1;
+
+        if (dialog_lock && dialog_type == TIMELINE_DIALOG)
+        {
+            dialog_lock = 0;
+        }
+
         if (dialog_lock)
         {
             Bottom_Message = 0;
@@ -9979,6 +9985,8 @@ void handle_Timeline(char letter, SDLMod mod)
             selection_rectangle = 0;
             EditCursor = 0;
             printf("Edit finishing!\n");
+
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
         }
         else if (letter == 8) // backspace
         {
@@ -11244,7 +11252,11 @@ void draw_Dialog()
 {
     Button_sidebar[Buttonindex_sidebar].color = UI_GRAYD;
     //SDL_SetCursor(Arrow);
-    if (dialog_type == SAVES_DIALOG)
+    if (dialog_type == TIMELINE_DIALOG)
+    {
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+    }
+    else if (dialog_type == SAVES_DIALOG)
     {
         open_Saves_List();
     }
@@ -15434,6 +15446,21 @@ int main(int argc, char * args[])
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                     glEnable(GL_SCISSOR_TEST);
 
+                    if (Edit_Lock)
+                    {
+                        Edit_Lock = 0;
+                        selection_rectangle = 0;
+                        EditCursor = 0;
+                        EditString[EditCursor] = '\0';
+                        printf("Edit finishing!\n");
+                        set_Sels_H_Button(-1);
+                    }
+
+                    if (dialog_lock && dialog_type == TIMELINE_DIALOG)
+                    {
+                        dialog_lock = 0;
+                    }
+
                     if (dialog_lock)
                     {
                         Bottom_Message = 0;
@@ -15441,7 +15468,7 @@ int main(int argc, char * args[])
                     }
                     else
                     {
-                        message = -1;
+                        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
                     }
                 }
             }
