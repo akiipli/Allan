@@ -22,12 +22,6 @@ int MOVEMENT = 0;
 int SCALE = 0;
 int RESET = 0;
 
-int frame, f, result;
-int currentFrame = 0;
-float a, b;
-int TimelineStart = 0;
-int TimelineEnd = 201;
-
 #define CUBEINDEX 7
 
 #define DEBUG_WITHOUT_IL 0 //  change this to 1
@@ -15931,7 +15925,8 @@ int main(int argc, char * args[])
                             b = (float)(mouse_x - SIDEBAR) / (float)screen_width;
                             a = 1.0 - b;
                             currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
-                            printf("Timeline %d\n", currentFrame);
+                            printf("\tTimeline %d\n", currentFrame);
+                            Drag_Timeline = 1;
                             draw_Dialog();
                         }
                         if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && index < LISTLENGTH && mouse_y < DIALOG_HEIGHT)
@@ -16766,7 +16761,8 @@ int main(int argc, char * args[])
                         b = (float)(mouse_x - SIDEBAR) / (float)screen_width;
                         a = 1.0 - b;
                         currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
-                        printf("Timeline %d %d %d\n", currentFrame, mouse_x - SIDEBAR, mouse_y - (screen_height - BUTTON_HEIGHT));
+                        printf("\tTimeline %d\n", currentFrame);
+                        Drag_Timeline = 1;
                     }
                     else if (!Camera_screen_lock && mouse_x > SIDEBAR && mouse_y < screen_height)
                     {
@@ -17281,6 +17277,14 @@ int main(int argc, char * args[])
             {
                 mouse_button_down = 0;
                 Drag_Dialog = 0;
+                if (Drag_Timeline)
+                {
+                    if (dialog_lock)
+                    {
+                        draw_Dialog();
+                    }
+                    Drag_Timeline = 0;
+                }
 
                 if (Drag_Color || Drag_Shine || Drag_Displacement)
                 {
@@ -17405,6 +17409,22 @@ int main(int argc, char * args[])
             {
                 mouse_x = event.motion.x;
                 mouse_y = event.motion.y;
+
+                if (Drag_Timeline)
+                {
+                    b = (float)(mouse_x - SIDEBAR) / (float)screen_width;
+                    a = 1.0 - b;
+                    currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
+                    if (currentFrame < TimelineStart)
+                    {
+                        currentFrame = TimelineStart;
+                    }
+                    if (currentFrame >= TimelineEnd)
+                    {
+                        currentFrame = TimelineEnd - 1;
+                    }
+                    printf("\r%d     ", currentFrame);
+                }
 
                 if (!Edit_Properties)
                 {

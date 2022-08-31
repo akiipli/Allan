@@ -15,6 +15,13 @@ Copyright <2022> <Allan Kiipli>
 #define ACCELERATION_END 2
 #define ACCELERATION_MID 3
 
+int frame, f, result;
+int currentFrame = 0;
+float a, b;
+int TimelineStart = 0;
+int TimelineEnd = 201;
+int Drag_Timeline = 0;
+
 typedef struct
 {
     float scl[3];
