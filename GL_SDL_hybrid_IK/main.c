@@ -6757,6 +6757,9 @@ void apply_Pose_position_keyframes(deformer * D, pose * P)
 
         if (D->Transformers_Count > 0)
         {
+            if (ROTATED_POSE)
+                rotate_Pose(D);
+
             rotate_Deformer_verts(D);
         }
     }
@@ -7167,6 +7170,8 @@ void deformer_Keyframe_Player()
 
         D->P = init_Deformer_P(D);
 
+        fill_Start_Pose(D, D->P);
+
         if (D->Transformers_Count > 0)
         {
             T = D->Transformers[0];
@@ -7209,9 +7214,18 @@ void deformer_Keyframe_Player()
     int frame = 0;
     int Time_frames = TimelineEnd - TimelineStart; // keyframe may not exceed it
 
+    printf("Playing\n");
+
     for (f = TimelineStart; f >= 0; f ++)
     {
+        if (f >= Time_frames)
+        {
+            break;
+        }
+
         frame = f % Time_frames;
+
+        printf("\r%d    ", frame);
 
         if (Preak)
         {
@@ -7247,7 +7261,15 @@ void deformer_Keyframe_Player()
                 }
                 else if (event.key.keysym.sym == SDLK_l)
                 {
-                    LIGHTSHOW = !LIGHTSHOW;
+                    if (mod & KMOD_SHIFT)
+                    {
+                        linear_pose = !linear_pose;
+                        make_osd(O);
+                    }
+                    else
+                    {
+                        LIGHTSHOW = !LIGHTSHOW;
+                    }
                 }
                 else if (event.key.keysym.sym == SDLK_TAB)
                 {
@@ -7356,7 +7378,7 @@ void deformer_Keyframe_Player()
                 if (T->Timeline != NULL)
                 {
                     Tm = T->Timeline;
-                    if (Tm->key_frames > 0 && f < Tm->Frames[Tm->key_frames - 1])
+                    if (Tm->key_frames > 0 && f < Tm->Frames[Tm->key_frames - 1] && f >= Tm->Frames[0])
                     {
                         if (D->play < 0)
                         {
@@ -7406,9 +7428,12 @@ void deformer_Keyframe_Player()
 
         if (SHADERS && LIGHTSHOW)
         {
-            update_Light(Light_Themes[theme % Themes]);
-            theme ++;
-            init_lights();
+            if (f % 10 == 0)
+            {
+                update_Light(Light_Themes[theme % Themes]);
+                theme ++;
+                init_lights();
+            }
         }
     }
 
@@ -20566,6 +20591,9 @@ int main(int argc, char * args[])
                 }
                 else if(DRAW_LOCATORS && !BIND_POSE)
                 {
+                    T = transformers[currentLocator];
+                    printf("T style %d\n", T->style);
+
                     if (T->style == ik_goal)
                     {
                         T->style = ik_fixed;
