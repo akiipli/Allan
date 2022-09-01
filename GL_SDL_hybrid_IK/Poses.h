@@ -98,14 +98,12 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame)
         {
             Tm = T->Timeline;
 
-            if (frame < Tm->Frames[Tm->current_Segment] || frame > Tm->Frames[Tm->key_frames - 1])
+            if (frame >= Tm->Frames[Tm->key_frames - 1])
             {
-
+                Tm->current_Segment = Tm->start_Segment;
             }
-            else if (Tm->current_Segment < Tm->key_frames)
+            else
             {
-                f = frame % (Tm->Frames[Tm->key_frames - 1]);
-
                 frame0 = Tm->current_Segment;
                 frame1 = Tm->current_Segment + 1;
 
@@ -114,7 +112,7 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame)
 
                 if (frame11 > frame00)
                 {
-                    b = (float)(f - frame00) / (float)(frame11 - frame00);
+                    b = (float)(frame - frame00) / (float)(frame11 - frame00);
                     if (Tm->Acceleration[frame0].segment_type == ACCELERATION_END)
                     {
                         //b *= b; // accelerated interpolation
@@ -148,12 +146,25 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame)
                     b = 1.0;
                     a = 0.0;
                 }
-//                if(t == 0)
-//                    printf("%d %d %d %f %f %d\n", frame, frame00, frame11, a, b, Tm->current_Segment);
+    //                if(t == 0)
+    //                    printf("%d %d %d %f %f %d\n", frame, frame00, frame11, a, b, Tm->current_Segment);
 
-                if (frame11 == f)
+                if (frame11 == frame)
                 {
                     Tm->current_Segment ++;
+
+                    if (Tm->current_Segment >= Tm->key_frames)
+                    {
+                        Tm->current_Segment = Tm->start_Segment;
+                    }
+                    else
+                    {
+                        frame11 = Tm->Frames[Tm->current_Segment];
+                        if (frame11 >= TimelineEnd)
+                        {
+                            Tm->current_Segment = Tm->start_Segment;
+                        }
+                    }
                 }
 
                 P->TP[t].rot_Order = T->rot_Order;

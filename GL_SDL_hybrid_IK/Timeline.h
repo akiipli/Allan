@@ -50,6 +50,7 @@ typedef struct
     transformer_values * Values;
     int current_Segment; // segment frame start index for current time
     acceleration * Acceleration;
+    int start_Segment;
 }
 timeline;
 

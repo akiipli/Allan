@@ -7106,6 +7106,7 @@ void init_Timeline_Segments(deformer * D, int TimelineStart)
                     break;
                 }
             }
+            Tm->start_Segment = Tm->current_Segment;
         }
     }
 }
@@ -7218,10 +7219,10 @@ void deformer_Keyframe_Player()
 
     for (f = TimelineStart; f >= 0; f ++)
     {
-        if (f >= Time_frames)
-        {
-            break;
-        }
+//        if (f >= Time_frames)
+//        {
+//            break;
+//        }
 
         frame = f % Time_frames;
 
@@ -7378,7 +7379,7 @@ void deformer_Keyframe_Player()
                 if (T->Timeline != NULL)
                 {
                     Tm = T->Timeline;
-                    if (Tm->key_frames > 0 && f < Tm->Frames[Tm->key_frames - 1] && f >= Tm->Frames[0])
+                    if (Tm->key_frames > 0 && frame >= Tm->Frames[0])
                     {
                         if (D->play < 0)
                         {
