@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+10:32 AM 9/1/2022
+Left and Right Arrows advance currentFrame when Timeline is on. Alt + T switch Timeline on and off.
+
 10:48 PM 8/30/2022
 Timeline UI. Alt + T to switch Timeline on. Lists Deformers keyframes based on 0th transformer. Inserting keyframes
 is possible with Poses tab open at current keyframe. This can be changed with clicking on Timeline. With Ctrl + I.

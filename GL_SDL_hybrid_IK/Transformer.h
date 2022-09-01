@@ -758,7 +758,7 @@ void rotate_Vertex_I(float rotVec_I[3][3], float x, float y, float z, direction 
     D->z = rotVec_I[0][2] * x + rotVec_I[1][2] * y + rotVec_I[2][2] * z;
 }
 
-int insert_keyframe(transformer * T, int frame, int relative_pos, float Delta[3])
+int insert_keyframe(transformer * T, int frame)
 {
     if (T == NULL)
         return 0;
@@ -800,16 +800,7 @@ int insert_keyframe(transformer * T, int frame, int relative_pos, float Delta[3]
                 Tm->Acceleration[0].b_exponent = ACCELERATION_DEFAULT_IN;
                 memcpy(Tm->Values[0].scl, T->scl, sizeof(float[3]));
                 memcpy(Tm->Values[0].rot, T->rot, sizeof(float[3]));
-                if (relative_pos)
-                {
-                    Tm->Values[0].pos[0] = T->pos[0] - Delta[0];
-                    Tm->Values[0].pos[1] = T->pos[1] - Delta[1];
-                    Tm->Values[0].pos[2] = T->pos[2] - Delta[2];
-                }
-                else
-                {
-                   memcpy(Tm->Values[0].pos, T->pos, sizeof(float[3]));
-                }
+                memcpy(Tm->Values[0].pos, T->pos, sizeof(float[3]));
 
                 memcpy(Tm->Values[0].scl_vec, T->scl_vec, sizeof(float[3]));
                 memcpy(Tm->Values[0].rotVec_, T->rotVec_, sizeof(float[3][3]));
@@ -891,16 +882,7 @@ int insert_keyframe(transformer * T, int frame, int relative_pos, float Delta[3]
                 Tm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
                 memcpy(Tm->Values[index].scl, T->scl, sizeof(float[3]));
                 memcpy(Tm->Values[index].rot, T->rot, sizeof(float[3]));
-                if (relative_pos)
-                {
-                    Tm->Values[index].pos[0] = T->pos[0] - Delta[0];
-                    Tm->Values[index].pos[1] = T->pos[1] - Delta[1];
-                    Tm->Values[index].pos[2] = T->pos[2] - Delta[2];
-                }
-                else
-                {
-                    memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
-                }
+                memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
                 memcpy(Tm->Values[index].scl_vec, T->scl_vec, sizeof(float[3]));
                 memcpy(Tm->Values[index].rotVec_, T->rotVec_, sizeof(float[3][3]));
 /*
@@ -925,16 +907,7 @@ int insert_keyframe(transformer * T, int frame, int relative_pos, float Delta[3]
             Tm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
             memcpy(Tm->Values[index].scl, T->scl, sizeof(float[3]));
             memcpy(Tm->Values[index].rot, T->rot, sizeof(float[3]));
-            if (relative_pos)
-            {
-                Tm->Values[index].pos[0] = T->pos[0] - Delta[0];
-                Tm->Values[index].pos[1] = T->pos[1] - Delta[1];
-                Tm->Values[index].pos[2] = T->pos[2] - Delta[2];
-            }
-            else
-            {
-                memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
-            }
+            memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
             memcpy(Tm->Values[index].scl_vec, T->scl_vec, sizeof(float[3]));
             memcpy(Tm->Values[index].rotVec_, T->rotVec_, sizeof(float[3][3]));
 /*

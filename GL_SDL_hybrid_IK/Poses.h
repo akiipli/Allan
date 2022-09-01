@@ -148,8 +148,8 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame)
                     b = 1.0;
                     a = 0.0;
                 }
-                if(t == 0)
-                    printf("%d %d %d %f %f %d\n", frame, frame00, frame11, a, b, Tm->current_Segment);
+//                if(t == 0)
+//                    printf("%d %d %d %f %f %d\n", frame, frame00, frame11, a, b, Tm->current_Segment);
 
                 if (frame11 == f)
                 {
@@ -991,6 +991,7 @@ void rotate_Pose(deformer * D)
 
         memcpy(rotVec, T->rotVec, sizeof(float[3][3]));
         rotate_matrix_I(T->rotVec, D->rotVec, rotVec);
+        rotate_matrix_I(T->rotVec_, D->rotVec, rotVec); // because keyframes need unscaled rotVec_ matrix
     }
 }
 

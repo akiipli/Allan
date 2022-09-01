@@ -2429,7 +2429,7 @@ direction set_Target(float m_offset_x, float m_offset_y, float hres, float vres,
     return D;
 }
 
-void Draw_Timeline(int highlight_start, int highlight_end)
+void Draw_Timeline()
 {
 	char label[STRLEN];
     int w = screen_width;
@@ -2901,7 +2901,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
 
     if (DRAW_TIMELINE)
     {
-        Draw_Timeline(highlight_start, highlight_end);
+        Draw_Timeline();
     }
 
     if (Swap)
@@ -6746,6 +6746,22 @@ void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
+void apply_Pose_position_keyframes(deformer * D, pose * P)
+{
+    if (!BIND_POSE)
+    {
+        paste_Pose_position(D, P);
+
+        if (!linear_pose)
+            apply_Pose_position_Play(D, Delta);
+
+        if (D->Transformers_Count > 0)
+        {
+            rotate_Deformer_verts(D);
+        }
+    }
+}
+
 void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
@@ -6760,6 +6776,7 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
         if (D->Transformers_Count > 0)
         {
             transformer * T = D->Transformers[0];
+
 
             float Delta_[3];
 
@@ -7346,7 +7363,7 @@ void deformer_Keyframe_Player()
                             create_Inbetween_Frame_Pose(D, frame);
                         }
                     }
-                    apply_Pose_position_(D, D->P, D->Delta);
+                    apply_Pose_position_keyframes(D, D->P);
 
                     update_Deformer_Objects_Curves_Coordinates(D);
                     update_Deformer_object_Curves(D, subdLevel);
@@ -9597,7 +9614,7 @@ void update_Timeline_Edit(const char * text, int blit)
 
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 
-    Draw_Timeline(highlight_start, highlight_end);
+    Draw_Timeline();
 
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
@@ -10681,6 +10698,10 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
 
             D = deformers[currentDeformer_Node];
             insert_Deformer_keyframe(D, frame);
+
+            Draw_Timeline();
+            SDL_GL_SwapBuffers();
+
             if (D->Transformers_Count > 0)
             {
                 T = D->Transformers[0];
@@ -17656,7 +17677,7 @@ int main(int argc, char * args[])
                                 if (highlight_start == 0)
                                 {
                                     highlight_start = 1;
-                                    Draw_Timeline(highlight_start, highlight_end);
+                                    Draw_Timeline();
                                     SDL_GL_SwapBuffers();
                                 }
                             }
@@ -17665,7 +17686,7 @@ int main(int argc, char * args[])
                                 if (highlight_end == 0)
                                 {
                                     highlight_end = 1;
-                                    Draw_Timeline(highlight_start, highlight_end);
+                                    Draw_Timeline();
                                     SDL_GL_SwapBuffers();
                                 }
                             }
@@ -17675,7 +17696,7 @@ int main(int argc, char * args[])
                                 {
                                     highlight_start = 0;
                                     highlight_end = 0;
-                                    Draw_Timeline(highlight_start, highlight_end);
+                                    Draw_Timeline();
                                     SDL_GL_SwapBuffers();
                                 }
                             }
@@ -17686,7 +17707,7 @@ int main(int argc, char * args[])
                             {
                                 highlight_start = 0;
                                 highlight_end = 0;
-                                Draw_Timeline(highlight_start, highlight_end);
+                                Draw_Timeline();
                                 SDL_GL_SwapBuffers();
                             }
                         }
@@ -19284,6 +19305,16 @@ int main(int argc, char * args[])
             {
                 handle_LEFT(mod);
             }
+            else if (DRAW_TIMELINE)
+            {
+                currentFrame -= 10;
+                if (currentFrame < TimelineStart)
+                {
+                    currentFrame = TimelineStart;
+                }
+                Draw_Timeline();
+                SDL_GL_SwapBuffers();
+            }
             else if (mod & KMOD_CTRL)
                 Camera->T->rot[1] += pi30;
             else if (mod & KMOD_SHIFT)
@@ -19297,6 +19328,16 @@ int main(int argc, char * args[])
             if (Edit_Lock)
             {
                 handle_RIGHT(mod);
+            }
+            else if (DRAW_TIMELINE)
+            {
+                currentFrame += 10;
+                if (currentFrame >= TimelineEnd)
+                {
+                    currentFrame = TimelineEnd - 1;
+                }
+                Draw_Timeline();
+                SDL_GL_SwapBuffers();
             }
             else if (mod & KMOD_CTRL)
                 Camera->T->rot[1] -= pi30;
