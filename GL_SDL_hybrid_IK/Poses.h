@@ -85,7 +85,7 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame)
     pose * P = D->P;
     timeline * Tm;
     transformer * T;
-    int f, t, frame0, frame1, frame00, frame11;
+    int t, frame0, frame1, frame00, frame11;
 
     float a, b, d;
 //    float rotVec_[3][3];

@@ -10551,18 +10551,44 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
     }
     else if (letter == 13 || letter == 10) // return, enter
     {
-        subcharacter * S = subcharacters[currentSubcharacter];
-        pose * P = subcharacter_Poses[currentSubcharacterPose];
-        apply_Subcharacter_Pose(S, P);
-        compose_Subcharacter_Pose(S);
-        compose_Subcharacter_Hierarchy(S);
+        if (!BIND_POSE)
+        {
+            subcharacter * S = subcharacters[currentSubcharacter];
+            pose * P = subcharacter_Poses[currentSubcharacterPose];
+            apply_Subcharacter_Pose(S, P);
+            compose_Subcharacter_Pose(S);
+            compose_Subcharacter_Hierarchy(S);
 
-        solve_IK_Chains(S->Deformer);
-        normalize_IK_Spines(S->Deformer);
+            solve_IK_Chains(S->Deformer);
+            normalize_IK_Spines(S->Deformer);
 
-        deformer * D = S->Deformer;
+            deformer * D = S->Deformer;
 
-        update_Deformed_View(D, 1);
+            update_Deformed_View(D, 1);
+        }
+    }
+    else if (letter == 'i' && (mod & KMOD_CTRL))
+    {
+        if (deformerIndex > 0 && currentDeformer_Node >= 0)
+        {
+            frame = currentFrame;
+
+            D = deformers[currentDeformer_Node];
+            insert_Deformer_keyframe(D, frame);
+
+            Draw_Timeline();
+            SDL_GL_SwapBuffers();
+
+            if (D->Transformers_Count > 0)
+            {
+                T = D->Transformers[0];
+                printf("\n ,%d, ", frame);
+                for (f = 0; f < T->Timeline->key_frames; f ++)
+                {
+                    printf("%d ", T->Timeline->Frames[f]);
+                }
+            }
+        }
     }
 }
 
@@ -17542,6 +17568,8 @@ int main(int argc, char * args[])
             }
             else if (event.type == SDL_MOUSEBUTTONUP) // scroll up
             {
+                //printf("currentDeformer currentDeformer_Node %d, %d\n", currentDeformer, currentDeformer_Node);
+
                 mouse_button_down = 0;
                 Drag_Dialog = 0;
                 if (Drag_Timeline)
