@@ -20419,17 +20419,18 @@ int main(int argc, char * args[])
             {
                 open_ImagesDir();
             }
-
             else if (mod & KMOD_CTRL)
             {
-                /*
                 if (deformerIndex > 0 && currentDeformer_Node >= 0)
                 {
-                    frame = frames[currentFrame ++];
-                    if (currentFrame >= frames_Count)
-                        currentFrame = 0;
+                    frame = currentFrame;
+
                     D = deformers[currentDeformer_Node];
                     insert_Deformer_keyframe(D, frame);
+
+                    Draw_Timeline();
+                    SDL_GL_SwapBuffers();
+
                     if (D->Transformers_Count > 0)
                     {
                         T = D->Transformers[0];
@@ -20440,7 +20441,6 @@ int main(int argc, char * args[])
                         }
                     }
                 }
-                */
             }
             else if (mod & KMOD_ALT)
             {
