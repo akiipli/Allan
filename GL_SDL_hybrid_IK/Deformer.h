@@ -1614,7 +1614,10 @@ void change_Key_Acceleration(deformer * D, int f, int frame, int change)
                         Tm->Acceleration[f].segment_type = 3;
                     }
                     if (t == 0)
-                        printf("%d\n", Tm->Acceleration[f].segment_type);
+                    {
+                        ACCELERATION_DEFAULT = Tm->Acceleration[f].segment_type;
+                        printf("ACCELERATION DEFAULT %s\n", Acceleration_Names[Tm->Acceleration[f].segment_type]);
+                    }
                 }
             }
         }

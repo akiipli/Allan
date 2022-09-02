@@ -731,6 +731,7 @@ int init()
     init_labels();
     init_cursors();
     init_scene_extensions();
+    init_Acceleration_Names();
     return 1;
 }
 
@@ -2434,7 +2435,7 @@ void Draw_Timeline()
 	char label[STRLEN];
     int w = screen_width;
     int h = BUTTON_HEIGHT;
-    int inc = BUTTON_HEIGHT / 4;
+    int inc = BUTTON_HEIGHT / ACCELERATIONS;
 
     glScissor(SIDEBAR, BOTTOM_LINE, w, h);
     glViewport(SIDEBAR, BOTTOM_LINE, w, h);

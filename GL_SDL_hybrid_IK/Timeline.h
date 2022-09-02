@@ -7,13 +7,24 @@ Copyright <2022> <Allan Kiipli>
 #ifndef TIMELINE_H_INCLUDED
 #define TIMELINE_H_INCLUDED
 
-#define ACCELERATION_DEFAULT 3
+int ACCELERATION_DEFAULT = 3;
 #define ACCELERATION_DEFAULT_OUT 2.0
 #define ACCELERATION_DEFAULT_IN 2.0
 #define ACCELERATION_NONE 0
 #define ACCELERATION_START 1
 #define ACCELERATION_END 2
 #define ACCELERATION_MID 3
+#define ACCELERATIONS 4
+
+char Acceleration_Names[ACCELERATIONS][32];
+
+void init_Acceleration_Names()
+{
+    sprintf(Acceleration_Names[0], "NONE");
+    sprintf(Acceleration_Names[1], "START");
+    sprintf(Acceleration_Names[2], "END");
+    sprintf(Acceleration_Names[3], "MID");
+}
 
 int frame, f, result;
 int currentFrame = 0;
