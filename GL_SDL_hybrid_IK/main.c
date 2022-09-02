@@ -30,7 +30,7 @@ int RESET = 0;
 #include "Dialog.h"
 #include <dirent.h>
 #include "Cursors.h"
-#include <time.h>
+#include <sys/time.h>
 #include <pthread.h>
 #include <assert.h>
 
@@ -7113,9 +7113,19 @@ void init_Timeline_Segments(deformer * D, int TimelineStart)
     }
 }
 
+float time_difference_in_msec(struct timeval t0, struct timeval t1)
+{
+    return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
+}
+
 void deformer_Keyframe_Player()
 {
     printf("deformer Keyframe Player\n");
+
+    struct timeval TimeValue;
+    struct timeval NextFrame;
+
+    float framerate_in_msec = 1000.0 / 60.0;
 
     timeline * Tm;
     transformer * T;
@@ -7218,6 +7228,8 @@ void deformer_Keyframe_Player()
     int Time_frames = TimelineEnd - TimelineStart; // keyframe may not exceed it
 
     printf("Playing\n");
+
+    gettimeofday(&TimeValue, 0);
 
     for (f = TimelineStart; f >= 0; f ++)
     {
@@ -7357,6 +7369,16 @@ void deformer_Keyframe_Player()
                 }
             }
         }
+
+        gettimeofday(&NextFrame, 0);
+
+        while (time_difference_in_msec(TimeValue, NextFrame) < framerate_in_msec)
+        {
+            // printf("excess of time\n");
+            gettimeofday(&NextFrame, 0);
+        }
+
+        gettimeofday(&TimeValue, 0);
 
         D0->Delta[0] += delta[0];
         D0->Delta[2] += delta[2];
