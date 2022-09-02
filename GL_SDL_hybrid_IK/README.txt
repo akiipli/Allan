@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+1:13 PM 9/2/2022
+When cursor is in Timeline height, Up and Down arrows change kurrent keyframe segment type for selected Deformer.
+This type is displayed in Timeline as keyframe height. shortest height means Acceleration Mid, follow
+Acceleration End, Start and None.
+
 10:32 AM 9/1/2022
 Left and Right Arrows advance currentFrame when Timeline is on. Alt + T switch Timeline on and off.
 

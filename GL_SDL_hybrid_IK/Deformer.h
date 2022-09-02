@@ -1547,4 +1547,78 @@ void update_Deformer_object_Curves(deformer * D, int level)
     }
 }
 
+int find_currentKey(deformer * D, int frame)
+{
+    int f;
+
+    transformer * T;
+    timeline * Tm;
+
+    if (D->Transformers_Count > 0)
+    {
+        T = D->Transformers[0];
+
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+
+            for (f = 0; f < Tm->key_frames; f ++)
+            {
+                if (frame == Tm->Frames[f])
+                {
+                    return f;
+                }
+            }
+            return -1;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+void change_Key_Acceleration(deformer * D, int f, int frame, int change)
+{
+    int t;
+
+    transformer * T;
+    timeline * Tm;
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        T = D->Transformers[t];
+
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+
+            if (f < Tm->key_frames)
+            {
+                if (Tm->Frames[f] == frame)
+                {
+                    if (change > 0)
+                        Tm->Acceleration[f].segment_type ++;
+                    else
+                        Tm->Acceleration[f].segment_type --;
+                    if (Tm->Acceleration[f].segment_type > 3)
+                    {
+                        Tm->Acceleration[f].segment_type = 0;
+                    }
+                    if (Tm->Acceleration[f].segment_type < 0)
+                    {
+                        Tm->Acceleration[f].segment_type = 3;
+                    }
+                    if (t == 0)
+                        printf("%d\n", Tm->Acceleration[f].segment_type);
+                }
+            }
+        }
+    }
+}
+
 #endif // DEFORMER_H_INCLUDED
