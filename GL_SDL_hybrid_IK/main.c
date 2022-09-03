@@ -6748,7 +6748,7 @@ void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
-void apply_Pose_position_keyframes(deformer * D, pose * P)
+void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
     {
@@ -6759,6 +6759,25 @@ void apply_Pose_position_keyframes(deformer * D, pose * P)
 
         if (D->Transformers_Count > 0)
         {
+            transformer * T = D->Transformers[0];
+
+            float Delta_[3];
+
+            if (linear_pose)
+            {
+                Delta_[0] = Delta[0];
+                Delta_[1] = Delta[1];
+                Delta_[2] = Delta[2];
+            }
+            else
+            {
+                Delta_[0] = Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
+                Delta_[1] = Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
+                Delta_[2] = Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
+            }
+
+            move_Pose_T(T, Delta_);
+
             if (ROTATED_POSE)
                 rotate_Pose(D);
 
@@ -7410,7 +7429,7 @@ void deformer_Keyframe_Player()
                             create_Inbetween_Frame_Pose(D, frame);
                         }
                     }
-                    apply_Pose_position_keyframes(D, D->P);
+                    apply_Pose_position_keyframes(D, D->P, D->Delta);
 
                     update_Deformer_Objects_Curves_Coordinates(D);
                     update_Deformer_object_Curves(D, subdLevel);
@@ -13567,6 +13586,37 @@ void select_Deformer_Objects()
 
         assert_Object_Selection();
         assert_Current_Object();
+    }
+}
+
+void update_Deformer(deformer * D)
+{
+    Update_Objects_Count = 0;
+
+    rotate_collect(T);
+    rotate_vertex_groups_D_Init();
+
+    rotate_Deformer_verts(D);
+
+    update_Deformer_Objects_Curves_Coordinates(T->Deformer);
+    update_Deformer_object_Curves(T->Deformer, subdLevel);
+    update_Deformer_object_Curves(T->Deformer, subdLevel);
+
+    update_rotate_bounding_box();
+
+    if (subdLevel > -1)
+    {
+        int o;
+        object * O0;
+
+        for (o = 0; o < Update_Objects_Count; o ++)
+        {
+            O0 = Update_Objects[o];
+            if (O0->deforms)
+            {
+                tune_subdivide_post_transformed(O0, subdLevel);
+            }
+        }
     }
 }
 
@@ -19748,6 +19798,15 @@ int main(int argc, char * args[])
                     if (T->Deformer != NULL && multi_Rotation)
                     {
                         collect_Deformer_multi_Rotation(T, T->Deformer);
+
+                        if (T == T->Deformer->Transformers[0])
+                        {
+                            T->Deformer->rot[0] = 0.0;
+                            T->Deformer->rot[1] = 0.0;
+                            T->Deformer->rot[2] = 0.0;
+
+                            memcpy(T->Deformer->rotVec, Identity_, sizeof(float[3][3]));
+                        }
                     }
 
                     if (multi_Rotation && multi_Rotation_Transformers_Count > 1)
@@ -19768,6 +19827,8 @@ int main(int argc, char * args[])
                         T->rot[1] = 0.0;
                         T->rot[2] = 0.0;
                     }
+
+                    update_Deformer(D);
 
                     if (O->curve_count > 0)
                     {
@@ -19863,33 +19924,7 @@ int main(int argc, char * args[])
                     D->Delta[1] = 0;
                     D->Delta[2] = 0;
 
-                    Update_Objects_Count = 0;
-
-                    rotate_collect(T);
-                    rotate_vertex_groups_D_Init();
-
-                    rotate_Deformer_verts(D);
-
-                    update_Deformer_Objects_Curves_Coordinates(T->Deformer);
-                    update_Deformer_object_Curves(T->Deformer, subdLevel);
-                    update_Deformer_object_Curves(T->Deformer, subdLevel);
-
-                    update_rotate_bounding_box();
-
-                    if (subdLevel > -1)
-                    {
-                        int o;
-                        object * O0;
-
-                        for (o = 0; o < Update_Objects_Count; o ++)
-                        {
-                            O0 = Update_Objects[o];
-                            if (O0->deforms)
-                            {
-                                tune_subdivide_post_transformed(O0, subdLevel);
-                            }
-                        }
-                    }
+                    update_Deformer(D);
                 }
             }
         }
