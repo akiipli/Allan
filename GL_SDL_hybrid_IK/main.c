@@ -19266,7 +19266,20 @@ int main(int argc, char * args[])
 
                     currentKey = find_currentKey(D, currentFrame);
                     if (currentKey >= 0)
-                        change_Key_Acceleration(D, currentKey, currentFrame, 1);
+                    {
+                        if (mod & KMOD_CTRL)
+                        {
+                            change_Key_AB_Exponent(D, currentKey, currentFrame, 0, 1); // A
+                        }
+                        else if (mod & KMOD_ALT)
+                        {
+                            change_Key_AB_Exponent(D, currentKey, currentFrame, 1, 1); // B
+                        }
+                        else
+                        {
+                            change_Key_Acceleration(D, currentKey, currentFrame, 1);
+                        }
+                    }
 
                     Draw_Timeline();
                     SDL_GL_SwapBuffers();
@@ -19381,7 +19394,20 @@ int main(int argc, char * args[])
 
                     currentKey = find_currentKey(D, currentFrame);
                     if (currentKey >= 0)
-                        change_Key_Acceleration(D, currentKey, currentFrame, -1);
+                    {
+                        if (mod & KMOD_CTRL)
+                        {
+                            change_Key_AB_Exponent(D, currentKey, currentFrame, 0, -1); // A
+                        }
+                        else if (mod & KMOD_ALT)
+                        {
+                            change_Key_AB_Exponent(D, currentKey, currentFrame, 1, -1); // B
+                        }
+                        else
+                        {
+                            change_Key_Acceleration(D, currentKey, currentFrame, -1);
+                        }
+                    }
 
                     Draw_Timeline();
                     SDL_GL_SwapBuffers();

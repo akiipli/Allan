@@ -16,6 +16,9 @@ int ACCELERATION_DEFAULT = 3;
 #define ACCELERATION_MID 3
 #define ACCELERATIONS 4
 
+float EXPONENT_CHANGE = 0.2;
+#define EXPONENT_MAX 5.0
+
 char Acceleration_Names[ACCELERATIONS][32];
 
 void init_Acceleration_Names()

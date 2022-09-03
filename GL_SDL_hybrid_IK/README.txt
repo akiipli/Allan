@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+8:27 PM 9/3/2022
+When Drawing Timeline is on and cursor is in Timeline height, shortcuts with up and down arrows are possible.
+Modify with Ctrl: up increases Keyframe A exponent, down decreases A exponent. Alt modifier modifies B exponent.
+Exponent sets acceleration steepness. Default is 2.0, change rate is 0.2. Max exponent is 5.0
+
 1:13 PM 9/2/2022
 When cursor is in Timeline height, Up and Down arrows change kurrent keyframe segment type for selected Deformer.
 This type is displayed in Timeline as keyframe height. shortest height means Acceleration Mid, follow

@@ -1584,6 +1584,69 @@ int find_currentKey(deformer * D, int frame)
     }
 }
 
+void change_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int change)
+{
+    int t;
+
+    transformer * T;
+    timeline * Tm;
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        T = D->Transformers[t];
+
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+
+            if (f < Tm->key_frames)
+            {
+                if (Tm->Frames[f] == frame)
+                {
+                    if (AB == 0) // A
+                    {
+                        if (change == 1)
+                            Tm->Acceleration[f].a_exponent += EXPONENT_CHANGE;
+                        else
+                            Tm->Acceleration[f].a_exponent -= EXPONENT_CHANGE;
+                        if (Tm->Acceleration[f].a_exponent > EXPONENT_MAX)
+                        {
+                            Tm->Acceleration[f].a_exponent = EXPONENT_MAX;
+                        }
+                        if (Tm->Acceleration[f].a_exponent < 1)
+                        {
+                            Tm->Acceleration[f].a_exponent = 1.0;
+                        }
+                        if (t == 0)
+                        {
+                            printf("ACCELERATION A EXPONENT %f\n", Tm->Acceleration[f].a_exponent);
+                        }
+                    }
+                    else if (AB == 1) // B
+                    {
+                        if (change == 1)
+                            Tm->Acceleration[f].b_exponent += EXPONENT_CHANGE;
+                        else
+                            Tm->Acceleration[f].b_exponent -= EXPONENT_CHANGE;
+                        if (Tm->Acceleration[f].b_exponent > EXPONENT_MAX)
+                        {
+                            Tm->Acceleration[f].b_exponent = EXPONENT_MAX;
+                        }
+                        if (Tm->Acceleration[f].b_exponent < 1)
+                        {
+                            Tm->Acceleration[f].b_exponent = 1.0;
+                        }
+                        if (t == 0)
+                        {
+                            printf("ACCELERATION B EXPONENT %f\n", Tm->Acceleration[f].b_exponent);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void change_Key_Acceleration(deformer * D, int f, int frame, int change)
 {
     int t;
