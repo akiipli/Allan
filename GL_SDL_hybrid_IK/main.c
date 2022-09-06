@@ -17799,7 +17799,7 @@ int main(int argc, char * args[])
                         }
                         printf("\r%d     ", currentFrame);
                     }
-                    else if (DRAW_TIMELINE && !dialog_lock)
+                    else if (!object_hook && !Camera_screen_lock && DRAW_TIMELINE && !dialog_lock)
                     {
                         if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
                         {
@@ -17844,7 +17844,7 @@ int main(int argc, char * args[])
                         }
                     }
 
-                    if (Drag_Displacement)
+                    else if (Drag_Displacement)
                     {
                         DragDelta = mouse_x - Drag_X;
                         DisplacementDelta = (float)DragDelta / 100.0;
