@@ -7250,14 +7250,14 @@ void deformer_Keyframe_Player()
 
     gettimeofday(&TimeValue, 0);
 
-    for (f = TimelineStart; f >= 0; f ++)
+    for (f = 0; f >= 0; f ++)
     {
 //        if (f >= Time_frames)
 //        {
 //            break;
 //        }
 
-        frame = f % Time_frames;
+        frame = f % Time_frames + TimelineStart;
 
         printf("\r%d    ", frame);
 
