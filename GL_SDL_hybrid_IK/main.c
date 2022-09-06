@@ -7121,8 +7121,11 @@ void init_Timeline_Segments(deformer * D, int TimelineStart)
             Tm->current_Segment = 0;
             for (f = 0; f < Tm->key_frames; f ++)
             {
-                Tm->current_Segment = f;
-                if (Tm->Frames[f] >= TimelineStart)
+                if (Tm->Frames[f] <= TimelineStart)
+                {
+                    Tm->current_Segment = f;
+                }
+                else
                 {
                     break;
                 }
@@ -7252,12 +7255,12 @@ void deformer_Keyframe_Player()
 
     for (f = 0; f >= 0; f ++)
     {
-//        if (f >= Time_frames)
-//        {
-//            break;
-//        }
+        if (f >= Time_frames)
+        {
+            f = 0;
+        }
 
-        frame = f % Time_frames + TimelineStart;
+        frame = TimelineStart + f;
 
         printf("\r%d    ", frame);
 
