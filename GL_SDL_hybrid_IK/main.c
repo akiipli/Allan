@@ -2889,6 +2889,11 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
     if (DRAW_UI && !mouse_button_down && !Camera_screen_lock)
     {
         Draw_Ui();
+
+        if (DRAW_TIMELINE)
+        {
+            Draw_Timeline();
+        }
     }
 
     if (drag_rectangle && !UPDATEDRAG)
@@ -2899,11 +2904,6 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
     if (!drag_rectangle && SHADERS && HINTS)
     {
         display_font(Hint, screen_width, screen_height, 0);
-    }
-
-    if (DRAW_TIMELINE)
-    {
-        Draw_Timeline();
     }
 
     if (Swap)
@@ -3147,6 +3147,7 @@ camera * find_View(int mouse_x, int mouse_y, int splitview)
     else
     {
         Camera->sidebar = 0;
+
         if (DRAW_TIMELINE)
         {
             if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
@@ -3162,6 +3163,7 @@ camera * find_View(int mouse_x, int mouse_y, int splitview)
         {
             Camera->time_line = 0;
         }
+
         if (mouse_y > screen_height)
         {
             Camera->bottom_line = 1;
@@ -17784,67 +17786,7 @@ int main(int argc, char * args[])
 
                 if (!Edit_Properties)
                 {
-                    if (Drag_Timeline)
-                    {
-                        b = (float)(mouse_x - (SIDEBAR + TIMELINE_ENTRY)) / (float)(screen_width - TIMELINE_ENTRY * 2);
-                        a = 1.0 - b;
-                        currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
-                        if (currentFrame < TimelineStart)
-                        {
-                            currentFrame = TimelineStart;
-                        }
-                        if (currentFrame >= TimelineEnd)
-                        {
-                            currentFrame = TimelineEnd - 1;
-                        }
-                        printf("\r%d     ", currentFrame);
-                    }
-                    else if (!object_hook && !Camera_screen_lock && DRAW_TIMELINE && !dialog_lock)
-                    {
-                        if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
-                        {
-                            if (mouse_x < SIDEBAR + TIMELINE_ENTRY)
-                            {
-                                if (highlight_start == 0)
-                                {
-                                    highlight_start = 1;
-                                    Draw_Timeline();
-                                    SDL_GL_SwapBuffers();
-                                }
-                            }
-                            else if (mouse_x > SIDEBAR + screen_width - TIMELINE_ENTRY)
-                            {
-                                if (highlight_end == 0)
-                                {
-                                    highlight_end = 1;
-                                    Draw_Timeline();
-                                    SDL_GL_SwapBuffers();
-                                }
-                            }
-                            else
-                            {
-                                if (highlight_start != 0 || highlight_end != 0)
-                                {
-                                    highlight_start = 0;
-                                    highlight_end = 0;
-                                    Draw_Timeline();
-                                    SDL_GL_SwapBuffers();
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (highlight_start != 0 || highlight_end != 0)
-                            {
-                                highlight_start = 0;
-                                highlight_end = 0;
-                                Draw_Timeline();
-                                SDL_GL_SwapBuffers();
-                            }
-                        }
-                    }
-
-                    else if (Drag_Displacement)
+                    if (Drag_Displacement)
                     {
                         DragDelta = mouse_x - Drag_X;
                         DisplacementDelta = (float)DragDelta / 100.0;
@@ -19245,6 +19187,55 @@ int main(int argc, char * args[])
                         SDL_GL_SwapBuffers();
 
                         message = 0;
+                    }
+                    else if (DRAW_TIMELINE)
+                    {
+                        if (Drag_Timeline)
+                        {
+                            b = (float)(mouse_x - (SIDEBAR + TIMELINE_ENTRY)) / (float)(screen_width - TIMELINE_ENTRY * 2);
+                            a = 1.0 - b;
+                            currentFrame = (float)TimelineStart * a + (float)TimelineEnd * b;
+                            if (currentFrame < TimelineStart)
+                            {
+                                currentFrame = TimelineStart;
+                            }
+                            if (currentFrame >= TimelineEnd)
+                            {
+                                currentFrame = TimelineEnd - 1;
+                            }
+                            printf("\r%d     ", currentFrame);
+                        }
+                        else if (!object_hook && !Camera_screen_lock && !dialog_lock)
+                        {
+                            if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
+                            {
+                                if (mouse_x < SIDEBAR + TIMELINE_ENTRY)
+                                {
+                                    if (highlight_start == 0)
+                                    {
+                                        highlight_start = 1;
+                                        Draw_Timeline();
+                                        SDL_GL_SwapBuffers();
+                                    }
+                                }
+                                else if (mouse_x > SIDEBAR + screen_width - TIMELINE_ENTRY)
+                                {
+                                    if (highlight_end == 0)
+                                    {
+                                        highlight_end = 1;
+                                        Draw_Timeline();
+                                        SDL_GL_SwapBuffers();
+                                    }
+                                }
+                            }
+                            else if (highlight_start != 0 || highlight_end != 0)
+                            {
+                                highlight_start = 0;
+                                highlight_end = 0;
+                                Draw_Timeline();
+                                SDL_GL_SwapBuffers();
+                            }
+                        }
                     }
                     else
                     {
