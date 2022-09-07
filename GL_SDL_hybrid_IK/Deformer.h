@@ -1310,42 +1310,45 @@ void order_deformers_IK_Chains(deformer * D)
     int counter = 0;
     int i, d, condition;
 
-    ikChain ** IKList = malloc(D->Bones_Count * sizeof(ikChain*));
-    ikChain * currentIK = NULL;
-
-    if (T->Bone != NULL && T->Bone->IK != NULL)
+    ikChain * IKList[D->Bones_Count];
+    if (IKList != NULL)
     {
-        IKList[l[0] ++] = T->Bone->IK;
-        currentIK = T->Bone->IK;
-    }
+        ikChain * currentIK = NULL;
 
-    for (c = 0; c < T->childcount; c ++)
-    {
-        C = T->childs[c];
-        order_IK_Chains(IKList, l, currentIK, C);
-    }
-
-    D->IKchains[counter ++] = IKList[0];
-
-    for (i = 1; i < l[0]; i ++)
-    {
-        if (counter >= D->IKchains_Count)
-            break;
-
-        condition = 1;
-        for (d = 0; d < counter; d ++)
+        if (T->Bone != NULL && T->Bone->IK != NULL)
         {
-            if (IKList[i] == D->IKchains[d])
-            {
-                condition = 0;
-                break;
-            }
+            IKList[l[0] ++] = T->Bone->IK;
+            currentIK = T->Bone->IK;
         }
-        if (condition)
-            D->IKchains[counter ++] = IKList[i];
-    }
 
-    free(IKList);
+        for (c = 0; c < T->childcount; c ++)
+        {
+            C = T->childs[c];
+            order_IK_Chains(IKList, l, currentIK, C);
+        }
+
+        D->IKchains[counter ++] = IKList[0];
+
+        for (i = 1; i < l[0]; i ++)
+        {
+            if (counter >= D->IKchains_Count)
+                break;
+
+            condition = 1;
+            for (d = 0; d < counter; d ++)
+            {
+                if (IKList[i] == D->IKchains[d])
+                {
+                    condition = 0;
+                    break;
+                }
+            }
+            if (condition)
+                D->IKchains[counter ++] = IKList[i];
+        }
+
+        //free(IKList);
+    }
 }
 
 void hierarchycal_IK_Chains()
