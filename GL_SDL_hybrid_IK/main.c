@@ -7142,6 +7142,139 @@ float time_difference_in_msec(struct timeval t0, struct timeval t1)
     return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
 }
 
+void goto_Deformer_Frame(deformer * D, int frame)
+{
+    printf("goto Deformer Frame\n");
+
+    timeline * Tm;
+    transformer * T;
+    object * O;
+
+    int u, o, t;
+
+    Update_Objects_Count = 0;
+    Transformer_Objects_Count = 0;
+
+    int condition;
+
+    DRAW_UI = 1;
+
+    //ELEMENT_ARRAYS = 1;
+    init_Hint();
+
+    if (subdLevel > -1)
+    {
+        load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
+    }
+    else
+    {
+        load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+    }
+
+    UPDATE_COLORS = 1;
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    UPDATE_COLORS = 0;
+
+    DRAW_UI = 0;
+
+    D->P = init_Deformer_P(D);
+
+    fill_Start_Pose(D, D->P);
+
+    if (D->Transformers_Count > 0)
+    {
+        T = D->Transformers[0];
+
+        if (T->Timeline != NULL)
+        {
+            init_Timeline_Segments(D, frame);
+
+            for (o = 0; o < D->Objects_Count; o ++)
+            {
+                O = D->Objects[o];
+                condition = 1;
+                for (u = 0; u < Update_Objects_Count; u ++)
+                {
+                    if (Update_Objects[u] == O)
+                    {
+                        condition = 0;
+                        break;
+                    }
+                }
+                if (condition)
+                {
+                    Update_Objects[Update_Objects_Count ++] = O;
+                }
+            }
+
+            for (t = 0; t < D->Transformers_Count; t ++)
+            {
+                if (D->Transformers[t]->Object != NULL)
+                {
+                    Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
+                }
+            }
+        }
+    }
+
+    rotate_vertex_groups_D_Init();
+
+    if (D->rot[0] != 0)
+        rotate_axis(D->rot[0], D->rotVec[1], D->rotVec[2], D->rotVec[1], D->rotVec[2]);
+    if (D->rot[1] != 0)
+        rotate_axis(D->rot[1], D->rotVec[2], D->rotVec[0], D->rotVec[2], D->rotVec[0]);
+
+    if (D->Transformers_Count > 0)
+    {
+        T = D->Transformers[0];
+
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+            if (Tm->key_frames > 0 && frame >= Tm->Frames[0])
+            {
+                create_Inbetween_Frame_Pose(D, frame);
+            }
+            apply_Pose_position_keyframes(D, D->P, D->Delta);
+
+            update_Deformer_Objects_Curves_Coordinates(D);
+            update_Deformer_object_Curves(D, subdLevel);
+            update_Deformer_object_Curves(D, subdLevel);
+        }
+    }
+
+    update_rotate_bounding_box();
+
+    if (subdLevel > -1)
+    {
+        for (o = 0; o < Update_Objects_Count; o ++)
+        {
+            O = Update_Objects[o];
+            if (O->deforms)
+            {
+                tune_subdivide_post_transformed(O, subdLevel);
+            }
+        }
+    }
+
+    for (o = 0; o < Transformer_Objects_Count; o++)
+    {
+        O = Transformer_Objects[o];
+
+        rotate_verts(O, *O->T);
+        if (O->deforms)
+        {
+            tune_subdivide_post_transformed(O, subdLevel);
+        }
+    }
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    DRAW_UI = 1;
+}
+
 void deformer_Keyframe_Player()
 {
     printf("deformer Keyframe Player\n");
@@ -7157,7 +7290,7 @@ void deformer_Keyframe_Player()
     int t, u, o, f, d;
 
 //    pose * P;
-    object * O, * O0;
+    object * O;
     deformer * D;
     deformer * D0;
 //    transformer * T;
@@ -7176,6 +7309,7 @@ void deformer_Keyframe_Player()
     memcpy(delta, (float[3]){0, 0, 0}, sizeof(float[3]));
 
     Update_Objects_Count = 0;
+    Transformer_Objects_Count = 0;
 
     int condition;
 
@@ -7234,7 +7368,7 @@ void deformer_Keyframe_Player()
                         Update_Objects[Update_Objects_Count ++] = O;
                     }
                 }
-                Transformer_Objects_Count = 0;
+
                 for (t = 0; t < D->Transformers_Count; t ++)
                 {
                     if (D->Transformers[t]->Object != NULL)
@@ -7459,12 +7593,12 @@ void deformer_Keyframe_Player()
 
         for (o = 0; o < Transformer_Objects_Count; o++)
         {
-            O0 = Transformer_Objects[o];
+            O = Transformer_Objects[o];
 
-            rotate_verts(O0, *O0->T);
+            rotate_verts(O, *O->T);
             if (O->deforms)
             {
-                tune_subdivide_post_transformed(O0, subdLevel);
+                tune_subdivide_post_transformed(O, subdLevel);
             }
         }
         if (TURNTABLE && Camera == &Camera_Persp)
@@ -7495,7 +7629,7 @@ void deformer_Player()
     float w0, w1;
 
 //    pose * P;
-    object * O, * O0;
+    object * O;
     deformer * D;
     deformer * D0;
 //    transformer * T;
@@ -7516,6 +7650,7 @@ void deformer_Player()
     int frames = 10;
 
     Update_Objects_Count = 0;
+    Transformer_Objects_Count = 0;
 
     int condition;
 
@@ -7573,7 +7708,7 @@ void deformer_Player()
                 Update_Objects[Update_Objects_Count ++] = O;
             }
         }
-        Transformer_Objects_Count = 0;
+
         for (t = 0; t < D->Transformers_Count; t ++)
         {
             if (D->Transformers[t]->Object != NULL)
@@ -7812,12 +7947,12 @@ void deformer_Player()
 
             for (o = 0; o < Transformer_Objects_Count; o++)
             {
-                O0 = Transformer_Objects[o];
+                O = Transformer_Objects[o];
 
-                rotate_verts(O0, *O0->T);
+                rotate_verts(O, *O->T);
                 if (O->deforms)
                 {
-                    tune_subdivide_post_transformed(O0, subdLevel);
+                    tune_subdivide_post_transformed(O, subdLevel);
                 }
             }
             if (TURNTABLE && Camera == &Camera_Persp)
@@ -21350,6 +21485,14 @@ int main(int argc, char * args[])
                 Camera = find_View(mouse_x, mouse_y, splitview);
                 O = objects[currentObject];
                 project_Selected_Locators(Camera, O, selected_transformers, selected_transformer_count);
+            }
+            else if (DRAW_TIMELINE)
+            {
+                if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                {
+                    D = deformers[currentDeformer_Node];
+                    goto_Deformer_Frame(D, currentFrame);
+                }
             }
             message = -1;
         }

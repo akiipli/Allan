@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+11:25 AM 9/7/2022
+Enter in View without Bind Mode establishes current Frame for current Deformer with view update.
+
 8:27 PM 9/3/2022
 When Drawing Timeline is on and cursor is in Timeline height, shortcuts with up and down arrows are possible.
 Modify with Ctrl: up increases Keyframe A exponent, down decreases A exponent. Alt modifier modifies B exponent.
