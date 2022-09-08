@@ -104,9 +104,10 @@ void free_Constraint(constraint * C)
     free(C);
 }
 
-void delete_Pole(ikChain * I)
+transformer * delete_Pole(ikChain * I)
 {
     constraint * C;
+    transformer * T;
 
     int c, index;
 
@@ -135,13 +136,20 @@ void delete_Pole(ikChain * I)
         I->Pole = NULL;
         C->IK_goal->Constraint = NULL;
         C->Locator->Constraint = NULL;
+        T = C->Locator;
         free_Constraint(C);
+        return T;
+    }
+    else
+    {
+        return NULL;
     }
 }
 
-void delete_Constraint(ikChain * I)
+transformer * delete_Constraint(ikChain * I)
 {
     constraint * C;
+    transformer * T;
 
     int c, index;
 
@@ -170,7 +178,13 @@ void delete_Constraint(ikChain * I)
         I->C = NULL;
         C->IK_goal->Constraint = NULL;
         C->Locator->Constraint = NULL;
+        T = C->Locator;
         free_Constraint(C);
+        return T;
+    }
+    else
+    {
+        return NULL;
     }
 }
 

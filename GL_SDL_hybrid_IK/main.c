@@ -9265,38 +9265,6 @@ void delete_Bone(bone * B)
     }
 }
 
-void remove_IK()
-{
-    set_IK_H_Button(0);
-    printf("remove IK\n");
-    if (currentIK >= 0 && currentIK < iksIndex)
-    {
-        if (BIND_POSE)
-        {
-            /* remove here */
-            ikChain * I = ikChains[currentIK];
-            remove_ikChain_From_ikChains_(I);
-            IKIndex --;
-            if (IKIndex < 0)
-                IKIndex = 0;
-            currentIK --;
-            if (currentIK < 0)
-                currentIK = 0;
-            if (currentLocator >= 0 && currentLocator < transformerIndex)
-            {
-                T = transformers[currentLocator];
-            }
-            else
-            {
-                T = transformers[0];
-                currentLocator = 0;
-            }
-        }
-        if (dialog_lock)
-            draw_Dialog();
-    }
-}
-
 void remove_Bone()
 {
     set_Bone_H_Button(0);
@@ -9645,56 +9613,6 @@ void add_IK_Constraint()
 
             DRAW_UI = 0;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-            draw_Dialog();
-            DRAW_UI = 1;
-        }
-    }
-}
-
-void remove_IK_Pole()
-{
-    if (BIND_POSE)
-    {
-        if (currentIK >= 0 && currentIK < iksIndex)
-        {
-            set_IK_H_Button(5);
-            printf("remove IK Pole\n");
-            ikChain * I = ikChains[currentIK];
-
-            if (I->Pole != NULL)
-            {
-                create_Transformers_List();
-                currentLocator = I->Pole->Locator->index;
-
-                delete_Pole(I);
-            }
-
-            DRAW_UI = 0;
-            draw_Dialog();
-            DRAW_UI = 1;
-        }
-    }
-}
-
-void remove_IK_Constraint()
-{
-    if (BIND_POSE)
-    {
-        if (currentIK >= 0 && currentIK < iksIndex)
-        {
-            set_IK_H_Button(3);
-            printf("remove IK Constraint\n");
-            ikChain * I = ikChains[currentIK];
-
-            if (I->C != NULL)
-            {
-                create_Transformers_List();
-                currentLocator = I->C->Locator->index;
-
-                delete_Constraint(I);
-            }
-
-            DRAW_UI = 0;
             draw_Dialog();
             DRAW_UI = 1;
         }
@@ -11933,58 +11851,229 @@ void delete_IK_Transformers(ikChain * I)
 
 void delete_Transformer(transformer * T0)
 {
-    int c;
-
-    //create_Transformers_List();
-
-    selected_transformer_count = 0;
-
-    child_collection_count = 0;
-
-    for (c = 0; c < T0->childcount; c ++)
+    if (T0->Constraint == NULL && T0->IK == NULL)
     {
-        child_collection[child_collection_count ++] = T0->childs[c];
+        int c;
+
+        //create_Transformers_List();
+
+        selected_transformer_count = 0;
+
+        child_collection_count = 0;
+
+        for (c = 0; c < T0->childcount; c ++)
+        {
+            child_collection[child_collection_count ++] = T0->childs[c];
+        }
+        for (c = 0; c < child_collection_count; c ++)
+        {
+            if (BIND_POSE)
+            {
+                remove_Child(child_collection[c], T0, T0->parent);
+            }
+            else
+            {
+                normalize_rotation_unparent(child_collection[c]);
+                remove_Child(child_collection[c], T0, T0->parent);
+                normalize_rotation_parent(child_collection[c]);
+            }
+        }
+        remove_Child(T0, T0->parent, NULL);
+
+        if (T0->Deformer != NULL)
+        {
+            remove_Transformer_From_Deformer(T0);
+        }
+
+        remove_Transformer_From_Transformers(T0);
+        remove_Transformer_From_Locators(T0);
+
+        free_Transformer(T0);
+        free(T0);
+
+    //    create_Hierarchys_List();
+
+        if (currentLocator >= transformerIndex - 1)
+            currentLocator = transformerIndex - 1;
+        if (currentLocator < 0)
+            currentLocator = 0;
+
+        T = transformers[currentLocator];
+
+        if (dialog_lock)
+        {
+            set_Hier_H_Button(4);
+            draw_Dialog();
+    //        UPDATE_BACKGROUND = 0;
+    //        update_Hierarchys_List(0, 0);
+        }
     }
-    for (c = 0; c < child_collection_count; c ++)
+}
+
+void delete_IK_Transformers(ikChain * I);
+
+void remove_ikChain_From_ikChains_(ikChain * I)
+{
+    int index, i, b;
+
+    bone * B;
+    transformer * T;
+
+    int condition = 0;
+
+    for (i = 0; i < iksIndex; i ++)
+    {
+        if (I == ikChains[i])
+        {
+            index = i;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+
+        // cycle and pack Deformers ikChains list
+        // cycle bones and set their IK member and IK to zero
+
+        for (b = 0; b < I->bonescount; b ++)
+        {
+            B = I->Bones[b];
+            B->IK = NULL;
+            B->IK_member = 0;
+        }
+
+        I->A->IK = NULL;
+        I->A->style = 0;
+        I->B->IK = NULL;
+        I->B->style = 0;
+
+
+        if(I->Deformer != NULL)
+        {
+            //printf("DEFORMER %s\n", I->Deformer->Name);
+            remove_ikChain_From_Deformer(I, I->Deformer);
+        }
+
+        if (I->C != NULL)
+        {
+            T = delete_Constraint(I);
+            if (T != NULL)
+            {
+                delete_Transformer(T);
+            }
+        }
+
+        if (I->Pole != NULL)
+        {
+            T = delete_Pole(I);
+            if (T != NULL)
+            {
+                delete_Transformer(T);
+            }
+        }
+
+        delete_IK_Transformers(I);
+
+        free_ikChain(I);
+
+        iksIndex --;
+        for (i = index; i < iksIndex; i ++)
+        {
+            ikChains[i] = ikChains[i + 1];
+            ikChains[i]->index = i;
+        }
+    }
+}
+
+void remove_IK()
+{
+    set_IK_H_Button(0);
+    printf("remove IK\n");
+    if (currentIK >= 0 && currentIK < iksIndex)
     {
         if (BIND_POSE)
         {
-            remove_Child(child_collection[c], T0, T0->parent);
+            /* remove here */
+            ikChain * I = ikChains[currentIK];
+            remove_ikChain_From_ikChains_(I);
+            IKIndex --;
+            if (IKIndex < 0)
+                IKIndex = 0;
+            currentIK --;
+            if (currentIK < 0)
+                currentIK = 0;
+            if (currentLocator >= 0 && currentLocator < transformerIndex)
+            {
+                T = transformers[currentLocator];
+            }
+            else
+            {
+                T = transformers[0];
+                currentLocator = 0;
+            }
         }
-        else
+        if (dialog_lock)
+            draw_Dialog();
+    }
+}
+
+void remove_IK_Pole()
+{
+    if (BIND_POSE)
+    {
+        if (currentIK >= 0 && currentIK < iksIndex)
         {
-            normalize_rotation_unparent(child_collection[c]);
-            remove_Child(child_collection[c], T0, T0->parent);
-            normalize_rotation_parent(child_collection[c]);
+            set_IK_H_Button(5);
+            printf("remove IK Pole\n");
+            ikChain * I = ikChains[currentIK];
+
+            if (I->Pole != NULL)
+            {
+                create_Transformers_List();
+                currentLocator = I->Pole->Locator->index;
+
+                T = delete_Pole(I);
+                if (T != NULL)
+                {
+                    delete_Transformer(T);
+                }
+            }
+
+//            DRAW_UI = 0;
+//            draw_Dialog();
+//            DRAW_UI = 1;
         }
     }
-    remove_Child(T0, T0->parent, NULL);
+}
 
-    if (T0->Deformer != NULL)
+void remove_IK_Constraint()
+{
+    if (BIND_POSE)
     {
-        remove_Transformer_From_Deformer(T0);
-    }
+        if (currentIK >= 0 && currentIK < iksIndex)
+        {
+            set_IK_H_Button(3);
+            printf("remove IK Constraint\n");
+            ikChain * I = ikChains[currentIK];
 
-    remove_Transformer_From_Transformers(T0);
-    remove_Transformer_From_Locators(T0);
+            if (I->C != NULL)
+            {
+                create_Transformers_List();
+                currentLocator = I->C->Locator->index;
 
-    free_Transformer(T0);
-    free(T0);
+                T = delete_Constraint(I);
+                if (T != NULL)
+                {
+                    delete_Transformer(T);
+                }
+            }
 
-//    create_Hierarchys_List();
-
-    if (currentLocator >= transformerIndex - 1)
-        currentLocator = transformerIndex - 1;
-    if (currentLocator < 0)
-        currentLocator = 0;
-
-    T = transformers[currentLocator];
-
-    if (dialog_lock)
-    {
-        set_Hier_H_Button(4);
-        UPDATE_BACKGROUND = 0;
-        update_Hierarchys_List(0, 0);
+//            DRAW_UI = 0;
+//            draw_Dialog();
+//            DRAW_UI = 1;
+        }
     }
 }
 
@@ -12021,7 +12110,7 @@ void delete_Locator()
         {
             condition = 0;
         }
-        if (T->Constraint != NULL)
+        if (current_T->Constraint != NULL)
         {
             condition = 0;
         }
@@ -19713,7 +19802,9 @@ int main(int argc, char * args[])
                     delete_Bone(T->Bone);
                 }
                 else
+                {
                     delete_Locator();
+                }
             }
             else if (Object_Mode)
                 delete_Object(currentObject, 1);
