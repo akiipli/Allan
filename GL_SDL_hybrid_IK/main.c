@@ -11424,72 +11424,76 @@ void handle_dialog(char letter, SDLMod mod)
 
 void draw_Dialog()
 {
-    Button_sidebar[Buttonindex_sidebar].color = UI_GRAYD;
     //SDL_SetCursor(Arrow);
     if (dialog_type == TIMELINE_DIALOG)
     {
         poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
     }
-    else if (dialog_type == SAVES_DIALOG)
-    {
-        open_Saves_List();
-    }
-    else if (dialog_type == LOADING_DIALOG)
-    {
-        open_Loading_List();
-    }
-    else if (dialog_type == BONE_DIALOG)
-    {
-        open_Bones_List();
-    }
-    else if (dialog_type == IK_DIALOG)
-    {
-        open_IK_List();
-    }
-    else if (dialog_type == SUBC_DIALOG)
-    {
-        open_Subcharacters_List();
-    }
-    else if (dialog_type == POSE_DIALOG)
-    {
-        open_Poses_List();
-    }
-    else if (dialog_type == DEFR_DIALOG)
-    {
-        open_Deformers_List();
-    }
-    else if (dialog_type == HIER_DIALOG)
-    {
-        open_Hierarchys_List();
-    }
-    else if (dialog_type == SELS_DIALOG)
-    {
-        open_Selections_List();
-    }
-    else if (dialog_type == TEXT_DIALOG)
-    {
-        open_Textures_List();
-    }
-    else if (dialog_type == ITEM_DIALOG)
-    {
-        open_Items_List();
-    }
-    else if (dialog_type == MATERIAL_DIALOG)
-    {
-        open_Materials_List();
-    }
     else
     {
-        if (dialog_type == OBJ_DIALOG)
+        Button_sidebar[Buttonindex_sidebar].color = UI_GRAYD;
+
+        if (dialog_type == SAVES_DIALOG)
         {
-            open_OBJ_List();
+            open_Saves_List();
         }
-        else if (dialog_type == IMG_DIALOG)
+        else if (dialog_type == LOADING_DIALOG)
         {
-            open_Img_List();
+            open_Loading_List();
         }
+        else if (dialog_type == BONE_DIALOG)
+        {
+            open_Bones_List();
+        }
+        else if (dialog_type == IK_DIALOG)
+        {
+            open_IK_List();
+        }
+        else if (dialog_type == SUBC_DIALOG)
+        {
+            open_Subcharacters_List();
+        }
+        else if (dialog_type == POSE_DIALOG)
+        {
+            open_Poses_List();
+        }
+        else if (dialog_type == DEFR_DIALOG)
+        {
+            open_Deformers_List();
+        }
+        else if (dialog_type == HIER_DIALOG)
+        {
+            open_Hierarchys_List();
+        }
+        else if (dialog_type == SELS_DIALOG)
+        {
+            open_Selections_List();
+        }
+        else if (dialog_type == TEXT_DIALOG)
+        {
+            open_Textures_List();
+        }
+        else if (dialog_type == ITEM_DIALOG)
+        {
+            open_Items_List();
+        }
+        else if (dialog_type == MATERIAL_DIALOG)
+        {
+            open_Materials_List();
+        }
+        else
+        {
+            if (dialog_type == OBJ_DIALOG)
+            {
+                open_OBJ_List();
+            }
+            else if (dialog_type == IMG_DIALOG)
+            {
+                open_Img_List();
+            }
+        }
+        Button_sidebar[Buttonindex_sidebar].color = UI_GRAYB;
     }
-    Button_sidebar[Buttonindex_sidebar].color = UI_GRAYB;
 }
 
 void handle_ControlDown()
