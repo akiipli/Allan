@@ -359,6 +359,7 @@ void create_Subcharacters_List(int SubcIndex)
     }
 }
 */
+
 void replace_Subcharacter_Name(char * EditString)
 {
     if (Subcharacter_List[SubcharacterIndex] >= 0 && Subcharacter_List[SubcharacterIndex] < SUBCHARACTERS)

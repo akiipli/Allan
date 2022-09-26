@@ -21,6 +21,7 @@ Copyright <2018> <Allan Kiipli>
 #define OBJECT_GROUP_V 4
 #define OBJECT_GROUP_H 4
 
+typedef struct morph_map morph_map;
 typedef struct cp cp;
 typedef struct curve curve;
 typedef struct curve_segment curve_segment;
@@ -527,6 +528,9 @@ struct object
     int segment_count;
     cp ** cps;
     int cps_count;
+
+    morph_map ** Morph_Maps;
+    int Morph_Maps_count;
 
     polygroup Polygroups[OBJECT_GROUP_V][OBJECT_GROUP_H];
 };

@@ -227,6 +227,42 @@ void free_transformers()
     }
 }
 
+void free_Morph(morph * Morph)
+{
+    free(Morph->Name);
+    free(Morph->Positions);
+    free(Morph);
+}
+
+void free_Morph_Map(morph_map * M)
+{
+    int i;
+    morph * Morph;
+
+    for (i = 0; i < M->MorphsCount; i ++)
+    {
+        Morph = M->Morphs[i];
+        free_Morph(Morph);
+    }
+    free(M->Name);
+    free(M->Verts);
+    free(M);
+}
+
+void free_Morph_Maps(object * O)
+{
+    int i;
+    morph_map * M;
+
+    for (i = 0; i < O->Morph_Maps_count; i ++)
+    {
+        M = O->Morph_Maps[i];
+        free_Morph_Map(M);
+    }
+
+    free(O->Morph_Maps);
+}
+
 void free_selections(object * O)
 {
     int i;
@@ -637,6 +673,8 @@ void free_object(object * O)
         }
     }
 
+    free_Morph_Maps(O);
+
     int x, y;
 
     for (y = 0; y < OBJECT_GROUP_V; y ++)
@@ -864,6 +902,9 @@ int initialize_object(int index,
     O->vertex_selection = malloc(0 * sizeof(vert_selection*));
 
     O->WEncapsulator = malloc(O->vertcount * sizeof(weight_encapsulator));
+
+    O->Morph_Maps = malloc(0 * sizeof(morph_map*));
+    O->Morph_Maps_count = 0;
 
     int x, y;
 

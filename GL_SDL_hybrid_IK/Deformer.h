@@ -36,6 +36,7 @@ int Defr_X_Collapsed[DEFORMERS];
 
 char DefrName_Remember[STRLEN];
 
+typedef struct deformer_morph_map deformer_morph_map;
 typedef struct subcharacter subcharacter;
 typedef struct pose pose;
 
@@ -76,6 +77,9 @@ struct deformer
 
     int play;
     pose * P;
+
+    deformer_morph_map ** Morph_Maps;
+    int Morph_Maps_Count;
 };
 
 void insert_Deformer_keyframe(deformer * D, int frame)
@@ -254,6 +258,8 @@ void add_Deformer()
     D->play = -1;
     D->P = NULL;
     deformerIndex ++;
+    D->Morph_Maps = malloc(0 * sizeof(deformer_morph_map*));
+    D->Morph_Maps_Count = 0;
 }
 
 void list_Deformer_Nodes(deformer * D, int SelsIndex, object * O)

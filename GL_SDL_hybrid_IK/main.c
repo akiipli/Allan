@@ -69,6 +69,7 @@ int RESET = 0;
 #include "Poses.h"
 #include "Bones.h"
 #include "Subcharacters.h"
+#include "Morphs.h"
 #include "Shaders.h"
 #include "File_IO.h"
 
@@ -110,11 +111,12 @@ int RESET = 0;
 #define BONE_DIALOG 7
 #define IK_DIALOG 8
 #define SUBC_DIALOG 9
-#define OBJ_DIALOG 10
-#define IMG_DIALOG 11
-#define SAVES_DIALOG 12
-#define LOADING_DIALOG 13
-#define TIMELINE_DIALOG 14
+#define MRPH_DIALOG 10
+#define OBJ_DIALOG 11
+#define IMG_DIALOG 12
+#define SAVES_DIALOG 13
+#define LOADING_DIALOG 14
+#define TIMELINE_DIALOG 15
 
 #define obj_EXTENSION 0
 #define OBJ_EXTENSION 1
@@ -5224,6 +5226,22 @@ int list_materials(char ** material_list, int start, int n)
     return material;
 }
 
+int list_morphs(char ** mrph_list, int start, int n, int * morph_x_offset, int * morph_x_collapsed)
+{
+    int m = start;
+    int morph = 0;
+    for (morph = 0; morph < n; morph ++)
+    {
+        if (morph >= Morphs_c - start)
+            break;
+        sprintf(mrph_list[morph], "%s", Morph_Names[m]);
+        morph_x_offset[morph] = Morph_X_Offset[m];
+        morph_x_collapsed[morph] = Morph_X_Collapsed[m];
+        m ++;
+    }
+    return morph;
+}
+
 int list_subcharacters(char ** subch_list, int start, int n, int * subcharacter_x_offset, int * subcharacter_x_collapsed)
 {
     int s = start;
@@ -5440,6 +5458,55 @@ void open_Selections_List()
         draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type], selection_rectangle);
     }
     blit_ViewPort();
+    glDrawBuffer(GL_BACK);
+    SDL_GL_SwapBuffers();
+    message = 0;
+}
+
+void black_out_MorphsList()
+{
+    int i;
+
+    for (i = 0; i < Morphs_c; i ++)
+    {
+        MrphList[i].color = UI_BLACK;
+    }
+    if (MorphIndex - morph_start >= 0)
+        MrphList[MorphIndex - morph_start].color = UI_BACKL;
+}
+
+void open_Morphs_List()
+{
+    Osd = 0;
+    HINTS = 0;
+
+    PROPERTIES = PROPERTIES_NONE;
+
+    create_Morphs_List();
+
+    if (Bottom_Message)
+    {
+        Draw_Bottom_Message("Morphs List\n");
+    }
+    Bottom_Message = 0;
+
+    black_out_MorphsList();
+
+    //DRAW_LOCATORS = 1;
+    //LOCAT_ID_RENDER = 1;
+
+    SDL_SetCursor(Arrow);
+    dialog_lock = 1;
+    dialog_type = MRPH_DIALOG;
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    UPDATE_COLORS = 1;
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
+    UPDATE_COLORS = 0;
+
+    draw_Morphs_Dialog("Morphs List", screen_height, morph_start, 1, MorphIndex - morph_start, selection_rectangle);
+
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
     message = 0;
@@ -6498,6 +6565,30 @@ void update_IK_List(int update, int blit)
             draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
     }
 
+    SDL_GL_SwapBuffers();
+    glDrawBuffer(GL_BACK);
+}
+
+void update_Morphs_List(int update, int blit)
+{
+    if (MorphIndex - morph_start >= 0)
+        MrphList[MorphIndex - morph_start].color = UI_BACKL;
+
+    if (blit)
+    {
+        blit_ViewPort();
+    }
+
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    if (UPDATE_BACKGROUND || update)
+    {
+        draw_Morphs_Dialog("Morphs List", screen_height, morph_start, 1, MorphIndex - morph_start, selection_rectangle);
+    }
+    else
+    {
+        draw_Morph_List(screen_height, morph_start, 0, MorphIndex - morph_start, selection_rectangle);
+        draw_Morph_Bottom_Line(DIALOG_WIDTH, screen_height);
+    }
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -8017,6 +8108,25 @@ void handle_UP_IK(int scrollbar)
     }
 }
 
+void select_Morph_Map()
+{
+    int m;
+
+    for (m = 0; m < Deformer_Morph_Maps_c; m ++)
+    {
+        deformer_morph_maps[m]->selected = 0;
+    }
+    if (current_Morph_Map >= 0 && current_Morph_Map < Deformer_Morph_Maps_c)
+        deformer_morph_maps[current_Morph_Map]->selected = 1;
+
+    for (m = 0; m < Deformer_Morphs_c; m ++)
+    {
+        deformer_morphs[m]->selected = 0;
+    }
+    if (currentMorph >= 0 && currentMorph < Deformer_Morphs_c)
+        deformer_morphs[currentMorph]->selected = 1;
+}
+
 void select_Subcharacter()
 {
     int s;
@@ -8027,6 +8137,52 @@ void select_Subcharacter()
     }
     if (currentSubcharacter >= 0 && currentSubcharacter < subcharacterIndex)
         subcharacters[currentSubcharacter]->selected = 1;
+}
+
+void handle_UP_Morph(int scrollbar)
+{
+    if (scrollbar)
+    {
+        if (MorphIndex - morph_start >= 0)
+            MrphList[MorphIndex - morph_start].color = UI_BLACK;
+        morph_start --;
+        if (morph_start < 0) morph_start = 0;
+        if (MorphIndex - morph_start >= 0)
+            MrphList[MorphIndex - morph_start].color = UI_BACKL;
+    }
+    else
+    {
+        if (MorphIndex - morph_start >= 0)
+            MrphList[MorphIndex - morph_start].color = UI_BLACK;
+        MorphIndex --;
+
+        if (MorphIndex >= 0)
+        {
+            if (MorphIndex - morph_start >= 0)
+                MrphList[MorphIndex - morph_start].color = UI_BACKL;
+
+            if (Morph_List[MorphIndex] >= 0 && Morph_List[MorphIndex] < MORPHS)
+            {
+                current_Morph_Map = Morph_List[MorphIndex];
+            }
+            else if (Morph_List[MorphIndex] >= MORPHS)
+            {
+                currentMorph = Morph_List[MorphIndex] - MORPHS;
+            }
+            else
+            {
+
+            }
+            //select_Morph();
+            create_Morphs_List();
+        }
+
+        if (MorphIndex < 0) MorphIndex ++;
+    }
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
 }
 
 void handle_UP_Subcharacter(int scrollbar)
@@ -8498,6 +8654,10 @@ void handle_UP(int scrollbar)
         {
             handle_UP_Subcharacter(scrollbar);
         }
+        else if (dialog_type == MRPH_DIALOG)
+        {
+            handle_UP_Morph(scrollbar);
+        }
         else if (dialog_type == POSE_DIALOG)
         {
             handle_UP_Pose(scrollbar);
@@ -8651,6 +8811,52 @@ void handle_DOWN_IK(int scrollbar)
 
         update_IK_List(1, 1);
         DRAW_UI = 1;
+    }
+}
+
+void handle_DOWN_Morph_Map(int scrollbar)
+{
+    if (scrollbar)
+    {
+        if (MorphIndex - morph_start >= 0)
+            MrphList[MorphIndex - morph_start].color = UI_BLACK;
+        morph_start ++;
+        if (morph_start > Morphs_c - LISTLENGTH) morph_start --;
+        if (MorphIndex - morph_start >= 0)
+            MrphList[MorphIndex - morph_start].color = UI_BACKL;
+    }
+    else
+    {
+        if (MorphIndex - morph_start >= 0)
+            MrphList[MorphIndex - morph_start].color = UI_BLACK;
+        MorphIndex ++;
+
+        if (MorphIndex < Morphs_c)
+        {
+            if (MorphIndex - morph_start >= 0)
+                MrphList[MorphIndex - morph_start].color = UI_BACKL;
+
+            if (Morph_List[MorphIndex] >= 0 && Morph_List[MorphIndex] < MORPHS)
+            {
+                current_Morph_Map = Morph_List[MorphIndex];
+            }
+            else if (Morph_List[MorphIndex] >= MORPHS)
+            {
+                currentMorph = Morph_List[MorphIndex] - MORPHS;
+            }
+            else
+            {
+
+            }
+            //select_Morph();
+            create_Morphs_List();
+        }
+        if (MorphIndex >= Morphs_c)
+            MorphIndex --;
+    }
+    if (dialog_lock)
+    {
+        draw_Dialog();
     }
 }
 
@@ -9048,6 +9254,10 @@ void handle_DOWN(int scrollbar)
         {
             handle_DOWN_Subcharacter(scrollbar);
         }
+        else if (dialog_type == MRPH_DIALOG)
+        {
+            handle_DOWN_Morph_Map(scrollbar);
+        }
         else if (dialog_type == POSE_DIALOG)
         {
             handle_DOWN_Pose(scrollbar);
@@ -9332,6 +9542,18 @@ int get_SubcharacterIndex(int index)
     return Index - 1;
 }
 
+void add_Morph_Map()
+{
+    printf("add Morph Map\n");
+
+    set_Mrph_H_Button(0);
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
+}
+
 void add_Subcharacter()
 {
     if (subcharacterIndex < SUBCHARACTERS - 1)
@@ -9398,6 +9620,18 @@ int get_SubcharacterPoseIndex(int index)
     return Index - 1;
 }
 
+void add_Morph_To_Morph_Map()
+{
+    set_Mrph_H_Button(1);
+
+    printf("add Morph To Morph Map\n");
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
+}
+
 void add_Pose_To_Subcharacter()
 {
     set_Subc_H_Button(1);
@@ -9415,6 +9649,18 @@ void add_Pose_To_Subcharacter()
             if (dialog_lock)
                 draw_Dialog();
         }
+    }
+}
+
+void remove_Morph_Map()
+{
+    set_Mrph_H_Button(2);
+
+    printf("remove Morph Map\n");
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
     }
 }
 
@@ -9459,6 +9705,18 @@ void remove_Subcharacter()
             if (dialog_lock)
                 draw_Dialog();
         }
+    }
+}
+
+void remove_Morph()
+{
+    printf("remove Morph\n");
+
+    set_Mrph_H_Button(3);
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
     }
 }
 
@@ -9516,6 +9774,25 @@ void remove_Subcharacter_Pose()
             if (dialog_lock)
                 draw_Dialog();
 
+        }
+    }
+}
+
+void rename_Morph()
+{
+    set_Mrph_H_Button(4);
+
+    printf("rename Morph\n");
+
+    if (dialog_lock)
+    {
+        if (!Edit_Lock && Morphs_c > 0)
+        {
+            sprintf(Name_Remember, "%s", Morph_Names[MorphIndex]);
+            sprintf(Morph_Names[MorphIndex], "%s", "");
+            Edit_Lock = 1;
+            init_Selection_Rectangle();
+            update_Morphs_List(0, 0);
         }
     }
 }
@@ -10581,6 +10858,77 @@ void handle_IK_Dialog(char letter, SDLMod mod)
     }
 }
 
+void handle_Morph_Dialog(char letter, SDLMod mod)
+{
+    if (Edit_Lock)
+    {
+        int update = 1;
+        if (controlDown)
+        {
+            copy_and_paste(letter);
+        }
+        else
+        {
+            //int update = 0;
+            if (letter == '-')
+            {
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
+            }
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
+            {
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlength(EditString) > 1)
+                {
+                    sprintf(Morph_Names[MorphIndex], "%s", EditString);
+                    replace_Morph_Name(EditString);
+                    sprintf(Name_Remember, "%s", EditString);
+                }
+                else
+                {
+                    update = 0;
+                    sprintf(Morph_Names[MorphIndex], "%s", Name_Remember);
+                }
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                set_Mrph_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
+                EditString[EditCursor] = '\0';
+            }
+        }
+        if (update)
+        {
+            sprintf(Morph_Names[MorphIndex], "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
+        update_Morphs_List(1, 1);
+        //printf("%c%s", 13, EditString);
+        message = 0;
+    }
+}
+
 void handle_Subcharacter_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
@@ -11232,6 +11580,14 @@ void handle_dialog(char letter, SDLMod mod)
             rename_Subcharacter();
         }
     }
+    else if (dialog_type == MRPH_DIALOG)
+    {
+        handle_Morph_Dialog(letter, mod);
+        if (!Edit_Lock && letter == '`')
+        {
+            rename_Morph();
+        }
+    }
     else if (dialog_type == IK_DIALOG)
     {
         handle_IK_Dialog(letter, mod);
@@ -11452,6 +11808,10 @@ void draw_Dialog()
         else if (dialog_type == SUBC_DIALOG)
         {
             open_Subcharacters_List();
+        }
+        else if (dialog_type == MRPH_DIALOG)
+        {
+            open_Morphs_List();
         }
         else if (dialog_type == POSE_DIALOG)
         {
@@ -14717,6 +15077,23 @@ void select_currentIK()
     }
 }
 
+void select_current_Morph_Map()
+{
+    printf("select current Morph Map %d\n", current_Morph_Map);
+
+    if (current_Morph_Map >= 0 && current_Morph_Map < Deformer_Morphs_c)
+    {
+        deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
+
+        printf("%s\n", M->Name);
+    }
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
+}
+
 void select_currentSubcharacter()
 {
     printf("select currentSubcharacter %d\n", currentSubcharacter);
@@ -15562,17 +15939,18 @@ int main(int argc, char * args[])
     SideBar[8] = &open_Bones_List;
     SideBar[9] = &open_IK_List;
     SideBar[10] = &open_Subcharacters_List;
-    SideBar[11] = &collapse_Files;
-    SideBar[12] = &open_OBJ_List;
-    SideBar[13] = &open_Text_List;
-    SideBar[14] = &open_Norm_List;
-    SideBar[15] = &open_Bump_List;
-    SideBar[16] = &open_Saves_List;
-    SideBar[17] = &export_OBJ_Format;
-    SideBar[18] = &open_Loading_List;
-    SideBar[19] = &collapse_Clear;
-    SideBar[20] = &clear_All;
-    SideBar[21] = &Exit;
+    SideBar[11] = &open_Morphs_List;
+    SideBar[12] = &collapse_Files;
+    SideBar[13] = &open_OBJ_List;
+    SideBar[14] = &open_Text_List;
+    SideBar[15] = &open_Norm_List;
+    SideBar[16] = &open_Bump_List;
+    SideBar[17] = &open_Saves_List;
+    SideBar[18] = &export_OBJ_Format;
+    SideBar[19] = &open_Loading_List;
+    SideBar[20] = &collapse_Clear;
+    SideBar[21] = &clear_All;
+    SideBar[22] = &Exit;
 
     Button_Mode[0].func = &set_Object_Mode;
     Button_Mode[1].func = &set_Polygon_Mode;
@@ -15663,6 +16041,12 @@ int main(int argc, char * args[])
     Button_h_subc[2].func = &remove_Subcharacter;
     Button_h_subc[3].func = &remove_Subcharacter_Pose;
     Button_h_subc[4].func = &rename_Subcharacter;
+
+    Button_h_mrph[0].func = &add_Morph_Map;
+    Button_h_mrph[1].func = &add_Morph_To_Morph_Map;
+    Button_h_mrph[2].func = &remove_Morph_Map;
+    Button_h_mrph[3].func = &remove_Morph;
+    Button_h_mrph[4].func = &rename_Morph;
 
     Button_h_scen[0].func = &save_load_Scene;
 
@@ -16646,6 +17030,60 @@ int main(int argc, char * args[])
                                     DRAW_UI = 1;
                                 }
                             }
+                            else if (dialog_type == MRPH_DIALOG)
+                            {
+                                if (index + morph_start < Morphs_c)
+                                {
+                                    int X_Expand = Morph_X_Offset[index + morph_start] * 5;
+                                    if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
+                                    {
+                                        if (X_Expand == 5)
+                                        {
+                                            deformers[-(Morph_List[index + morph_start] + 1)]->collapsed =
+                                            !deformers[-(Morph_List[index + morph_start] + 1)]->collapsed;
+                                        }
+                                        else if (X_Expand == 10)
+                                        {
+                                            deformer_morph_maps[Morph_List[index + morph_start]]->collapsed =
+                                            !deformer_morph_maps[Morph_List[index + morph_start]]->collapsed;
+                                        }
+                                        create_Morphs_List();
+                                    }
+                                    else
+                                    {
+                                        if (MorphIndex - morph_start >= 0)
+                                            MrphList[MorphIndex - morph_start].color = UI_BLACK;
+                                        MorphIndex = index + morph_start;
+                                        if (MorphIndex - morph_start >= 0)
+                                            MrphList[MorphIndex - morph_start].color = UI_BACKL;
+                                        if (Morph_List[MorphIndex] >= 0 && Morph_List[MorphIndex] < MORPHS)
+                                        {
+                                            current_Morph_Map = Morph_List[MorphIndex];
+                                            select_current_Morph_Map();
+                                        }
+                                        else if (Morph_List[MorphIndex] >= MORPHS)
+                                        {
+                                            currentMorph = Morph_List[MorphIndex] - MORPHS;
+                                            printf("currentMorph %d\n", currentMorph);
+                                        }
+                                        else
+                                        {
+                                            currentDeformer_Node = -(Morph_List[index + morph_start] + 1);
+                                            assert_Deformers_Selected();
+                                        }
+                                        select_Morph_Map();
+                                        create_Morphs_List();
+                                    }
+                                    DRAW_UI = 0;
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                    draw_Morphs_Dialog("Morphs List", screen_height,
+                                                morph_start, 1, MorphIndex - morph_start, selection_rectangle);
+                                    SDL_GL_SwapBuffers();
+                                    glDrawBuffer(GL_BACK);
+                                    DRAW_UI = 1;
+                                }
+                            }
                             else if (dialog_type == POSE_DIALOG)
                             {
                                 if (index + pose_start < Poses_c)
@@ -17176,6 +17614,14 @@ int main(int argc, char * args[])
                                 if (h_index < H_SUBC_NUM)
                                 {
                                     (*Button_h_subc[h_index].func)();
+                                }
+                            }
+                            else if (dialog_type == MRPH_DIALOG && !Edit_Lock)
+                            {
+                                h_index = (mouse_x - SIDEBAR * 2) / BUTTON_WIDTH_SHORT;
+                                if (h_index < H_MRPH_NUM)
+                                {
+                                    (*Button_h_mrph[h_index].func)();
                                 }
                             }
                             else if (dialog_type == POSE_DIALOG && !Edit_Lock)
@@ -19887,6 +20333,37 @@ int main(int argc, char * args[])
             {
                 modify_Texture_Seams(O);
             }
+            else if (mod & KMOD_ALT)
+            {
+                O = objects[currentObject];
+                int result = add_New_Morph_Map(O, "Face");
+                if (result)
+                {
+                    int r = add_New_Morph(O->Morph_Maps[O->Morph_Maps_count - 1], "Loll");
+                    int m;
+                    for (m = 0; m < O->Morph_Maps_count; m ++)
+                    {
+                        printf("%s: ", O->Morph_Maps[m]->Name);
+                        if (r)
+                        {
+                            int i;
+                            for (i = 0; i < O->Morph_Maps[m]->MorphsCount; i ++)
+                            {
+                                printf("%s ", O->Morph_Maps[m]->Morphs[i]->Name);
+                            }
+                        }
+                        printf("\n");
+                    }
+                }
+            }
+            else if(mod & KMOD_CTRL)
+            {
+                if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                {
+                    D = deformers[currentDeformer_Node];
+                    generate_Morph_Tree(D);
+                }
+            }
             else
             {
                 int m;
@@ -21228,6 +21705,12 @@ int main(int argc, char * args[])
                             sprintf(Subcharacter_Names[SubcharacterIndex], "%s", Name_Remember);
                             set_Subc_H_Button(-1);
                             update_Subcharacters_List(1, 0);
+                        }
+                        else if (dialog_type == MRPH_DIALOG)
+                        {
+                            sprintf(Morph_Names[MorphIndex], "%s", Name_Remember);
+                            set_Mrph_H_Button(-1);
+                            update_Morphs_List(1, 0);
                         }
                         else if (dialog_type == MATERIAL_DIALOG)
                         {

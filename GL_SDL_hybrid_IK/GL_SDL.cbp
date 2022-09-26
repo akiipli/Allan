@@ -52,6 +52,7 @@
 		<Unit filename="Materials.h" />
 		<Unit filename="MathFunctions.h" />
 		<Unit filename="Modeling.h" />
+		<Unit filename="Morphs.h" />
 		<Unit filename="Object.h" />
 		<Unit filename="Poses.h" />
 		<Unit filename="Properties.h" />
