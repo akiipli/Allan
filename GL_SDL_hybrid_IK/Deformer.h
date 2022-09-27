@@ -118,6 +118,7 @@ void free_Deformer(deformer * D)
     free(D->Poses);
     free(D->IKchains);
     free(D->Subcharacters);
+    free(D->Morph_Maps);
     //free(D->P);
     free(D);
 }

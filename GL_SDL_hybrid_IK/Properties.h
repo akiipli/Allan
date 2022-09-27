@@ -29,6 +29,7 @@ from corner.
 #define PROPERTIES_LOCATOR 5
 #define PROPERTIES_IK 6
 #define PROPERTIES_BONE 7
+#define PROPERTIES_MORPH 8
 
 #define X_OFFSET 5
 #define Y_OFFSET 10
@@ -146,6 +147,7 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
 
     char text[STRLEN];
     int idx = 0;
+    int i;
 
     if (type == PROPERTIES_OBJECT)
     {
@@ -300,6 +302,26 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
             sprintf(text, "IK");
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
+    }
+    else if (subject != NULL && type == PROPERTIES_MORPH)
+    {
+        deformer_morph * M = (deformer_morph *)subject;
+        object_morph_dialer * Object_Morph_Map;
+
+        if (M->D != NULL)
+            sprintf(text, "Deformer\t%s", M->D->Name);
+        else
+            sprintf(text, "Deformer");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        idx ++;
+
+        for (i = 0; i < M->objectCount; i ++)
+        {
+            Object_Morph_Map = M->Object_Morph_Map[i];
+            sprintf(text, "Object\t%s", Object_Morph_Map->O->Name);
+            draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+            idx ++;
+        }
     }
 
 	//glEnable(GL_TEXTURE_2D);

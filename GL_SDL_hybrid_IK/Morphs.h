@@ -410,8 +410,23 @@ int init_Deformer_Morph(deformer_morph * Morph, deformer * D, const char * Name)
     Morph->selected = 0;
     Morph->D = D;
 
-    Morph->objectCount = 0;
+    Morph->objectCount = D->Objects_Count;
     Morph->Object_Morph_Map = malloc(Morph->objectCount * sizeof(object_morph_dialer*));
+
+    int o;
+    object_morph_dialer * O;
+
+    for (o = 0; o < Morph->objectCount; o ++)
+    {
+        O = malloc(sizeof(object_morph_dialer));
+        if (O == NULL)
+        {
+            Morph->objectCount = o;
+            break;
+        }
+        O->O = D->Objects[o];
+        Morph->Object_Morph_Map[o] = O;
+    }
 
     Morph->index = deformer_morph_Index;
     deformer_morphs[deformer_morph_Index ++] = Morph;

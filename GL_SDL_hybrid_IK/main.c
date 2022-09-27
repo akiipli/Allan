@@ -65,11 +65,11 @@ int RESET = 0;
 #include "Items.h"
 #include "IKSolution.h"
 #include "Deformer.h"
-#include "Properties.h"
 #include "Poses.h"
 #include "Bones.h"
 #include "Subcharacters.h"
 #include "Morphs.h"
+#include "Properties.h"
 #include "Shaders.h"
 #include "File_IO.h"
 
@@ -5477,10 +5477,19 @@ void black_out_MorphsList()
 
 void open_Morphs_List()
 {
+    if (currentMorph >= 0 && currentMorph < deformer_morph_Index)
+    {
+        Type = deformer_morphs[currentMorph];
+    }
+    else
+    {
+        Type = NULL;
+    }
+
     Osd = 0;
     HINTS = 0;
 
-    PROPERTIES = PROPERTIES_NONE;
+    PROPERTIES = PROPERTIES_MORPH;
 
     create_Morphs_List();
 
@@ -5506,6 +5515,14 @@ void open_Morphs_List()
     UPDATE_COLORS = 0;
 
     draw_Morphs_Dialog("Morphs List", screen_height, morph_start, 1, MorphIndex - morph_start, selection_rectangle);
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(deformer_morphs[currentMorph]->Name, screen_height, 1, PROPERTIES_MORPH, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_MORPH, Type);
+    }
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -6571,6 +6588,15 @@ void update_IK_List(int update, int blit)
 
 void update_Morphs_List(int update, int blit)
 {
+    if (currentMorph >= 0 && currentMorph < deformer_morph_Index)
+    {
+        Type = deformer_morphs[currentMorph];
+    }
+    else
+    {
+        Type = NULL;
+    }
+
     if (MorphIndex - morph_start >= 0)
         MrphList[MorphIndex - morph_start].color = UI_BACKL;
 
@@ -6589,6 +6615,15 @@ void update_Morphs_List(int update, int blit)
         draw_Morph_List(screen_height, morph_start, 0, MorphIndex - morph_start, selection_rectangle);
         draw_Morph_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(deformer_morphs[currentMorph]->Name, screen_height, 1, PROPERTIES_MORPH, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_MORPH, Type);
+    }
+
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -17074,14 +17109,7 @@ int main(int argc, char * args[])
                                         select_Morph_Map();
                                         create_Morphs_List();
                                     }
-                                    DRAW_UI = 0;
-                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                                    draw_Morphs_Dialog("Morphs List", screen_height,
-                                                morph_start, 1, MorphIndex - morph_start, selection_rectangle);
-                                    SDL_GL_SwapBuffers();
-                                    glDrawBuffer(GL_BACK);
-                                    DRAW_UI = 1;
+                                    draw_Dialog();
                                 }
                             }
                             else if (dialog_type == POSE_DIALOG)
