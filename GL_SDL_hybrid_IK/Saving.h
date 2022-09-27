@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1011;
+int saving_version = 1012;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -39,6 +39,7 @@ void init_scene_extensions()
     sprintf(scene_extensions[7], "SubcharacterP");
     sprintf(scene_extensions[8], "Curves");
     sprintf(scene_extensions[9], "Keyframes");
+    sprintf(scene_extensions[10], "Morphs");
 
     sprintf(scene_files_dir, "%s", "c:/Trips Code/Scenes IK");
 
@@ -276,6 +277,62 @@ void save_version(char * scene_folder)
         fprintf(F, "\n");
         fclose(F);
     }
+}
+
+int save_Morphs(char * morph_files_dir)
+{
+    char dirfile[STRLEN];
+
+    int m, o;
+    object_morph_dialer * O;
+    deformer_morph * Morph;
+    deformer_morph_map * M;
+
+    dirfile[0] = '\0';
+    strcat(dirfile, morph_files_dir);
+    strcat(dirfile, "/");
+
+    strcat(dirfile, "Morphs");
+    strcat(dirfile, ".txt");
+
+    FILE * F;
+    F = fopen(dirfile, "w");
+    if (F == NULL) return 0;
+
+    fprintf(F, "Morphs\n");
+    fprintf(F, "%d\n", deformer_morph_map_Index);
+
+    for (m = 0; m < deformer_morph_map_Index; m ++)
+    {
+        M = deformer_morph_maps[m];
+        fprintf(F, "%u\n", (unsigned)M);
+        fprintf(F, "%s\n", M->Name);
+        fprintf(F, "%d\n", M->collapsed);
+        fprintf(F, "%d\n", M->Morphs_Count);
+    }
+
+    fprintf(F, "%d\n", deformer_morph_Index);
+    for (m = 0; m < deformer_morph_Index; m ++)
+    {
+        Morph = deformer_morphs[m];
+        fprintf(F, "%u\n", (unsigned)Morph);
+        fprintf(F, "%s\n", Morph->Name);
+        fprintf(F, "%d\n", Morph->objectCount);
+        for (o = 0; o < Morph->objectCount; o ++)
+        {
+            O = Morph->Object_Morph_Map[o];
+            fprintf(F, "%u\n", (unsigned)O->O);
+            fprintf(F, "%d\n", O->map_index);
+            fprintf(F, "%d\n", O->morph_index);
+
+        }
+        fprintf(F, "%u\n", (unsigned)Morph->Map);
+    }
+
+    fprintf(F, "\n");
+    fclose(F);
+
+    return 1;
 }
 
 int save_Keyframes(char * keyframes_files_dir)
@@ -766,7 +823,7 @@ void save_Deformers(char * deformers_files_dir)
         fprintf(F, "Deformer\n");
         fprintf(F, "%s\n", D->Name);
         fprintf(F, "%u\n", (unsigned)D);
-        fprintf(F, "%d %d %d %d %d %d %d %d\n",
+        fprintf(F, "%d %d %d %d %d %d %d %d %d\n",
                 D->collapsed,
                 D->Transformers_Count,
                 D->Selections_Count,
@@ -774,7 +831,8 @@ void save_Deformers(char * deformers_files_dir)
                 D->Bones_Count,
                 D->Poses_Count,
                 D->IKchains_Count,
-                D->Subcharacters_Count);
+                D->Subcharacters_Count,
+                D->Morph_Maps_Count);
         for (i = 0; i < D->Transformers_Count; i ++)
         {
             fprintf(F, "%u\n", (unsigned)D->Transformers[i]);
@@ -802,6 +860,10 @@ void save_Deformers(char * deformers_files_dir)
         for (i = 0; i < D->Subcharacters_Count; i ++)
         {
             fprintf(F, "%u\n", (unsigned)D->Subcharacters[i]);
+        }
+        for (i = 0; i < D->Morph_Maps_Count; i ++)
+        {
+            fprintf(F, "%u\n", (unsigned)D->Morph_Maps[i]);
         }
 
         fprintf(F, "%d\n", D->current_pose);

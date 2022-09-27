@@ -793,6 +793,7 @@ void cleanup()
     free_ikChains();
     free_Constraints();
     free_Subcharacters();
+    free_Morphs();
     free(Action_Begin_Transformers);
     free(Action_Begin_Pose->TP);
     free(Action_Begin_Pose);
@@ -14110,6 +14111,7 @@ void clear_All()
         clear_Curves();
 
         free_Subcharacters();
+        free_Morphs();
 
         free_poses();
         free_subcharacter_poses();
@@ -14130,6 +14132,9 @@ void clear_All()
         curvesIndex = 0;
         cpsIndex = 0;
         segmentIndex = 0;
+
+        deformer_morph_Index = 0;
+        deformer_morph_map_Index = 0;
 
         PoseIndex = 0;
         posesCount = 0;
@@ -14162,6 +14167,7 @@ void clear_All()
         hier_start = 0;
         bone_start = 0;
         ikch_start = 0;
+        morph_start = 0;
         memcpy(sels_start, (int[4]){0, 0, 0, 0}, sizeof(sels_start));
         currentLocator = CUBEINDEX - 1;
         currentPose = 0;
@@ -14658,6 +14664,7 @@ void save_load_Scene()
     }
 
     create_Transformers_List();
+    create_Morphs_List();
 
 //    solve_all_IK_Chains();
 //    normalize_all_IK_Spines();
@@ -14772,6 +14779,12 @@ void save_load_Scene()
             strcat(Path, "/");
             strcat(Path, "Keyframes");
             save_Keyframes(Path);
+
+            Path[0] = '\0';
+            strcat(Path, scene_files_dir);
+            strcat(Path, "/");
+            strcat(Path, "Morphs");
+            save_Morphs(Path);
         }
 
         if (flip)
@@ -14799,6 +14812,7 @@ void save_load_Scene()
         int obj_count = 0, defr_count = 0, pose_count = 0, subcharacter_count = 0, subcharacter_poses_count = 0;
 
         hierarchys_pack hP;
+        morf_pack mP;
 
         if (!isDirectory(scene_files_dir))
         {
@@ -14902,6 +14916,19 @@ void save_load_Scene()
                 strcat(Path, "/");
                 strcat(Path, "Keyframes");
                 load_Keyframes(Path, hP.t_index);
+            }
+
+            if (loading_version >= 1012)
+            {
+                Path[0] = '\0';
+                strcat(Path, scene_files_dir);
+                strcat(Path, "/");
+                strcat(Path, "Morphs");
+                mP = load_Morphs(Path, defr_count);
+
+                assign_Deformer_Morph_Maps(mP.dmm_index, defr_count);
+                assign_Deformer_Morphs(mP.dm_index, defr_count);
+                assign_Object_Dialer(mP.dm_index, obj_count);
             }
 
             null_Loaded_Addresses(hP);
@@ -16010,6 +16037,7 @@ int main(int argc, char * args[])
     Button_scene_ext[7].func = &set_Button_scene_ext;
     Button_scene_ext[8].func = &set_Button_scene_ext;
     Button_scene_ext[9].func = &set_Button_scene_ext;
+    Button_scene_ext[10].func = &set_Button_scene_ext;
 
     Button_item[0].func = &set_Button_item;
     Button_item[1].func = &set_Button_item;
@@ -16800,6 +16828,7 @@ int main(int argc, char * args[])
                         //SDL_GL_SwapBuffers();
 
                         drag_rectangle = 1;
+                        printf("drag_rectangle %d\n", drag_rectangle);
                         Drag_Rectangle.x0 = mouse_x;
                         Drag_Rectangle.y0 = mouse_y;
                         Drag_Rectangle.x1 = mouse_x;
@@ -18552,7 +18581,7 @@ int main(int argc, char * args[])
                         }
                         draw_Dialog();
                     }
-                    else if (PROPERTIES != PROPERTIES_NONE)
+                    else if (PROPERTIES != PROPERTIES_NONE && !drag_rectangle)
                     {
                         left = SIDEBAR * 2;
                         right = SIDEBAR + DIALOG_WIDTH;

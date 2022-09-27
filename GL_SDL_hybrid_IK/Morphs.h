@@ -84,6 +84,7 @@ typedef struct deformer_morph
     char * Name;
     deformer * D;
     int selected;
+    deformer_morph_map * Map;
 
     object_morph_dialer ** Object_Morph_Map;
     int objectCount;
@@ -394,7 +395,7 @@ void replace_Morph_Name(char * EditString)
     }
 }
 
-int init_Deformer_Morph(deformer_morph * Morph, deformer * D, const char * Name)
+int init_Deformer_Morph(deformer_morph * Morph, deformer_morph_map * M, deformer * D, const char * Name)
 {
     Morph->Name = malloc(STRLEN * sizeof(char));
 
@@ -409,6 +410,7 @@ int init_Deformer_Morph(deformer_morph * Morph, deformer * D, const char * Name)
 
     Morph->selected = 0;
     Morph->D = D;
+    Morph->Map = M;
 
     Morph->objectCount = D->Objects_Count;
     Morph->Object_Morph_Map = malloc(Morph->objectCount * sizeof(object_morph_dialer*));
@@ -470,7 +472,7 @@ int init_Deformer_Morph_Map(deformer_morph_map * M, deformer * D, const char * N
         }
         M->Morphs[m] = Morph;
         sprintf(Name0, "D Morph %d", m);
-        result = init_Deformer_Morph(Morph, D, Name0);
+        result = init_Deformer_Morph(Morph, M, D, Name0);
         if (result == 0)
         {
             M->Morphs_Count = m;

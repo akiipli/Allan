@@ -78,6 +78,36 @@ void free_Subcharacters()
     }
 }
 
+void free_Morphs()
+{
+    int m, o;
+
+    object_morph_dialer * Od;
+    deformer_morph * Morph;
+    deformer_morph_map * M;
+
+    for (m = 0; m < deformer_morph_map_Index; m ++)
+    {
+        M = deformer_morph_maps[m];
+        free(M->Name);
+        free(M->Morphs);
+        free(M);
+    }
+
+    for (m = 0; m < deformer_morph_Index; m ++)
+    {
+        Morph = deformer_morphs[m];
+        free(Morph->Name);
+        for (o = 0; o < Morph->objectCount; o ++)
+        {
+            Od = Morph->Object_Morph_Map[o];
+            free(Od);
+        }
+        free(Morph->Object_Morph_Map);
+        free(Morph);
+    }
+}
+
 void free_bone(bone * B)
 {
     int d;
