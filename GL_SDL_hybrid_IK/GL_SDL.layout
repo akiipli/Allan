@@ -2,6 +2,36 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Debug" />
+	<File name="Timeline.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1197" topLine="32" />
+		</Cursor>
+	</File>
+	<File name="Dialog.h" open="0" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="369" topLine="216" />
+		</Cursor>
+	</File>
+	<File name="Subcharacters.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="9057" topLine="243" />
+		</Cursor>
+	</File>
+	<File name="Shaders.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="17577" topLine="605" />
+		</Cursor>
+	</File>
+	<File name="Creators.h" open="1" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="371" topLine="3" />
+		</Cursor>
+	</File>
+	<File name="Saving.h" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="17519" topLine="568" />
+		</Cursor>
+	</File>
 	<File name="Hierarchys.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="2389" topLine="80" />
@@ -12,29 +42,14 @@
 			<Cursor1 position="9921" topLine="294" />
 		</Cursor>
 	</File>
-	<File name="Modeling.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Deformer.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="311" topLine="0" />
+			<Cursor1 position="5689" topLine="225" />
 		</Cursor>
 	</File>
-	<File name="InitializingFunctions.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="Transforms.h" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="16752" topLine="919" />
-		</Cursor>
-	</File>
-	<File name="ExtensionFunctions.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="60" />
-		</Cursor>
-	</File>
-	<File name="Loading.h" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="83451" topLine="2656" />
-		</Cursor>
-	</File>
-	<File name="Creators.h" open="1" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="371" topLine="3" />
+			<Cursor1 position="695" topLine="14" />
 		</Cursor>
 	</File>
 	<File name="Materials.h" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -42,14 +57,29 @@
 			<Cursor1 position="1047" topLine="45" />
 		</Cursor>
 	</File>
+	<File name="UserInterface.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5917" topLine="315" />
+		</Cursor>
+	</File>
+	<File name="InitializingFunctions.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="22120" topLine="897" />
+		</Cursor>
+	</File>
+	<File name="Cameras.h" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="9615" topLine="272" />
+		</Cursor>
+	</File>
+	<File name="ExtensionFunctions.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="60" />
+		</Cursor>
+	</File>
 	<File name="Generators.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="71556" topLine="2613" />
-		</Cursor>
-	</File>
-	<File name="Curves.h" open="1" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1089" topLine="25" />
 		</Cursor>
 	</File>
 	<File name="Transformer.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
@@ -57,56 +87,34 @@
 			<Cursor1 position="112" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="main.c" open="1" top="0" tabpos="1" split="0" active="1" splitpos="891" zoom_1="1" zoom_2="1">
+	<File name="Arrays.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="268603" topLine="9631" />
-		</Cursor>
-		<Folding>
-			<Collapse line="11297" />
-			<Collapse line="16468" />
-			<Collapse line="16583" />
-			<Collapse line="16682" />
-			<Collapse line="17075" />
-			<Collapse line="18036" />
-			<Collapse line="18699" />
-			<Collapse line="18712" />
-			<Collapse line="18726" />
-			<Collapse line="18823" />
-			<Collapse line="18831" />
-			<Collapse line="18840" />
-			<Collapse line="18852" />
-			<Collapse line="18879" />
-			<Collapse line="18881" />
-			<Collapse line="19001" />
-			<Collapse line="19116" />
-			<Collapse line="19374" />
-			<Collapse line="19635" />
-			<Collapse line="20088" />
-		</Folding>
-	</File>
-	<File name="Shaders.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="17577" topLine="605" />
+			<Cursor1 position="16590" topLine="303" />
 		</Cursor>
 	</File>
-	<File name="MathFunctions.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="Rendering.h" open="1" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="14214" topLine="422" />
+			<Cursor1 position="77565" topLine="2585" />
 		</Cursor>
 	</File>
-	<File name="CubeData.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Curves.h" open="1" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2568" topLine="66" />
+			<Cursor1 position="1089" topLine="25" />
 		</Cursor>
 	</File>
-	<File name="Items.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="Modeling.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3800" topLine="164" />
+			<Cursor1 position="311" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Subcharacters.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="Cursors.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="9057" topLine="243" />
+			<Cursor1 position="82" topLine="246" />
+		</Cursor>
+	</File>
+	<File name="Morphs.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2073" topLine="46" />
 		</Cursor>
 	</File>
 	<File name="IKSolution.h" open="0" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -119,84 +127,19 @@
 			<Cursor1 position="33963" topLine="932" />
 		</Cursor>
 	</File>
-	<File name="Lights.h" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1369" topLine="46" />
-		</Cursor>
-	</File>
-	<File name="File_IO.h" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="7355" topLine="289" />
-		</Cursor>
-	</File>
-	<File name="Poses.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="673" topLine="24" />
-		</Cursor>
-	</File>
-	<File name="Morphs.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1174" topLine="323" />
-		</Cursor>
-	</File>
-	<File name="Dialog.h" open="0" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="369" topLine="216" />
-		</Cursor>
-	</File>
-	<File name="Saving.h" open="1" top="1" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="17519" topLine="589" />
-		</Cursor>
-	</File>
-	<File name="Deformer.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="5689" topLine="225" />
-		</Cursor>
-	</File>
-	<File name="Rendering.h" open="1" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="77565" topLine="2585" />
-		</Cursor>
-	</File>
-	<File name="Cameras.h" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="9615" topLine="272" />
-		</Cursor>
-	</File>
-	<File name="Transforms.h" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="695" topLine="14" />
-		</Cursor>
-	</File>
-	<File name="Cursors.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="82" topLine="246" />
-		</Cursor>
-	</File>
 	<File name="Bones.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="49193" topLine="1557" />
 		</Cursor>
 	</File>
-	<File name="UserInterface.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="5917" topLine="315" />
-		</Cursor>
-	</File>
 	<File name="Object.h" open="1" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="11320" topLine="499" />
+			<Cursor1 position="11294" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="ImageLoad.h" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="MathFunctions.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="4226" topLine="162" />
-		</Cursor>
-	</File>
-	<File name="Arrays.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="16590" topLine="303" />
+			<Cursor1 position="14214" topLine="422" />
 		</Cursor>
 	</File>
 	<File name="Subdivision.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
@@ -204,14 +147,71 @@
 			<Cursor1 position="61221" topLine="2178" />
 		</Cursor>
 	</File>
+	<File name="ImageLoad.h" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4226" topLine="162" />
+		</Cursor>
+	</File>
+	<File name="main.c" open="1" top="1" tabpos="1" split="0" active="1" splitpos="891" zoom_1="1" zoom_2="1">
+		<Cursor>
+			<Cursor1 position="269682" topLine="9656" />
+		</Cursor>
+		<Folding>
+			<Collapse line="11306" />
+			<Collapse line="16477" />
+			<Collapse line="16592" />
+			<Collapse line="16691" />
+			<Collapse line="17084" />
+			<Collapse line="18045" />
+			<Collapse line="18708" />
+			<Collapse line="18721" />
+			<Collapse line="18735" />
+			<Collapse line="18832" />
+			<Collapse line="18840" />
+			<Collapse line="18849" />
+			<Collapse line="18861" />
+			<Collapse line="18888" />
+			<Collapse line="18890" />
+			<Collapse line="19010" />
+			<Collapse line="19125" />
+			<Collapse line="19383" />
+			<Collapse line="19644" />
+			<Collapse line="20097" />
+		</Folding>
+	</File>
+	<File name="File_IO.h" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7355" topLine="289" />
+		</Cursor>
+	</File>
+	<File name="Loading.h" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="83451" topLine="2656" />
+		</Cursor>
+	</File>
+	<File name="Lights.h" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1369" topLine="46" />
+		</Cursor>
+	</File>
+	<File name="Items.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3800" topLine="164" />
+		</Cursor>
+	</File>
+	<File name="Poses.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="673" topLine="24" />
+		</Cursor>
+	</File>
 	<File name="Validators.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="0" topLine="154" />
 		</Cursor>
 	</File>
-	<File name="Timeline.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="CubeData.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1197" topLine="32" />
+			<Cursor1 position="2568" topLine="66" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

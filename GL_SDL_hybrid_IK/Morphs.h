@@ -52,7 +52,7 @@ morph;
 
 //morph * morphs[OBJECT_MORPHS]; // object morphs in morph maps
 
-struct morph_map
+typedef struct morph_map
 {
     int index;
     unsigned address;
@@ -66,7 +66,7 @@ struct morph_map
     int * Verts;
     int VertCount;
 }
-;
+morph_map;
 
 //morph_map * morph_maps[MORPH_MAPS]; // in objects
 

@@ -9647,6 +9647,7 @@ void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM,
     morph_map ** Morph_Maps;
 
     int result;
+    int * Verts;
 
     for (o = 0; o < D->Objects_Count; o ++)
     {
@@ -9669,7 +9670,6 @@ void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM,
             Morph_Maps = realloc(O->Morph_Maps, (O->Morph_Maps_count + 1) * sizeof(morph_map*));
             if (Morph_Maps != NULL)
             {
-                O->Morph_Maps = Morph_Maps;
                 M = malloc(sizeof(morph_map));
                 if (M != NULL)
                 {
@@ -9678,10 +9678,18 @@ void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM,
                     {
                         break;
                     }
-                    O->Morph_Maps[O->Morph_Maps_count] = M;
-                    M->VertCount = vert_counter;
-                    memcpy(M->Verts, verts_selection, M->VertCount * sizeof(int));
-                    O->Morph_Maps_count ++;
+                    Verts = realloc(M->Verts, vert_counter * sizeof(int));
+                    if (Verts != NULL)
+                    {
+                        printf("Verts selection %s %d\n", O->Name, vert_counter);
+                        M->Verts = Verts;
+                        M->VertCount = vert_counter;
+                        memcpy(M->Verts, verts_selection, M->VertCount * sizeof(int));
+
+                        O->Morph_Maps = Morph_Maps;
+                        O->Morph_Maps[O->Morph_Maps_count] = M;
+                        O->Morph_Maps_count ++;
+                    }
                 }
             }
         }
@@ -9696,7 +9704,8 @@ void add_Morph_Map()
     {
         set_Mrph_H_Button(0);
 
-        if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+        if (deformerIndex > 0 && currentDeformer_Node < deformerIndex
+            && deformer_morph_map_Index < DEFORMER_MORPH_MAPS)
         {
             D = deformers[currentDeformer_Node];
 
