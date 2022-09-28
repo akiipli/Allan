@@ -61,6 +61,7 @@ struct morph_map
     morph ** Morphs;
     int MorphsCount;
     deformer * Deformer;
+    deformer_morph_map * DM;
     object * Object;
     int * Verts;
     int VertCount;

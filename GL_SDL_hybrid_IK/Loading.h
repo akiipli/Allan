@@ -1749,8 +1749,8 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                 M = malloc(sizeof(deformer_morph_map));
                 if (M == NULL)
                 {
-                    deformer_morph_map_count = m;
-                    break;
+                    fclose(fp);
+                    return (morf_pack) {0, 0};
                 }
                 deformer_morph_maps[deformer_morph_map_Index] = M;
                 M->index = deformer_morph_map_Index;
@@ -1776,8 +1776,8 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                 M->Morphs = malloc(M->Morphs_Count * sizeof(deformer_morph*));
                 if (M->Morphs == NULL)
                 {
-                    deformer_morph_map_count = m;
-                    break;
+                    fclose(fp);
+                    return (morf_pack) {0, 0};
                 }
 
                 M->start = 0;
@@ -1795,8 +1795,8 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                 Morph = malloc(sizeof(deformer_morph));
                 if (Morph == NULL)
                 {
-                    deformer_morph_count = m;
-                    break;
+                    fclose(fp);
+                    return (morf_pack) {0, 0};
                 }
                 deformer_morphs[deformer_morph_Index] = Morph;
                 Morph->index = deformer_morph_Index;
@@ -1819,8 +1819,8 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                 Morph->Object_Morph_Map = malloc(Morph->objectCount * sizeof(object_morph_dialer*));
                 if (Morph->Object_Morph_Map == NULL)
                 {
-                    deformer_morph_count = m;
-                    break;
+                    fclose(fp);
+                    return (morf_pack) {0, 0};
                 }
 
                 for (o = 0; o < Morph->objectCount; o ++)
@@ -1828,8 +1828,8 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                     O = malloc(sizeof(object_morph_dialer));
                     if (O == NULL)
                     {
-                        Morph->objectCount = o;
-                        break;
+                        fclose(fp);
+                        return (morf_pack) {0, 0};
                     }
 
                     Morph->Object_Morph_Map[o] = O;
@@ -1903,6 +1903,7 @@ int read_Keyframes_file(Keyframes_In * KEYFR_IN, char * fileName, int t_index)
 
                     if (result == 0)
                     {
+                        fclose(fp);
                         return 0;
                     }
                     else
@@ -1915,6 +1916,7 @@ int read_Keyframes_file(Keyframes_In * KEYFR_IN, char * fileName, int t_index)
                         if (Tm->Frames == NULL)
                         {
                             Tm->key_frames = 0;
+                            fclose(fp);
                             return 0;
                         }
                         else
@@ -1925,6 +1927,7 @@ int read_Keyframes_file(Keyframes_In * KEYFR_IN, char * fileName, int t_index)
                         if (Tm->Values == NULL || Tm->Acceleration == NULL)
                         {
                             Tm->key_frames = 0;
+                            fclose(fp);
                             return 0;
                         }
                         else
