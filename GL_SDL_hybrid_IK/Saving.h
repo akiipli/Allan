@@ -283,8 +283,12 @@ int save_Morphs(char * morph_files_dir)
 {
     char dirfile[STRLEN];
 
-    int m, o;
-    object_morph_dialer * O;
+    int m, o, d, v;
+    position P;
+    object * O;
+    morph * OD;
+    morph_map * OM;
+    object_morph_dialer * OMD;
     deformer_morph * Morph;
     deformer_morph_map * M;
 
@@ -309,6 +313,20 @@ int save_Morphs(char * morph_files_dir)
         fprintf(F, "%s\n", M->Name);
         fprintf(F, "%d\n", M->collapsed);
         fprintf(F, "%d\n", M->Morphs_Count);
+
+        for (d = 0; d < M->Morphs_Count; d ++)
+        {
+            Morph = M->Morphs[d];
+            fprintf(F, "%u\n", (unsigned)Morph);
+        }
+
+        fprintf(F, "%d\n", M->Object_Count);
+
+        for (o = 0; o < M->Object_Count; o ++)
+        {
+            O = M->Objects[o];
+            fprintf(F, "%u\n", (unsigned)O);
+        }
     }
 
     fprintf(F, "%d\n", deformer_morph_Index);
@@ -320,13 +338,47 @@ int save_Morphs(char * morph_files_dir)
         fprintf(F, "%d\n", Morph->objectCount);
         for (o = 0; o < Morph->objectCount; o ++)
         {
-            O = Morph->Object_Morph_Map[o];
-            fprintf(F, "%u\n", (unsigned)O->O);
-            fprintf(F, "%d\n", O->map_index);
-            fprintf(F, "%d\n", O->morph_index);
+            OMD = Morph->Object_Morph_Map[o];
+            fprintf(F, "%u\n", (unsigned)OMD->O);
+            fprintf(F, "%d\n", OMD->map_index);
+            fprintf(F, "%d\n", OMD->morph_index);
 
         }
         fprintf(F, "%u\n", (unsigned)Morph->Map);
+    }
+
+    fprintf(F, "%d\n", objectIndex - 1);
+    for (o = 1; o < objectIndex; o ++) /*CUBECOMMENT*/
+    {
+        O = objects[o];
+        fprintf(F, "%d\n", O->Morph_Maps_count);
+        for (m = 0; m < O->Morph_Maps_count; m ++)
+        {
+            OM = O->Morph_Maps[m];
+            fprintf(F, "%u\n", (unsigned)OM);
+            fprintf(F, "%s\n", OM->Name);
+            fprintf(F, "%d\n", OM->MorphsCount);
+            fprintf(F, "%d\n", OM->VertCount);
+            for (d = 0; d < OM->MorphsCount; d ++)
+            {
+                OD = OM->Morphs[d];
+                fprintf(F, "%u\n", (unsigned)OD);
+                fprintf(F, "%s\n", OD->Name);
+                fprintf(F, "%u\n", (unsigned)M);
+                for (v = 0; v < OM->VertCount; v ++)
+                {
+                    P = OD->Positions[v];
+                    fprintf(F, "%f %f %f\n", P.x, P.y, P.z);
+                }
+            }
+            fprintf(F, "%u\n", (unsigned)OM->Deformer);
+            fprintf(F, "%u\n", (unsigned)OM->DM);
+            fprintf(F, "%u\n", (unsigned)OM->Object);
+            for (v = 0; v < OM->VertCount; v ++)
+            {
+                fprintf(F, "%d\n", OM->Verts[v]);
+            }
+        }
     }
 
     fprintf(F, "\n");

@@ -9592,12 +9592,9 @@ int init_Deformer_Morph_Map_(deformer_morph_map * M, deformer * D, const char * 
     }
 
     M->Morphs_Count = 0;
-
-    M->Morphs = malloc(M->Morphs_Count * sizeof(deformer_morph*));
-
+    M->Morphs = malloc(0);
     if (M->Morphs == NULL)
     {
-        M->Morphs_Count = 0;
         return 0;
     }
 
@@ -9606,6 +9603,13 @@ int init_Deformer_Morph_Map_(deformer_morph_map * M, deformer * D, const char * 
     M->Deformer = D;
     M->start = 0;
     M->current_morph = 0;
+
+    M->Object_Count = 0;
+    M->Objects = malloc(0);
+    if (M->Objects == NULL)
+    {
+        return 0;
+    }
 
     M->index = deformer_morph_map_Index;
     deformer_morph_maps[deformer_morph_map_Index ++] = M;
@@ -9641,6 +9645,7 @@ int init_Morph_Map_(morph_map * M, deformer * D, deformer_morph_map * DM, object
 void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM, const char * Name)
 {
     int o, v;
+    object ** Objects;
     object * O;
     vertex * V;
     morph_map * M;
@@ -9670,25 +9675,33 @@ void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM,
             Morph_Maps = realloc(O->Morph_Maps, (O->Morph_Maps_count + 1) * sizeof(morph_map*));
             if (Morph_Maps != NULL)
             {
-                M = malloc(sizeof(morph_map));
-                if (M != NULL)
+                Objects = realloc(DM->Objects, (DM->Object_Count + 1) * sizeof(object*));
+                if (Objects != NULL)
                 {
-                    result = init_Morph_Map_(M, D, DM, O, Name);
-                    if (!result)
-                    {
-                        break;
-                    }
-                    Verts = realloc(M->Verts, vert_counter * sizeof(int));
-                    if (Verts != NULL)
-                    {
-                        printf("Verts selection %s %d\n", O->Name, vert_counter);
-                        M->Verts = Verts;
-                        M->VertCount = vert_counter;
-                        memcpy(M->Verts, verts_selection, M->VertCount * sizeof(int));
+                    DM->Objects = Objects;
+                    DM->Objects[DM->Object_Count] = O;
+                    DM->Object_Count ++;
 
-                        O->Morph_Maps = Morph_Maps;
-                        O->Morph_Maps[O->Morph_Maps_count] = M;
-                        O->Morph_Maps_count ++;
+                    M = malloc(sizeof(morph_map));
+                    if (M != NULL)
+                    {
+                        result = init_Morph_Map_(M, D, DM, O, Name);
+                        if (!result)
+                        {
+                            break;
+                        }
+                        Verts = realloc(M->Verts, vert_counter * sizeof(int));
+                        if (Verts != NULL)
+                        {
+                            printf("Verts selection %s %d\n", O->Name, vert_counter);
+                            M->Verts = Verts;
+                            M->VertCount = vert_counter;
+                            memcpy(M->Verts, verts_selection, M->VertCount * sizeof(int));
+
+                            O->Morph_Maps = Morph_Maps;
+                            O->Morph_Maps[O->Morph_Maps_count] = M;
+                            O->Morph_Maps_count ++;
+                        }
                     }
                 }
             }
@@ -9809,11 +9822,156 @@ int get_SubcharacterPoseIndex(int index)
     return Index - 1;
 }
 
+int init_Deformer_Morph_(deformer_morph * Morph, deformer_morph_map * M, deformer * D, const char * Name)
+{
+    Morph->Name = malloc(STRLEN * sizeof(char));
+
+    if (Morph->Name == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        sprintf(Morph->Name, Name);
+    }
+
+    Morph->selected = 0;
+    Morph->D = D;
+    Morph->Map = M;
+
+    Morph->objectCount = 0;
+    Morph->Object_Morph_Map = malloc(0);
+    if (Morph->Object_Morph_Map == NULL)
+    {
+        return 0;
+    }
+
+    Morph->index = deformer_morph_Index;
+    deformer_morphs[deformer_morph_Index ++] = Morph;
+
+    return 1;
+}
+
+int init_Morph_(morph_map * M, deformer_morph * DM, morph * Morph, const char * Name)
+{
+    Morph->Name  = malloc(STRLEN * sizeof(char));
+
+    if (Morph->Name == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        sprintf(Morph->Name, Name);
+    }
+
+    Morph->selected = 0;
+    Morph->Positions = malloc(M->VertCount * sizeof(position));
+    Morph->M = DM;
+
+    /* fill in Positions */
+
+    return 1;
+}
+
+void add_Morph_To_Object(deformer * D, deformer_morph_map * DM, deformer_morph * Morph, object * O, const char * Name, object_morph_dialer * OM)
+{
+    int m;
+
+    morph ** Morphs;
+    morph * ObjectMorph;
+    morph_map * M;
+
+    for (m = 0; m < O->Morph_Maps_count; m ++)
+    {
+        M = O->Morph_Maps[m];
+
+        if (M->DM == DM)
+        {
+            Morphs = realloc(M->Morphs, (M->MorphsCount + 1) * sizeof(morph*));
+            if (Morphs != NULL)
+            {
+                M->Morphs = Morphs;
+                ObjectMorph = malloc(sizeof(morph));
+                if (ObjectMorph != NULL)
+                {
+                    init_Morph_(M, Morph, ObjectMorph, Name);
+                    M->Morphs[M->MorphsCount] = ObjectMorph;
+                    OM->map_index = m;
+                    OM->morph_index = M->MorphsCount;
+                    M->MorphsCount ++;
+                }
+            }
+            break;
+        }
+    }
+}
+
 void add_Morph_To_Morph_Map()
 {
     set_Mrph_H_Button(1);
 
     printf("add Morph To Morph Map\n");
+
+    if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+    {
+        int o, m, result;
+        char Name[STRLEN];
+        D = deformers[currentDeformer_Node];
+
+        if (deformer_morph_map_Index > 0 && current_Morph_Map < deformer_morph_map_Index)
+        {
+            object * O;
+            object_morph_dialer * OM;
+            deformer_morph * Morph;
+            deformer_morph ** Morphs;
+            deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
+
+            for (m = 0; m < D->Morph_Maps_Count; m ++)
+            {
+                if (D->Morph_Maps[m] == M)
+                {
+                    Morphs = realloc(M->Morphs, (M->Morphs_Count + 1) * sizeof(deformer_morph*));
+                    if (Morphs != NULL)
+                    {
+                        M->Morphs = Morphs;
+                        Morph = malloc(sizeof(deformer_morph));
+                        if (Morph != NULL)
+                        {
+                            M->Morphs[M->Morphs_Count] = Morph;
+                            sprintf(Name, "Morph %d", M->Morphs_Count);
+                            result = init_Deformer_Morph_(Morph, M, D, Name);
+
+                            if (result)
+                            {
+                                Morph->objectCount = M->Object_Count;
+                                Morph->Object_Morph_Map = realloc(Morph->Object_Morph_Map, Morph->objectCount * sizeof(object_morph_dialer*));
+                                if (Morph->Object_Morph_Map != NULL)
+                                {
+                                    for (o = 0; o < M->Object_Count; o ++)
+                                    {
+                                        O = M->Objects[o];
+                                        OM = malloc(sizeof(object_morph_dialer));
+                                        if (OM != NULL)
+                                        {
+                                            Morph->Object_Morph_Map[o] = OM;
+                                            OM->O = O;
+                                            add_Morph_To_Object(D, M, Morph, O, Name, OM);
+                                        }
+                                    }
+                                }
+                            }
+
+                            /* search M objects and create new morphs in them */
+
+                            M->Morphs_Count ++;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
 
     if (dialog_lock)
     {
@@ -15079,12 +15237,13 @@ void save_load_Scene()
                 strcat(Path, "Morphs");
                 mP = load_Morphs(Path, defr_count);
 
-                assign_Deformer_Morph_Maps(mP.dmm_index, defr_count);
+                assign_Deformer_Morph_Maps(mP.dmm_index, defr_count, obj_count);
                 assign_Deformer_Morphs(mP.dm_index, defr_count);
                 assign_Object_Dialer(mP.dm_index, obj_count);
+                associate_Object_Morphs(obj_count, defr_count);
             }
 
-            null_Loaded_Addresses(hP);
+            null_Loaded_Addresses(hP, mP);
 
             /* Load Subcharacter poses */
 
@@ -15296,7 +15455,7 @@ void select_current_Morph_Map()
 {
     printf("select current Morph Map %d\n", current_Morph_Map);
 
-    if (current_Morph_Map >= 0 && current_Morph_Map < Deformer_Morph_Maps_c)
+    if (deformer_morph_map_Index > 0 && current_Morph_Map < deformer_morph_map_Index)
     {
         deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
 
@@ -15310,9 +15469,9 @@ void select_current_Morph_Map()
         if (D != NULL)
         {
             printf("%s\n", D->Name);
-            for (o = 0; o < D->Objects_Count; o ++)
+            for (o = 0; o < M->Object_Count; o ++)
             {
-                O = D->Objects[o];
+                O = M->Objects[o];
                 for (m = 0; m < O->Morph_Maps_count; m ++)
                 {
                     Morf = O->Morph_Maps[m];

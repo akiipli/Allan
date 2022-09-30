@@ -42,10 +42,36 @@ position;
 
 typedef struct
 {
+    object * O;
+    int map_index;
+    int morph_index;
+}
+object_morph_dialer;
+
+typedef struct deformer_morph
+{
+    int index;
+    unsigned address;
+    char * Name;
+    deformer * D;
+    int selected;
+    deformer_morph_map * Map;
+
+    object_morph_dialer ** Object_Morph_Map;
+    int objectCount;
+}
+deformer_morph;
+
+deformer_morph * deformer_morphs[DEFORMER_MORPHS]; // in list
+int deformer_morph_Index = 0;
+
+typedef struct
+{
     int index;
     unsigned address;
     char * Name;
     int selected;
+    deformer_morph * M;
     position * Positions;
 }
 morph;
@@ -70,31 +96,6 @@ morph_map;
 
 //morph_map * morph_maps[MORPH_MAPS]; // in objects
 
-typedef struct
-{
-    object * O;
-    int map_index;
-    int morph_index;
-}
-object_morph_dialer;
-
-typedef struct deformer_morph
-{
-    int index;
-    unsigned address;
-    char * Name;
-    deformer * D;
-    int selected;
-    deformer_morph_map * Map;
-
-    object_morph_dialer ** Object_Morph_Map;
-    int objectCount;
-}
-deformer_morph;
-
-deformer_morph * deformer_morphs[DEFORMER_MORPHS]; // in list
-int deformer_morph_Index = 0;
-
 typedef struct deformer_morph_map
 {
     int index;
@@ -110,6 +111,9 @@ typedef struct deformer_morph_map
     int Morphs_Count;
 
     int current_morph;
+
+    object ** Objects;
+    int Object_Count;
 }
 deformer_morph_map;
 

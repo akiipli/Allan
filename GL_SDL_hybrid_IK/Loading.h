@@ -1726,16 +1726,17 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
 
     char * p;
 
-    int m, o;
+    int m, o, d, v;
 
-    object_morph_dialer * O;
+    position * P;
+    object * O;
+    morph * OD;
+    morph_map * OM;
+    object_morph_dialer * OMD;
     deformer_morph * Morph;
     deformer_morph_map * M;
 
-    unsigned Morph_Map;
-    unsigned OO;
-
-    int deformer_morph_map_count = 0, deformer_morph_count = 0;
+    int deformer_morph_map_count = 0, deformer_morph_count = 0, objects_count = 0;
 
     if (fgets(buff, BUF_SIZE, fp))
     {
@@ -1780,6 +1781,28 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                     return (morf_pack) {0, 0};
                 }
 
+                for (d = 0; d < M->Morphs_Count; d ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&M->Morphs[d]);
+                }
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &M->Object_Count);
+
+                M->Objects = malloc(M->Object_Count * sizeof(object*));
+                if (M->Objects == NULL)
+                {
+                    fclose(fp);
+                    return (morf_pack) {0, 0};
+                }
+
+                for (o = 0; o < M->Object_Count; o ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&M->Objects[o]);
+                }
+
                 M->start = 0;
                 M->current_morph = 0;
 
@@ -1806,6 +1829,12 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
 
                 Morph->Name = malloc(STRLEN * sizeof(char));
 
+                if (Morph->Name == NULL)
+                {
+                    fclose(fp);
+                    return (morf_pack) {0, 0};
+                }
+
                 fgets(buff, BUF_SIZE, fp);
 
                 p = strchr(buff, '\n');
@@ -1825,31 +1854,152 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
 
                 for (o = 0; o < Morph->objectCount; o ++)
                 {
-                    O = malloc(sizeof(object_morph_dialer));
-                    if (O == NULL)
+                    OMD = malloc(sizeof(object_morph_dialer));
+                    if (OMD == NULL)
                     {
                         fclose(fp);
                         return (morf_pack) {0, 0};
                     }
 
-                    Morph->Object_Morph_Map[o] = O;
+                    Morph->Object_Morph_Map[o] = OMD;
                     fgets(buff, BUF_SIZE, fp);
-                    sscanf(buff, "%u", &OO);
-                    O->O = (object *)OO;
+                    sscanf(buff, "%u", (unsigned*)&OMD->O);
                     fgets(buff, BUF_SIZE, fp);
-                    sscanf(buff, "%d", &O->map_index);
+                    sscanf(buff, "%d", &OMD->map_index);
                     fgets(buff, BUF_SIZE, fp);
-                    sscanf(buff, "%d", &O->morph_index);
+                    sscanf(buff, "%d", &OMD->morph_index);
                 }
 
                 fgets(buff, BUF_SIZE, fp);
-                sscanf(buff, "%u", &Morph_Map);
-
-                Morph->Map = (deformer_morph_map*)Morph_Map;
+                sscanf(buff, "%u", (unsigned*)&Morph->Map);
 
                 deformer_morph_Index ++;
             }
             mP.dm_index = deformer_morph_count;
+
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &objects_count);
+
+            for (o = objectIndex - objects_count; o < objectIndex; o ++)
+            {
+                O = objects[o];
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &O->Morph_Maps_count);
+
+                O->Morph_Maps = realloc(O->Morph_Maps, O->Morph_Maps_count * sizeof(morph_map*));
+
+                if (O->Morph_Maps == NULL)
+                {
+                    O->Morph_Maps_count = 0;
+                    fclose(fp);
+                    return mP;
+                }
+
+                for (m = 0; m < O->Morph_Maps_count; m ++)
+                {
+                    OM = malloc(sizeof(morph_map));
+                    if (OM == NULL)
+                    {
+                        O->Morph_Maps_count = 0;
+                        fclose(fp);
+                        return mP;
+                    }
+                    O->Morph_Maps[m] = OM;
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", &OM->address);
+
+                    OM->Name = malloc(STRLEN * sizeof(char));
+                    if (OM->Name == NULL)
+                    {
+                        O->Morph_Maps_count = 0;
+                        fclose(fp);
+                        return mP;
+                    }
+
+                    fgets(buff, BUF_SIZE, fp);
+
+                    p = strchr(buff, '\n');
+                    *p = '\0';
+
+                    sprintf(OM->Name, "%s", buff);
+
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &OM->MorphsCount);
+
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &OM->VertCount);
+
+                    OM->Verts = malloc(OM->VertCount * sizeof(int));
+                    OM->Morphs = malloc(OM->MorphsCount * sizeof(morph*));
+
+                    if (OM->Morphs == NULL || OM->Verts == NULL)
+                    {
+                        OM->MorphsCount = 0;
+                        fclose(fp);
+                        return mP;
+                    }
+
+                    for (d = 0; d < OM->MorphsCount; d ++)
+                    {
+                        OD = malloc(sizeof(morph));
+                        if (OD == NULL)
+                        {
+                            OM->MorphsCount = d;
+                            fclose(fp);
+                            return mP;
+                        }
+                        OM->Morphs[d] = OD;
+
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%d", &OD->address);
+
+                        OD->Name = malloc(STRLEN * sizeof(char));
+                        if (OD->Name == NULL)
+                        {
+                            OM->MorphsCount = d;
+                            fclose(fp);
+                            return mP;
+                        }
+
+                        fgets(buff, BUF_SIZE, fp);
+
+                        p = strchr(buff, '\n');
+                        *p = '\0';
+
+                        sprintf(OD->Name, "%s", buff);
+
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%u", (unsigned*)&OD->M);
+
+                        OD->Positions = malloc(OM->VertCount * sizeof(position));
+
+                        if (OD->Positions == NULL)
+                        {
+                            OM->MorphsCount = d;
+                            fclose(fp);
+                            return mP;
+                        }
+
+                        for (v = 0; v < OM->VertCount; v ++)
+                        {
+                            P = &OD->Positions[v];
+                            fgets(buff, BUF_SIZE, fp);
+                            sscanf(buff, "%f %f %f", &P->x, &P->y, &P->z);
+                        }
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%u", (unsigned*)&OM->Deformer);
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%u", (unsigned*)&OM->DM);
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%u", (unsigned*)&OM->Object);
+                        for (v = 0; v < OM->VertCount; v ++)
+                        {
+                            fgets(buff, BUF_SIZE, fp);
+                            sscanf(buff, "%d", &OM->Verts[v]);
+                        }
+                    }
+                }
+            }
         }
         else
         {
@@ -3450,15 +3600,21 @@ int load_Subcharacters(char * path)
     return s_index;
 }
 
-void null_Loaded_Addresses(hierarchys_pack hP)
+void null_Loaded_Addresses(hierarchys_pack hP, morf_pack mP)
 {
     int b, s, o, t, i;
+    int m, d;
 
     bone * B;
     object * O;
     ikChain * I;
     vert_selection * S;
     transformer * T;
+
+    deformer_morph_map * M;
+    deformer_morph * Morf;
+    morph_map * oM;
+    morph * oMorf;
 
     for (t = transformerIndex - hP.t_index; t < transformerIndex; t ++)
     {
@@ -3474,6 +3630,16 @@ void null_Loaded_Addresses(hierarchys_pack hP)
             S = O->vertex_selection[s];
             S->address = 0;
         }
+        for (m = 0; m < O->Morph_Maps_count; m ++)
+        {
+            oM = O->Morph_Maps[m];
+            oM->address = 0;
+            for (d = 0; d < oM->MorphsCount; d ++)
+            {
+                oMorf = oM->Morphs[d];
+                oMorf->address = 0;
+            }
+        }
     }
     for (b = bonesIndex - hP.b_index; b < bonesIndex; b ++)
     {
@@ -3485,6 +3651,18 @@ void null_Loaded_Addresses(hierarchys_pack hP)
     {
         I = ikChains[i];
         I->address = 0;
+    }
+
+    for (m = deformer_morph_map_Index - mP.dmm_index; m < deformer_morph_map_Index; m ++)
+    {
+        M = deformer_morph_maps[m];
+        M->address = 0;
+    }
+
+    for (m = deformer_morph_Index - mP.dm_index; m < deformer_morph_Index; m ++)
+    {
+        Morf = deformer_morphs[m];
+        Morf->address = 0;
     }
 }
 
@@ -4565,13 +4743,102 @@ void assign_Object_Dialer(int morph_count, int obj_count)
     }
 }
 
+void associate_Object_Morphs(int obj_count, int defr_count)
+{
+    if (defr_count)
+    {
+        int o, d, m, i, f, k, j;
+
+        object * O;
+        morph * OD;
+        morph_map * OM;
+
+        object_morph_dialer * OMD;
+        deformer_morph * Morph;
+        deformer_morph_map * M;
+        deformer * D;
+
+
+        for (o = objectIndex - obj_count; o < objectIndex; o ++)
+        {
+            O = objects[o];
+
+            for (m = 0; m < O->Morph_Maps_count; m ++)
+            {
+                OM = O->Morph_Maps[m];
+
+                if (O->address != (unsigned)OM->Object)
+                {
+                    printf("Error, mismatch between loaded objects and object morph!\n");
+                }
+                OM->Object = O;
+
+                for (d = deformerIndex - defr_count; d < deformerIndex; d ++)
+                {
+                    D = deformers[d];
+
+                    if ((unsigned)OM->Deformer == D->address)
+                    {
+                        printf("Deformer found!\n");
+                        OM->Deformer = D;
+
+                        for (i = 0; i < D->Morph_Maps_Count; i ++)
+                        {
+                            M = D->Morph_Maps[i];
+
+                            if ((unsigned)OM->DM == M->address)
+                            {
+                                printf("Deformer map found!\n");
+                                OM->DM = M;
+
+                                for (f = 0; f < M->Morphs_Count; f ++)
+                                {
+                                    Morph = M->Morphs[f];
+
+                                    for (k = 0; k < OM->MorphsCount; k ++)
+                                    {
+                                        OD = OM->Morphs[k];
+
+                                        if ((unsigned)OD->M == Morph->address)
+                                        {
+                                            printf("Morph Map found!\n");
+                                            OD->M = Morph;
+
+                                            for (j = 0; j < Morph->objectCount; j ++)
+                                            {
+                                                OMD = Morph->Object_Morph_Map[j];
+
+                                                if ((unsigned)OMD->O == O->address)
+                                                {
+                                                    printf("Morph Dialer found!\n");
+                                                    OMD->O = O;
+                                                    OMD->map_index = m;
+                                                    OMD->morph_index = k;
+                                                    break;
+                                                }
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void assign_Deformer_Morphs(int morph_count, int defr_count)
 {
     if (defr_count)
     {
         int m, i, d, f;
 
-        deformer_morph * Morph;
+        deformer_morph * Morph, * Morph0;
         deformer_morph_map * M;
         deformer * D;
 
@@ -4585,15 +4852,15 @@ void assign_Deformer_Morphs(int morph_count, int defr_count)
 
                 for (m = 0; m < M->Morphs_Count; m ++)
                 {
+                    Morph = M->Morphs[m];
                     for (f = deformer_morph_Index - morph_count; f < deformer_morph_Index; f ++)
                     {
-                        Morph = deformer_morphs[f];
-                        if ((unsigned)Morph->Map == M->address)
+                        Morph0 = deformer_morphs[f];
+                        if ((unsigned)Morph == Morph0->address)
                         {
-                            //S0->address = 0;
-                            M->Morphs[m] = Morph;
-                            Morph->Map = (deformer_morph_map*)M->Morphs[m];
-                            Morph->D = D;
+                            M->Morphs[m] = Morph0;
+                            M->Morphs[m]->D = D;
+                            M->Morphs[m]->Map = M;
                             break;
                         }
                     }
@@ -4603,12 +4870,13 @@ void assign_Deformer_Morphs(int morph_count, int defr_count)
     }
 }
 
-void assign_Deformer_Morph_Maps(int morph_map_count, int defr_count)
+void assign_Deformer_Morph_Maps(int morph_map_count, int defr_count, int obj_count)
 {
     if (defr_count)
     {
-        int m, i, d;
+        int m, i, d, o, f;
 
+        object * O, * O0;
         deformer_morph_map * M, * M0;
         deformer * D;
 
@@ -4628,6 +4896,24 @@ void assign_Deformer_Morph_Maps(int morph_map_count, int defr_count)
                         D->Morph_Maps[i] = M0;
                         D->Morph_Maps[i]->Deformer = D;
                         break;
+                    }
+                }
+            }
+
+            for (i = 0; i < D->Morph_Maps_Count; i ++)
+            {
+                M = D->Morph_Maps[i];
+                for (f = 0; f < M->Object_Count; f ++)
+                {
+                    O0 = M->Objects[f];
+                    for (o = objectIndex - obj_count; o < objectIndex; o ++)
+                    {
+                        O = objects[o];
+                        if (O->address == (unsigned)O0)
+                        {
+                            M->Objects[f] = O;
+                            break;
+                        }
                     }
                 }
             }
