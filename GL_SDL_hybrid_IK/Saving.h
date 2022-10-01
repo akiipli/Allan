@@ -351,6 +351,7 @@ int save_Morphs(char * morph_files_dir)
     for (o = 1; o < objectIndex; o ++) /*CUBECOMMENT*/
     {
         O = objects[o];
+
         fprintf(F, "%d\n", O->Morph_Maps_count);
         for (m = 0; m < O->Morph_Maps_count; m ++)
         {
@@ -364,7 +365,7 @@ int save_Morphs(char * morph_files_dir)
                 OD = OM->Morphs[d];
                 fprintf(F, "%u\n", (unsigned)OD);
                 fprintf(F, "%s\n", OD->Name);
-                fprintf(F, "%u\n", (unsigned)M);
+                fprintf(F, "%u\n", (unsigned)OD->M);
                 for (v = 0; v < OM->VertCount; v ++)
                 {
                     P = OD->Positions[v];

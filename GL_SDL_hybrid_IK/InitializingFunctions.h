@@ -82,7 +82,7 @@ void free_Morphs()
 {
     int m, o;
 
-    object_morph_dialer * Od;
+    object_morph_dialer * OMD;
     deformer_morph * Morph;
     deformer_morph_map * M;
 
@@ -100,8 +100,8 @@ void free_Morphs()
         free(Morph->Name);
         for (o = 0; o < Morph->objectCount; o ++)
         {
-            Od = Morph->Object_Morph_Map[o];
-            free(Od);
+            OMD = Morph->Object_Morph_Map[o];
+            free(OMD);
         }
         free(Morph->Object_Morph_Map);
         free(Morph);

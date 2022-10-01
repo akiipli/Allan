@@ -9866,7 +9866,7 @@ int init_Morph_(morph_map * M, deformer_morph * DM, morph * Morph, const char * 
     }
 
     Morph->selected = 0;
-    Morph->Positions = malloc(M->VertCount * sizeof(position));
+    Morph->Positions = calloc(M->VertCount, sizeof(position));
     Morph->M = DM;
 
     /* fill in Positions */
@@ -9874,7 +9874,7 @@ int init_Morph_(morph_map * M, deformer_morph * DM, morph * Morph, const char * 
     return 1;
 }
 
-void add_Morph_To_Object(deformer * D, deformer_morph_map * DM, deformer_morph * Morph, object * O, const char * Name, object_morph_dialer * OM)
+void add_Morph_To_Object(deformer * D, deformer_morph_map * DM, deformer_morph * Morph, object * O, const char * Name, object_morph_dialer * OMD)
 {
     int m;
 
@@ -9897,8 +9897,8 @@ void add_Morph_To_Object(deformer * D, deformer_morph_map * DM, deformer_morph *
                 {
                     init_Morph_(M, Morph, ObjectMorph, Name);
                     M->Morphs[M->MorphsCount] = ObjectMorph;
-                    OM->map_index = m;
-                    OM->morph_index = M->MorphsCount;
+                    OMD->map_index = m;
+                    OMD->morph_index = M->MorphsCount;
                     M->MorphsCount ++;
                 }
             }
@@ -9922,7 +9922,7 @@ void add_Morph_To_Morph_Map()
         if (deformer_morph_map_Index > 0 && current_Morph_Map < deformer_morph_map_Index)
         {
             object * O;
-            object_morph_dialer * OM;
+            object_morph_dialer * OMD;
             deformer_morph * Morph;
             deformer_morph ** Morphs;
             deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
@@ -9951,12 +9951,12 @@ void add_Morph_To_Morph_Map()
                                     for (o = 0; o < M->Object_Count; o ++)
                                     {
                                         O = M->Objects[o];
-                                        OM = malloc(sizeof(object_morph_dialer));
-                                        if (OM != NULL)
+                                        OMD = malloc(sizeof(object_morph_dialer));
+                                        if (OMD != NULL)
                                         {
-                                            Morph->Object_Morph_Map[o] = OM;
-                                            OM->O = O;
-                                            add_Morph_To_Object(D, M, Morph, O, Name, OM);
+                                            Morph->Object_Morph_Map[o] = OMD;
+                                            OMD->O = O;
+                                            add_Morph_To_Object(D, M, Morph, O, Name, OMD);
                                         }
                                     }
                                 }
@@ -15243,7 +15243,7 @@ void save_load_Scene()
                 associate_Object_Morphs(obj_count, defr_count);
             }
 
-            null_Loaded_Addresses(hP, mP);
+            null_Loaded_Addresses(hP, mP, defr_count);
 
             /* Load Subcharacter poses */
 
@@ -15451,6 +15451,28 @@ void select_currentIK()
     }
 }
 
+void select_current_Morph()
+{
+    printf("currentMorph %d\n", currentMorph);
+
+    if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
+    {
+        deformer_morph * Morph = deformer_morphs[currentMorph];
+        object_morph_dialer * OMD;
+
+        int o;
+
+        printf(" %s %s %s\n", Morph->Name, Morph->D->Name, Morph->Map->Name);
+        printf("  %d\n", Morph->objectCount);
+
+        for (o = 0; o < Morph->objectCount; o ++)
+        {
+            OMD = Morph->Object_Morph_Map[o];
+            printf("   %s %d %d\n", OMD->O->Name, OMD->map_index, OMD->morph_index);
+        }
+    }
+}
+
 void select_current_Morph_Map()
 {
     printf("select current Morph Map %d\n", current_Morph_Map);
@@ -15468,16 +15490,18 @@ void select_current_Morph_Map()
         D = M->Deformer;
         if (D != NULL)
         {
-            printf("%s\n", D->Name);
+            printf(" %s %d\n", D->Name, M->Object_Count);
             for (o = 0; o < M->Object_Count; o ++)
             {
                 O = M->Objects[o];
+                printf("  %s %d\n", O->Name, O->Morph_Maps_count);
                 for (m = 0; m < O->Morph_Maps_count; m ++)
                 {
                     Morf = O->Morph_Maps[m];
+                    printf("   %s %s\n", Morf->Name, Morf->Object->Name);
                     if (Morf->DM == M)
                     {
-                        printf("%s %s %d\n", O->Name, Morf->Name, Morf->VertCount);
+                        printf("    %s %s %d\n", O->Name, Morf->Name, Morf->VertCount);
                     }
                 }
             }
@@ -17462,7 +17486,7 @@ int main(int argc, char * args[])
                                         else if (Morph_List[MorphIndex] >= MORPHS)
                                         {
                                             currentMorph = Morph_List[MorphIndex] - MORPHS;
-                                            printf("currentMorph %d\n", currentMorph);
+                                            select_current_Morph();
                                         }
                                         else
                                         {
