@@ -15459,8 +15459,9 @@ void select_current_Morph()
     {
         deformer_morph * Morph = deformer_morphs[currentMorph];
         object_morph_dialer * OMD;
+        morph_map * M;
 
-        int o;
+        int o, i;
 
         printf(" %s %s %s\n", Morph->Name, Morph->D->Name, Morph->Map->Name);
         printf("  %d\n", Morph->objectCount);
@@ -15469,6 +15470,12 @@ void select_current_Morph()
         {
             OMD = Morph->Object_Morph_Map[o];
             printf("   %s %d %d\n", OMD->O->Name, OMD->map_index, OMD->morph_index);
+            M = OMD->O->Morph_Maps[OMD->map_index];
+            for (i = 0; i < M->VertCount; i ++)
+            {
+                printf("%d ", M->Verts[i]);
+            }
+            printf("\n");
         }
     }
 }
