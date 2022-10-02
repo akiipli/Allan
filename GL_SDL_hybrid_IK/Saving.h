@@ -351,7 +351,7 @@ int save_Morphs(char * morph_files_dir)
     for (o = 1; o < objectIndex; o ++) /*CUBECOMMENT*/
     {
         O = objects[o];
-
+        fprintf(F, "%u\n", (unsigned)O); // since objects depends of listing in folders
         fprintf(F, "%d\n", O->Morph_Maps_count);
         for (m = 0; m < O->Morph_Maps_count; m ++)
         {
@@ -375,6 +375,9 @@ int save_Morphs(char * morph_files_dir)
             fprintf(F, "%u\n", (unsigned)OM->Deformer);
             fprintf(F, "%u\n", (unsigned)OM->DM);
             fprintf(F, "%u\n", (unsigned)OM->Object);
+
+            printf("SAVING: %u %s\n", (unsigned)OM->Object, OM->Object->Name);
+
             for (v = 0; v < OM->VertCount; v ++)
             {
                 fprintf(F, "%d\n", OM->Verts[v]);

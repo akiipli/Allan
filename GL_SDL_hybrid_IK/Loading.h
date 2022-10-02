@@ -1737,6 +1737,7 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
     deformer_morph_map * M;
 
     int deformer_morph_map_count = 0, deformer_morph_count = 0, objects_count = 0;
+    unsigned object_address;
 
     if (fgets(buff, BUF_SIZE, fp))
     {
@@ -1880,9 +1881,22 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
             fgets(buff, BUF_SIZE, fp);
             sscanf(buff, "%d", &objects_count);
 
+            printf("objects_count %d %d\n", objects_count, objectIndex);
+
             for (o = objectIndex - objects_count; o < objectIndex; o ++)
             {
-                O = objects[o];
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &object_address);
+
+                for (d = objectIndex - objects_count; d < objectIndex; d ++) // since objects depends of listing in folders
+                {
+                    O = objects[d];
+                    if (O->address == object_address)
+                    {
+                        break;
+                    }
+                }
+
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%d", &O->Morph_Maps_count);
 
@@ -1993,6 +2007,9 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                     sscanf(buff, "%u", (unsigned*)&OM->DM);
                     fgets(buff, BUF_SIZE, fp);
                     sscanf(buff, "%u", (unsigned*)&OM->Object);
+
+                    printf("LOADING: %u\n", (unsigned)OM->Object);
+
                     for (v = 0; v < OM->VertCount; v ++)
                     {
                         fgets(buff, BUF_SIZE, fp);
@@ -4765,13 +4782,18 @@ void associate_Object_Morphs(int obj_count, int defr_count)
         deformer_morph_map * M;
         deformer * D;
 
+        printf("obj_count %d %d\n", obj_count, objectIndex);
+
         for (o = objectIndex - obj_count; o < objectIndex; o ++)
         {
             O = objects[o];
+            printf("%u %s\n", (unsigned)O->address, O->Name);
 
             for (m = 0; m < O->Morph_Maps_count; m ++)
             {
                 OM = O->Morph_Maps[m];
+
+                printf("ASSOCIATE: %u, %s %d %d\n", (unsigned)OM->Object, OM->Name, OM->MorphsCount, OM->VertCount);
 
                 if (O->address != (unsigned)OM->Object)
                 {
@@ -4785,7 +4807,7 @@ void associate_Object_Morphs(int obj_count, int defr_count)
 
                     if ((unsigned)OM->Deformer == D->address)
                     {
-                        //printf("Deformer found!\n");
+                        printf("Deformer found!\n");
                         OM->Deformer = D;
 
                         for (i = 0; i < D->Morph_Maps_Count; i ++)
@@ -4794,7 +4816,7 @@ void associate_Object_Morphs(int obj_count, int defr_count)
 
                             if ((unsigned)OM->DM == M->address)
                             {
-                                //printf("Deformer map found!\n");
+                                printf("\tDeformer map found!\n");
                                 OM->DM = M;
 
                                 for (f = 0; f < M->Morphs_Count; f ++)
@@ -4807,7 +4829,7 @@ void associate_Object_Morphs(int obj_count, int defr_count)
 
                                         if ((unsigned)OD->M == Morph->address)
                                         {
-                                            //printf("Morph Map found!\n");
+                                            printf("\t\tMorph Map found!\n");
                                             OD->M = Morph;
                                             break;
                                         }

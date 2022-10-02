@@ -91,6 +91,7 @@ void free_Morphs()
         M = deformer_morph_maps[m];
         free(M->Name);
         free(M->Morphs);
+        free(M->Objects);
         free(M);
     }
 

@@ -15506,7 +15506,7 @@ void select_current_Morph_Map()
                 {
                     Morf = O->Morph_Maps[m];
                     printf("   %s %s\n", Morf->Name, Morf->Object->Name);
-                    if (Morf->DM == M)
+                    if (Morf->DM == M) //(strcmp(Morf->Name, M->Name) == 0)
                     {
                         printf("    %s %s %d\n", O->Name, Morf->Name, Morf->VertCount);
                     }
