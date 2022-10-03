@@ -39,8 +39,6 @@ I could not determine the connection.
 
 #define CP_CONTINUITY 0.5
 
-int verts_selection[OBJECT_CPS];
-int vert_counter = 0;
 int selected_curves[CURVES];
 int selected_curves_count = 0;
 int selected_curves0[CURVES];

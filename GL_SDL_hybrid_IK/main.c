@@ -9652,7 +9652,7 @@ void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM,
     morph_map ** Morph_Maps;
 
     int result;
-    int * Verts;
+    weighted_index * Verts;
 
     for (o = 0; o < D->Objects_Count; o ++)
     {
@@ -9663,7 +9663,8 @@ void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM,
             V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
             if (V->selected)
             {
-                verts_selection[vert_counter ++] = V->index;
+                verts_selection[vert_counter ++].index = V->index;
+                verts_selection[vert_counter ++].weight = 1.0; // later detect morph map overlap and distribute
             }
             if (vert_counter >= OBJECT_CPS)
             {
@@ -9690,13 +9691,13 @@ void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM,
                         {
                             break;
                         }
-                        Verts = realloc(M->Verts, vert_counter * sizeof(int));
+                        Verts = realloc(M->Verts, vert_counter * sizeof(weighted_index));
                         if (Verts != NULL)
                         {
                             printf("Verts selection %s %d\n", O->Name, vert_counter);
                             M->Verts = Verts;
                             M->VertCount = vert_counter;
-                            memcpy(M->Verts, verts_selection, M->VertCount * sizeof(int));
+                            memcpy(M->Verts, verts_selection, M->VertCount * sizeof(weighted_index));
 
                             O->Morph_Maps = Morph_Maps;
                             O->Morph_Maps[O->Morph_Maps_count] = M;
@@ -15473,7 +15474,7 @@ void select_current_Morph()
             M = OMD->O->Morph_Maps[OMD->map_index];
             for (i = 0; i < M->VertCount; i ++)
             {
-                printf("%d ", M->Verts[i]);
+                printf("%d ", M->Verts[i].index);
             }
             printf("\n");
         }
@@ -20757,26 +20758,7 @@ int main(int argc, char * args[])
             }
             else if (mod & KMOD_ALT)
             {
-                O = objects[currentObject];
-                int result = add_New_Morph_Map(O, "Face");
-                if (result)
-                {
-                    int r = add_New_Morph(O->Morph_Maps[O->Morph_Maps_count - 1], "Loll");
-                    int m;
-                    for (m = 0; m < O->Morph_Maps_count; m ++)
-                    {
-                        printf("%s: ", O->Morph_Maps[m]->Name);
-                        if (r)
-                        {
-                            int i;
-                            for (i = 0; i < O->Morph_Maps[m]->MorphsCount; i ++)
-                            {
-                                printf("%s ", O->Morph_Maps[m]->Morphs[i]->Name);
-                            }
-                        }
-                        printf("\n");
-                    }
-                }
+
             }
             else if(mod & KMOD_CTRL)
             {

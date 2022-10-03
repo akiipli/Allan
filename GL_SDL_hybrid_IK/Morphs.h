@@ -34,6 +34,16 @@ int Deformer_Morph_Maps_c = 0;
 
 typedef struct
 {
+    int index;
+    float weight; // morph maps can overlap and weight is proportion of overlap
+}
+weighted_index;
+
+weighted_index verts_selection[OBJECT_CPS];
+int vert_counter = 0;
+
+typedef struct
+{
     float x;
     float y;
     float z;
@@ -89,7 +99,7 @@ typedef struct morph_map
     deformer * Deformer;
     deformer_morph_map * DM;
     object * Object;
-    int * Verts;
+    weighted_index * Verts;
     int VertCount;
 }
 morph_map;
@@ -120,81 +130,7 @@ deformer_morph_map;
 deformer_morph_map * deformer_morph_maps[DEFORMER_MORPH_MAPS]; // in list
 int deformer_morph_map_Index = 0;
 
-int init_Morph_Map(morph_map * M, const char * Name)
-{
-    M->Name  = malloc(STRLEN * sizeof(char));
-
-    if (M->Name == NULL)
-    {
-        return 0;
-    }
-    else
-    {
-        sprintf(M->Name, Name);
-    }
-
-    M->selected = 0;
-    M->Morphs = malloc(0);
-    M->MorphsCount = 0;
-    M->Deformer = NULL;
-    M->Object = NULL;
-    M->Verts = malloc(0);
-    M->VertCount = 0;
-
-    return 1;
-}
-
 void free_Morph_Map(morph_map * M);
-
-int add_New_Morph_Map(object * O, const char * Name)
-{
-    printf("add New Morph Map to %s\n", O->Name);
-
-    if (O->Morph_Maps_count >= OBJECT_MORPH_MAPS || morph_mapIndex >= MORPH_MAPS)
-    {
-        return 0;
-    }
-
-    int result;
-    morph_map ** Morph_Maps;
-
-    morph_map * M = malloc(sizeof(morph_map));
-
-    if (M == NULL)
-    {
-        return 0;
-    }
-
-    result = init_Morph_Map(M, Name);
-    if (result)
-    {
-        //morph_maps[morph_mapIndex] = M;
-        M->index = morph_mapIndex;
-        M->Object = O;
-        morph_mapIndex ++;
-
-        O->Morph_Maps_count ++;
-        Morph_Maps = realloc(O->Morph_Maps, O->Morph_Maps_count * sizeof(morph_map*));
-
-        if (Morph_Maps == NULL)
-        {
-            morph_mapIndex --;
-            O->Morph_Maps_count --;
-            free_Morph_Map(M);
-            return 0;
-        }
-        else
-        {
-            O->Morph_Maps = Morph_Maps;
-            O->Morph_Maps[O->Morph_Maps_count - 1] = M;
-            return 1;
-        }
-    }
-    else
-    {
-        return 0;
-    }
-}
 
 int add_Morph_To_Morph_Map_(morph_map * M, morph * Morph)
 {

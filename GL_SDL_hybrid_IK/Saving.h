@@ -380,7 +380,8 @@ int save_Morphs(char * morph_files_dir)
 
             for (v = 0; v < OM->VertCount; v ++)
             {
-                fprintf(F, "%d\n", OM->Verts[v]);
+                fprintf(F, "%d\n", OM->Verts[v].index);
+                fprintf(F, "%f\n", OM->Verts[v].weight);
             }
         }
     }

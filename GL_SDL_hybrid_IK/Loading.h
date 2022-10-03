@@ -1943,7 +1943,7 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                     fgets(buff, BUF_SIZE, fp);
                     sscanf(buff, "%d", &OM->VertCount);
 
-                    OM->Verts = malloc(OM->VertCount * sizeof(int));
+                    OM->Verts = calloc(OM->VertCount, sizeof(weighted_index));
                     OM->Morphs = malloc(OM->MorphsCount * sizeof(morph*));
 
                     if (OM->Morphs == NULL || OM->Verts == NULL)
@@ -2013,7 +2013,9 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                     for (v = 0; v < OM->VertCount; v ++)
                     {
                         fgets(buff, BUF_SIZE, fp);
-                        sscanf(buff, "%d", &OM->Verts[v]);
+                        sscanf(buff, "%d", &OM->Verts[v].index);
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%f", &OM->Verts[v].weight);
                     }
                 }
             }
