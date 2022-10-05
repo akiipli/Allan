@@ -58,7 +58,7 @@ int LISTLENGTH = 12;
 #define H_ITEM_NUM 1
 #define H_IKCH_NUM 6
 #define H_SUBC_NUM 5
-#define H_MRPH_NUM 5
+#define H_MRPH_NUM 6
 #define H_TEXT_NUM 3
 
 #define TYPE_LENGTH 20
@@ -3671,6 +3671,7 @@ void draw_Morph_Bottom_Line(int width, int height)
     draw_Button_morph_horizontal("Remove", 2, 1);
     draw_Button_morph_horizontal("Rem M.", 3, 1);
     draw_Button_morph_horizontal("Rename", 4, 1);
+    draw_Button_morph_horizontal("Update", 5, 1);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

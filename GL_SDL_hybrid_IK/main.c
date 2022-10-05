@@ -9663,7 +9663,7 @@ void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM,
             V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
             if (V->selected)
             {
-                verts_selection[vert_counter ++].index = V->index;
+                verts_selection[vert_counter].index = V->index;
                 verts_selection[vert_counter ++].weight = 1.0; // later detect morph map overlap and distribute
             }
             if (vert_counter >= OBJECT_CPS)
@@ -10122,6 +10122,211 @@ void remove_Subcharacter_Pose()
             if (dialog_lock)
                 draw_Dialog();
 
+        }
+    }
+}
+
+void troll_verts_selection_to_Object_Morphs(object * O, morph_map * MM, weighted_index * position_Copy_Task, int counter_p)
+{
+    int v, m, Task;
+    morph * Morph;
+    position * Positions;
+    int v_counter;
+
+    for (m = 0; m < MM->MorphsCount; m ++)
+    {
+        v_counter = 0;
+        Morph = MM->Morphs[m];
+        Positions = calloc(counter_p, sizeof(position));
+
+        for (v = 0; v < counter_p; v ++)
+        {
+            Task = position_Copy_Task[v].index;
+            if (MM->Verts[v_counter].index == Task)
+            {
+                memcpy(&Positions[v], &Morph->Positions[v_counter], sizeof(position));
+                v_counter ++;
+            }
+        }
+
+        free(Morph->Positions);
+        Morph->Positions = Positions;
+    }
+}
+
+void troll_verts_selection_to_Object(object * O, deformer_morph_map * M, deformer * D)
+{
+    int p, v, m;
+    int counter_p;
+    int counter_v;
+    int counter_m;
+    morph_map * MM;
+    weighted_index * Verts;
+    weighted_index * position_Copy_Task;
+    vertex * V;
+
+    for (m = 0; m < O->Morph_Maps_count; m ++)
+    {
+        MM = O->Morph_Maps[m];
+        if (MM->DM == M)
+        {
+            counter_p = 0;
+            counter_v = 0;
+            counter_m = 0;
+
+            position_Copy_Task = calloc(O->vertcount, sizeof(weighted_index));
+            if (position_Copy_Task != NULL)
+            {
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                    if (V->index == MM->Verts[counter_m].index && V->index == verts_selection[counter_v].index)
+                    {
+                        position_Copy_Task[counter_p].index = V->index;
+                        position_Copy_Task[counter_p ++].weight = MM->Verts[counter_m].weight;
+                    }
+                    else if (V->index == verts_selection[counter_v].index)
+                    {
+                        position_Copy_Task[counter_p].index = -V->index;
+                        position_Copy_Task[counter_p ++].weight = 1.0;
+                    }
+
+                    if (V->index == MM->Verts[counter_m].index)
+                    {
+                        counter_m ++;
+                    }
+                    if (V->index == verts_selection[counter_v].index)
+                    {
+                        counter_v ++;
+                    }
+                }
+
+                if (counter_p > 0)
+                {
+                    Verts = realloc(MM->Verts, counter_p * sizeof(weighted_index));
+                    if (Verts != NULL)
+                    {
+                        troll_verts_selection_to_Object_Morphs(O, MM, position_Copy_Task, counter_p);
+
+                        for (p = 0; p < counter_p; p ++)
+                        {
+                            position_Copy_Task[p].index = abs(position_Copy_Task[p].index);
+                        }
+
+                        MM->Verts = Verts;
+                        MM->VertCount = counter_p;
+
+                        memcpy(MM->Verts, position_Copy_Task, MM->VertCount * sizeof(weighted_index));
+                    }
+                }
+                free(position_Copy_Task);
+            }
+
+            break;
+        }
+    }
+}
+
+void update_Morph_Map()
+{
+    set_Mrph_H_Button(5);
+
+    printf("update_Morph_Map\n");
+
+    if (dialog_lock)
+    {
+        if (!Edit_Lock && Morphs_c > 0)
+        {
+            if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+            {
+                D = deformers[currentDeformer_Node];
+                printf("%s\n", D->Name);
+
+                if (deformer_morph_map_Index > 0 && current_Morph_Map < deformer_morph_map_Index)
+                {
+                    int i, m, v, o;
+
+                    object * O;
+                    object ** Objects;
+                    int Objects_Count, objectCount;
+
+                    vertex * V;
+                    deformer_morph * Morph;
+                    deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
+                    object_morph_dialer * OMD;
+                    object_morph_dialer ** Object_Morph_Map;
+
+                    if (M->Deformer == D)
+                    {
+                        Objects = malloc(D->Objects_Count * sizeof(object*));
+                        if (Objects != NULL)
+                        {
+                            Objects_Count = 0;
+                            for (o = 0; o < D->Objects_Count; o ++)
+                            {
+                                O = D->Objects[o];
+                                vert_counter = 0;
+                                for (v = 0; v < O->vertcount; v ++)
+                                {
+                                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                                    if (V->selected)
+                                    {
+                                        verts_selection[vert_counter].index = V->index;
+                                        verts_selection[vert_counter ++].weight = 1.0; // later detect morph map overlap and distribute
+                                    }
+                                    if (vert_counter >= OBJECT_CPS)
+                                    {
+                                        break;
+                                    }
+                                }
+                                if (vert_counter > 0)
+                                {
+                                    Objects[Objects_Count ++] = O;
+                                    troll_verts_selection_to_Object(O, M, D);
+                                }
+                            }
+                            Objects = realloc(Objects, Objects_Count * sizeof(object*));
+                            if (Objects != NULL)
+                            {
+                                M->Objects = Objects;
+                                M->Object_Count = Objects_Count;
+
+                                for (m = 0; m < M->Morphs_Count; m ++)
+                                {
+                                    Morph = M->Morphs[m];
+
+                                    /* renew objects in deformer morph */
+
+                                    objectCount = 0;
+
+                                    Object_Morph_Map = malloc(Objects_Count * sizeof(object_morph_dialer *));
+
+                                    if (Object_Morph_Map != NULL)
+                                    {
+                                        for (i = 0; i < Morph->objectCount; i ++)
+                                        {
+                                            OMD = Morph->Object_Morph_Map[i];
+
+                                            for (v = 0; v < M->Object_Count; v ++)
+                                            {
+                                                O = M->Objects[v];
+                                                if (OMD->O == O)
+                                                {
+                                                    Object_Morph_Map[objectCount ++] = OMD;
+                                                }
+                                            }
+                                        }
+                                        free(Morph->Object_Morph_Map);
+                                        Morph->Object_Morph_Map = Object_Morph_Map;
+                                        Morph->objectCount = objectCount;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -16476,6 +16681,7 @@ int main(int argc, char * args[])
     Button_h_mrph[2].func = &remove_Morph_Map;
     Button_h_mrph[3].func = &remove_Morph;
     Button_h_mrph[4].func = &rename_Morph;
+    Button_h_mrph[5].func = &update_Morph_Map;
 
     Button_h_scen[0].func = &save_load_Scene;
 
