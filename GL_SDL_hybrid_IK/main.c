@@ -10154,7 +10154,7 @@ void troll_verts_selection_to_Object_Morphs(object * O, morph_map * MM, weighted
     }
 }
 
-void troll_verts_selection_to_Object(object * O, deformer_morph_map * M, deformer * D)
+void troll_verts_selection_to_Object(object * O, deformer_morph_map * M)
 {
     int p, v, m;
     int counter_p;
@@ -10259,13 +10259,13 @@ void update_Morph_Map()
 
                     if (M->Deformer == D)
                     {
-                        Objects = malloc(D->Objects_Count * sizeof(object*));
+                        Objects = malloc(M->Object_Count * sizeof(object*));
                         if (Objects != NULL)
                         {
                             Objects_Count = 0;
-                            for (o = 0; o < D->Objects_Count; o ++)
+                            for (o = 0; o < M->Object_Count; o ++)
                             {
-                                O = D->Objects[o];
+                                O = M->Objects[o];
                                 vert_counter = 0;
                                 for (v = 0; v < O->vertcount; v ++)
                                 {
@@ -10283,7 +10283,7 @@ void update_Morph_Map()
                                 if (vert_counter > 0)
                                 {
                                     Objects[Objects_Count ++] = O;
-                                    troll_verts_selection_to_Object(O, M, D);
+                                    troll_verts_selection_to_Object(O, M);
                                 }
                             }
                             Objects = realloc(Objects, Objects_Count * sizeof(object*));
@@ -15665,9 +15665,9 @@ void select_current_Morph()
     {
         deformer_morph * Morph = deformer_morphs[currentMorph];
         object_morph_dialer * OMD;
-        morph_map * M;
+        //morph_map * M;
 
-        int o, i;
+        int o; // i;
 
         printf(" %s %s %s\n", Morph->Name, Morph->D->Name, Morph->Map->Name);
         printf("  %d\n", Morph->objectCount);
@@ -15676,12 +15676,14 @@ void select_current_Morph()
         {
             OMD = Morph->Object_Morph_Map[o];
             printf("   %s %d %d\n", OMD->O->Name, OMD->map_index, OMD->morph_index);
+            /*
             M = OMD->O->Morph_Maps[OMD->map_index];
             for (i = 0; i < M->VertCount; i ++)
             {
                 printf("%d ", M->Verts[i].index);
             }
             printf("\n");
+            */
         }
     }
 }
@@ -15696,8 +15698,10 @@ void select_current_Morph_Map()
 
         printf("%s\n", M->Name);
 
-        int o, m;
+        int idx, v, o, m;
+
         object * O;
+        vertex * V;
         morph_map * Morf;
 
         D = M->Deformer;
@@ -15715,9 +15719,18 @@ void select_current_Morph_Map()
                     if (Morf->DM == M) //(strcmp(Morf->Name, M->Name) == 0)
                     {
                         printf("    %s %s %d\n", O->Name, Morf->Name, Morf->VertCount);
+
+                        for (v = 0; v < Morf->VertCount; v ++)
+                        {
+                            idx = Morf->Verts[v].index;
+                            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            V->selected = 1;
+                        }
                     }
                 }
+                assert_Element_Selection_(O);
             }
+            set_Vertex_Mode();
         }
     }
 
