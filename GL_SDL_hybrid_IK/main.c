@@ -10133,6 +10133,76 @@ void remove_Morph()
 
     set_Mrph_H_Button(3);
 
+    if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+    {
+        int o, m, index, condition;
+
+        object * O;
+        morph * OMorph;
+        morph_map * OM;
+        object_morph_dialer * OMD;
+
+        D = deformers[currentDeformer_Node];
+
+        if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
+        {
+            deformer_morph * Morph = deformer_morphs[currentMorph];
+            deformer_morph_map * M = Morph->Map;
+
+            condition = 0;
+            for (m = 0; m < D->Morph_Maps_Count; m ++)
+            {
+                if (D->Morph_Maps[m] == M)
+                {
+                    condition = 1;
+                    break;
+                }
+            }
+
+            if (condition)
+            {
+                condition = 0;
+                for (m = 0; m < M->Morphs_Count; m ++)
+                {
+                    if (M->Morphs[m] == Morph)
+                    {
+                        condition = 1;
+                        index = m;
+                        break;
+                    }
+                }
+                if (condition)
+                {
+                    M->Morphs_Count --;
+                    for (m = index; m < M->Morphs_Count; m ++)
+                    {
+                        M->Morphs[m] = M->Morphs[m + 1];
+                    }
+
+                    /* locate object morphs */
+
+                    for (o = 0; o < Morph->objectCount; o ++)
+                    {
+                        OMD = Morph->Object_Morph_Map[o];
+                        O = OMD->O;
+                        OM = O->Morph_Maps[OMD->map_index];
+                        OMorph = OM->Morphs[OMD->morph_index];
+                        OM->MorphsCount --;
+                        for (m = OMD->morph_index; m < OM->MorphsCount; m ++)
+                        {
+                            OM->Morphs[m] = OM->Morphs[m + 1];
+                        }
+                        free_Morph(OMorph);
+                    }
+                    free_deformer_Morph(Morph);
+                }
+                create_Morphs_List();
+                deformer_morph_map_Index = Deformer_Morph_Maps_c;
+                deformer_morph_Index = Deformer_Morphs_c;
+            }
+        }
+    }
+
     if (dialog_lock)
     {
         draw_Dialog();
