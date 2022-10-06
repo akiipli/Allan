@@ -258,6 +258,39 @@ void free_transformers()
     }
 }
 
+void free_deformer_Morph(deformer_morph * Morph)
+{
+    int i;
+
+    object_morph_dialer * OMD;
+
+    for (i = 0; i < Morph->objectCount; i ++)
+    {
+        OMD = Morph->Object_Morph_Map[i];
+        free(OMD);
+    }
+
+    free(Morph->Name);
+    free(Morph->Object_Morph_Map);
+}
+
+void free_deformer_Morph_Map(deformer_morph_map * M)
+{
+    int i;
+    deformer_morph * Morph;
+
+    for (i = 0; i < M->Morphs_Count; i ++)
+    {
+        Morph = M->Morphs[i];
+        free_deformer_Morph(Morph);
+    }
+
+    free(M->Name);
+    free(M->Morphs);
+    free(M->Objects);
+    free(M);
+}
+
 void free_Morph(morph * Morph)
 {
     free(Morph->Name);
@@ -275,6 +308,7 @@ void free_Morph_Map(morph_map * M)
         Morph = M->Morphs[i];
         free_Morph(Morph);
     }
+    free(M->Morphs);
     free(M->Name);
     free(M->Verts);
     free(M);

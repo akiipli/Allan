@@ -10006,6 +10006,74 @@ void remove_Morph_Map()
 
     printf("remove Morph Map\n");
 
+    if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+    {
+        D = deformers[currentDeformer_Node];
+        printf(" %s\n", D->Name);
+        if (deformer_morph_map_Index > 0 && current_Morph_Map < deformer_morph_map_Index)
+        {
+            int o, m, index, condition;
+
+            object * O;
+            morph_map * OM;
+
+            deformer_morph_map * DM;
+            deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
+
+            if (M->Deformer == D)
+            {
+                condition = 0;
+                for (m = 0; m < D->Morph_Maps_Count; m ++)
+                {
+                    DM = D->Morph_Maps[m];
+                    if (DM == M)
+                    {
+                        condition = 1;
+                        index = m;
+                        break;
+                    }
+                }
+
+                if (condition)
+                {
+                    D->Morph_Maps_Count --;
+                    for (m = index; m < D->Morph_Maps_Count; m ++)
+                    {
+                        D->Morph_Maps[m] = D->Morph_Maps[m + 1];
+                    }
+                    /* free Morphs and Map, update global morph arrays */
+                    for (o = 0; o < M->Object_Count; o ++)
+                    {
+                        O = M->Objects[o];
+                        /* free Object Morphs and Map */
+                        condition = 0;
+                        for (m = 0; m < O->Morph_Maps_count; m ++)
+                        {
+                            OM = O->Morph_Maps[m];
+                            if (OM->DM == M)
+                            {
+                                condition = 1;
+                                index = m;
+                                break;
+                            }
+                        }
+                        if (condition)
+                        {
+                            /* free object morph map and its morphs */
+                            O->Morph_Maps_count --;
+                            for (m = index; m < O->Morph_Maps_count; m ++)
+                            {
+                                O->Morph_Maps[m] = O->Morph_Maps[m + 1];
+                            }
+                            free_Morph_Map(OM);
+                        }
+                    }
+                    free_deformer_Morph_Map(M);
+                }
+            }
+        }
+    }
+
     if (dialog_lock)
     {
         draw_Dialog();
@@ -10314,6 +10382,7 @@ void update_Morph_Map()
                                                 if (OMD->O == O)
                                                 {
                                                     Object_Morph_Map[objectCount ++] = OMD;
+                                                    break;
                                                 }
                                             }
                                         }
