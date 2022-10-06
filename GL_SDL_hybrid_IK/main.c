@@ -5478,7 +5478,7 @@ void black_out_MorphsList()
 
 void open_Morphs_List()
 {
-    if (currentMorph >= 0 && currentMorph < deformer_morph_Index)
+    if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
     {
         Type = deformer_morphs[currentMorph];
     }
@@ -10069,6 +10069,9 @@ void remove_Morph_Map()
                         }
                     }
                     free_deformer_Morph_Map(M);
+                    create_Morphs_List();
+                    deformer_morph_map_Index = Deformer_Morph_Maps_c;
+                    deformer_morph_Index = Deformer_Morphs_c;
                 }
             }
         }
@@ -15788,6 +15791,12 @@ void select_current_Morph_Map()
                     if (Morf->DM == M) //(strcmp(Morf->Name, M->Name) == 0)
                     {
                         printf("    %s %s %d\n", O->Name, Morf->Name, Morf->VertCount);
+
+                        for (v = 0; v < O->vertcount; v ++)
+                        {
+                            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                            V->selected = 0;
+                        }
 
                         for (v = 0; v < Morf->VertCount; v ++)
                         {
