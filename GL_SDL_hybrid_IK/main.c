@@ -9744,6 +9744,8 @@ void add_Morph_Map()
                     {
                         create_Deformer_Morph_Map_In_Objects(D, M, Name);
                         D->Morph_Maps_Count ++;
+
+                        distribute_Morph_Map_Positions_Weight(D, M);
                     }
                 }
             }
@@ -10072,6 +10074,8 @@ void remove_Morph_Map()
                     create_Morphs_List();
                     deformer_morph_map_Index = Deformer_Morph_Maps_c;
                     deformer_morph_Index = Deformer_Morphs_c;
+
+                    distribute_Morph_Map_Positions_Weight(D, M);
                 }
             }
         }
@@ -10465,6 +10469,7 @@ void update_Morph_Map()
                                     }
                                 }
                             }
+                            distribute_Morph_Map_Positions_Weight(D, M);
                         }
                     }
                 }

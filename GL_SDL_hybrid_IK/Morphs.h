@@ -469,4 +469,56 @@ int generate_Morph_Tree(deformer * D)
     return 1;
 }
 
+void distribute_Morph_Map_Positions_Weight(deformer * D, deformer_morph_map * M)
+{
+    int v, m, o, vert_counter;
+
+    object * O;
+    morph_map * OM;
+
+    int * Index_Counter;
+
+    for (o = 0; o < M->Object_Count; o ++)
+    {
+        O = M->Objects[o];
+
+        Index_Counter = calloc(O->vertcount, sizeof(int));
+
+        if (Index_Counter != NULL)
+        {
+            for (m = 0; m < O->Morph_Maps_count; m ++)
+            {
+                OM = O->Morph_Maps[m];
+                vert_counter = 0;
+
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    if (v == OM->Verts[vert_counter].index)
+                    {
+                        Index_Counter[v] ++;
+                        vert_counter ++;
+                    }
+                }
+            }
+
+            for (m = 0; m < O->Morph_Maps_count; m ++)
+            {
+                OM = O->Morph_Maps[m];
+                vert_counter = 0;
+
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    if (v == OM->Verts[vert_counter].index)
+                    {
+                        OM->Verts[vert_counter].weight = 1.0 / (float)Index_Counter[v];
+                        vert_counter ++;
+                    }
+                }
+            }
+
+            free(Index_Counter);
+        }
+    }
+}
+
 #endif // MORPHS_H_INCLUDED
