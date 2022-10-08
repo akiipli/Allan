@@ -9848,6 +9848,7 @@ int init_Deformer_Morph_(deformer_morph * Morph, deformer_morph_map * M, deforme
     {
         return 0;
     }
+    Morph->Amount = 0.0;
 
     Morph->index = deformer_morph_Index;
     deformer_morphs[deformer_morph_Index ++] = Morph;
@@ -9871,6 +9872,7 @@ int init_Morph_(morph_map * M, deformer_morph * DM, morph * Morph, const char * 
     Morph->selected = 0;
     Morph->Positions = calloc(M->VertCount, sizeof(position));
     Morph->M = DM;
+    Morph->Amount = 0.0;
 
     /* fill in Positions */
 
@@ -15855,6 +15857,18 @@ void select_current_Morph_Map()
         if (D != NULL)
         {
             printf(" %s %d\n", D->Name, M->Object_Count);
+
+            for (o = 0; o < D->Objects_Count; o ++)
+            {
+                O = D->Objects[o];
+                O->selected_verts_count = 0;
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                    V->selected = 0;
+                }
+            }
+
             for (o = 0; o < M->Object_Count; o ++)
             {
                 O = M->Objects[o];
@@ -15866,12 +15880,6 @@ void select_current_Morph_Map()
                     if (Morf->DM == M) //(strcmp(Morf->Name, M->Name) == 0)
                     {
                         printf("    %s %s %d\n", O->Name, Morf->Name, Morf->VertCount);
-
-                        for (v = 0; v < O->vertcount; v ++)
-                        {
-                            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-                            V->selected = 0;
-                        }
 
                         for (v = 0; v < Morf->VertCount; v ++)
                         {
@@ -17640,6 +17648,10 @@ int main(int argc, char * args[])
                     {
                         Drag_Color = 0;
                     }
+                    if (Drag_Morph)
+                    {
+                        Drag_Morph = 0;
+                    }
                     if (Drag_Dialog)
                     {
                         Drag_Dialog = 0;
@@ -18509,8 +18521,9 @@ int main(int argc, char * args[])
 
                         else if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && mouse_y > DIALOG_HEIGHT && mouse_y < screen_height - (BUTTON_HEIGHT * DRAW_TIMELINE))
                         {
-                            int h_index;
+                            int h_index, v_index;
                             h_index = (mouse_x - SIDEBAR * 2) / TABULATOR;
+                            v_index = (mouse_y - DIALOG_HEIGHT) / BUTTON_HEIGHT;
 
                             if (dialog_type == MATERIAL_DIALOG)
                             {
@@ -18600,6 +18613,22 @@ int main(int argc, char * args[])
                                     if (h_index == 1)
                                     {
                                         change_Object_Smooth();
+                                    }
+                                }
+                            }
+                            else if (dialog_type == MRPH_DIALOG && PROPERTIES == PROPERTIES_MORPH)
+                            {
+                                if (mouse_y > DIALOG_HEIGHT && mouse_y < screen_height - BUTTON_HEIGHT)
+                                {
+                                    if (h_index == 2)
+                                    {
+                                        if (v_index < Y_OFFSET)
+                                        {
+                                            Drag_X = mouse_x;
+                                            Morph = Morphs[v_index];
+                                            //printf("morph %d %d %1.2f\n", v_index, h_index, Morph);
+                                            Drag_Morph = 1;
+                                        }
                                     }
                                 }
                             }
@@ -19128,6 +19157,14 @@ int main(int argc, char * args[])
                     }
                     Drag_Timeline = 0;
                 }
+                if (Drag_Morph)
+                {
+                    if (dialog_lock)
+                    {
+                        draw_Dialog();
+                    }
+                    Drag_Morph = 0;
+                }
 
                 if (Drag_Color || Drag_Shine || Drag_Displacement)
                 {
@@ -19268,6 +19305,23 @@ int main(int argc, char * args[])
 
                         SDL_GL_SwapBuffers();
                     }
+                    else if (Drag_Morph)
+                    {
+                        DragDelta = mouse_x - Drag_X;
+                        MorphDelta = (float)DragDelta / 500.0;
+
+                        Morph_adjusted = Morph + MorphDelta;
+                        Morph_adjusted = clamp_f(Morph_adjusted, 0, 1.0);
+
+                        Morphs[prop_y] = Morph_adjusted;
+
+                        if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
+                        {
+                            transfer_Morph_Amount(deformer_morphs[currentMorph]);
+                        }
+                        update_Morphs_List(0, 0);
+                        //printf("\r%1.2f ", Morph_adjusted);
+                    }
                     else if (Drag_Shine)
                     {
                         DragDelta = mouse_x - Drag_X;
@@ -19387,6 +19441,20 @@ int main(int argc, char * args[])
                                         draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
                                     else
                                         draw_Properties("", screen_height, 1, PROPERTIES, Type);
+                                    SDL_GL_SwapBuffers();
+                                }
+                            }
+                            else if (PROPERTIES == PROPERTIES_MORPH)
+                            {
+                                if (properties[prop_y][prop_x] != UI_BACKL)
+                                {
+                                    //printf("rendering\t\t\r");
+                                    black_out_properties();
+                                    properties[prop_y][prop_x] = UI_BACKL;
+                                    if (Type != NULL)
+                                        draw_Properties(deformer_morphs[currentMorph]->Name, screen_height, 1, PROPERTIES_MORPH, Type);
+                                    else
+                                        draw_Properties("", screen_height, 1, PROPERTIES_MORPH, Type);
                                     SDL_GL_SwapBuffers();
                                 }
                             }

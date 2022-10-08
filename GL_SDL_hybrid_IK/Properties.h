@@ -59,6 +59,12 @@ float Displacement;
 float Displacement_adjusted;
 float DisplacementDelta;
 
+int Drag_Morph = 0;
+float Morph;
+float Morph_adjusted;
+float MorphDelta;
+float Morphs[Y_OFFSET];
+
 int properties[Y_OFFSET][X_OFFSET];
 
 int left, right, top, bottom;
@@ -74,6 +80,7 @@ void init_properties()
         {
             properties[y][x] = UI_BLACK;
         }
+        Morphs[y] = 0.0;
     }
 }
 
@@ -147,7 +154,7 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
 
     char text[STRLEN];
     int idx = 0;
-    int i;
+    int i, m_count = 0;
 
     if (type == PROPERTIES_OBJECT)
     {
@@ -306,20 +313,28 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
     else if (subject != NULL && type == PROPERTIES_MORPH)
     {
         deformer_morph * M = (deformer_morph *)subject;
-        object_morph_dialer * Object_Morph_Map;
+        object_morph_dialer * OMD;
+        morph_map * OM;
+        morph * OMorph;
 
-        if (M->D != NULL)
-            sprintf(text, "Deformer\t%s", M->D->Name);
-        else
-            sprintf(text, "Deformer");
+        sprintf(text, "%s", M->Name);
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%1.2f", M->Amount);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+        Morphs[m_count ++] = M->Amount;
         idx ++;
 
         for (i = 0; i < M->objectCount; i ++)
         {
-            Object_Morph_Map = M->Object_Morph_Map[i];
-            sprintf(text, "Object\t%s", Object_Morph_Map->O->Name);
+            OMD = M->Object_Morph_Map[i];
+            OM = OMD->O->Morph_Maps[OMD->map_index];
+            OMorph = OM->Morphs[OMD->morph_index];
+            sprintf(text, "%s", OMD->O->Name);
             draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+            sprintf(text, "%1.2f", OMorph->Amount);
+            draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+            if (m_count < Y_OFFSET)
+                Morphs[m_count ++] = OMorph->Amount;
             idx ++;
         }
     }
@@ -333,6 +348,27 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glPopMatrix();
+}
+
+void transfer_Morph_Amount(deformer_morph * M)
+{
+    int i, m_count = 0;
+
+    object_morph_dialer * OMD;
+    morph_map * OM;
+    morph * OMorph;
+
+    M->Amount = Morphs[m_count ++];
+
+    for (i = 0; i < M->objectCount; i ++)
+    {
+        OMD = M->Object_Morph_Map[i];
+        OM = OMD->O->Morph_Maps[OMD->map_index];
+        OMorph = OM->Morphs[OMD->morph_index];
+
+        if (m_count < Y_OFFSET)
+            OMorph->Amount = Morphs[m_count ++];
+    }
 }
 
 void draw_Properties_Edit(const char * text, int s_height, int v_index, int h_index, int clear_background)

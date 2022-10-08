@@ -69,6 +69,7 @@ typedef struct deformer_morph
 
     object_morph_dialer ** Object_Morph_Map;
     int objectCount;
+    float Amount;
 }
 deformer_morph;
 
@@ -83,6 +84,7 @@ typedef struct
     int selected;
     deformer_morph * M;
     position * Positions;
+    float Amount;
 }
 morph;
 

@@ -1873,6 +1873,8 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
 
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%u", (unsigned*)&Morph->Map);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f", &Morph->Amount);
 
                 deformer_morph_Index ++;
             }
@@ -2000,6 +2002,8 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                             fgets(buff, BUF_SIZE, fp);
                             sscanf(buff, "%f %f %f", &P->x, &P->y, &P->z);
                         }
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%f", &OD->Amount);
                     }
                     fgets(buff, BUF_SIZE, fp);
                     sscanf(buff, "%u", (unsigned*)&OM->Deformer);

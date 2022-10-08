@@ -345,6 +345,7 @@ int save_Morphs(char * morph_files_dir)
 
         }
         fprintf(F, "%u\n", (unsigned)Morph->Map);
+        fprintf(F, "%f\n", Morph->Amount);
     }
 
     fprintf(F, "%d\n", objectIndex - 1);
@@ -371,6 +372,7 @@ int save_Morphs(char * morph_files_dir)
                     P = OD->Positions[v];
                     fprintf(F, "%f %f %f\n", P.x, P.y, P.z);
                 }
+                fprintf(F, "%f\n", OD->Amount);
             }
             fprintf(F, "%u\n", (unsigned)OM->Deformer);
             fprintf(F, "%u\n", (unsigned)OM->DM);
