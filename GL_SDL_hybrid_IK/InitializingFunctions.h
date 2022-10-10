@@ -272,6 +272,7 @@ void free_deformer_Morph(deformer_morph * Morph)
 
     free(Morph->Name);
     free(Morph->Object_Morph_Map);
+    free(Morph);
 }
 
 void free_deformer_Morph_Map(deformer_morph_map * M)
