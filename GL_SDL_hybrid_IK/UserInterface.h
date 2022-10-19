@@ -38,7 +38,7 @@ int DIALOG_HEIGHT = 270;
 #define UI_DIMSL 7
 
 #define BUTTONS 23
-#define BUTTONS_MODE 7
+#define BUTTONS_MODE 8
 
 #define MAXFILES 1000
 #define MAX_LISTLENGTH 100
@@ -4744,6 +4744,7 @@ void draw_Bottom_Line(int width, int height)
     draw_Button_horizontal("Bone mode", 4, 1);
     draw_Button_horizontal("Curve mode", 5, 1);
     draw_Button_horizontal("Bind mode", 6, 1);
+    draw_Button_horizontal("Modeling", 7, 1);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

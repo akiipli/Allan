@@ -7,6 +7,8 @@ Copyright <2018> <Allan Kiipli>
 #ifndef MODELING_H_INCLUDED
 #define MODELING_H_INCLUDED
 
+int MODELING_MODE = 0;
+
 void transfer_Transformed_Coordinates(object * O)
 {
     int v;

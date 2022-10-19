@@ -13401,6 +13401,22 @@ void move_Deformers_To_Delta_Position()
     update_rotate_bounding_box();
 }
 
+void set_Modeling_Mode()
+{
+    Draw_Bottom_Message("Modeling Mode\n");
+
+    MODELING_MODE = !MODELING_MODE;
+
+    if (MODELING_MODE)
+    {
+        Button_Mode[7].color = UI_GRAYD;
+    }
+    else
+    {
+        Button_Mode[7].color = UI_GRAYB;
+    }
+}
+
 void set_Bind_Mode()
 {
     Draw_Bottom_Message("Bind Mode\n");
@@ -15477,8 +15493,8 @@ void save_load_Scene()
 
         int obj_count = 0, defr_count = 0, pose_count = 0, subcharacter_count = 0, subcharacter_poses_count = 0;
 
-        hierarchys_pack hP;
-        morf_pack mP;
+        hierarchys_pack hP = {0, 0, 0, 0};
+        morf_pack mP = {0, 0};
 
         if (!isDirectory(scene_files_dir))
         {
@@ -16766,6 +16782,7 @@ int main(int argc, char * args[])
     Button_Mode[4].func = &set_Bone_Mode;
     Button_Mode[5].func = &set_Curve_Mode;
     Button_Mode[6].func = &set_Bind_Mode;
+    Button_Mode[7].func = &set_Modeling_Mode;
 
     Button_ext[0].func = &set_Button_ext;
     Button_ext[1].func = &set_Button_ext;
