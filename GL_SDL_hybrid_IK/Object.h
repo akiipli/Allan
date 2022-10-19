@@ -411,6 +411,7 @@ struct object
     int index;
     unsigned address; // assigned after loading
     char * Name;
+    int collapsed;
     int surface;
     int selected;
     int binding;

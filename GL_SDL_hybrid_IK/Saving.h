@@ -638,6 +638,8 @@ void save_Objects(char * object_files_dir)
         fprintf(F, "%d ", O->uvedcount);
         fprintf(F, "%d\n", O->polycount);
 
+        fprintf(F, "%d\n", O->collapsed);
+
         fprintf(F, "%d %d %d\n", O->deforms, O->binding, O->smooth);
 
 //        fprintf(F, "%f %f %f\n", O->T.rot[0], O->T.rot[1], O->T.rot[2]);

@@ -2868,6 +2868,16 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
 
                 objectIndex ++;
 
+                if (loading_version >= 1012)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &O->collapsed);
+                }
+                else
+                {
+                    O->collapsed = 0;
+                }
+
                 sprintf(O->Name, "%s", OB_IN->Name);
                 O->address = OB_IN->address;
                 printf("%u\n", O->address);
