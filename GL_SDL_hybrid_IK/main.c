@@ -5532,6 +5532,7 @@ void open_Morphs_List()
             O = objects[currentObject];
             O->selected = 1;
         }
+        assert_Object_Selection();
     }
     create_Morphs_List(Morph_type);
 
@@ -10149,7 +10150,8 @@ void remove_Morph_Map()
                         }
                     }
                     free_deformer_Morph_Map(M);
-                    create_Morphs_List(Morph_type);
+                    create_Morphs_List(0);
+                    create_Morphs_List(1);
                     deformer_morph_map_Index = Deformer_Morph_Maps_c;
                     deformer_morph_Index = Deformer_Morphs_c;
 
@@ -10278,7 +10280,8 @@ void remove_Morph()
                     }
                     free_deformer_Morph(Morph);
                 }
-                create_Morphs_List(Morph_type);
+                create_Morphs_List(0);
+                create_Morphs_List(1);
                 deformer_morph_map_Index = Deformer_Morph_Maps_c;
                 deformer_morph_Index = Deformer_Morphs_c;
             }
