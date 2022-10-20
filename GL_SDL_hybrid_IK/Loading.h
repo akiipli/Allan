@@ -1940,6 +1940,9 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                     sprintf(OM->Name, "%s", buff);
 
                     fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%d", &OM->collapsed);
+
+                    fgets(buff, BUF_SIZE, fp);
                     sscanf(buff, "%d", &OM->MorphsCount);
 
                     fgets(buff, BUF_SIZE, fp);

@@ -46,6 +46,7 @@ int LISTLENGTH = 12;
 #define EXT_NUM 4
 #define TEXT_NUM 3
 #define ITEM_NUM 3
+#define MORPH_NUM 2
 #define SELS_NUM 4
 #define DEFR_NUM 3
 #define H_SELS_NUM 6
@@ -72,6 +73,9 @@ int LISTLENGTH = 12;
 #define LABEL_TEXT_LEN 30
 #define LABELS 1000
 #define MATERIALS_TOTAL 100
+
+#define DEFORMER_MORPH 0
+#define OBJECT_MORPH 1
 
 GLuint Material_Textures_Lists[MATERIALS_TOTAL];
 
@@ -144,6 +148,7 @@ void display_font_(const char * text, float origin_x, float origin_y, int font_h
 void display_thumbnail_(float origin_x, float origin_y, int m_index, float color[4]);
 
 int dir_lists = 0;
+int selected_object_node = 0;
 int selected_deformer_node = 0;
 int selected_subcharacter_node = 0;
 int selected_morph_node = 0;
@@ -344,6 +349,7 @@ ui_button Button_Mode[BUTTONS_MODE];
 ui_button_ext Button_ext[EXT_NUM];
 ui_button_ext Button_scene_ext[SCENE_EXT_NUM];
 ui_button_item Button_item[ITEM_NUM];
+ui_button_item Button_morph[MORPH_NUM];
 ui_button_item Button_text[TEXT_NUM];
 ui_button_sels Button_sels[SELS_NUM];
 ui_button_defr Button_defr[DEFR_NUM];
@@ -421,6 +427,12 @@ void init_ui()
         Button_item[b].index = b;
         Button_item[b].color = UI_GRAYB;
         Button_item[b].func = NULL;
+    }
+    for(b = 0; b < MORPH_NUM; b ++)
+    {
+        Button_morph[b].index = b;
+        Button_morph[b].color = UI_GRAYB;
+        Button_morph[b].func = NULL;
     }
     for(b = 0; b < TEXT_NUM; b ++)
     {
@@ -1658,6 +1670,45 @@ void draw_Button_Text(const char * text, int width, int height, int index, int c
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
+void draw_Button_morph(const char * text, int width, int height, int index, int colorchange)
+{
+    int v_dim = BUTTON_HEIGHT * (index + 1);
+	/*draw frame*/
+
+	//glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+    if (colorchange)
+        glColor4fv(buttoncolors[Button_morph[index].color].color);
+	else
+        glColor4fv(buttoncolors[UI_GRAYB].color);
+
+    draw_Rectangle((float[8]){0, v_dim,
+        0, v_dim + BUTTON_HEIGHT,
+        width, v_dim + BUTTON_HEIGHT,
+        width, v_dim}, QUADS);
+
+	glColor4fv(buttoncolors[UI_WHITE].color);
+
+    draw_Rectangle((float[8]){0, v_dim,
+        0, v_dim + BUTTON_HEIGHT,
+        width, v_dim + BUTTON_HEIGHT,
+        width, v_dim}, LINE_LOOP);
+
+	//glEnable(GL_TEXTURE_2D);
+
+    int font_height = 11;
+
+	FT_Set_Pixel_Sizes(face[0], 0, font_height);
+
+	float origin_x = 5;
+	float origin_y = BUTTON_HEIGHT * (index + 1) + 10;
+
+	glColor4fv(buttoncolors[UI_BLACK].color);
+
+    draw_text(text, origin_x, origin_y, font_height, 0);
+}
+
 void draw_Button_item(const char * text, int width, int height, int index, int colorchange)
 {
     int v_dim = BUTTON_HEIGHT * (index + 1);
@@ -2482,7 +2533,7 @@ void draw_Button_horizontal(const char * text, int index, int colorchange)
     draw_text(text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Morph_List(int s_height, int start, int clear_background, int current_mrph, int selection_rectangle)
+void draw_Morph_List(int s_height, int start, int clear_background, int current_mrph, int selection_rectangle, int Morph_type)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -2520,7 +2571,7 @@ void draw_Morph_List(int s_height, int start, int clear_background, int current_
 	int morph_x_offset[LISTLENGTH];
 	int morph_x_collapsed[LISTLENGTH];
 
-    int i, highlight;
+    int i, highlight, frame_it;
 
 	for (i = 0; i < LISTLENGTH; i ++)
     {
@@ -2533,16 +2584,33 @@ void draw_Morph_List(int s_height, int start, int clear_background, int current_
     {
         if (i == selected_morph_node - start) highlight = 1; else highlight = 0;
 
-        if (i == current_mrph && selection_rectangle)
+        frame_it = 0;
+
+        if (Morph_type == DEFORMER_MORPH)
         {
             if (i == selected_deformer_node - start)
+            {
+                frame_it = 1;
+            }
+        }
+        else if (Morph_type == OBJECT_MORPH)
+        {
+            if (i == selected_object_node - start)
+            {
+                frame_it = 1;
+            }
+        }
+
+        if (i == current_mrph && selection_rectangle)
+        {
+            if (frame_it)
                 draw_Button_morph_text(mrph_list[i], d_width, d_height, i, 1, 1, morph_x_offset[i], morph_x_collapsed[i], 1, highlight);
             else
                 draw_Button_morph_text(mrph_list[i], d_width, d_height, i, 1, 0, morph_x_offset[i], morph_x_collapsed[i], 1, highlight);
         }
         else
         {
-            if (i == selected_deformer_node - start)
+            if (frame_it)
                 draw_Button_morph_text(mrph_list[i], d_width, d_height, i, 1, 1, morph_x_offset[i], morph_x_collapsed[i], 0, highlight);
             else
                 draw_Button_morph_text(mrph_list[i], d_width, d_height, i, 1, 0, morph_x_offset[i], morph_x_collapsed[i], 0, highlight);
@@ -3953,9 +4021,9 @@ void draw_dialog_Box(int s_height, int clear_background, int frame)
 	glEnable(GL_DEPTH_TEST);
 }
 
-void draw_Morphs_Dialog(const char * text, int s_height,
+void draw_Morphs_Dialog(const char * text, int s_height, char * morph_type, char ** morph_types, int morph_types_c,
                            int mrph_start,
-                           int clear_background, int current_mrph, int selection_rectangle)
+                           int clear_background, int current_mrph, int selection_rectangle, int Morph_type)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3998,7 +4066,13 @@ void draw_Morphs_Dialog(const char * text, int s_height,
 
 	draw_Button(text, SIDEBAR, d_height, 0, 0); // Title bar
 
-    draw_Morph_List(s_height, mrph_start, clear_background, current_mrph, selection_rectangle);
+	int i;
+	for (i = 0; i < morph_types_c; i ++)
+    {
+        draw_Button_morph(morph_types[i], SIDEBAR, d_height, i, 1);
+    }
+
+    draw_Morph_List(s_height, mrph_start, clear_background, current_mrph, selection_rectangle, Morph_type);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);

@@ -952,6 +952,8 @@ int initialize_object(int index,
 
     O->selected = 0;
 
+    O->collapsed = 0;
+
     O->polygon_selections = 0;
     O->edge_selections = 0;
     O->vertex_selections = 0;

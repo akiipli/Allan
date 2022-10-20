@@ -8,10 +8,12 @@ Copyright <2022> <Allan Kiipli>
 #define MORPHS_H_INCLUDED
 
 #define MORPH_MAPS 1000
-#define OBJECT_MORPH_MAPS 100
+#define OBJECT_MORPHS 10000
 #define MORPHS 10000
 #define DEFORMER_MORPH_MAPS 1000
 #define DEFORMER_MORPHS 10000
+
+int Morph_type = 0;
 
 int morph_mapIndex = 0;
 int morphsIndex = 0;
@@ -31,6 +33,32 @@ int Morph_X_Collapsed[MORPHS];
 
 int Deformer_Morphs_c = 0;
 int Deformer_Morph_Maps_c = 0;
+
+int Object_Node_c = 0;
+int Object_Morphs_c = 0;
+int Object_Morph_Maps_c = 0;
+
+char morph_type[TYPE_LENGTH];
+char * morph_types[MORPH_NUM];
+int morph_types_c = 2;
+
+#define MORPH_TYPE_DEFORMER "Deformer"
+#define MORPH_TYPE_OBJECT "Object"
+
+void init_morph_types()
+{
+    int i;
+
+	for (i = 0; i < MORPH_NUM; i ++)
+    {
+        morph_types[i] = malloc(TYPE_LENGTH * sizeof(char));
+    }
+
+    morph_types[0] = MORPH_TYPE_DEFORMER;
+    morph_types[1] = MORPH_TYPE_OBJECT;
+
+    memcpy(&morph_type, morph_types[0], strlen(morph_types[0]));
+}
 
 typedef struct
 {
@@ -73,6 +101,8 @@ typedef struct deformer_morph
 }
 deformer_morph;
 
+deformer_morph * Deformer_Morph = NULL;
+
 deformer_morph * deformer_morphs[DEFORMER_MORPHS]; // in list
 int deformer_morph_Index = 0;
 
@@ -88,13 +118,14 @@ typedef struct
 }
 morph;
 
-//morph * morphs[OBJECT_MORPHS]; // object morphs in morph maps
+morph * morphs[OBJECT_MORPHS]; // object morphs in morph maps
 
 typedef struct morph_map
 {
     int index;
     unsigned address;
     char * Name;
+    int collapsed;
     int selected;
     morph ** Morphs;
     int MorphsCount;
@@ -106,7 +137,7 @@ typedef struct morph_map
 }
 morph_map;
 
-//morph_map * morph_maps[MORPH_MAPS]; // in objects
+morph_map * object_morph_maps[MORPH_MAPS]; // in objects
 
 typedef struct deformer_morph_map
 {
@@ -152,7 +183,7 @@ int add_Morph_To_Morph_Map_(morph_map * M, morph * Morph)
     }
 }
 
-int init_Morph(morph * Morph, const char * Name)
+int init_Morph(morph_map * M, deformer_morph * DM, morph * Morph, const char * Name)
 {
     Morph->Name  = malloc(STRLEN * sizeof(char));
 
@@ -166,44 +197,42 @@ int init_Morph(morph * Morph, const char * Name)
     }
 
     Morph->selected = 0;
-    Morph->Positions = malloc(0);
+    Morph->Positions = calloc(M->VertCount, sizeof(position));
+    Morph->M = DM;
+    Morph->Amount = 0.0;
+
+    /* fill in Positions */
 
     return 1;
 }
 
-int add_New_Morph(morph_map * M, const char * Name)
+void list_Object_Morphs_c(morph_map * M)
 {
-    printf("add New Morph to %s\n", M->Name);
+    int m;
 
-    if (morphsIndex >= MORPHS)
+    morph * Morph;
+
+    for (m = 0; m < M->MorphsCount; m ++)
     {
-        return 0;
-    }
+        Morph = M->Morphs[m];
+        morphs[Object_Morphs_c] = Morph;
 
-    int result;
+//        if (currentSubcharacter > 0 && S == subcharacters[currentSubcharacter])
+//            D->current_pose = p;
 
-    morph * Morph = malloc(sizeof(morph));
+        sprintf(Morph_Names[Morphs_c], "%s", Morph->Name);
+        Morph_List[Morphs_c] = MORPHS + Object_Morphs_c;
 
-    if (Morph == NULL)
-    {
-        return 0;
-    }
+        Morph_X_Offset[Morphs_c] = 3;
+        Morph_X_Collapsed[Morphs_c] = 0;
 
-    result = init_Morph(Morph, Name);
-    if (result)
-    {
-        if(add_Morph_To_Morph_Map_(M, Morph))
+        Morphs_c ++;
+        Object_Morphs_c ++;
+
+        if (Morphs_c >= MORPHS)
         {
-            return 1;
+            break;
         }
-        else
-        {
-            return 0;
-        }
-    }
-    else
-    {
-        return 0;
     }
 }
 
@@ -232,6 +261,40 @@ void list_Deformer_Morphs_c(deformer_morph_map * M)
         if (Morphs_c >= MORPHS)
         {
             break;
+        }
+    }
+}
+
+void list_Object_Morph_Maps(object * O)
+{
+    int m;
+    morph_map * M;
+
+    for (m = 0; m < O->Morph_Maps_count; m ++)
+    {
+        M = O->Morph_Maps[m];
+        object_morph_maps[Object_Morph_Maps_c] = M;
+
+        if (M->selected)
+            selected_morph_node = Morphs_c;
+
+        sprintf(Morph_Names[Morphs_c], "%s", M->Name);
+        Morph_List[Morphs_c] = Object_Morph_Maps_c;
+
+        Morph_X_Offset[Morphs_c] = 2;
+        Morph_X_Collapsed[Morphs_c] = M->collapsed;
+
+        Morphs_c ++;
+        Object_Morph_Maps_c ++;
+
+        if (Morphs_c >= MORPHS)
+        {
+            break;
+        }
+
+        if (!M->collapsed)
+        {
+            list_Object_Morphs_c(M);
         }
     }
 }
@@ -269,38 +332,76 @@ void list_Deformer_Morph_Maps(deformer * D)
     }
 }
 
-void create_Morphs_List()
+void create_Morphs_List(int list_type)
 {
-    int d;
-    deformer * D;
-    Morphs_c = 0;
-    Deformer_Node_c = 1;
-    Deformer_Morphs_c = 0;
-    Deformer_Morph_Maps_c = 0;
-
-    for (d = 0; d < deformerIndex; d ++)
+    if (list_type == DEFORMER_MORPH)
     {
-        D = deformers[d];
+        int d;
+        deformer * D;
+        Morphs_c = 0;
+        Deformer_Node_c = 1;
+        Deformer_Morphs_c = 0;
+        Deformer_Morph_Maps_c = 0;
 
-        if (D->selected)
-            selected_deformer_node = Morphs_c;
-
-        memcpy(Morph_Names[Morphs_c], D->Name, strlen(D->Name));
-        Morph_Names[Morphs_c][strlen(D->Name)] = '\0';
-        Morph_List[Morphs_c] = -Deformer_Node_c;
-        Morph_X_Offset[Morphs_c] = 1;
-        Morph_X_Collapsed[Morphs_c] = D->collapsed;
-        Morphs_c ++;
-        Deformer_Node_c ++;
-
-        if (Morphs_c >= MORPHS)
+        for (d = 0; d < deformerIndex; d ++)
         {
-            break;
+            D = deformers[d];
+
+            if (D->selected)
+                selected_deformer_node = Morphs_c;
+
+            memcpy(Morph_Names[Morphs_c], D->Name, strlen(D->Name));
+            Morph_Names[Morphs_c][strlen(D->Name)] = '\0';
+            Morph_List[Morphs_c] = -Deformer_Node_c;
+            Morph_X_Offset[Morphs_c] = 1;
+            Morph_X_Collapsed[Morphs_c] = D->collapsed;
+            Morphs_c ++;
+            Deformer_Node_c ++;
+
+            if (Morphs_c >= MORPHS)
+            {
+                break;
+            }
+
+            if (!D->collapsed)
+            {
+                list_Deformer_Morph_Maps(D);
+            }
         }
+    }
+    else if (list_type == OBJECT_MORPH)
+    {
+        int o;
+        object * O;
+        Morphs_c = 0;
+        Object_Node_c = 1;
+        Object_Morphs_c = 0;
+        Object_Morph_Maps_c = 0;
 
-        if (!D->collapsed)
+        for (o = 1; o < objectIndex; o ++) /*CUBECOMMENT*/
         {
-            list_Deformer_Morph_Maps(D);
+            O = objects[o];
+
+            if (O->selected)
+                selected_object_node = Morphs_c;
+
+            memcpy(Morph_Names[Morphs_c], O->Name, strlen(O->Name));
+            Morph_Names[Morphs_c][strlen(O->Name)] = '\0';
+            Morph_List[Morphs_c] = -Object_Node_c;
+            Morph_X_Offset[Morphs_c] = 1;
+            Morph_X_Collapsed[Morphs_c] = O->collapsed;
+            Morphs_c ++;
+            Object_Node_c ++;
+
+            if (Morphs_c >= MORPHS)
+            {
+                break;
+            }
+
+            if (!O->collapsed)
+            {
+                list_Object_Morph_Maps(O);
+            }
         }
     }
 }

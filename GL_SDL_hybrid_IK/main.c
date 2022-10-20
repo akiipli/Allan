@@ -4709,6 +4709,18 @@ void set_Button_text(int idx)
     memcpy(&text, texts[idx], TYPE_LENGTH);
 }
 
+void set_Button_morph(int idx)
+{
+    int b;
+    for (b = 0; b < MORPH_NUM; b ++)
+    {
+        Button_morph[b].color = UI_GRAYB;
+    }
+    Button_morph[idx].color = UI_GRAYD;
+    memcpy(&morph_type, morph_types[idx], TYPE_LENGTH);
+    Morph_type = idx;
+}
+
 void set_Button_item(int idx)
 {
     int b;
@@ -5478,13 +5490,32 @@ void black_out_MorphsList()
 
 void open_Morphs_List()
 {
-    if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
+    morph * M;
+
+    if (Morph_type == DEFORMER_MORPH)
     {
-        Type = deformer_morphs[currentMorph];
+        if (currentMorph >= 0 && currentMorph < deformer_morph_Index)
+        {
+            Deformer_Morph = deformer_morphs[currentMorph];
+            Type = deformer_morphs[currentMorph];
+        }
+        else
+        {
+            Type = NULL;
+        }
     }
-    else
+    else if (Morph_type == OBJECT_MORPH)
     {
-        Type = NULL;
+        if (currentMorph >= 0 && currentMorph < Object_Morphs_c)
+        {
+            M = morphs[currentMorph];
+            Deformer_Morph = M->M;
+            Type = M->M;
+        }
+        else
+        {
+            Type = NULL;
+        }
     }
 
     Osd = 0;
@@ -5492,7 +5523,17 @@ void open_Morphs_List()
 
     PROPERTIES = PROPERTIES_MORPH;
 
-    create_Morphs_List();
+    set_Button_morph(Morph_type);
+    if (Morph_type == OBJECT_MORPH)
+    {
+        deselect_Objects();
+        if (objectIndex > 0 && currentObject < objectIndex)
+        {
+            O = objects[currentObject];
+            O->selected = 1;
+        }
+    }
+    create_Morphs_List(Morph_type);
 
     if (Bottom_Message)
     {
@@ -5515,12 +5556,13 @@ void open_Morphs_List()
 
     UPDATE_COLORS = 0;
 
-    draw_Morphs_Dialog("Morphs List", screen_height, morph_start, 1, MorphIndex - morph_start, selection_rectangle);
+    draw_Morphs_Dialog("Morphs List", screen_height, morph_type, morph_types, morph_types_c,
+                       morph_start, 1, MorphIndex - morph_start, selection_rectangle, Morph_type);
 
     if (DIALOG_HEIGHT < screen_height)
     {
         if (Type != NULL)
-            draw_Properties(deformer_morphs[currentMorph]->Name, screen_height, 1, PROPERTIES_MORPH, Type);
+            draw_Properties(Deformer_Morph->Name, screen_height, 1, PROPERTIES_MORPH, Type);
         else
             draw_Properties("", screen_height, 1, PROPERTIES_MORPH, Type);
     }
@@ -6410,6 +6452,23 @@ void collapse_Clear()
         UI_CLEAR = !UI_CLEAR;
 }
 
+void assert_Objects_Selected()
+{
+    int o;
+
+    for (o = 0; o < objectIndex; o ++)
+    {
+        if (o == currentObject)
+        {
+            objects[o]->selected = 1;
+        }
+        else
+        {
+            objects[o]->selected = 0;
+        }
+    }
+}
+
 void assert_Deformers_Selected()
 {
     int d;
@@ -6589,13 +6648,32 @@ void update_IK_List(int update, int blit)
 
 void update_Morphs_List(int update, int blit)
 {
-    if (currentMorph >= 0 && currentMorph < deformer_morph_Index)
+    morph * M;
+
+    if (Morph_type == DEFORMER_MORPH)
     {
-        Type = deformer_morphs[currentMorph];
+        if (currentMorph >= 0 && currentMorph < deformer_morph_Index)
+        {
+            Deformer_Morph = deformer_morphs[currentMorph];
+            Type = deformer_morphs[currentMorph];
+        }
+        else
+        {
+            Type = NULL;
+        }
     }
-    else
+    else if (Morph_type == OBJECT_MORPH)
     {
-        Type = NULL;
+        if (currentMorph >= 0 && currentMorph < Object_Morphs_c)
+        {
+            M = morphs[currentMorph];
+            Deformer_Morph = M->M;
+            Type = M->M;
+        }
+        else
+        {
+            Type = NULL;
+        }
     }
 
     if (MorphIndex - morph_start >= 0)
@@ -6609,18 +6687,19 @@ void update_Morphs_List(int update, int blit)
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
     if (UPDATE_BACKGROUND || update)
     {
-        draw_Morphs_Dialog("Morphs List", screen_height, morph_start, 1, MorphIndex - morph_start, selection_rectangle);
+        draw_Morphs_Dialog("Morphs List", screen_height, morph_type, morph_types, morph_types_c,
+                            morph_start, 1, MorphIndex - morph_start, selection_rectangle, Morph_type);
     }
     else
     {
-        draw_Morph_List(screen_height, morph_start, 0, MorphIndex - morph_start, selection_rectangle);
+        draw_Morph_List(screen_height, morph_start, 0, MorphIndex - morph_start, selection_rectangle, Morph_type);
         draw_Morph_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
 
     if (DIALOG_HEIGHT < screen_height)
     {
         if (Type != NULL)
-            draw_Properties(deformer_morphs[currentMorph]->Name, screen_height, 1, PROPERTIES_MORPH, Type);
+            draw_Properties(Deformer_Morph->Name, screen_height, 1, PROPERTIES_MORPH, Type);
         else
             draw_Properties("", screen_height, 1, PROPERTIES_MORPH, Type);
     }
@@ -8144,23 +8223,42 @@ void handle_UP_IK(int scrollbar)
     }
 }
 
-void select_Morph_Map()
+void select_Morph_Map(int Morph_type)
 {
     int m;
 
-    for (m = 0; m < Deformer_Morph_Maps_c; m ++)
+    if (Morph_type == DEFORMER_MORPH)
     {
-        deformer_morph_maps[m]->selected = 0;
-    }
-    if (current_Morph_Map >= 0 && current_Morph_Map < Deformer_Morph_Maps_c)
-        deformer_morph_maps[current_Morph_Map]->selected = 1;
+        for (m = 0; m < Deformer_Morph_Maps_c; m ++)
+        {
+            deformer_morph_maps[m]->selected = 0;
+        }
+        if (current_Morph_Map >= 0 && current_Morph_Map < Deformer_Morph_Maps_c)
+            deformer_morph_maps[current_Morph_Map]->selected = 1;
 
-    for (m = 0; m < Deformer_Morphs_c; m ++)
-    {
-        deformer_morphs[m]->selected = 0;
+        for (m = 0; m < Deformer_Morphs_c; m ++)
+        {
+            deformer_morphs[m]->selected = 0;
+        }
+        if (currentMorph >= 0 && currentMorph < Deformer_Morphs_c)
+            deformer_morphs[currentMorph]->selected = 1;
     }
-    if (currentMorph >= 0 && currentMorph < Deformer_Morphs_c)
-        deformer_morphs[currentMorph]->selected = 1;
+    else if (Morph_type == OBJECT_MORPH)
+    {
+        for (m = 0; m < Object_Morph_Maps_c; m ++)
+        {
+            object_morph_maps[m]->selected = 0;
+        }
+        if (current_Morph_Map >= 0 && current_Morph_Map < Object_Morph_Maps_c)
+            object_morph_maps[current_Morph_Map]->selected = 1;
+
+        for (m = 0; m < Object_Morphs_c; m ++)
+        {
+            morphs[m]->selected = 0;
+        }
+        if (currentMorph >= 0 && currentMorph < Object_Morphs_c)
+            morphs[currentMorph]->selected = 1;
+    }
 }
 
 void select_Subcharacter()
@@ -8210,7 +8308,7 @@ void handle_UP_Morph(int scrollbar)
 
             }
             //select_Morph();
-            create_Morphs_List();
+            create_Morphs_List(Morph_type);
         }
 
         if (MorphIndex < 0) MorphIndex ++;
@@ -8885,7 +8983,7 @@ void handle_DOWN_Morph_Map(int scrollbar)
 
             }
             //select_Morph();
-            create_Morphs_List();
+            create_Morphs_List(Morph_type);
         }
         if (MorphIndex >= Morphs_c)
             MorphIndex --;
@@ -9617,7 +9715,7 @@ int init_Deformer_Morph_Map_(deformer_morph_map * M, deformer * D, const char * 
     return 1;
 }
 
-int init_Morph_Map_(morph_map * M, deformer * D, deformer_morph_map * DM, object * O, const char * Name)
+int init_Morph_Map(morph_map * M, deformer * D, deformer_morph_map * DM, object * O, const char * Name)
 {
     M->Name  = malloc(STRLEN * sizeof(char));
 
@@ -9630,6 +9728,7 @@ int init_Morph_Map_(morph_map * M, deformer * D, deformer_morph_map * DM, object
         sprintf(M->Name, Name);
     }
 
+    M->collapsed = 0;
     M->selected = 0;
     M->Morphs = malloc(0);
     M->MorphsCount = 0;
@@ -9686,7 +9785,7 @@ void create_Deformer_Morph_Map_In_Objects(deformer * D, deformer_morph_map * DM,
                     M = malloc(sizeof(morph_map));
                     if (M != NULL)
                     {
-                        result = init_Morph_Map_(M, D, DM, O, Name);
+                        result = init_Morph_Map(M, D, DM, O, Name);
                         if (!result)
                         {
                             break;
@@ -9856,29 +9955,6 @@ int init_Deformer_Morph_(deformer_morph * Morph, deformer_morph_map * M, deforme
     return 1;
 }
 
-int init_Morph_(morph_map * M, deformer_morph * DM, morph * Morph, const char * Name)
-{
-    Morph->Name  = malloc(STRLEN * sizeof(char));
-
-    if (Morph->Name == NULL)
-    {
-        return 0;
-    }
-    else
-    {
-        sprintf(Morph->Name, Name);
-    }
-
-    Morph->selected = 0;
-    Morph->Positions = calloc(M->VertCount, sizeof(position));
-    Morph->M = DM;
-    Morph->Amount = 0.0;
-
-    /* fill in Positions */
-
-    return 1;
-}
-
 void add_Morph_To_Object(deformer * D, deformer_morph_map * DM, deformer_morph * Morph, object * O, const char * Name, object_morph_dialer * OMD)
 {
     int m;
@@ -9900,7 +9976,7 @@ void add_Morph_To_Object(deformer * D, deformer_morph_map * DM, deformer_morph *
                 ObjectMorph = malloc(sizeof(morph));
                 if (ObjectMorph != NULL)
                 {
-                    init_Morph_(M, Morph, ObjectMorph, Name);
+                    init_Morph(M, Morph, ObjectMorph, Name);
                     M->Morphs[M->MorphsCount] = ObjectMorph;
                     OMD->map_index = m;
                     OMD->morph_index = M->MorphsCount;
@@ -10073,7 +10149,7 @@ void remove_Morph_Map()
                         }
                     }
                     free_deformer_Morph_Map(M);
-                    create_Morphs_List();
+                    create_Morphs_List(Morph_type);
                     deformer_morph_map_Index = Deformer_Morph_Maps_c;
                     deformer_morph_Index = Deformer_Morphs_c;
 
@@ -10202,7 +10278,7 @@ void remove_Morph()
                     }
                     free_deformer_Morph(Morph);
                 }
-                create_Morphs_List();
+                create_Morphs_List(Morph_type);
                 deformer_morph_map_Index = Deformer_Morph_Maps_c;
                 deformer_morph_Index = Deformer_Morphs_c;
             }
@@ -12284,10 +12360,13 @@ void handle_dialog(char letter, SDLMod mod)
     }
     else if (dialog_type == MRPH_DIALOG)
     {
-        handle_Morph_Dialog(letter, mod);
-        if (!Edit_Lock && letter == '`')
+        if (Morph_type == DEFORMER_MORPH)
         {
-            rename_Morph();
+            handle_Morph_Dialog(letter, mod);
+            if (!Edit_Lock && letter == '`')
+            {
+                rename_Morph();
+            }
         }
     }
     else if (dialog_type == IK_DIALOG)
@@ -15346,7 +15425,7 @@ void save_load_Scene()
     }
 
     create_Transformers_List();
-    create_Morphs_List();
+    create_Morphs_List(Morph_type);
 
 //    solve_all_IK_Chains();
 //    normalize_all_IK_Spines();
@@ -15822,92 +15901,115 @@ void select_currentIK()
     }
 }
 
-void select_current_Morph()
+void select_current_Morph(int Morph_type)
 {
     printf("currentMorph %d\n", currentMorph);
 
-    if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
+    if (Morph_type == DEFORMER_MORPH)
     {
-        deformer_morph * Morph = deformer_morphs[currentMorph];
-        object_morph_dialer * OMD;
-        //morph_map * M;
-
-        int o; // i;
-
-        printf(" %s %s %s\n", Morph->Name, Morph->D->Name, Morph->Map->Name);
-        printf("  %d\n", Morph->objectCount);
-
-        for (o = 0; o < Morph->objectCount; o ++)
+        if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
         {
-            OMD = Morph->Object_Morph_Map[o];
-            printf("   %s %d %d\n", OMD->O->Name, OMD->map_index, OMD->morph_index);
-            /*
-            M = OMD->O->Morph_Maps[OMD->map_index];
-            for (i = 0; i < M->VertCount; i ++)
+            deformer_morph * Morph = deformer_morphs[currentMorph];
+            object_morph_dialer * OMD;
+            //morph_map * M;
+
+            int o; // i;
+
+            printf(" %s %s %s\n", Morph->Name, Morph->D->Name, Morph->Map->Name);
+            printf("  %d\n", Morph->objectCount);
+
+            for (o = 0; o < Morph->objectCount; o ++)
             {
-                printf("%d ", M->Verts[i].index);
+                OMD = Morph->Object_Morph_Map[o];
+                printf("   %s %d %d\n", OMD->O->Name, OMD->map_index, OMD->morph_index);
+                /*
+                M = OMD->O->Morph_Maps[OMD->map_index];
+                for (i = 0; i < M->VertCount; i ++)
+                {
+                    printf("%d ", M->Verts[i].index);
+                }
+                printf("\n");
+                */
             }
-            printf("\n");
-            */
+        }
+    }
+    else if (Morph_type == OBJECT_MORPH)
+    {
+        if (Object_Morphs_c > 0 && currentMorph < Object_Morphs_c)
+        {
+            morph * Morph = morphs[currentMorph];
+            printf("%s\n", Morph->Name);
         }
     }
 }
 
-void select_current_Morph_Map()
+void select_current_Morph_Map(int Morph_type)
 {
     printf("select current Morph Map %d\n", current_Morph_Map);
 
-    if (deformer_morph_map_Index > 0 && current_Morph_Map < deformer_morph_map_Index)
+    if (Morph_type == DEFORMER_MORPH)
     {
-        deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
-
-        printf("%s\n", M->Name);
-
-        int idx, v, o, m;
-
-        object * O;
-        vertex * V;
-        morph_map * Morf;
-
-        D = M->Deformer;
-        if (D != NULL)
+        if (deformer_morph_map_Index > 0 && current_Morph_Map < deformer_morph_map_Index)
         {
-            printf(" %s %d\n", D->Name, M->Object_Count);
+            deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
 
-            for (o = 0; o < D->Objects_Count; o ++)
-            {
-                O = D->Objects[o];
-                O->selected_verts_count = 0;
-                for (v = 0; v < O->vertcount; v ++)
-                {
-                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-                    V->selected = 0;
-                }
-            }
+            printf("%s\n", M->Name);
 
-            for (o = 0; o < M->Object_Count; o ++)
+            int idx, v, o, m;
+
+            object * O;
+            vertex * V;
+            morph_map * Morf;
+
+            D = M->Deformer;
+            if (D != NULL)
             {
-                O = M->Objects[o];
-                printf("  %s %d\n", O->Name, O->Morph_Maps_count);
-                for (m = 0; m < O->Morph_Maps_count; m ++)
+                printf(" %s %d\n", D->Name, M->Object_Count);
+
+                for (o = 0; o < D->Objects_Count; o ++)
                 {
-                    Morf = O->Morph_Maps[m];
-                    printf("   %s %s\n", Morf->Name, Morf->Object->Name);
-                    if (Morf->DM == M) //(strcmp(Morf->Name, M->Name) == 0)
+                    O = D->Objects[o];
+                    O->selected_verts_count = 0;
+                    for (v = 0; v < O->vertcount; v ++)
                     {
-                        printf("    %s %s %d\n", O->Name, Morf->Name, Morf->VertCount);
-
-                        for (v = 0; v < Morf->VertCount; v ++)
-                        {
-                            idx = Morf->Verts[v].index;
-                            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                            V->selected = 1;
-                        }
+                        V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                        V->selected = 0;
                     }
                 }
-                assert_Element_Selection_(O);
+
+                for (o = 0; o < M->Object_Count; o ++)
+                {
+                    O = M->Objects[o];
+                    printf("  %s %d\n", O->Name, O->Morph_Maps_count);
+                    for (m = 0; m < O->Morph_Maps_count; m ++)
+                    {
+                        Morf = O->Morph_Maps[m];
+                        printf("   %s %s\n", Morf->Name, Morf->Object->Name);
+                        if (Morf->DM == M) //(strcmp(Morf->Name, M->Name) == 0)
+                        {
+                            printf("    %s %s %d\n", O->Name, Morf->Name, Morf->VertCount);
+
+                            for (v = 0; v < Morf->VertCount; v ++)
+                            {
+                                idx = Morf->Verts[v].index;
+                                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                                V->selected = 1;
+                            }
+                        }
+                    }
+                    assert_Element_Selection_(O);
+                }
+                set_Vertex_Mode();
             }
-            set_Vertex_Mode();
+        }
+    }
+    else if (Morph_type == OBJECT_MORPH)
+    {
+        if (Object_Morph_Maps_c > 0 && current_Morph_Map < Object_Morph_Maps_c)
+        {
+            morph_map * M = object_morph_maps[current_Morph_Map];
+
+            printf("%s\n", M->Name);
         }
     }
 
@@ -16805,6 +16907,9 @@ int main(int argc, char * args[])
     Button_item[1].func = &set_Button_item;
     Button_item[2].func = &set_Button_item;
 
+    Button_morph[0].func = &set_Button_morph;
+    Button_morph[1].func = &set_Button_morph;
+
     Button_text[0].func = &set_Button_text;
     Button_text[1].func = &set_Button_text;
     Button_text[2].func = &set_Button_text;
@@ -16897,6 +17002,7 @@ int main(int argc, char * args[])
     memcpy(&text, texts[0], strlen(texts[0]));
 
     init_item_types();
+    init_morph_types();
     init_items();
     init_selections();
     init_hierarcys();
@@ -17863,49 +17969,99 @@ int main(int argc, char * args[])
                             }
                             else if (dialog_type == MRPH_DIALOG)
                             {
-                                if (index + morph_start < Morphs_c)
+                                if (Morph_type == DEFORMER_MORPH)
                                 {
-                                    int X_Expand = Morph_X_Offset[index + morph_start] * 5;
-                                    if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
+                                    if (index + morph_start < Morphs_c)
                                     {
-                                        if (X_Expand == 5)
+                                        int X_Expand = Morph_X_Offset[index + morph_start] * 5;
+                                        if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
                                         {
-                                            deformers[-(Morph_List[index + morph_start] + 1)]->collapsed =
-                                            !deformers[-(Morph_List[index + morph_start] + 1)]->collapsed;
-                                        }
-                                        else if (X_Expand == 10)
-                                        {
-                                            deformer_morph_maps[Morph_List[index + morph_start]]->collapsed =
-                                            !deformer_morph_maps[Morph_List[index + morph_start]]->collapsed;
-                                        }
-                                        create_Morphs_List();
-                                    }
-                                    else
-                                    {
-                                        if (MorphIndex - morph_start >= 0)
-                                            MrphList[MorphIndex - morph_start].color = UI_BLACK;
-                                        MorphIndex = index + morph_start;
-                                        if (MorphIndex - morph_start >= 0)
-                                            MrphList[MorphIndex - morph_start].color = UI_BACKL;
-                                        if (Morph_List[MorphIndex] >= 0 && Morph_List[MorphIndex] < MORPHS)
-                                        {
-                                            current_Morph_Map = Morph_List[MorphIndex];
-                                            select_current_Morph_Map();
-                                        }
-                                        else if (Morph_List[MorphIndex] >= MORPHS)
-                                        {
-                                            currentMorph = Morph_List[MorphIndex] - MORPHS;
-                                            select_current_Morph();
+                                            if (X_Expand == 5)
+                                            {
+                                                deformers[-(Morph_List[index + morph_start] + 1)]->collapsed =
+                                                !deformers[-(Morph_List[index + morph_start] + 1)]->collapsed;
+                                            }
+                                            else if (X_Expand == 10)
+                                            {
+                                                deformer_morph_maps[Morph_List[index + morph_start]]->collapsed =
+                                                !deformer_morph_maps[Morph_List[index + morph_start]]->collapsed;
+                                            }
+                                            create_Morphs_List(Morph_type);
                                         }
                                         else
                                         {
-                                            currentDeformer_Node = -(Morph_List[index + morph_start] + 1);
-                                            assert_Deformers_Selected();
+                                            if (MorphIndex - morph_start >= 0)
+                                                MrphList[MorphIndex - morph_start].color = UI_BLACK;
+                                            MorphIndex = index + morph_start;
+                                            if (MorphIndex - morph_start >= 0)
+                                                MrphList[MorphIndex - morph_start].color = UI_BACKL;
+                                            if (Morph_List[MorphIndex] >= 0 && Morph_List[MorphIndex] < MORPHS)
+                                            {
+                                                current_Morph_Map = Morph_List[MorphIndex];
+                                                select_current_Morph_Map(Morph_type);
+                                            }
+                                            else if (Morph_List[MorphIndex] >= MORPHS)
+                                            {
+                                                currentMorph = Morph_List[MorphIndex] - MORPHS;
+                                                select_current_Morph(Morph_type);
+                                            }
+                                            else
+                                            {
+                                                currentDeformer_Node = -(Morph_List[index + morph_start] + 1);
+                                                assert_Deformers_Selected();
+                                            }
+                                            select_Morph_Map(Morph_type);
+                                            create_Morphs_List(Morph_type);
                                         }
-                                        select_Morph_Map();
-                                        create_Morphs_List();
+                                        draw_Dialog();
                                     }
-                                    draw_Dialog();
+                                }
+                                else if (Morph_type == OBJECT_MORPH)
+                                {
+                                    if (index + morph_start < Morphs_c)
+                                    {
+                                        int X_Expand = Morph_X_Offset[index + morph_start] * 5;
+                                        if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
+                                        {
+                                            if (X_Expand == 5)
+                                            {
+                                                objects[-(Morph_List[index + morph_start])]->collapsed =
+                                                !objects[-(Morph_List[index + morph_start])]->collapsed;
+                                            }
+                                            else if (X_Expand == 10)
+                                            {
+                                                object_morph_maps[Morph_List[index + morph_start]]->collapsed =
+                                                !object_morph_maps[Morph_List[index + morph_start]]->collapsed;
+                                            }
+                                            create_Morphs_List(Morph_type);
+                                        }
+                                        else
+                                        {
+                                            if (MorphIndex - morph_start >= 0)
+                                                MrphList[MorphIndex - morph_start].color = UI_BLACK;
+                                            MorphIndex = index + morph_start;
+                                            if (MorphIndex - morph_start >= 0)
+                                                MrphList[MorphIndex - morph_start].color = UI_BACKL;
+                                            if (Morph_List[MorphIndex] >= 0 && Morph_List[MorphIndex] < MORPHS)
+                                            {
+                                                current_Morph_Map = Morph_List[MorphIndex];
+                                                select_current_Morph_Map(Morph_type);
+                                            }
+                                            else if (Morph_List[MorphIndex] >= MORPHS)
+                                            {
+                                                currentMorph = Morph_List[MorphIndex] - MORPHS;
+                                                select_current_Morph(Morph_type);
+                                            }
+                                            else
+                                            {
+                                                currentObject = -(Morph_List[index + morph_start]);
+                                                assert_Objects_Selected();
+                                            }
+                                            select_Morph_Map(Morph_type);
+                                            create_Morphs_List(Morph_type);
+                                        }
+                                        draw_Dialog();
+                                    }
                                 }
                             }
                             else if (dialog_type == POSE_DIALOG)
@@ -18333,6 +18489,15 @@ int main(int argc, char * args[])
 //                                    glDrawBuffer(GL_BACK);
                                 }
                             }
+                            else if (dialog_type == MRPH_DIALOG)
+                            {
+                                if (Buttonindex > -1 && Buttonindex < morph_types_c && Button_morph[Buttonindex].func != NULL)
+                                {
+                                    (*Button_morph[Buttonindex].func)(Buttonindex);
+                                    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+                                    draw_Dialog();
+                                }
+                            }
                             else
                             {
                                 if (Buttonindex > -1 && Buttonindex < ext_count && Button_ext[Buttonindex].func != NULL)
@@ -18445,7 +18610,10 @@ int main(int argc, char * args[])
                                 h_index = (mouse_x - SIDEBAR * 2) / BUTTON_WIDTH_SHORT;
                                 if (h_index < H_MRPH_NUM)
                                 {
-                                    (*Button_h_mrph[h_index].func)();
+                                    if (Morph_type == DEFORMER_MORPH)
+                                    {
+                                        (*Button_h_mrph[h_index].func)();
+                                    }
                                 }
                             }
                             else if (dialog_type == POSE_DIALOG && !Edit_Lock)
@@ -19332,9 +19500,9 @@ int main(int argc, char * args[])
 
                         Morphs[prop_y] = Morph_adjusted;
 
-                        if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
+                        if (deformer_morph_Index > 0 && Deformer_Morph != NULL)
                         {
-                            transfer_Morph_Amount(deformer_morphs[currentMorph]);
+                            transfer_Morph_Amount(Deformer_Morph);
                         }
                         update_Morphs_List(0, 0);
                         //printf("\r%1.2f ", Morph_adjusted);
@@ -19469,7 +19637,7 @@ int main(int argc, char * args[])
                                     black_out_properties();
                                     properties[prop_y][prop_x] = UI_BACKL;
                                     if (Type != NULL)
-                                        draw_Properties(deformer_morphs[currentMorph]->Name, screen_height, 1, PROPERTIES_MORPH, Type);
+                                        draw_Properties(Deformer_Morph->Name, screen_height, 1, PROPERTIES_MORPH, Type);
                                     else
                                         draw_Properties("", screen_height, 1, PROPERTIES_MORPH, Type);
                                     SDL_GL_SwapBuffers();

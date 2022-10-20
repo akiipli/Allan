@@ -359,6 +359,7 @@ int save_Morphs(char * morph_files_dir)
             OM = O->Morph_Maps[m];
             fprintf(F, "%u\n", (unsigned)OM);
             fprintf(F, "%s\n", OM->Name);
+            fprintf(F, "%d\n", OM->collapsed);
             fprintf(F, "%d\n", OM->MorphsCount);
             fprintf(F, "%d\n", OM->VertCount);
             for (d = 0; d < OM->MorphsCount; d ++)
