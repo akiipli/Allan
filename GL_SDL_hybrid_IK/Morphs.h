@@ -163,8 +163,6 @@ deformer_morph_map;
 deformer_morph_map * deformer_morph_maps[DEFORMER_MORPH_MAPS]; // in list
 int deformer_morph_map_Index = 0;
 
-void free_Morph_Map(morph_map * M);
-
 int add_Morph_To_Morph_Map_(morph_map * M, morph * Morph)
 {
     M->MorphsCount ++;

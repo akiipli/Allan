@@ -13659,6 +13659,10 @@ void delete_Deformer()
         set_Defr_H_Button(5);
 
         create_Deformers_List(SelsIndex[3], O);
+        create_Morphs_List(0);
+        create_Morphs_List(1);
+        deformer_morph_map_Index = Deformer_Morph_Maps_c;
+        deformer_morph_Index = Deformer_Morphs_c;
 
         if (DefrIndex - defr_start >= 0)
             DefrList[DefrIndex - defr_start].color = UI_BLACK;

@@ -176,6 +176,8 @@ void add_Objects_To_Deformer(deformer * D)
     }
 }
 
+void free_deformer_Morph_Maps(deformer * D);
+
 void remove_Deformer(deformer * D)
 {
     int t;
@@ -215,6 +217,8 @@ void remove_Deformer(deformer * D)
         I = D->IKchains[i];
         I->Deformer = NULL;
     }
+
+    free_deformer_Morph_Maps(D);
 
     int d;
 

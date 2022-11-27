@@ -258,6 +258,21 @@ void free_transformers()
     }
 }
 
+void release_OMD_dependecy(object_morph_dialer * OMD)
+{
+    object * O;
+    morph_map * M;
+    morph * Morph;
+
+    O = OMD->O;
+    M = O->Morph_Maps[OMD->map_index];
+    Morph = M->Morphs[OMD->morph_index];
+
+    M->Deformer = NULL;
+    M->DM = NULL;
+    Morph->M = NULL;
+}
+
 void free_deformer_Morph(deformer_morph * Morph)
 {
     int i;
@@ -267,6 +282,7 @@ void free_deformer_Morph(deformer_morph * Morph)
     for (i = 0; i < Morph->objectCount; i ++)
     {
         OMD = Morph->Object_Morph_Map[i];
+        release_OMD_dependecy(OMD);
         free(OMD);
     }
 
@@ -290,6 +306,18 @@ void free_deformer_Morph_Map(deformer_morph_map * M)
     free(M->Morphs);
     free(M->Objects);
     free(M);
+}
+
+void free_deformer_Morph_Maps(deformer * D)
+{
+    int m;
+    deformer_morph_map * M;
+
+    for (m = 0; m < D->Morph_Maps_Count; m ++)
+    {
+        M = D->Morph_Maps[m];
+        free_deformer_Morph_Map(M);
+    }
 }
 
 void free_Morph(morph * Morph)
