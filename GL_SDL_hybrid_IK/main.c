@@ -204,6 +204,7 @@ int Edge_Mode = 0;
 int Vertex_Mode = 0;
 int Bone_Mode = 0;
 int Curve_Mode = 0;
+int Modeling_Mode = 0;
 int selection_Mode = 0;
 
 int mouse_button_down = 0;
@@ -3344,6 +3345,7 @@ void set_Bone_Mode()
     Vertex_Mode = 0;
     Bone_Mode = 1;
     Curve_Mode = 0;
+    Modeling_Mode = 0;
     vertdraw = 0;
     Button_Mode[0].color = UI_GRAYB;
     Button_Mode[1].color = UI_GRAYB;
@@ -3351,6 +3353,7 @@ void set_Bone_Mode()
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYD;
     Button_Mode[5].color = UI_GRAYB;
+    Button_Mode[7].color = UI_GRAYB;
 
     if (add_selection_mode)
         SDL_SetCursor(Arrow_Plus);
@@ -13491,10 +13494,26 @@ void set_Modeling_Mode()
 
     if (MODELING_MODE)
     {
+        Modeling_Mode = 1;
+
+        Object_Mode = 0;
+        Bone_Mode = 0;
+
+        if (Polygon_Mode)
+            set_Polygon_Mode();
+        else if (Edge_Mode)
+            set_Edge_Mode();
+        else
+            set_Vertex_Mode();
+
+        Button_Mode[0].color = UI_GRAYB;
+        Button_Mode[4].color = UI_GRAYB;
+
         Button_Mode[7].color = UI_GRAYD;
     }
     else
     {
+        Modeling_Mode = 0;
         Button_Mode[7].color = UI_GRAYB;
     }
 }
@@ -13549,6 +13568,13 @@ void set_Bind_Mode()
         {
             Curve_Mode = 0;
             Button_Mode[5].color = UI_GRAYB;
+        }
+
+        if (Modeling_Mode)
+        {
+            MODELING_MODE = 0;
+            Modeling_Mode = 0;
+            Button_Mode[7].color = UI_GRAYB;
         }
     }
     else
@@ -23091,6 +23117,11 @@ int main(int argc, char * args[])
         {
             set_Bind_Mode();
             message = -12;
+        }
+        else if (message == 54)
+        {
+            set_Modeling_Mode();
+            message = -1;
         }
         else if (message == 59)
         {
