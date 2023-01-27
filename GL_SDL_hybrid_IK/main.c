@@ -14422,6 +14422,12 @@ void transform_Objects_And_Render()
         update_selected_Curves(subdLevel);
         update_connected_Curves(subdLevel);
         update_connected_Objects();
+
+        ///* rotate current objects verts to update transformed coordinates
+        if (!O->binding)
+            rotate_verts(O, *O->T);
+        //*/
+
         update_selected_Curve_Objects(subdLevel);
     }
     else

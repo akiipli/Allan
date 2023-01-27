@@ -3215,6 +3215,14 @@ void transfer_Curve_Cps_To_Vertex_TCoordinates(object * O)
                 CP->vert->x = CP->pos[0] - O->T->pos[0];
                 CP->vert->y = CP->pos[1] - O->T->pos[1];
                 CP->vert->z = CP->pos[2] - O->T->pos[2];
+
+                ///* Morph coordinates
+
+                CP->vert->Rx = CP->vert->x;
+                CP->vert->Ry = CP->vert->y;
+                CP->vert->Rz = CP->vert->z;
+
+                //*/
             }
         }
     }
