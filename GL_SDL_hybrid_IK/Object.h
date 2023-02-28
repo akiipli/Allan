@@ -28,6 +28,14 @@ typedef struct curve_segment curve_segment;
 
 typedef struct
 {
+    float x;
+    float y;
+    float z;
+}
+vertex_Pos;
+
+typedef struct
+{
     float vec[3];
     float dist;
 }
@@ -520,6 +528,8 @@ struct object
     int last_selected_polys[2];
     int last_selected_edges[2];
     int last_selected_verts[2];
+
+    vertex_Pos * vertex_Positions;
 
     weight_encapsulator * WEncapsulator;
 

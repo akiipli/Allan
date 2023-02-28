@@ -784,6 +784,7 @@ void free_object(object * O)
 
     //loaded_objects[O->index] = 0;
 
+    free(O->vertex_Positions);
     free_selections(O);
     free(O->curves);
     free(O->segments);
@@ -985,6 +986,7 @@ int initialize_object(int index,
     O->polygon_selections = 0;
     O->edge_selections = 0;
     O->vertex_selections = 0;
+    O->vertex_Positions = malloc(0 * sizeof(vertex_Pos));
 
     O->curves = malloc(OBJECT_CURVES * sizeof(curve*));
     O->curve_count = 0;

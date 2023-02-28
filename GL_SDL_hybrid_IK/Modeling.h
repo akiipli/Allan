@@ -32,5 +32,33 @@ void transfer_Transformed_Coordinates(object * O)
     }
 }
 
+void remember_Objects_Verts_Pos()
+{
+    int o, v, idx;
+
+    object * O;
+    vertex * V;
+    vertex_Pos * vertex_Positions;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        vertex_Positions = realloc(O->vertex_Positions, O->selected_verts_count * sizeof(vertex_Pos));
+        if (vertex_Positions != NULL)
+        {
+            O->vertex_Positions = vertex_Positions;
+            for (v = 0; v < O->selected_verts_count; v ++)
+            {
+                idx = O->selected_verts[v];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                O->vertex_Positions[v].x = V->Tx;
+                O->vertex_Positions[v].y = V->Ty;
+                O->vertex_Positions[v].z = V->Tz;
+            }
+            //printf("%d verts for %s allocated\n", O->selected_verts_count, O->Name);
+        }
+    }
+}
+
 
 #endif // MODELING_H_INCLUDED

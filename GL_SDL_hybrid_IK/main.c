@@ -13997,7 +13997,7 @@ void start_Movement()
     ObjDist = distance(O->T->pos, Camera->T->pos);
     T = Camera->T;
 
-    if ((mod & KMOD_SHIFT) || BONES_MODE || CURVE_MODE)
+    if ((mod & KMOD_SHIFT) || BONES_MODE || CURVE_MODE || MODELING_MODE)
     {
         object_hook = 1;
         MOVEMENT = 1;
@@ -14021,6 +14021,13 @@ void start_Movement()
                     curve_Manipulation = 1;
                 }
                 find_connected_Objects();
+            }
+        }
+        else if (Modeling_Mode && !BONES_MODE)
+        {
+            if (Vertex_Mode)
+            {
+                remember_Objects_Verts_Pos();
             }
         }
 
