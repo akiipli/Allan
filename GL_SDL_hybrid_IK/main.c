@@ -13997,7 +13997,7 @@ void start_Movement()
     ObjDist = distance(O->T->pos, Camera->T->pos);
     T = Camera->T;
 
-    if ((mod & KMOD_SHIFT) || BONES_MODE || CURVE_MODE || MODELING_MODE)
+    if ((mod & KMOD_SHIFT) || BONES_MODE || CURVE_MODE)
     {
         object_hook = 1;
         MOVEMENT = 1;
@@ -14027,6 +14027,7 @@ void start_Movement()
         {
             if (Vertex_Mode)
             {
+                vertex_Manipulation = 1;
                 remember_Objects_Verts_Pos();
             }
         }
@@ -14333,6 +14334,10 @@ void make_Movement()
 
             update_Curve(C, subdLevel);
         }
+    }
+    else if (Modeling_Mode && vertex_Manipulation)
+    {
+        move_Verts_To_Delta(Delta);
     }
     else
     {
@@ -17564,6 +17569,11 @@ int main(int argc, char * args[])
                             update_connected_Curves(subdLevel);
                             update_connected_Objects();
                         }
+                        else if (Modeling_Mode && vertex_Manipulation)
+                        {
+                            snap_back_Verts_To_Pos();
+                            vertex_Manipulation = 0;
+                        }
                         else
                         {
                             if (camera_rotate)
@@ -17773,6 +17783,11 @@ int main(int argc, char * args[])
                     if (cp_Manipulation)
                     {
                         cp_Manipulation = 0;
+                    }
+
+                    if (vertex_Manipulation)
+                    {
+                        vertex_Manipulation = 0;
                     }
 
                     if (CURVE_MODE)

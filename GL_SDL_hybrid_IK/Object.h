@@ -530,6 +530,7 @@ struct object
     int last_selected_verts[2];
 
     vertex_Pos * vertex_Positions;
+    int Movement_Enabled;
 
     weight_encapsulator * WEncapsulator;
 
