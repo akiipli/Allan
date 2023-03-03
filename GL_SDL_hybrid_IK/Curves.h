@@ -2288,7 +2288,13 @@ void update_Object_Curves_Cps_Positions(object * O)
         for (p = 0; p < C->cps_count; p ++)
         {
             CP = C->cps[p];
-            rotate_center(CP->Pos, Action_Center->rotVec, Action_Center->pos, CP->pos);
+            //rotate_center(CP->Pos, Action_Center->rotVec, Action_Center->pos, CP->pos);
+            if (CP->vert != NULL)
+            {
+                CP->pos[0] = CP->vert->Tx;
+                CP->pos[1] = CP->vert->Ty;
+                CP->pos[2] = CP->vert->Tz;
+            }
         }
     }
 }

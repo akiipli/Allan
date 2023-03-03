@@ -158,23 +158,6 @@ void update_Vertex_Control_Point()
     }
 }
 
-void update_selected_Objects_Curves(int subdLevel)
-{
-    int o;
-
-    object * O;
-
-    for (o = 0; o < selected_object_count; o ++)
-    {
-        O = objects[selected_objects[o]];
-        if (O->Movement_Enabled)
-        {
-            update_object_Curves(O, subdLevel);
-            update_object_Curves(O, subdLevel);
-        }
-    }
-}
-
 void update_selected_Objects_T_Coords()
 {
     int o, v, idx;
@@ -195,6 +178,63 @@ void update_selected_Objects_T_Coords()
                 V->Tx = O->T->rotVec[0][0] * V->Rx + O->T->rotVec[1][0] * V->Ry + O->T->rotVec[2][0] * V->Rz + O->T->pos[0];
                 V->Ty = O->T->rotVec[0][1] * V->Rx + O->T->rotVec[1][1] * V->Ry + O->T->rotVec[2][1] * V->Rz + O->T->pos[1];
                 V->Tz = O->T->rotVec[0][2] * V->Rx + O->T->rotVec[1][2] * V->Ry + O->T->rotVec[2][2] * V->Rz + O->T->pos[2];
+            }
+        }
+    }
+}
+
+void find_Curves_Connected_To_Verts()
+{
+    int o, v, idx, s, t, condition;
+
+    object * O;
+    vertex * V;
+
+    cp * CP;
+    curve * C;
+    curve_segment * S;
+
+    connected_curves_count = 0;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        if (O->Movement_Enabled)
+        {
+            for (v = 0; v < O->selected_verts_count; v ++)
+            {
+                idx = O->selected_verts[v];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (V->control_point != NULL)
+                {
+                    CP = V->control_point;
+
+                    for (s = 0; s < CP->segment_count; s ++)
+                    {
+                        S = CP->segments[s];
+                        condition = 1;
+
+                        if (S == NULL)
+                        {
+
+                        }
+                        else if (S->Curve != NULL)
+                        {
+                            for (t = 0; t < connected_curves_count; t ++)
+                            {
+                                C = curves[connected_curves[t]];
+                                if (C == S->Curve)
+                                {
+                                    condition = 0;
+                                    break;
+                                }
+                            }
+                            if (condition)
+                                connected_curves[connected_curves_count ++] = S->Curve->index;
+                        }
+                    }
+                }
             }
         }
     }

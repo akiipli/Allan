@@ -14029,6 +14029,7 @@ void start_Movement()
             {
                 vertex_Manipulation = 1;
                 remember_Objects_Verts_Pos();
+                find_Curves_Connected_To_Verts();
             }
         }
 
@@ -14423,6 +14424,11 @@ void transform_Objects_And_Render()
         memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
         rotate_T(Action_Center);
 
+        ///* rotate current objects verts to update transformed coordinates
+        if (!O->binding)
+            rotate_verts(O, *O->T);
+        //*/
+
         if (Vertex_Mode)
         {
             update_Selected_Cps_Positions();
@@ -14434,11 +14440,6 @@ void transform_Objects_And_Render()
         update_selected_Curves(subdLevel);
         update_connected_Curves(subdLevel);
         update_connected_Objects();
-
-        ///* rotate current objects verts to update transformed coordinates
-        if (!O->binding)
-            rotate_verts(O, *O->T);
-        //*/
 
         update_selected_Curve_Objects(subdLevel);
     }
@@ -14534,6 +14535,7 @@ void transform_Objects_And_Render()
                     if (RESET)
                     {
                         RESET = 0;
+                        rotate_verts(O, *O->T);
                     }
                     else
                     {
@@ -14549,8 +14551,16 @@ void transform_Objects_And_Render()
             {
                 if (O->curve_count > 0)
                 {
-                    memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
-                    rotate_T(Action_Center);
+                    if (RESET)
+                    {
+                        RESET = 0;
+                        rotate_verts(O, *O->T);
+                    }
+                    else
+                    {
+                        memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
+                        rotate_T(Action_Center);
+                    }
 
                     update_Object_Curves_Cps_Positions(O);
                     update_object_Curves(O, subdLevel);
@@ -14630,7 +14640,7 @@ void transform_Objects_And_Render()
     if (vertex_Manipulation)
     {
         update_Vertex_Control_Point();
-        update_selected_Objects_Curves(subdLevel);
+        update_connected_Curves(subdLevel);
     }
 
     if (fonts_on)
@@ -17580,7 +17590,7 @@ int main(int argc, char * args[])
                             snap_back_Verts_To_Pos();
                             update_selected_Objects_T_Coords();
                             update_Vertex_Control_Point();
-                            update_selected_Objects_Curves(subdLevel);
+                            update_connected_Curves(subdLevel);
                             vertex_Manipulation = 0;
                         }
                         else
@@ -21591,6 +21601,8 @@ int main(int argc, char * args[])
                         Action_Center->pos[0] = T->pos[0];
                         Action_Center->pos[1] = T->pos[1];
                         Action_Center->pos[2] = T->pos[2];
+
+                        RESET = 1;
                     }
                 }
 
