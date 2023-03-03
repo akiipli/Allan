@@ -14627,6 +14627,12 @@ void transform_Objects_And_Render()
         }
     }
 
+    if (vertex_Manipulation)
+    {
+        update_Vertex_Control_Point();
+        update_selected_Objects_Curves(subdLevel);
+    }
+
     if (fonts_on)
     {
         make_osd(O);
@@ -17572,6 +17578,9 @@ int main(int argc, char * args[])
                         else if (Modeling_Mode && vertex_Manipulation)
                         {
                             snap_back_Verts_To_Pos();
+                            update_selected_Objects_T_Coords();
+                            update_Vertex_Control_Point();
+                            update_selected_Objects_Curves(subdLevel);
                             vertex_Manipulation = 0;
                         }
                         else
@@ -21645,7 +21654,8 @@ int main(int argc, char * args[])
                         T->rot[2] = 0.0;
                     }
 
-                    update_Deformer(D);
+                    if (D != NULL)
+                        update_Deformer(D);
 
                     if (O->curve_count > 0)
                     {

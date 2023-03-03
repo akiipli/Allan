@@ -70,24 +70,67 @@ void move_Verts_To_Delta(float Delta[3])
     object * O;
     vertex * V;
 
+    float rotVec[3][3];
+    float result[3];
+
+    float Delta_result[3];
+
     for (o = 0; o < selected_object_count; o ++)
     {
         O = objects[selected_objects[o]];
         if (O->Movement_Enabled)
         {
+            invert_Rotation_scale(O->T, rotVec);
+            rotate_vector(rotVec, Delta, Delta_result);
+
             for (v = 0; v < O->selected_verts_count; v ++)
             {
                 idx = O->selected_verts[v];
                 V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                V->Rx = O->vertex_Positions[v].x + Delta[0];
-                V->Ry = O->vertex_Positions[v].y + Delta[1];
-                V->Rz = O->vertex_Positions[v].z + Delta[2];
+
+                rotate_vector(rotVec, O->vertex_Positions[v].Pos, result);
+
+                V->Rx = result[0] + Delta_result[0];
+                V->Ry = result[1] + Delta_result[1];
+                V->Rz = result[2] + Delta_result[2];
             }
         }
     }
 }
 
 void snap_back_Verts_To_Pos()
+{
+    int o, v, idx;
+
+    object * O;
+    vertex * V;
+
+    float rotVec[3][3];
+    float result[3];
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        if (O->Movement_Enabled)
+        {
+            invert_Rotation_scale(O->T, rotVec);
+
+            for (v = 0; v < O->selected_verts_count; v ++)
+            {
+                idx = O->selected_verts[v];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                rotate_vector(rotVec, O->vertex_Positions[v].Pos, result);
+
+                V->Rx = result[0];
+                V->Ry = result[1];
+                V->Rz = result[2];
+            }
+        }
+    }
+}
+
+void update_Vertex_Control_Point()
 {
     int o, v, idx;
 
@@ -103,13 +146,58 @@ void snap_back_Verts_To_Pos()
             {
                 idx = O->selected_verts[v];
                 V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                V->Rx = O->vertex_Positions[v].x;
-                V->Ry = O->vertex_Positions[v].y;
-                V->Rz = O->vertex_Positions[v].z;
+
+                if (V->control_point != NULL)
+                {
+                    V->control_point->pos[0] = V->Tx;
+                    V->control_point->pos[1] = V->Ty;
+                    V->control_point->pos[2] = V->Tz;
+                }
             }
         }
     }
 }
 
+void update_selected_Objects_Curves(int subdLevel)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        if (O->Movement_Enabled)
+        {
+            update_object_Curves(O, subdLevel);
+            update_object_Curves(O, subdLevel);
+        }
+    }
+}
+
+void update_selected_Objects_T_Coords()
+{
+    int o, v, idx;
+
+    object * O;
+    vertex * V;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        if (O->Movement_Enabled)
+        {
+            for (v = 0; v < O->selected_verts_count; v ++)
+            {
+                idx = O->selected_verts[v];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                V->Tx = O->T->rotVec[0][0] * V->Rx + O->T->rotVec[1][0] * V->Ry + O->T->rotVec[2][0] * V->Rz + O->T->pos[0];
+                V->Ty = O->T->rotVec[0][1] * V->Rx + O->T->rotVec[1][1] * V->Ry + O->T->rotVec[2][1] * V->Rz + O->T->pos[1];
+                V->Tz = O->T->rotVec[0][2] * V->Rx + O->T->rotVec[1][2] * V->Ry + O->T->rotVec[2][2] * V->Rz + O->T->pos[2];
+            }
+        }
+    }
+}
 
 #endif // MODELING_H_INCLUDED

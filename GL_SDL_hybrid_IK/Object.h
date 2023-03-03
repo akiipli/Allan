@@ -28,9 +28,16 @@ typedef struct curve_segment curve_segment;
 
 typedef struct
 {
-    float x;
-    float y;
-    float z;
+    union
+    {
+        float Pos[3];
+        struct
+        {
+            float x;
+            float y;
+            float z;
+        };
+    };
 }
 vertex_Pos;
 
