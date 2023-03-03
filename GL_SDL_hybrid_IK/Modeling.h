@@ -240,4 +240,120 @@ void find_Curves_Connected_To_Verts()
     }
 }
 
+void find_Verts_action_Center()
+{
+    int o, v, idx;
+
+    object * O;
+    vertex * V;
+
+    Action_Center->pos[0] = 0;
+    Action_Center->pos[1] = 0;
+    Action_Center->pos[2] = 0;
+
+    float Objects_Center[3];
+
+    Objects_Center[0] = 0;
+    Objects_Center[1] = 0;
+    Objects_Center[2] = 0;
+
+    int counter = 0;
+    int o_counter = 0;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        if (O->Movement_Enabled)
+        {
+            for (v = 0; v < O->selected_verts_count; v ++)
+            {
+                idx = O->selected_verts[v];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                counter ++;
+                Action_Center->pos[0] += V->Tx;
+                Action_Center->pos[1] += V->Ty;
+                Action_Center->pos[2] += V->Tz;
+            }
+            o_counter ++;
+            Objects_Center[0] -= O->T->pos[0];
+            Objects_Center[1] -= O->T->pos[1];
+            Objects_Center[2] -= O->T->pos[2];
+        }
+    }
+
+    if (counter > 0)
+    {
+        Action_Center->pos[0] /= counter;
+        Action_Center->pos[1] /= counter;
+        Action_Center->pos[2] /= counter;
+    }
+
+    if (o_counter > 0)
+    {
+        Objects_Center[0] /= o_counter;
+        Objects_Center[1] /= o_counter;
+        Objects_Center[2] /= o_counter;
+    }
+
+    Action_Center->pos[0] += Objects_Center[0];
+    Action_Center->pos[1] += Objects_Center[1];
+    Action_Center->pos[2] += Objects_Center[2];
+
+    printf("Action center %f %f %f\n", Action_Center->pos[0], Action_Center->pos[1], Action_Center->pos[2]);
+}
+
+void tune_subdivide_post_transformed(object * O, int L);
+
+void update_selected_Objects(int level)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        if (O->Movement_Enabled)
+        {
+            tune_subdivide_post_transformed(O, level);
+        }
+    }
+}
+
+void update_Selected_Verts_Positions()
+{
+    int o, v, idx;
+
+    object * O;
+    vertex * V;
+
+    float rotVec[3][3];
+    float result[3];
+    float pos[3];
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        if (O->Movement_Enabled)
+        {
+            invert_Rotation_scale(O->T, rotVec);
+
+            for (v = 0; v < O->selected_verts_count; v ++)
+            {
+                idx = O->selected_verts[v];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                rotate_vector(rotVec, O->vertex_Positions[v].Pos, result);
+
+                rotate_center(result, Action_Center->rotVec, Action_Center->pos, pos);
+
+                V->Rx = pos[0];
+                V->Ry = pos[1];
+                V->Rz = pos[2];
+            }
+        }
+    }
+}
+
 #endif // MODELING_H_INCLUDED

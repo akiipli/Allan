@@ -13916,6 +13916,18 @@ void start_Rotation()
         Action_Center->rot_Order = yxz;
         reset_Action_Center();
     }
+    else if (Modeling_Mode)
+    {
+        if (Vertex_Mode)
+        {
+            vertex_Manipulation = 1;
+            remember_Objects_Verts_Pos();
+            find_Verts_action_Center();
+            find_Curves_Connected_To_Verts();
+        }
+        Action_Center->rot_Order = yxz;
+        reset_Action_Center();
+    }
     else
     {
         if (DRAW_LOCATORS)
@@ -14442,6 +14454,26 @@ void transform_Objects_And_Render()
         update_connected_Objects();
 
         update_selected_Curve_Objects(subdLevel);
+    }
+    else if (Modeling_Mode && (ROTATION || SCALE))
+    {
+        memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
+        rotate_T(Action_Center);
+
+        ///* rotate current objects verts to update transformed coordinates
+//        if (!O->binding)
+//            rotate_verts(O, *O->T);
+
+        update_selected_Objects_T_Coords();
+        //*/
+
+        if (Vertex_Mode)
+        {
+            update_Selected_Verts_Positions();
+        }
+
+        update_connected_Curves(subdLevel);
+        update_selected_Objects(subdLevel);
     }
     else
     {
@@ -16400,7 +16432,7 @@ void Exit()
 
 void make_Rotation_Persp(float delta_y, float delta_1, float delta_2)
 {
-    if (Curve_Mode)
+    if (Curve_Mode || Modeling_Mode)
     {
         if (Axis_lock)
         {
@@ -16470,7 +16502,7 @@ void make_Rotation_Persp(float delta_y, float delta_1, float delta_2)
 
 void make_Rotation_Left(float delta_y, float delta_x)
 {
-    if (Curve_Mode)
+    if (Curve_Mode || Modeling_Mode)
     {
         if (Axis_lock)
         {
@@ -16540,7 +16572,7 @@ void make_Rotation_Left(float delta_y, float delta_x)
 
 void make_Rotation_Front(float delta_y, float delta_x)
 {
-    if (Curve_Mode)
+    if (Curve_Mode || Modeling_Mode)
     {
         if (Axis_lock)
         {
@@ -16610,7 +16642,7 @@ void make_Rotation_Front(float delta_y, float delta_x)
 
 void make_Rotation_Top(float delta_y, float delta_x)
 {
-    if (Curve_Mode)
+    if (Curve_Mode || Modeling_Mode)
     {
         if (Axis_lock)
         {
@@ -16680,7 +16712,7 @@ void make_Rotation_Top(float delta_y, float delta_x)
 
 void make_Scale(float delta)
 {
-    if (Curve_Mode)
+    if (Curve_Mode || Modeling_Mode)
     {
         if (Axis_lock)
         {
@@ -16754,7 +16786,7 @@ void make_Scale(float delta)
 
 void make_Scale_Persp(float delta_1, float delta_2)
 {
-    if (Curve_Mode)
+    if (Curve_Mode || Modeling_Mode)
     {
         if (Axis_lock)
         {
