@@ -14350,7 +14350,12 @@ void make_Movement()
     }
     else if (Modeling_Mode && vertex_Manipulation)
     {
+        update_selected_Objects_T_Coords();
+
         move_Verts_To_Delta(Delta);
+
+        update_connected_Curves(subdLevel);
+        update_selected_Objects(subdLevel);
     }
     else
     {
