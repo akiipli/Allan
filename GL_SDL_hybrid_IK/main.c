@@ -14662,8 +14662,7 @@ void transform_Objects_And_Render()
                 else
                 {
                     rotate_verts(O0, *O0->T);
-                    rotate_verts_(O0, *O0->T, 0);
-                    rotate_verts_(O0, *O0->T, subdLevel);
+                    tune_subdivide_post_transformed(O0, subdLevel);
                 }
             }
         }
