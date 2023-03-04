@@ -45,8 +45,9 @@ void remember_Objects_Verts_Pos()
     {
         O = objects[selected_objects[o]];
         O->Movement_Enabled = 0;
+
         vertex_Positions = realloc(O->vertex_Positions, O->selected_verts_count * sizeof(vertex_Pos));
-        if (vertex_Positions != NULL)
+        if (vertex_Positions != NULL && O->selected_verts_count > 0)
         {
             O->vertex_Positions = vertex_Positions;
             O->Movement_Enabled = 1;
@@ -58,7 +59,7 @@ void remember_Objects_Verts_Pos()
                 O->vertex_Positions[v].y = V->Ty - O->T->pos[1];
                 O->vertex_Positions[v].z = V->Tz - O->T->pos[2];
             }
-            //printf("%d verts for %s allocated\n", O->selected_verts_count, O->Name);
+            printf("%d verts for %s allocated\n", O->selected_verts_count, O->Name);
         }
     }
 }
