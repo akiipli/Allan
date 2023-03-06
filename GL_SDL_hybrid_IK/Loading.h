@@ -1902,7 +1902,8 @@ morf_pack read_Morphs_file(Morphs_In * MORPH_IN, char * fileName, int d_index)
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%d", &O->Morph_Maps_count);
 
-                O->Morph_Maps = realloc(O->Morph_Maps, O->Morph_Maps_count * sizeof(morph_map*));
+                if (O->Morph_Maps_count > 0)
+                    O->Morph_Maps = realloc(O->Morph_Maps, O->Morph_Maps_count * sizeof(morph_map*));
 
                 if (O->Morph_Maps == NULL)
                 {

@@ -622,4 +622,123 @@ void distribute_Morph_Map_Positions_Weight(deformer * D, deformer_morph_map * M)
     }
 }
 
+void transfer_Morph_Coordinates(deformer_morph * DM)
+{
+    printf("transfer Morph Coordinates\n");
+
+    int i, o, m, condition, idx;
+
+    morph * Morf;
+    morph_map * M;
+    object * O, * O0;
+    vertex * V;
+    weighted_index * I;
+    object_morph_dialer * OMD;
+    deformer_morph_map * Map = DM->Map;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        if (O->Movement_Enabled)
+        {
+            condition = 0;
+            for (m = 0; m < Map->Object_Count; m ++)
+            {
+                O0 = Map->Objects[m];
+                if (O == O0)
+                {
+                    condition = 1;
+                    break;
+                }
+            }
+            if (condition)
+            {
+                OMD = DM->Object_Morph_Map[m];
+                M = O->Morph_Maps[OMD->map_index];
+                Morf = M->Morphs[OMD->morph_index];
+
+                printf("%s %s %d\n", O->Name, M->Name, M->VertCount);
+
+                for (i = 0; i < M->VertCount; i ++)
+                {
+                    I = &M->Verts[i];
+                    idx = I->index;
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    Morf->Positions[i].x = V->Rx - V->x;
+                    Morf->Positions[i].y = V->Ry - V->y;
+                    Morf->Positions[i].z = V->Rz - V->z;
+                }
+            }
+        }
+    }
+}
+
+void display_selected_Morph(deformer_morph * DM)
+{
+    printf("display selected Morph\n");
+
+    int i, m, idx;
+
+    morph * Morf;
+    morph_map * M;
+    object * O;
+    vertex * V;
+    weighted_index * I;
+    object_morph_dialer * OMD;
+    deformer_morph_map * Map = DM->Map;
+
+    for (m = 0; m < Map->Object_Count; m ++)
+    {
+        O = Map->Objects[m];
+
+        OMD = DM->Object_Morph_Map[m];
+        M = O->Morph_Maps[OMD->map_index];
+        Morf = M->Morphs[OMD->morph_index];
+
+        printf("%s %s %d\n", O->Name, M->Name, M->VertCount);
+
+        for (i = 0; i < M->VertCount; i ++)
+        {
+            I = &M->Verts[i];
+            idx = I->index;
+            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            V->Rx = Morf->Positions[i].x + V->x;
+            V->Ry = Morf->Positions[i].y + V->y;
+            V->Rz = Morf->Positions[i].z + V->z;
+        }
+    }
+}
+
+void print_out_Morphs_Info()
+{
+    int d, m, o;
+
+    object * O;
+    morph * Morf;
+    morph_map * M;
+
+    object_morph_dialer * OMD;
+    deformer_morph * DM;
+    deformer_morph_map * Map;
+
+    for (d = 0; d < deformer_morph_map_Index; d ++)
+    {
+        Map = deformer_morph_maps[d];
+        printf("%s %s\n", Map->Name, Map->Deformer->Name);
+        for (m = 0; m < Map->Morphs_Count; m ++)
+        {
+            DM = Map->Morphs[m];
+            printf("\t%s %s\n", DM->Name, DM->D->Name);
+            for (o = 0; o < DM->objectCount; o ++)
+            {
+                OMD = DM->Object_Morph_Map[o];
+                O = OMD->O;
+                M = O->Morph_Maps[OMD->map_index];
+                Morf = M->Morphs[OMD->morph_index];
+                printf("\t\t%s %s %d %s %s\n", O->Name, M->Name, M->VertCount, Morf->Name, Morf->M->Name);
+            }
+        }
+    }
+}
+
 #endif // MORPHS_H_INCLUDED

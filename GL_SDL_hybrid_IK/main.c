@@ -7317,6 +7317,43 @@ void update_Deformed_View(deformer * D, int update)
     }
 }
 
+void update_Selected_Morph_View(deformer * D)
+{
+    Update_Objects_Count = 0;
+    Transformer_Objects_Count = 0;
+
+    int o, u, t, condition;
+
+    D->P = init_Deformer_P(D);
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+        condition = 1;
+        for (u = 0; u < Update_Objects_Count; u ++)
+        {
+            if (Update_Objects[u] == O)
+            {
+                condition = 0;
+                break;
+            }
+        }
+        if (condition)
+        {
+            Update_Objects[Update_Objects_Count ++] = O;
+        }
+    }
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        if (D->Transformers[t]->Object != NULL)
+        {
+            Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
+        }
+    }
+    update_Deformed_View(D, 1);
+}
+
 void init_Timeline_Segments(deformer * D, int TimelineStart)
 {
     timeline * Tm;
@@ -11711,6 +11748,21 @@ void handle_Morph_Dialog(char letter, SDLMod mod)
         //printf("%c%s", 13, EditString);
         message = 0;
     }
+    else if (letter == 13 || letter == 10)
+    {
+        if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
+        {
+            deformer_morph * Morph = deformer_morphs[currentMorph];
+            deformer * D = Morph->D;
+
+            display_selected_Morph(Morph);
+            update_Selected_Morph_View(D);
+            if (dialog_lock)
+            {
+                draw_Dialog();
+            }
+        }
+    }
 }
 
 void handle_Subcharacter_Dialog(char letter, SDLMod mod)
@@ -16014,7 +16066,17 @@ void select_current_Morph(int Morph_type)
         {
             deformer_morph * Morph = deformer_morphs[currentMorph];
             object_morph_dialer * OMD;
-            //morph_map * M;
+            deformer * D = Morph->D;
+
+            if (Modeling_Mode)
+            {
+                display_selected_Morph(Morph);
+                update_Selected_Morph_View(D);
+                if (dialog_lock)
+                {
+                    draw_Dialog();
+                }
+            }
 
             int o; // i;
 
@@ -17843,6 +17905,11 @@ int main(int argc, char * args[])
                     if (vertex_Manipulation)
                     {
                         vertex_Manipulation = 0;
+                        if (deformer_morph_Index > 0 && currentMorph < deformer_morph_Index)
+                        {
+                            deformer_morph * DM = deformer_morphs[currentMorph];
+                            transfer_Morph_Coordinates(DM);
+                        }
                     }
 
                     if (CURVE_MODE)
@@ -23241,6 +23308,7 @@ int main(int argc, char * args[])
         }
         else if (message == 77)
         {
+            print_out_Morphs_Info();
             //calculate_Triangle_Tangents(O);
         }
         else if (message == 78) // 40 for K
