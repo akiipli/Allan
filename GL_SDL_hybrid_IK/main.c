@@ -15147,6 +15147,31 @@ void select_Deformer_Objects()
     }
 }
 
+void select_Morph_Map_Objects(deformer_morph_map * Map)
+{
+    int o;
+
+    object * O;
+
+    if (Map->Object_Count > 0)
+    {
+        for (o = 0; o < objectIndex; o ++)
+        {
+            O = objects[o];
+            O->selected = 0;
+        }
+
+        for (o = 0; o < Map->Object_Count; o ++)
+        {
+            O = Map->Objects[o];
+            O->selected = 1;
+        }
+
+        assert_Object_Selection();
+        assert_Current_Object();
+    }
+}
+
 void update_Deformer(deformer * D)
 {
     Update_Objects_Count = 0;
@@ -18190,6 +18215,11 @@ int main(int argc, char * args[])
                                             {
                                                 current_Morph_Map = Morph_List[MorphIndex];
                                                 select_current_Morph_Map(Morph_type);
+                                                if (deformer_morph_map_Index > 0 && current_Morph_Map < deformer_morph_map_Index)
+                                                {
+                                                    deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
+                                                    select_Morph_Map_Objects(M);
+                                                }
                                             }
                                             else if (Morph_List[MorphIndex] >= MORPHS)
                                             {
