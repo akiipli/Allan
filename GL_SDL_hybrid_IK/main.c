@@ -435,6 +435,12 @@ void find_Camera_Objects()
     }
 }
 
+void make_currentFrame_osd(int frame)
+{
+    int p = 0;
+    p = sprintf(&osd_font[p], "%d\n", frame);
+}
+
 void make_osd(object * O)
 {
     /* uv tunes happen also with deforming on */
@@ -7563,7 +7569,7 @@ void deformer_Keyframe_Player()
     DRAW_UI = 1;
 
     //ELEMENT_ARRAYS = 1;
-    init_Hint();
+    empty_Hint();
 
     if (subdLevel > -1)
     {
@@ -7854,6 +7860,8 @@ void deformer_Keyframe_Player()
             rotate_Camera(Camera, CamDist);
             update_camera(Camera, CamDist);
         }
+        make_currentFrame_osd(frame);
+
         poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
 
         if (SHADERS && LIGHTSHOW)
@@ -7867,6 +7875,7 @@ void deformer_Keyframe_Player()
         }
     }
 
+    init_Hint();
     DRAW_UI = 1;
 }
 
@@ -19723,7 +19732,17 @@ int main(int argc, char * args[])
 
                         if (deformer_morph_Index > 0 && Deformer_Morph != NULL)
                         {
-                            transfer_Morph_Amount(Deformer_Morph);
+                            if (prop_y == 0)
+                            {
+                                transfer_Morph_Amount_To_Morfs(Deformer_Morph);
+                            }
+                            else
+                            {
+                                transfer_Morph_Amount(Deformer_Morph);
+                            }
+                            create_composite_Morph(Deformer_Morph->D);
+                            display_composite_Morph(Deformer_Morph->D);
+                            update_Deformed_View(Deformer_Morph->D, 0);
                         }
                         update_Morphs_List(0, 0);
                         //printf("\r%1.2f ", Morph_adjusted);

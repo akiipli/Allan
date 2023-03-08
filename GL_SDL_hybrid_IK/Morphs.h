@@ -741,4 +741,82 @@ void print_out_Morphs_Info()
     }
 }
 
+void create_composite_Morph(deformer * D)
+{
+    int o, m, v, idx, s;
+
+    object * O;
+    vertex * V;
+    vertex_Pos * vertex_Positions;
+    morph * Morf;
+    morph_map * M;
+    weighted_index * I;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+        O->Movement_Enabled = 0;
+        vertex_Positions = realloc(O->vertex_Positions, O->vertcount * sizeof(vertex_Pos));
+        if (vertex_Positions != NULL && O->vertcount > 0)
+        {
+            O->vertex_Positions = vertex_Positions;
+            O->Movement_Enabled = 1;
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                O->vertex_Positions[v].x = V->x;
+                O->vertex_Positions[v].y = V->y;
+                O->vertex_Positions[v].z = V->z;
+            }
+        }
+    }
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+        if (O->Movement_Enabled)
+        {
+            for (m = 0; m < O->Morph_Maps_count; m ++)
+            {
+                M = O->Morph_Maps[m];
+                for (v = 0; v < M->VertCount; v ++)
+                {
+                    I = &M->Verts[v];
+                    idx = I->index;
+                    for (s = 0; s < M->MorphsCount; s ++)
+                    {
+                        Morf = M->Morphs[s];
+                        O->vertex_Positions[idx].x += Morf->Positions[v].x * I->weight * Morf->Amount;
+                        O->vertex_Positions[idx].y += Morf->Positions[v].y * I->weight * Morf->Amount;
+                        O->vertex_Positions[idx].z += Morf->Positions[v].z * I->weight * Morf->Amount;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void display_composite_Morph(deformer * D)
+{
+    int o, v;
+
+    object * O;
+    vertex * V;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+        if (O->Movement_Enabled)
+        {
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                V->Rx = O->vertex_Positions[v].x;
+                V->Ry = O->vertex_Positions[v].y;
+                V->Rz = O->vertex_Positions[v].z;
+            }
+        }
+    }
+}
+
 #endif // MORPHS_H_INCLUDED

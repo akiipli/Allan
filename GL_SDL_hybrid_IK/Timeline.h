@@ -43,6 +43,21 @@ int currentKey = -1;
 
 typedef struct
 {
+    union
+    {
+        float Pos[3];
+        struct
+        {
+            float x;
+            float y;
+            float z;
+        };
+    };
+}
+morph_Pos;
+
+typedef struct
+{
     float scl[3];
     float rot[3];
     float pos[3];
@@ -50,6 +65,15 @@ typedef struct
     float rotVec_[3][3]; // multiply with parents transpose rotVec_ (unscaled)
 }
 transformer_values;
+
+typedef struct object object;
+
+typedef struct
+{
+    object * O;
+    morph_Pos * R_Coords;
+}
+morph_values;
 
 typedef struct
 {
@@ -70,11 +94,35 @@ typedef struct
 }
 timeline;
 
+typedef struct
+{
+    int key_frames;
+    int * Frames;
+    morph_values * Values;
+    int current_Segment; // segment frame start index for current time
+    acceleration * Acceleration;
+    int start_Segment;
+}
+morph_timeline;
+
 void free_Timeline(timeline * Tm)
 {
     if (Tm->Frames != NULL) free(Tm->Frames);
     if (Tm->Values != NULL) free(Tm->Values);
     if (Tm->Acceleration != NULL) free(Tm->Acceleration);
+}
+
+void free_Morf_Values(morph_values * Values)
+{
+    free(Values->R_Coords);
+    free(Values);
+}
+
+void free_Morph_Timeline(morph_timeline * Tmm)
+{
+    if (Tmm->Frames != NULL) free(Tmm->Frames);
+    if (Tmm->Values != NULL) free_Morf_Values(Tmm->Values);
+    if (Tmm->Acceleration != NULL) free(Tmm->Acceleration);
 }
 
 #endif // TIMELINE_H_INCLUDED

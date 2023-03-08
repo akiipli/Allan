@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+9:15 PM 3/8/2023
+Morph Maps Integrated. Morphs manipulation possible in Modeling Mode. In Morphs Dialog pressing Enter places
+this morph. To create morphs, first morph map is created for deformer. Object morphs are referenced from
+deformer.
+
 11:25 AM 9/7/2022
 Enter in View without Bind Mode establishes current Frame for current Deformer with view update.
 

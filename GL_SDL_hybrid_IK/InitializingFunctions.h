@@ -768,6 +768,11 @@ void free_object(object * O)
     }
 
     free_Morph_Maps(O);
+    if (O->Morph_Timeline != NULL)
+    {
+        free_Morph_Timeline(O->Morph_Timeline);
+        free(O->Morph_Timeline);
+    }
 
     int x, y;
 
@@ -1003,6 +1008,7 @@ int initialize_object(int index,
 
     O->Morph_Maps = malloc(0 * sizeof(morph_map*));
     O->Morph_Maps_count = 0;
+    O->Morph_Timeline = NULL;
 
     int x, y;
 

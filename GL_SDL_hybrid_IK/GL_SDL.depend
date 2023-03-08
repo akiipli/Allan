@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1678277953 source:c:\gl_sdl_hybrid_ik\main.c
+1678301451 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -70,7 +70,7 @@
 
 1662206207 c:\gl_sdl_hybrid_ik\transformer.h
 
-1677832397 c:\gl_sdl_hybrid_ik\object.h
+1678288370 c:\gl_sdl_hybrid_ik\object.h
 
 1677849162 c:\gl_sdl_hybrid_ik\curves.h
 
@@ -102,7 +102,7 @@
 
 1666268433 c:\gl_sdl_hybrid_ik\saving.h
 
-1678114296 c:\gl_sdl_hybrid_ik\initializingfunctions.h
+1678288813 c:\gl_sdl_hybrid_ik\initializingfunctions.h
 
 1636367110 c:\gl_sdl_hybrid_ik\extensionfunctions.h
 
@@ -125,7 +125,7 @@
 
 1636367110 c:\gl_sdl_hybrid_ik\arrays.h
 
-1636367110 c:\gl_sdl_hybrid_ik\lights.h
+1678290210 c:\gl_sdl_hybrid_ik\lights.h
 
 1657945483 c:\gl_sdl_hybrid_ik\rendering.h
 
@@ -143,9 +143,9 @@
 
 1664037729 c:\gl_sdl_hybrid_ik\subcharacters.h
 
-1665227854 c:\gl_sdl_hybrid_ik\properties.h
+1678301400 c:\gl_sdl_hybrid_ik\properties.h
 
-1662224335 c:\gl_sdl_hybrid_ik\timeline.h
+1678289109 c:\gl_sdl_hybrid_ik\timeline.h
 
-1678277953 c:\gl_sdl_hybrid_ik\morphs.h
+1678302754 c:\gl_sdl_hybrid_ik\morphs.h
 

@@ -371,6 +371,30 @@ void transfer_Morph_Amount(deformer_morph * M)
     }
 }
 
+void transfer_Morph_Amount_To_Morfs(deformer_morph * M)
+{
+    int i, m_count = 0;
+
+    object_morph_dialer * OMD;
+    morph_map * OM;
+    morph * OMorph;
+
+    M->Amount = Morphs[m_count ++];
+
+    for (i = 0; i < M->objectCount; i ++)
+    {
+        OMD = M->Object_Morph_Map[i];
+        OM = OMD->O->Morph_Maps[OMD->map_index];
+        OMorph = OM->Morphs[OMD->morph_index];
+
+        if (m_count < Y_OFFSET)
+        {
+            OMorph->Amount = M->Amount;
+            m_count ++;
+        }
+    }
+}
+
 void draw_Properties_Edit(const char * text, int s_height, int v_index, int h_index, int clear_background)
 {
     int d_width = BUTTON_WIDTH_SHORT;

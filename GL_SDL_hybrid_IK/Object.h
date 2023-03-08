@@ -552,7 +552,29 @@ struct object
     int Morph_Maps_count;
 
     polygroup Polygroups[OBJECT_GROUP_V][OBJECT_GROUP_H];
+
+    morph_timeline * Morph_Timeline;
 };
+
+int init_morph_timeline(object * O)
+{
+    morph_timeline * Tmm;
+
+    Tmm = malloc(sizeof(morph_timeline));
+    if (Tmm != NULL)
+    {
+        Tmm->key_frames = 0;
+        Tmm->Frames = NULL;
+        Tmm->Values = NULL;
+        Tmm->Acceleration = NULL;
+        O->Morph_Timeline = Tmm;
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
 void print_object(object * O)
 {

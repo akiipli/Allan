@@ -13,6 +13,11 @@ int Themes = 12;
 
 char Hint[STRLEN];
 
+void empty_Hint()
+{
+    sprintf(Hint, " ");
+}
+
 void init_Hint()
 {
     sprintf(Hint, "Light theme:%d Alt+U\nNight:%d Alt+N Shadows:%d Alt+S\n\nELEMENT ARRAYS: %d",
