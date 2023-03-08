@@ -11868,9 +11868,12 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
             {
                 T = D->Transformers[0];
                 printf("\n ,%d, ", frame);
-                for (f = 0; f < T->Timeline->key_frames; f ++)
+                if (T->Timeline != NULL)
                 {
-                    printf("%d ", T->Timeline->Frames[f]);
+                    for (f = 0; f < T->Timeline->key_frames; f ++)
+                    {
+                        printf("%d ", T->Timeline->Frames[f]);
+                    }
                 }
             }
         }
@@ -12043,9 +12046,12 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
             {
                 T = D->Transformers[0];
                 printf("\n ,%d, ", frame);
-                for (f = 0; f < T->Timeline->key_frames; f ++)
+                if (T->Timeline != NULL)
                 {
-                    printf("%d ", T->Timeline->Frames[f]);
+                    for (f = 0; f < T->Timeline->key_frames; f ++)
+                    {
+                        printf("%d ", T->Timeline->Frames[f]);
+                    }
                 }
             }
         }
@@ -13550,6 +13556,8 @@ void set_Modeling_Mode()
 
         Object_Mode = 0;
         Bone_Mode = 0;
+
+        DRAW_LOCATORS = 0;
 
         if (Polygon_Mode)
             set_Polygon_Mode();
@@ -22435,9 +22443,12 @@ int main(int argc, char * args[])
                     {
                         T = D->Transformers[0];
                         printf("\n ,%d, ", frame);
-                        for (f = 0; f < T->Timeline->key_frames; f ++)
+                        if (T->Timeline != NULL)
                         {
-                            printf("%d ", T->Timeline->Frames[f]);
+                            for (f = 0; f < T->Timeline->key_frames; f ++)
+                            {
+                                printf("%d ", T->Timeline->Frames[f]);
+                            }
                         }
                     }
                 }
@@ -22454,9 +22465,12 @@ int main(int argc, char * args[])
                     {
                         T = D->Transformers[0];
                         printf("\n ,%d, ", frame);
-                        for (f = 0; f < T->Timeline->key_frames; f ++)
+                        if (T->Timeline != NULL)
                         {
-                            printf("%d ", T->Timeline->Frames[f]);
+                            for (f = 0; f < T->Timeline->key_frames; f ++)
+                            {
+                                printf("%d ", T->Timeline->Frames[f]);
+                            }
                         }
                     }
                 }
