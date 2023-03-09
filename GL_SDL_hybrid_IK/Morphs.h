@@ -819,4 +819,193 @@ void display_composite_Morph(deformer * D)
     }
 }
 
+int insert_morf_keyframe(object * O, int frame)
+{
+    if (O == NULL)
+        return 0;
+
+    vertex * V;
+    morph_timeline * Tmm;
+    int result, f, v, index, condition;
+
+//    float rotVec_I[3][3];
+
+    if (O->Morph_Timeline == NULL)
+    {
+        result = init_morph_timeline(O);
+
+        if (result)
+        {
+            Tmm = O->Morph_Timeline;
+            Tmm->Frames = malloc(sizeof(int));
+            if (Tmm->Frames != NULL)
+            {
+                Tmm->Values = malloc(sizeof(morph_values));
+                Tmm->Acceleration = malloc(sizeof(acceleration));
+            }
+            else
+            {
+                Tmm->key_frames = 0;
+                return 0;
+            }
+            if (Tmm->Values == NULL || Tmm->Acceleration == NULL)
+            {
+                Tmm->key_frames = 0;
+                return 0;
+            }
+            else
+            {
+                Tmm->key_frames = 1;
+                Tmm->Frames[0] = frame;
+                Tmm->Acceleration[0].segment_type = ACCELERATION_DEFAULT;
+                Tmm->Acceleration[0].a_exponent = ACCELERATION_DEFAULT_OUT;
+                Tmm->Acceleration[0].b_exponent = ACCELERATION_DEFAULT_IN;
+                Tmm->Values[0].R_Coords = malloc(O->vertcount * sizeof(morph_Pos));
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                    Tmm->Values[0].R_Coords[v].x = V->Rx;
+                    Tmm->Values[0].R_Coords[v].y = V->Ry;
+                    Tmm->Values[0].R_Coords[v].z = V->Rz;
+                }
+
+                return 1;
+            }
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        Tmm = O->Morph_Timeline;
+        index = 0;
+        condition = 0;
+        for (f = 0; f < Tmm->key_frames; f ++)
+        {
+            if (Tmm->Frames[f] == frame)
+            {
+                index = f;
+                break;
+            }
+            else if (Tmm->Frames[f] > frame)
+            {
+                index = f;
+                condition = 1;
+                break;
+            }
+        }
+
+        if (Tmm->Frames[Tmm->key_frames - 1] < frame)
+        {
+            index = Tmm->key_frames;
+            condition = 1;
+        }
+
+        if (condition)
+        {
+            Tmm->key_frames ++;
+            Tmm->Frames = realloc(Tmm->Frames, Tmm->key_frames * sizeof(int));
+            if (Tmm->Frames != NULL)
+            {
+                Tmm->Values = realloc(Tmm->Values, Tmm->key_frames * sizeof(morph_values));
+                Tmm->Acceleration = realloc(Tmm->Acceleration, Tmm->key_frames * sizeof(acceleration));
+            }
+            else
+            {
+                Tmm->key_frames = 0;
+                return 0;
+            }
+            if (Tmm->Values == NULL || Tmm->Acceleration == NULL)
+            {
+                Tmm->key_frames = 0;
+                return 0;
+            }
+            else
+            {
+                for (f = Tmm->key_frames - 1; f > index; f --)
+                {
+                    Tmm->Frames[f] = Tmm->Frames[f - 1];
+                    memcpy(&Tmm->Acceleration[f], &Tmm->Acceleration[f - 1], sizeof(acceleration));
+                    Tmm->Values[f] = Tmm->Values[f - 1];
+                }
+                Tmm->Frames[index] = frame;
+                Tmm->Acceleration[index].segment_type = ACCELERATION_DEFAULT;
+                Tmm->Acceleration[index].a_exponent = ACCELERATION_DEFAULT_OUT;
+                Tmm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
+                Tmm->Values[index].R_Coords = malloc(O->vertcount * sizeof(morph_Pos));
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                    Tmm->Values[index].R_Coords[v].x = V->Rx;
+                    Tmm->Values[index].R_Coords[v].y = V->Ry;
+                    Tmm->Values[index].R_Coords[v].z = V->Rz;
+                }
+                return 1;
+            }
+        }
+        else
+        {
+            Tmm->Frames[index] = frame;
+            Tmm->Acceleration[index].segment_type = ACCELERATION_DEFAULT;
+            Tmm->Acceleration[index].a_exponent = ACCELERATION_DEFAULT_OUT;
+            Tmm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                Tmm->Values[index].R_Coords[v].x = V->Rx;
+                Tmm->Values[index].R_Coords[v].y = V->Ry;
+                Tmm->Values[index].R_Coords[v].z = V->Rz;
+            }
+            return 1;
+        }
+    }
+}
+
+int delete_morf_keyframe(object * O, int frame)
+{
+    morph_timeline * Tmm;
+    int f, index, condition;
+
+    if (O->Morph_Timeline != NULL)
+    {
+        Tmm = O->Morph_Timeline;
+        condition = 0;
+
+        for (f = 0; f < Tmm->key_frames; f ++)
+        {
+            if (Tmm->Frames[f] == frame)
+            {
+                index = f;
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            Tmm->key_frames --;
+            for (f = index; f < Tmm->key_frames; f ++)
+            {
+                Tmm->Frames[f] = Tmm->Frames[f + 1];
+                memcpy(&Tmm->Acceleration[f], &Tmm->Acceleration[f + 1], sizeof(acceleration));
+                Tmm->Values[f] = Tmm->Values[f + 1];
+            }
+            if (f - 1 >= 0)
+                return Tmm->Frames[f - 1];
+            else
+                return -1;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 #endif // MORPHS_H_INCLUDED

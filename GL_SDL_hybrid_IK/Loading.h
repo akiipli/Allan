@@ -83,6 +83,12 @@ Keyframes_In;
 
 typedef struct
 {
+    int keyframesIndex;
+}
+Morf_Keyframes_In;
+
+typedef struct
+{
     int deformermorphmapIndex;
     int deformermorphIndex;
 }
@@ -2152,6 +2158,122 @@ int read_Keyframes_file(Keyframes_In * KEYFR_IN, char * fileName, int t_index)
     return 1;
 }
 
+int read_Morf_Keyframes_file(Morf_Keyframes_In * KEYFR_IN, char * fileName, int o_index)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    int o, f, v, vertcount;
+    unsigned o_address;
+
+    object * O;
+    morph_timeline * Tmm;
+
+    int k_index = 0;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Morf Keyframes\n", buff) == 0)
+        {
+            for (o = objectIndex - o_index; o < objectIndex; o ++)
+            {
+                O = objects[o];
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &o_address);
+
+                if (o_address != 0 && O->address == o_address)
+                {
+                    result = init_morph_timeline(O);
+
+                    if (result == 0)
+                    {
+                        fclose(fp);
+                        return 0;
+                    }
+                    else
+                    {
+                        Tmm = O->Morph_Timeline;
+
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%d", &vertcount);
+                        fgets(buff, BUF_SIZE, fp);
+                        sscanf(buff, "%d", &Tmm->key_frames);
+
+                        Tmm->Frames = malloc(Tmm->key_frames * sizeof(int));
+                        if (Tmm->Frames == NULL)
+                        {
+                            Tmm->key_frames = 0;
+                            fclose(fp);
+                            return 0;
+                        }
+                        else
+                        {
+                            Tmm->Values = malloc(Tmm->key_frames * sizeof(morph_values));
+                            Tmm->Acceleration = malloc(Tmm->key_frames * sizeof(acceleration));
+                        }
+                        if (Tmm->Values == NULL || Tmm->Acceleration == NULL)
+                        {
+                            Tmm->key_frames = 0;
+                            fclose(fp);
+                            return 0;
+                        }
+                        else
+                        {
+                            for (f = 0; f < Tmm->key_frames; f ++)
+                            {
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%d", &Tmm->Frames[f]);
+
+                                Tmm->Values[f].R_Coords = malloc(vertcount * sizeof(morph_Pos));
+
+                                if (Tmm->Values[f].R_Coords == NULL)
+                                {
+                                    Tmm->key_frames = 0;
+                                    fclose(fp);
+                                    return 0;
+                                }
+
+                                for (v = 0; v < vertcount; v ++)
+                                {
+                                    fgets(buff, BUF_SIZE, fp);
+                                    sscanf(buff, "%f %f %f", &Tmm->Values[f].R_Coords[v].x, &Tmm->Values[f].R_Coords[v].y, &Tmm->Values[f].R_Coords[v].z);
+                                }
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%d", &Tmm->Acceleration[f].segment_type);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%f", &Tmm->Acceleration[f].a_exponent);
+                                fgets(buff, BUF_SIZE, fp);
+                                sscanf(buff, "%f", &Tmm->Acceleration[f].b_exponent);
+                            }
+                        }
+                    }
+                    k_index ++;
+                }
+            }
+        }
+        else
+        {
+            fclose(fp);
+            return 0;
+        }
+    }
+
+    KEYFR_IN->keyframesIndex = k_index;
+
+    fclose(fp);
+    return 1;
+}
+
+
 int read_Curves_file(Curves_In * CURV_IN, char * fileName)
 {
     FILE * fp;
@@ -3770,6 +3892,41 @@ void load_Keyframes(char * path, int loaded_transformers)
                     printf("KEYFRAMES\n");
                     Keyframes_In * KEYFRAMES_IN = calloc(1, sizeof(Keyframes_In));
                     result = read_Keyframes_file(KEYFRAMES_IN, Path, loaded_transformers);
+                    if (result)
+                    {
+                        printf("%d\n", KEYFRAMES_IN->keyframesIndex);
+                    }
+                    free(KEYFRAMES_IN);
+                }
+            }
+        }
+    }
+}
+
+void load_Morph_Keyframes(char * path, int loaded_objects)
+{
+    char Path[STRLEN];
+    DIR * dir;
+    struct dirent * ent;
+
+    int result;
+
+    if ((dir = opendir(path)) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            Path[0] = '\0';
+            strcat(Path, path);
+            strcat(Path, "/");
+            strcat(Path, ent->d_name);
+            if (isFile(Path))
+            {
+                if (strcmp(ent->d_name, "Morf_Keyframes.txt") == 0)
+                {
+                    result = 0;
+                    printf("KEYFRAMES\n");
+                    Morf_Keyframes_In * KEYFRAMES_IN = calloc(1, sizeof(Morf_Keyframes_In));
+                    result = read_Morf_Keyframes_file(KEYFRAMES_IN, Path, loaded_objects);
                     if (result)
                     {
                         printf("%d\n", KEYFRAMES_IN->keyframesIndex);

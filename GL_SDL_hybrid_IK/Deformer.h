@@ -96,6 +96,20 @@ void insert_Deformer_keyframe(deformer * D, int frame)
     }
 }
 
+int insert_morf_keyframe(object * O, int frame);
+
+void insert_Deformer_morf_keyframe(deformer * D, int frame)
+{
+    object * O;
+    int o;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+        insert_morf_keyframe(O, frame);
+    }
+}
+
 void delete_Deformer_keyframe(deformer * D, int frame)
 {
     transformer * T;
@@ -105,6 +119,20 @@ void delete_Deformer_keyframe(deformer * D, int frame)
     {
         T = D->Transformers[t];
         delete_keyframe(T, frame);
+    }
+}
+
+int delete_morf_keyframe(object * O, int frame);
+
+void delete_Deformer_morf_keyframe(deformer * D, int frame)
+{
+    object * O;
+    int o;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+        delete_morf_keyframe(O, frame);
     }
 }
 
@@ -1530,6 +1558,53 @@ int find_currentKey(deformer * D, int frame)
     }
 }
 
+int find_current_Morph_Key(deformer * D, int frame)
+{
+    int f, o, condition = 0;
+
+    object * O;
+    morph_timeline * Tmm;
+
+    if (D->Objects_Count > 0)
+    {
+        for (o = 0; o < D->Objects_Count; o ++)
+        {
+            O = D->Objects[o];
+
+            if (O->Morph_Timeline != NULL)
+            {
+                Tmm = O->Morph_Timeline;
+
+                for (f = 0; f < Tmm->key_frames; f ++)
+                {
+                    if (frame == Tmm->Frames[f])
+                    {
+                        condition = 1;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        if (condition)
+        {
+            return f;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 void change_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int change)
 {
     int t;
@@ -1593,6 +1668,69 @@ void change_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int change)
     }
 }
 
+void change_Morph_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int change)
+{
+    int o;
+
+    object * O;
+    morph_timeline * Tmm;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->Morph_Timeline != NULL)
+        {
+            Tmm = O->Morph_Timeline;
+
+            if (f < Tmm->key_frames)
+            {
+                if (Tmm->Frames[f] == frame)
+                {
+                    if (AB == 0) // A
+                    {
+                        if (change == 1)
+                            Tmm->Acceleration[f].a_exponent += EXPONENT_CHANGE;
+                        else
+                            Tmm->Acceleration[f].a_exponent -= EXPONENT_CHANGE;
+                        if (Tmm->Acceleration[f].a_exponent > EXPONENT_MAX)
+                        {
+                            Tmm->Acceleration[f].a_exponent = EXPONENT_MAX;
+                        }
+                        if (Tmm->Acceleration[f].a_exponent < 1)
+                        {
+                            Tmm->Acceleration[f].a_exponent = 1.0;
+                        }
+                        if (o == 0)
+                        {
+                            printf("ACCELERATION A EXPONENT %f\n", Tmm->Acceleration[f].a_exponent);
+                        }
+                    }
+                    else if (AB == 1) // B
+                    {
+                        if (change == 1)
+                            Tmm->Acceleration[f].b_exponent += EXPONENT_CHANGE;
+                        else
+                            Tmm->Acceleration[f].b_exponent -= EXPONENT_CHANGE;
+                        if (Tmm->Acceleration[f].b_exponent > EXPONENT_MAX)
+                        {
+                            Tmm->Acceleration[f].b_exponent = EXPONENT_MAX;
+                        }
+                        if (Tmm->Acceleration[f].b_exponent < 1)
+                        {
+                            Tmm->Acceleration[f].b_exponent = 1.0;
+                        }
+                        if (o == 0)
+                        {
+                            printf("ACCELERATION B EXPONENT %f\n", Tmm->Acceleration[f].b_exponent);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void change_Key_Acceleration(deformer * D, int f, int frame, int change)
 {
     int t;
@@ -1628,6 +1766,48 @@ void change_Key_Acceleration(deformer * D, int f, int frame, int change)
                     {
                         ACCELERATION_DEFAULT = Tm->Acceleration[f].segment_type;
                         printf("ACCELERATION DEFAULT %s\n", Acceleration_Names[Tm->Acceleration[f].segment_type]);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void change_Morph_Key_Acceleration(deformer * D, int f, int frame, int change)
+{
+    int o;
+
+    object * O;
+    morph_timeline * Tmm;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->Morph_Timeline != NULL)
+        {
+            Tmm = O->Morph_Timeline;
+
+            if (f < Tmm->key_frames)
+            {
+                if (Tmm->Frames[f] == frame)
+                {
+                    if (change > 0)
+                        Tmm->Acceleration[f].segment_type ++;
+                    else
+                        Tmm->Acceleration[f].segment_type --;
+                    if (Tmm->Acceleration[f].segment_type > 3)
+                    {
+                        Tmm->Acceleration[f].segment_type = 0;
+                    }
+                    if (Tmm->Acceleration[f].segment_type < 0)
+                    {
+                        Tmm->Acceleration[f].segment_type = 3;
+                    }
+                    if (o == 0)
+                    {
+                        ACCELERATION_DEFAULT = Tmm->Acceleration[f].segment_type;
+                        printf("ACCELERATION DEFAULT %s\n", Acceleration_Names[Tmm->Acceleration[f].segment_type]);
                     }
                 }
             }

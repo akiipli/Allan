@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1012;
+int saving_version = 1013;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -468,6 +468,60 @@ int save_Keyframes(char * keyframes_files_dir)
                 fprintf(F, "%d\n", Tm->Acceleration[f].segment_type);
                 fprintf(F, "%f\n", Tm->Acceleration[f].a_exponent);
                 fprintf(F, "%f\n", Tm->Acceleration[f].b_exponent);
+            }
+        }
+        else
+        {
+            fprintf(F, "%u\n", 0);
+        }
+    }
+    fprintf(F, "\n");
+    fclose(F);
+
+    return 1;
+}
+
+int save_Morf_Keyframes(char * keyframes_files_dir)
+{
+    char dirfile[STRLEN];
+
+    int o, f, v;
+
+    object * O;
+    morph_timeline * Tmm;
+
+    dirfile[0] = '\0';
+    strcat(dirfile, keyframes_files_dir);
+    strcat(dirfile, "/");
+
+    strcat(dirfile, "Morf_Keyframes");
+    strcat(dirfile, ".txt");
+
+    FILE * F;
+    F = fopen(dirfile, "w");
+    if (F == NULL) return 0;
+
+    fprintf(F, "Morf Keyframes\n");
+
+    for (o = 1; o < objectIndex; o ++) /*CUBECOMMENT*/
+    {
+        O = objects[o];
+        if (O->Morph_Timeline != NULL)
+        {
+            Tmm = O->Morph_Timeline;
+            fprintf(F, "%u\n", (unsigned)O);
+            fprintf(F, "%d\n", O->vertcount);
+            fprintf(F, "%d\n", Tmm->key_frames);
+            for (f = 0; f < Tmm->key_frames; f ++)
+            {
+                fprintf(F, "%d\n", Tmm->Frames[f]);
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    fprintf(F, "%f %f %f\n", Tmm->Values[f].R_Coords[v].x, Tmm->Values[f].R_Coords[v].y, Tmm->Values[f].R_Coords[v].z);
+                }
+                fprintf(F, "%d\n", Tmm->Acceleration[f].segment_type);
+                fprintf(F, "%f\n", Tmm->Acceleration[f].a_exponent);
+                fprintf(F, "%f\n", Tmm->Acceleration[f].b_exponent);
             }
         }
         else

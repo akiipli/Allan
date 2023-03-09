@@ -3,6 +3,13 @@
 Author here is:
 Allan Kiipli
 
+4:20 PM 3/9/2023
+Morph Timeline introduced. Duplicated functionality. Independence from Deformer key frames. Up and Down with modificators
+change Morph Keyframes when cursor is over Morph Timeline, which is above Transformer-Deformer keys. With Morphs Dialog
+open shortcut I places morph keyframe at current time. Current Time can be adjusted also when Dialog is open.
+Morph Keyframes are also saved and loaded now. Alt+D plays Deformer Timeline animations. Enter establishes current frame
+for current deformer.
+
 9:15 PM 3/8/2023
 Morph Maps Integrated. Morphs manipulation possible in Modeling Mode. In Morphs Dialog pressing Enter places
 this morph. To create morphs, first morph map is created for deformer. Object morphs are referenced from

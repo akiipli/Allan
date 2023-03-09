@@ -244,6 +244,108 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame)
     }
 }
 
+void create_Inbetween_Frame_Morf(deformer * D, int frame)
+{
+    morph_timeline * Tmm;
+
+    object * O;
+    vertex * V;
+
+    int o, v, frame0, frame1, frame00, frame11;
+
+    float a, b;
+//    float rotVec_[3][3];
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->Morph_Timeline != NULL)
+        {
+            Tmm = O->Morph_Timeline;
+
+            if (frame == TimelineStart)
+            {
+                Tmm->current_Segment = Tmm->start_Segment;
+            }
+            if (frame >= Tmm->Frames[Tmm->key_frames - 1])
+            {
+                Tmm->current_Segment = Tmm->start_Segment;
+            }
+            else
+            {
+                frame0 = Tmm->current_Segment;
+                frame1 = Tmm->current_Segment + 1;
+
+                frame00 = Tmm->Frames[Tmm->current_Segment];
+                frame11 = Tmm->Frames[Tmm->current_Segment + 1];
+
+                if (frame11 > frame00)
+                {
+                    b = (float)(frame - frame00) / (float)(frame11 - frame00);
+                    if (Tmm->Acceleration[frame0].segment_type == ACCELERATION_END)
+                    {
+                        //b *= b; // accelerated interpolation
+                        b = pow(b, Tmm->Acceleration[frame0].b_exponent);
+                        a = 1.0 - b;
+                    }
+                    else if (Tmm->Acceleration[frame0].segment_type == ACCELERATION_START)
+                    {
+                        a = 1.0 - b;
+                        //a *= a; // slowdown motion
+                        a = pow(a, Tmm->Acceleration[frame0].a_exponent);
+                        b = 1.0 - a; // both active yields mid acceleration
+                    }
+                    else if (Tmm->Acceleration[frame0].segment_type == ACCELERATION_MID)
+                    {
+                        //b *= b; // accelerated interpolation
+                        b = pow(b, Tmm->Acceleration[frame0].b_exponent);
+                        a = 1.0 - b;
+                        //a *= a; // slowdown motion
+                        a = pow(a, Tmm->Acceleration[frame0].a_exponent);
+                        b = 1.0 - a; // both active yields mid acceleration
+                    }
+                    else if (Tmm->Acceleration[frame0].segment_type == ACCELERATION_NONE)
+                    {
+                        a = 1.0 - b;
+                    }
+                }
+                else
+                {
+                    frame11 = Tmm->Frames[Tmm->current_Segment];
+                    b = 1.0;
+                    a = 0.0;
+                }
+
+                if (frame11 == frame)
+                {
+                    Tmm->current_Segment ++;
+
+                    if (Tmm->current_Segment >= Tmm->key_frames)
+                    {
+                        Tmm->current_Segment = Tmm->start_Segment;
+                    }
+                    else
+                    {
+                        frame11 = Tmm->Frames[Tmm->current_Segment];
+                        if (frame11 >= TimelineEnd)
+                        {
+                            Tmm->current_Segment = Tmm->start_Segment;
+                        }
+                    }
+                }
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                    V->Rx = Tmm->Values[frame0].R_Coords[v].x * a + Tmm->Values[frame1].R_Coords[v].x * b;
+                    V->Ry = Tmm->Values[frame0].R_Coords[v].y * a + Tmm->Values[frame1].R_Coords[v].y * b;
+                    V->Rz = Tmm->Values[frame0].R_Coords[v].z * a + Tmm->Values[frame1].R_Coords[v].z * b;
+                }
+            }
+        }
+    }
+}
+
 void create_Inbetween_Pose_(deformer * D, pose * P, pose * P0, pose * P1, float w0, float w1)
 {
     //pose * P = D->P;

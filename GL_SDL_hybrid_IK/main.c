@@ -2494,7 +2494,7 @@ void Draw_Timeline()
             {
                 Tm = T->Timeline;
                 glColor4fv(grayb);
-                for (f = 0; f < Tm->key_frames; f++)
+                for (f = 0; f < Tm->key_frames; f ++)
                 {
                     if (Tm->Frames[f] >= TimelineStart && Tm->Frames[f] < TimelineEnd)
                     {
@@ -2520,9 +2520,9 @@ void Draw_Timeline()
 	glVertex2f(vline + tickw, 0);
 	glEnd();
 
-	glColor4fv(black);
-	sprintf(label, "%d", currentFrame);
-	draw_text(label, vline - (tickw / 2.0), 10, 8, 0);
+//	glColor4fv(black);
+//	sprintf(label, "%d", currentFrame);
+//	draw_text(label, vline - (tickw / 2.0), 10, 8, 0);
 
 	if (highlight_start)
         glColor4fv(backl);
@@ -2539,6 +2539,100 @@ void Draw_Timeline()
 
 	sprintf(label, "%d", TimelineEnd);
 	draw_text(label, screen_width - TIMELINE_ENTRY, 20, 8, 0);
+
+    glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+}
+
+void Draw_Morph_Timeline()
+{
+	char label[STRLEN];
+    int w = screen_width;
+    int h = BUTTON_HEIGHT;
+    int inc = BUTTON_HEIGHT / ACCELERATIONS;
+
+    glScissor(SIDEBAR, BOTTOM_LINE * 2, w, h);
+    glViewport(SIDEBAR, BOTTOM_LINE * 2, w, h);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glClearColor(0.8, 0.5, 0.3, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glOrtho(0, w, h, 0, 1, -1);
+
+	GLfloat white[4] = {1, 1, 1, 1};
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+	glColor4fv(white);
+
+	//glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	/*draw frame*/
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(TIMELINE_ENTRY, 0);
+	glVertex2f(TIMELINE_ENTRY, h);
+	glVertex2f(w - TIMELINE_ENTRY, h);
+	glVertex2f(w - TIMELINE_ENTRY, 0);
+	glEnd();
+
+	glBegin(GL_LINES);
+
+	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
+	int vline, f, o, Preak = 0;
+
+	morph_timeline * Tmm;
+
+	if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+    {
+        D = deformers[currentDeformer_Node];
+        for (o = 0; o < D->Objects_Count; o ++)
+        {
+            O = D->Objects[o];
+            if (O->Morph_Timeline != NULL)
+            {
+                Tmm = O->Morph_Timeline;
+                glColor4fv(grayb);
+                for (f = 0; f < Tmm->key_frames; f ++)
+                {
+                    if (Tmm->Frames[f] >= TimelineStart && Tmm->Frames[f] < TimelineEnd)
+                    {
+                        vline = (int)((Tmm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0) + TIMELINE_ENTRY);
+                        glBegin(GL_LINES);
+                        glVertex2f(vline, 0);
+                        glVertex2f(vline, h - inc * Tmm->Acceleration[f].segment_type);
+                        glEnd();
+                        Preak = 1;
+                    }
+                }
+            }
+            if (Preak)
+            {
+                break;
+            }
+        }
+    }
+
+	glColor4fv(white);
+
+	vline = (int)((currentFrame - TimelineStart) * tickw + TIMELINE_ENTRY);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(vline, 0);
+	glVertex2f(vline, h);
+	glVertex2f(vline + tickw, h);
+	glVertex2f(vline + tickw, 0);
+	glEnd();
+
+	glColor4fv(black);
+	sprintf(label, "%d", currentFrame);
+	draw_text(label, vline - (tickw / 2.0), 10, 8, 0);
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
@@ -2903,6 +2997,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
         if (DRAW_TIMELINE)
         {
             Draw_Timeline();
+            Draw_Morph_Timeline();
         }
     }
 
@@ -3160,7 +3255,7 @@ camera * find_View(int mouse_x, int mouse_y, int splitview)
 
         if (DRAW_TIMELINE)
         {
-            if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
+            if (mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y < screen_height)
             {
                 Camera->time_line = 1;
             }
@@ -7390,6 +7485,36 @@ void init_Timeline_Segments(deformer * D, int TimelineStart)
     }
 }
 
+void init_Morph_Timeline_Segments(deformer * D, int TimelineStart)
+{
+    morph_timeline * Tmm;
+    object * O;
+    int o, f;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->Morph_Timeline != NULL)
+        {
+            Tmm = O->Morph_Timeline;
+            Tmm->current_Segment = 0;
+            for (f = 0; f < Tmm->key_frames; f ++)
+            {
+                if (Tmm->Frames[f] <= TimelineStart)
+                {
+                    Tmm->current_Segment = f;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            Tmm->start_Segment = Tmm->current_Segment;
+        }
+    }
+}
+
 float time_difference_in_msec(struct timeval t0, struct timeval t1)
 {
     return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
@@ -7443,6 +7568,7 @@ void goto_Deformer_Frame(deformer * D, int frame)
         if (T->Timeline != NULL)
         {
             init_Timeline_Segments(D, frame);
+            init_Morph_Timeline_Segments(D, frame);
 
             for (o = 0; o < D->Objects_Count; o ++)
             {
@@ -7478,6 +7604,11 @@ void goto_Deformer_Frame(deformer * D, int frame)
         rotate_axis(D->rot[0], D->rotVec[1], D->rotVec[2], D->rotVec[1], D->rotVec[2]);
     if (D->rot[1] != 0)
         rotate_axis(D->rot[1], D->rotVec[2], D->rotVec[0], D->rotVec[2], D->rotVec[0]);
+
+    if (D->Objects_Count > 0)
+    {
+        create_Inbetween_Frame_Morf(D, frame);
+    }
 
     if (D->Transformers_Count > 0)
     {
@@ -7603,6 +7734,7 @@ void deformer_Keyframe_Player()
             if (T->Timeline != NULL)
             {
                 init_Timeline_Segments(D, TimelineStart);
+                init_Morph_Timeline_Segments(D, TimelineStart);
 
                 for (o = 0; o < D->Objects_Count; o ++)
                 {
@@ -7806,6 +7938,11 @@ void deformer_Keyframe_Player()
                 rotate_axis(D->rot[0], D->rotVec[1], D->rotVec[2], D->rotVec[1], D->rotVec[2]);
             if (D->rot[1] != 0)
                 rotate_axis(D->rot[1], D->rotVec[2], D->rotVec[0], D->rotVec[2], D->rotVec[0]);
+
+            if (D->Objects_Count > 0)
+            {
+                create_Inbetween_Frame_Morf(D, frame);
+            }
 
             if (D->Transformers_Count > 0)
             {
@@ -10849,6 +10986,7 @@ void update_Timeline_Edit(const char * text, int blit)
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 
     Draw_Timeline();
+    Draw_Morph_Timeline();
 
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
@@ -11772,6 +11910,23 @@ void handle_Morph_Dialog(char letter, SDLMod mod)
             }
         }
     }
+    else if (letter == 'i')
+    {
+        if (deformerIndex > 0 && currentDeformer_Node >= 0)
+        {
+            D = deformers[currentDeformer_Node];
+            insert_Deformer_morf_keyframe(D, currentFrame);
+
+            if (DRAW_TIMELINE)
+            {
+                Draw_Timeline();
+            }
+            if (dialog_lock)
+            {
+                draw_Dialog();
+            }
+        }
+    }
 }
 
 void handle_Subcharacter_Dialog(char letter, SDLMod mod)
@@ -12049,6 +12204,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
             insert_Deformer_keyframe(D, frame);
 
             Draw_Timeline();
+
             SDL_GL_SwapBuffers();
 
             if (D->Transformers_Count > 0)
@@ -15737,6 +15893,7 @@ void save_load_Scene()
             strcat(Path, "/");
             strcat(Path, "Keyframes");
             save_Keyframes(Path);
+            save_Morf_Keyframes(Path);
 
             Path[0] = '\0';
             strcat(Path, scene_files_dir);
@@ -15874,6 +16031,15 @@ void save_load_Scene()
                 strcat(Path, "/");
                 strcat(Path, "Keyframes");
                 load_Keyframes(Path, hP.t_index);
+            }
+
+            if (loading_version >= 1013)
+            {
+                Path[0] = '\0';
+                strcat(Path, scene_files_dir);
+                strcat(Path, "/");
+                strcat(Path, "Keyframes");
+                load_Morph_Keyframes(Path, obj_count);
             }
 
             if (loading_version >= 1012)
@@ -21177,6 +21343,7 @@ int main(int argc, char * args[])
                                     {
                                         highlight_start = 1;
                                         Draw_Timeline();
+                                        Draw_Morph_Timeline();
                                         SDL_GL_SwapBuffers();
                                     }
                                 }
@@ -21186,6 +21353,7 @@ int main(int argc, char * args[])
                                     {
                                         highlight_end = 1;
                                         Draw_Timeline();
+                                        Draw_Morph_Timeline();
                                         SDL_GL_SwapBuffers();
                                     }
                                 }
@@ -21195,6 +21363,7 @@ int main(int argc, char * args[])
                                 highlight_start = 0;
                                 highlight_end = 0;
                                 Draw_Timeline();
+                                Draw_Morph_Timeline();
                                 SDL_GL_SwapBuffers();
                             }
                         }
@@ -21238,6 +21407,33 @@ int main(int argc, char * args[])
                     }
 
                     Draw_Timeline();
+                    SDL_GL_SwapBuffers();
+                }
+            }
+            else if (DRAW_TIMELINE && mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y < screen_height - BUTTON_HEIGHT)
+            {
+                if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                {
+                    D = deformers[currentDeformer_Node];
+
+                    currentKey = find_current_Morph_Key(D, currentFrame);
+                    if (currentKey >= 0)
+                    {
+                        if (mod & KMOD_CTRL)
+                        {
+                            change_Morph_Key_AB_Exponent(D, currentKey, currentFrame, 0, 1); // A
+                        }
+                        else if (mod & KMOD_ALT)
+                        {
+                            change_Morph_Key_AB_Exponent(D, currentKey, currentFrame, 1, 1); // B
+                        }
+                        else
+                        {
+                            change_Morph_Key_Acceleration(D, currentKey, currentFrame, 1);
+                        }
+                    }
+
+                    Draw_Morph_Timeline();
                     SDL_GL_SwapBuffers();
                 }
             }
@@ -21369,6 +21565,33 @@ int main(int argc, char * args[])
                     SDL_GL_SwapBuffers();
                 }
             }
+            else if (DRAW_TIMELINE && mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y < screen_height - BUTTON_HEIGHT)
+            {
+                if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                {
+                    D = deformers[currentDeformer_Node];
+
+                    currentKey = find_current_Morph_Key(D, currentFrame);
+                    if (currentKey >= 0)
+                    {
+                        if (mod & KMOD_CTRL)
+                        {
+                            change_Morph_Key_AB_Exponent(D, currentKey, currentFrame, 0, -1); // A
+                        }
+                        else if (mod & KMOD_ALT)
+                        {
+                            change_Morph_Key_AB_Exponent(D, currentKey, currentFrame, 1, -1); // B
+                        }
+                        else
+                        {
+                            change_Morph_Key_Acceleration(D, currentKey, currentFrame, -1);
+                        }
+                    }
+
+                    Draw_Morph_Timeline();
+                    SDL_GL_SwapBuffers();
+                }
+            }
             else
             {
                 if (dialog_lock)
@@ -21457,6 +21680,7 @@ int main(int argc, char * args[])
                     currentFrame = TimelineStart;
                 }
                 Draw_Timeline();
+                Draw_Morph_Timeline();
                 SDL_GL_SwapBuffers();
             }
             else if (mod & KMOD_CTRL)
@@ -21481,6 +21705,7 @@ int main(int argc, char * args[])
                     currentFrame = TimelineEnd - 1;
                 }
                 Draw_Timeline();
+                Draw_Morph_Timeline();
                 SDL_GL_SwapBuffers();
             }
             else if (mod & KMOD_CTRL)
@@ -22486,6 +22711,7 @@ int main(int argc, char * args[])
                     insert_Deformer_keyframe(D, frame);
 
                     Draw_Timeline();
+                    Draw_Morph_Timeline();
                     SDL_GL_SwapBuffers();
 
                     if (D->Transformers_Count > 0)
@@ -22504,21 +22730,32 @@ int main(int argc, char * args[])
             }
             else if (mod & KMOD_ALT)
             {
+                SDL_GetMouseState(&mouse_x, &mouse_y);
+                Camera = find_View(mouse_x, mouse_y, splitview);
+
                 if (deformerIndex > 0 && currentDeformer_Node >= 0)
                 {
                     frame = currentFrame;
                     D = deformers[currentDeformer_Node];
-                    delete_Deformer_keyframe(D, frame);
 
-                    if (D->Transformers_Count > 0)
+                    if (Camera->time_line)
                     {
-                        T = D->Transformers[0];
-                        printf("\n ,%d, ", frame);
-                        if (T->Timeline != NULL)
+                        delete_Deformer_morf_keyframe(D, frame);
+                    }
+                    else
+                    {
+                        delete_Deformer_keyframe(D, frame);
+
+                        if (D->Transformers_Count > 0)
                         {
-                            for (f = 0; f < T->Timeline->key_frames; f ++)
+                            T = D->Transformers[0];
+                            printf("\n ,%d, ", frame);
+                            if (T->Timeline != NULL)
                             {
-                                printf("%d ", T->Timeline->Frames[f]);
+                                for (f = 0; f < T->Timeline->key_frames; f ++)
+                                {
+                                    printf("%d ", T->Timeline->Frames[f]);
+                                }
                             }
                         }
                     }
@@ -22527,7 +22764,21 @@ int main(int argc, char * args[])
 
             else
             {
-                open_Img();
+                SDL_GetMouseState(&mouse_x, &mouse_y);
+                Camera = find_View(mouse_x, mouse_y, splitview);
+                if (Camera->time_line)
+                {
+                    if (deformerIndex > 0 && currentDeformer_Node >= 0)
+                    {
+                        frame = currentFrame;
+                        D = deformers[currentDeformer_Node];
+                        insert_Deformer_morf_keyframe(D, frame);
+                    }
+                }
+                else
+                {
+                    open_Img();
+                }
             }
             message = -1;
         }
