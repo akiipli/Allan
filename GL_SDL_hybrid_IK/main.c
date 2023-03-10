@@ -13724,6 +13724,8 @@ void set_Modeling_Mode()
 
         DRAW_LOCATORS = 0;
 
+        load_Deformers_Original_Coordinates();
+
         if (Polygon_Mode)
             set_Polygon_Mode();
         else if (Edge_Mode)

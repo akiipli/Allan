@@ -1913,4 +1913,29 @@ void change_Morph_Key_Acceleration(deformer * D, int f, int frame, int change)
     }
 }
 
+void load_Deformers_Original_Coordinates()
+{
+    int d, o, v;
+
+    deformer * D;
+    object * O;
+    vertex * V;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+        for (o = 0; o < D->Objects_Count; o ++)
+        {
+            O = D->Objects[o];
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                V->Rx = V->x;
+                V->Ry = V->y;
+                V->Rz = V->z;
+            }
+        }
+    }
+}
+
 #endif // DEFORMER_H_INCLUDED
