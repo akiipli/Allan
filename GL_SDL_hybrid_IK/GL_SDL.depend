@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1678371453 source:c:\gl_sdl_hybrid_ik\main.c
+1678442006 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -74,7 +74,7 @@
 
 1677849162 c:\gl_sdl_hybrid_ik\curves.h
 
-1666280939 c:\gl_sdl_hybrid_ik\userinterface.h
+1678436792 c:\gl_sdl_hybrid_ik\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
@@ -82,7 +82,7 @@
 
 1662612390 c:\gl_sdl_hybrid_ik\iksolution.h
 
-1678369614 c:\gl_sdl_hybrid_ik\deformer.h
+1678441145 c:\gl_sdl_hybrid_ik\deformer.h
 
 1678365109 c:\gl_sdl_hybrid_ik\poses.h
 
@@ -143,7 +143,7 @@
 
 1664037729 c:\gl_sdl_hybrid_ik\subcharacters.h
 
-1678301400 c:\gl_sdl_hybrid_ik\properties.h
+1678436791 c:\gl_sdl_hybrid_ik\properties.h
 
 1678357631 c:\gl_sdl_hybrid_ik\timeline.h
 

@@ -19,6 +19,7 @@ Copyright <2018> <Allan Kiipli>
 #define SIDEBAR 100
 #define BOTTOM_LINE 20
 #define BUTTON_HEIGHT 20
+#define TIMELINE_HEIGHT 40
 #define BUTTON_WIDTH 100
 #define BUTTON_WIDTH_SHORT 50
 #define BUTTON_WIDTH_MEDIUM 60

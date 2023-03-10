@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+11:45 AM 3/10/2023
+Timeline update. Keyframes can be nudged left or right. Mouse cursor needs to be on the Timeline section height. Frame
+needs to be over keyframe. I over Timeline places Morph keyframes. Ctrl + I places keyframes. Delete keyframes with cursor
+over Timeline section with Alt + I.
+
 4:20 PM 3/9/2023
 Morph Timeline introduced. Duplicated functionality. Independence from Deformer key frames. Up and Down with modificators
 change Morph Keyframes when cursor is over Morph Timeline, which is above Transformer-Deformer keys. With Morphs Dialog

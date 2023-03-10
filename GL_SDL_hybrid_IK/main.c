@@ -2552,8 +2552,8 @@ void Draw_Morph_Timeline()
     int h = BUTTON_HEIGHT;
     int inc = BUTTON_HEIGHT / ACCELERATIONS;
 
-    glScissor(SIDEBAR, BOTTOM_LINE * 2, w, h);
-    glViewport(SIDEBAR, BOTTOM_LINE * 2, w, h);
+    glScissor(SIDEBAR, TIMELINE_HEIGHT, w, h);
+    glViewport(SIDEBAR, TIMELINE_HEIGHT, w, h);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -3255,7 +3255,7 @@ camera * find_View(int mouse_x, int mouse_y, int splitview)
 
         if (DRAW_TIMELINE)
         {
-            if (mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y < screen_height)
+            if (mouse_y > screen_height - TIMELINE_HEIGHT && mouse_y < screen_height)
             {
                 Camera->time_line = 1;
             }
@@ -21410,7 +21410,7 @@ int main(int argc, char * args[])
                     SDL_GL_SwapBuffers();
                 }
             }
-            else if (DRAW_TIMELINE && mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y < screen_height - BUTTON_HEIGHT)
+            else if (DRAW_TIMELINE && mouse_y > screen_height - TIMELINE_HEIGHT && mouse_y < screen_height - BUTTON_HEIGHT)
             {
                 if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
                 {
@@ -21565,7 +21565,7 @@ int main(int argc, char * args[])
                     SDL_GL_SwapBuffers();
                 }
             }
-            else if (DRAW_TIMELINE && mouse_y > screen_height - BUTTON_HEIGHT * 2 && mouse_y < screen_height - BUTTON_HEIGHT)
+            else if (DRAW_TIMELINE && mouse_y > screen_height - TIMELINE_HEIGHT && mouse_y < screen_height - BUTTON_HEIGHT)
             {
                 if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
                 {
@@ -21674,10 +21674,56 @@ int main(int argc, char * args[])
             }
             else if (DRAW_TIMELINE)
             {
-                currentFrame -= 10;
-                if (currentFrame < TimelineStart)
+                if (mod & KMOD_SHIFT)
                 {
-                    currentFrame = TimelineStart;
+                    if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
+                    {
+                        if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                        {
+                            D = deformers[currentDeformer_Node];
+
+                            currentKey = find_currentKey(D, currentFrame);
+                            if (currentKey >= 0)
+                            {
+                                int r = change_Keyframe_Frame(D, currentKey, currentFrame, -1);
+                                if (r)
+                                {
+                                    currentFrame -= 1;
+                                }
+                            }
+
+                            Draw_Timeline();
+                            SDL_GL_SwapBuffers();
+                        }
+                    }
+                    else if (mouse_y > screen_height - TIMELINE_HEIGHT && mouse_y < screen_height - BUTTON_HEIGHT)
+                    {
+                        if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                        {
+                            D = deformers[currentDeformer_Node];
+
+                            currentKey = find_current_Morph_Key(D, currentFrame);
+                            if (currentKey >= 0)
+                            {
+                                int r = change_Morph_Keyframe_Frame(D, currentKey, currentFrame, -1);
+                                if (r)
+                                {
+                                    currentFrame -= 1;
+                                }
+                            }
+
+                            Draw_Morph_Timeline();
+                            SDL_GL_SwapBuffers();
+                        }
+                    }
+                }
+                else
+                {
+                    currentFrame -= 10;
+                    if (currentFrame < TimelineStart)
+                    {
+                        currentFrame = TimelineStart;
+                    }
                 }
                 Draw_Timeline();
                 Draw_Morph_Timeline();
@@ -21699,10 +21745,56 @@ int main(int argc, char * args[])
             }
             else if (DRAW_TIMELINE)
             {
-                currentFrame += 10;
-                if (currentFrame >= TimelineEnd)
+                if (mod & KMOD_SHIFT)
                 {
-                    currentFrame = TimelineEnd - 1;
+                    if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
+                    {
+                        if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                        {
+                            D = deformers[currentDeformer_Node];
+
+                            currentKey = find_currentKey(D, currentFrame);
+                            if (currentKey >= 0)
+                            {
+                                int r = change_Keyframe_Frame(D, currentKey, currentFrame, 1);
+                                if (r)
+                                {
+                                    currentFrame += 1;
+                                }
+                            }
+
+                            Draw_Timeline();
+                            SDL_GL_SwapBuffers();
+                        }
+                    }
+                    else if (mouse_y > screen_height - TIMELINE_HEIGHT && mouse_y < screen_height - BUTTON_HEIGHT)
+                    {
+                        if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                        {
+                            D = deformers[currentDeformer_Node];
+
+                            currentKey = find_current_Morph_Key(D, currentFrame);
+                            if (currentKey >= 0)
+                            {
+                                int r = change_Morph_Keyframe_Frame(D, currentKey, currentFrame, 1);
+                                if (r)
+                                {
+                                    currentFrame += 1;
+                                }
+                            }
+
+                            Draw_Morph_Timeline();
+                            SDL_GL_SwapBuffers();
+                        }
+                    }
+                }
+                else
+                {
+                    currentFrame += 10;
+                    if (currentFrame >= TimelineEnd)
+                    {
+                        currentFrame = TimelineEnd - 1;
+                    }
                 }
                 Draw_Timeline();
                 Draw_Morph_Timeline();
@@ -22740,23 +22832,13 @@ int main(int argc, char * args[])
 
                     if (Camera->time_line)
                     {
-                        delete_Deformer_morf_keyframe(D, frame);
-                    }
-                    else
-                    {
-                        delete_Deformer_keyframe(D, frame);
-
-                        if (D->Transformers_Count > 0)
+                        if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
                         {
-                            T = D->Transformers[0];
-                            printf("\n ,%d, ", frame);
-                            if (T->Timeline != NULL)
-                            {
-                                for (f = 0; f < T->Timeline->key_frames; f ++)
-                                {
-                                    printf("%d ", T->Timeline->Frames[f]);
-                                }
-                            }
+                            delete_Deformer_keyframe(D, frame);
+                        }
+                        else
+                        {
+                            delete_Deformer_morf_keyframe(D, frame);
                         }
                     }
                 }

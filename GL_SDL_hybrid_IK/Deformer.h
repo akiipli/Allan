@@ -1605,6 +1605,104 @@ int find_current_Morph_Key(deformer * D, int frame)
     }
 }
 
+int change_Keyframe_Frame(deformer * D, int f, int frame, int change)
+{
+    int t;
+
+    transformer * T;
+    timeline * Tm;
+
+    int result = 0;
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        T = D->Transformers[t];
+
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+
+            if (f < Tm->key_frames)
+            {
+                if (Tm->Frames[f] == frame)
+                {
+                    if (change < 0 && f > 0 && Tm->Frames[f - 1] < frame + change)
+                    {
+                        Tm->Frames[f] += change;
+                        result = 1;
+                    }
+                    else if (change > 0 && f < Tm->key_frames - 1 && Tm->Frames[f + 1] > frame + change)
+                    {
+                        Tm->Frames[f] += change;
+                        result = 1;
+                    }
+                    else if (change < 0 && f == 0 && Tm->Frames[f] + change >= 0)
+                    {
+                        Tm->Frames[f] += change;
+                        result = 1;
+                    }
+                    else if (change > 0 && f == Tm->key_frames - 1 && Tm->Frames[f] + change < TimelineEnd)
+                    {
+                        Tm->Frames[f] += change;
+                        result = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+int change_Morph_Keyframe_Frame(deformer * D, int f, int frame, int change)
+{
+    int o;
+
+    object * O;
+    morph_timeline * Tmm;
+
+    int result = 0;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->Morph_Timeline != NULL)
+        {
+            Tmm = O->Morph_Timeline;
+
+            if (f < Tmm->key_frames)
+            {
+                if (Tmm->Frames[f] == frame)
+                {
+                    if (change < 0 && f > 0 && Tmm->Frames[f - 1] < frame + change)
+                    {
+                        Tmm->Frames[f] += change;
+                        result = 1;
+                    }
+                    else if (change > 0 && f < Tmm->key_frames - 1 && Tmm->Frames[f + 1] > frame + change)
+                    {
+                        Tmm->Frames[f] += change;
+                        result = 1;
+                    }
+                    else if (change < 0 && f == 0 && Tmm->Frames[f] + change >= 0)
+                    {
+                        Tmm->Frames[f] += change;
+                        result = 1;
+                    }
+                    else if (change > 0 && f == Tmm->key_frames - 1 && Tmm->Frames[f] + change < TimelineEnd)
+                    {
+                        Tmm->Frames[f] += change;
+                        result = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
 void change_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int change)
 {
     int t;
