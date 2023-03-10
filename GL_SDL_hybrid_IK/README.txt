@@ -4,7 +4,7 @@ Author here is:
 Allan Kiipli
 
 11:45 AM 3/10/2023
-Timeline update. Keyframes can be nudged left or right. Mouse cursor needs to be on the Timeline section height. Frame
+Timeline update. Keyframes can be nudged left or right with Shift + Arrows. Mouse cursor needs to be on the Timeline section height. Frame
 needs to be over keyframe. I over Timeline places Morph keyframes. Ctrl + I places keyframes. Delete keyframes with cursor
 over Timeline section with Alt + I.
 
