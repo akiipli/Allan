@@ -7397,6 +7397,9 @@ void update_Deformed_View(deformer * D, int update)
                 O = Update_Objects[o];
                 if (O->deforms)
                 {
+                    update_Object_Curves_Cps_Positions(O);
+                    update_object_Curves(O, subdLevel);
+                    update_object_Curves(O, subdLevel);
                     tune_subdivide_post_transformed(O, subdLevel);
                 }
             }
@@ -7415,6 +7418,18 @@ void update_Deformed_View(deformer * D, int update)
                 poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
             }
         }
+    }
+}
+
+void update_Deformed_View_(int update)
+{
+    int d;
+    deformer * D;
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+        update_Deformed_View(D, update);
     }
 }
 
@@ -13740,6 +13755,9 @@ void set_Modeling_Mode()
     }
     else
     {
+
+        load_Deformers_Original_Coordinates();
+        update_Deformed_View_(1);
         Modeling_Mode = 0;
         Button_Mode[7].color = UI_GRAYB;
     }
@@ -18396,6 +18414,7 @@ int main(int argc, char * args[])
                                                 {
                                                     deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
                                                     select_Morph_Map_Objects(M);
+                                                    load_Deformers_Original_Coordinates();
                                                 }
                                             }
                                             else if (Morph_List[MorphIndex] >= MORPHS)
