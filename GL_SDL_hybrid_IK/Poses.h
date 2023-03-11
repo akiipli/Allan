@@ -102,7 +102,11 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame)
             {
                 Tm->current_Segment = Tm->start_Segment;
             }
-            if (frame >= Tm->Frames[Tm->key_frames - 1])
+            if (frame < Tm->Frames[0])
+            {
+                Tm->current_Segment = Tm->start_Segment;
+            }
+            else if (frame >= Tm->Frames[Tm->key_frames - 1])
             {
                 Tm->current_Segment = Tm->start_Segment;
             }
@@ -268,7 +272,11 @@ void create_Inbetween_Frame_Morf(deformer * D, int frame)
             {
                 Tmm->current_Segment = Tmm->start_Segment;
             }
-            if (frame >= Tmm->Frames[Tmm->key_frames - 1])
+            if (frame < Tmm->Frames[0])
+            {
+                Tmm->current_Segment = Tmm->start_Segment;
+            }
+            else if (frame >= Tmm->Frames[Tmm->key_frames - 1])
             {
                 Tmm->current_Segment = Tmm->start_Segment;
             }
