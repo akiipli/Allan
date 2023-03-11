@@ -7535,6 +7535,123 @@ float time_difference_in_msec(struct timeval t0, struct timeval t1)
     return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
 }
 
+void goto_Deformer_Frame_(deformer * D, int frame)
+{
+    printf("goto Deformer Frame_\n");
+
+    timeline * Tm;
+    transformer * T;
+    object * O;
+
+    int u, o, t;
+
+    Update_Objects_Count = 0;
+    Transformer_Objects_Count = 0;
+
+    int condition;
+
+    D->P = init_Deformer_P(D);
+
+    fill_Start_Pose(D, D->P);
+
+    if (D->Transformers_Count > 0)
+    {
+        T = D->Transformers[0];
+
+        if (T->Timeline != NULL)
+        {
+            init_Timeline_Segments(D, frame);
+            init_Morph_Timeline_Segments(D, frame);
+
+            for (o = 0; o < D->Objects_Count; o ++)
+            {
+                O = D->Objects[o];
+                condition = 1;
+                for (u = 0; u < Update_Objects_Count; u ++)
+                {
+                    if (Update_Objects[u] == O)
+                    {
+                        condition = 0;
+                        break;
+                    }
+                }
+                if (condition)
+                {
+                    Update_Objects[Update_Objects_Count ++] = O;
+                }
+            }
+
+            for (t = 0; t < D->Transformers_Count; t ++)
+            {
+                if (D->Transformers[t]->Object != NULL)
+                {
+                    Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
+                }
+            }
+        }
+    }
+
+    rotate_vertex_groups_D_Init();
+
+    if (D->rot[0] != 0)
+        rotate_axis(D->rot[0], D->rotVec[1], D->rotVec[2], D->rotVec[1], D->rotVec[2]);
+    if (D->rot[1] != 0)
+        rotate_axis(D->rot[1], D->rotVec[2], D->rotVec[0], D->rotVec[2], D->rotVec[0]);
+
+    if (D->Objects_Count > 0)
+    {
+        create_Inbetween_Frame_Morf(D, frame);
+    }
+
+    if (D->Transformers_Count > 0)
+    {
+        T = D->Transformers[0];
+
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+            if (Tm->key_frames > 0 && frame >= Tm->Frames[0])
+            {
+                create_Inbetween_Frame_Pose(D, frame);
+            }
+            apply_Pose_position_keyframes(D, D->P, D->Delta);
+
+            update_Deformer_Objects_Curves_Coordinates(D);
+            update_Deformer_object_Curves(D, subdLevel);
+            update_Deformer_object_Curves(D, subdLevel);
+        }
+    }
+
+    update_rotate_bounding_box();
+
+    if (subdLevel > -1)
+    {
+        for (o = 0; o < Update_Objects_Count; o ++)
+        {
+            O = Update_Objects[o];
+            if (O->deforms)
+            {
+                tune_subdivide_post_transformed(O, subdLevel);
+            }
+        }
+    }
+
+    for (o = 0; o < Transformer_Objects_Count; o++)
+    {
+        O = Transformer_Objects[o];
+
+        rotate_verts(O, *O->T);
+        if (O->deforms)
+        {
+            tune_subdivide_post_transformed(O, subdLevel);
+        }
+    }
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
+    DRAW_UI = 1;
+}
+
 void goto_Deformer_Frame(deformer * D, int frame)
 {
     printf("goto Deformer Frame\n");
@@ -17652,6 +17769,11 @@ int main(int argc, char * args[])
                             currentFrame = TimelineEnd - 1;
                         }
                         printf("\tTimeline %d\n", currentFrame);
+                        if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                        {
+                            D = deformers[currentDeformer_Node];
+                            goto_Deformer_Frame_(D, currentFrame);
+                        }
                         Drag_Timeline = 1;
                     }
                     else
