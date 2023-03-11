@@ -11942,6 +11942,20 @@ void handle_Morph_Dialog(char letter, SDLMod mod)
             }
         }
     }
+    else if (letter == 'r')
+    {
+        if (deformerIndex > 0 && currentDeformer_Node >= 0)
+        {
+            D = deformers[currentDeformer_Node];
+            reset_deformer_Morphs(D, 0.0);
+            load_Deformer_Original_Coordinates(D);
+            update_Selected_Morph_View(D);
+            if (dialog_lock)
+            {
+                draw_Dialog();
+            }
+        }
+    }
 }
 
 void handle_Subcharacter_Dialog(char letter, SDLMod mod)

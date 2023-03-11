@@ -1938,4 +1938,24 @@ void load_Deformers_Original_Coordinates()
     }
 }
 
+void load_Deformer_Original_Coordinates(deformer * D)
+{
+    int o, v;
+
+    object * O;
+    vertex * V;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+        for (v = 0; v < O->vertcount; v ++)
+        {
+            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+            V->Rx = V->x;
+            V->Ry = V->y;
+            V->Rz = V->z;
+        }
+    }
+}
+
 #endif // DEFORMER_H_INCLUDED

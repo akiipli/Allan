@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+7:52 PM 3/11/2023
+Morph Dialog shortcut R to reset current Deformers Morphs to zero.
+
 11:45 AM 3/10/2023
 Timeline update. Keyframes can be nudged left or right with Shift + Arrows. Mouse cursor needs to be on the Timeline section height. Frame
 needs to be over keyframe. I over Timeline places Morph keyframes. Ctrl + I places keyframes. Delete keyframes with cursor

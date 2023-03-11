@@ -1008,4 +1008,43 @@ int delete_morf_keyframe(object * O, int frame)
     }
 }
 
+void reset_deformer_Morphs(deformer * D, float value)
+{
+    int o, m, d;
+
+    object * O;
+    deformer_morph * M;
+    deformer_morph_map * Map;
+
+    morph * Morf;
+    morph_map * OM;
+
+    for (m = 0; m < D->Morph_Maps_Count; m ++)
+    {
+        Map = D->Morph_Maps[m];
+
+        for (d = 0; d < Map->Morphs_Count; d ++)
+        {
+            M = Map->Morphs[d];
+            M->Amount = value;
+        }
+    }
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        for (d = 0; d < O->Morph_Maps_count; d ++)
+        {
+            OM = O->Morph_Maps[d];
+
+            for (m = 0; m < OM->MorphsCount; m ++)
+            {
+                Morf = OM->Morphs[m];
+                Morf->Amount = value;
+            }
+        }
+    }
+}
+
 #endif // MORPHS_H_INCLUDED
