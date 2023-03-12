@@ -265,12 +265,17 @@ void release_OMD_dependecy(object_morph_dialer * OMD)
     morph * Morph;
 
     O = OMD->O;
-    M = O->Morph_Maps[OMD->map_index];
-    Morph = M->Morphs[OMD->morph_index];
-
-    M->Deformer = NULL;
-    M->DM = NULL;
-    Morph->M = NULL;
+    if (OMD->map_index < O->Morph_Maps_count)
+    {
+        M = O->Morph_Maps[OMD->map_index];
+        M->Deformer = NULL;
+        M->DM = NULL;
+        if (OMD->morph_index < M->MorphsCount)
+        {
+            Morph = M->Morphs[OMD->morph_index];
+            Morph->M = NULL;
+        }
+    }
 }
 
 void free_deformer_Morph(deformer_morph * Morph)

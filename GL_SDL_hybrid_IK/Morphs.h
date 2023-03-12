@@ -213,6 +213,7 @@ void list_Object_Morphs_c(morph_map * M)
     for (m = 0; m < M->MorphsCount; m ++)
     {
         Morph = M->Morphs[m];
+        Morph->index = Object_Morphs_c;
         morphs[Object_Morphs_c] = Morph;
 
 //        if (currentSubcharacter > 0 && S == subcharacters[currentSubcharacter])
@@ -243,6 +244,7 @@ void list_Deformer_Morphs_c(deformer_morph_map * M)
     for (m = 0; m < M->Morphs_Count; m ++)
     {
         Morph = M->Morphs[m];
+        Morph->index = Deformer_Morphs_c;
         deformer_morphs[Deformer_Morphs_c ++] = Morph;
 
 //        if (currentSubcharacter > 0 && S == subcharacters[currentSubcharacter])
@@ -271,6 +273,7 @@ void list_Object_Morph_Maps(object * O)
     for (m = 0; m < O->Morph_Maps_count; m ++)
     {
         M = O->Morph_Maps[m];
+        M->index = Object_Morph_Maps_c;
         object_morph_maps[Object_Morph_Maps_c] = M;
 
         if (M->selected)
@@ -305,6 +308,7 @@ void list_Deformer_Morph_Maps(deformer * D)
     for (m = 0; m < D->Morph_Maps_Count; m ++)
     {
         M = D->Morph_Maps[m];
+        M->index = Deformer_Morph_Maps_c;
         deformer_morph_maps[Deformer_Morph_Maps_c ++] = M;
 
         if (M->selected)

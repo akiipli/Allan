@@ -10317,8 +10317,14 @@ void add_Morph_To_Morph_Map()
                             /* search M objects and create new morphs in them */
 
                             M->Morphs_Count ++;
+                            currentMorph = Morph->index;
+
                         }
                     }
+                    create_Morphs_List(DEFORMER_MORPH);
+                    select_Morph_Map(DEFORMER_MORPH);
+                    if (Morphs_c >= LISTLENGTH)
+                        morph_start ++;
                     break;
                 }
             }
@@ -10424,7 +10430,7 @@ void remove_Morph_Map()
                     create_Morphs_List(1);
                     deformer_morph_map_Index = Deformer_Morph_Maps_c;
                     deformer_morph_Index = Deformer_Morphs_c;
-
+                    select_Morph_Map(DEFORMER_MORPH);
                     distribute_Morph_Map_Positions_Weight(D, M);
                 }
             }
@@ -10549,11 +10555,15 @@ void remove_Morph()
                         free_Morph(OMorph);
                     }
                     free_deformer_Morph(Morph);
+                    currentMorph --;
+                    if (currentMorph < 0)
+                        currentMorph = 0;
+                    select_Morph_Map(DEFORMER_MORPH);
+                    create_Morphs_List(0);
+                    create_Morphs_List(1);
+                    deformer_morph_map_Index = Deformer_Morph_Maps_c;
+                    deformer_morph_Index = Deformer_Morphs_c;
                 }
-                create_Morphs_List(0);
-                create_Morphs_List(1);
-                deformer_morph_map_Index = Deformer_Morph_Maps_c;
-                deformer_morph_Index = Deformer_Morphs_c;
             }
         }
     }
@@ -16552,6 +16562,8 @@ void add_Morph_Map()
                             current_Morph_Map = M->index;
 
                             select_Morph_Map(DEFORMER_MORPH);
+                            if (Morphs_c >= LISTLENGTH)
+                                morph_start ++;
                         }
                     }
                 }
