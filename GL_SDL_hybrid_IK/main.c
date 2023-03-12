@@ -10537,6 +10537,11 @@ void remove_Morph()
                     for (m = index; m < M->Morphs_Count; m ++)
                     {
                         M->Morphs[m] = M->Morphs[m + 1];
+                        for (o = 0; o < M->Morphs[m]->objectCount; o ++)
+                        {
+                            OMD = M->Morphs[m]->Object_Morph_Map[o];
+                            OMD->morph_index --;
+                        }
                     }
 
                     /* locate object morphs */
@@ -10554,6 +10559,7 @@ void remove_Morph()
                         }
                         free_Morph(OMorph);
                     }
+
                     free_deformer_Morph(Morph);
                     currentMorph --;
                     if (currentMorph < 0)
