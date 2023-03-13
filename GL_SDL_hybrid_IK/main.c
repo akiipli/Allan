@@ -10369,13 +10369,17 @@ void remove_Morph_Map()
         printf(" %s\n", D->Name);
         if (deformer_morph_map_Index > 0 && current_Morph_Map < deformer_morph_map_Index)
         {
-            int o, m, index, condition;
+            int o, m, d, index, condition;
 
             object * O;
             morph_map * OM;
+            object_morph_dialer * OMD;
 
             deformer_morph_map * DM;
             deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
+            deformer_morph_map * Map;
+
+            deformer_morph * Morf;
 
             if (M->Deformer == D)
             {
@@ -10393,11 +10397,6 @@ void remove_Morph_Map()
 
                 if (condition)
                 {
-                    D->Morph_Maps_Count --;
-                    for (m = index; m < D->Morph_Maps_Count; m ++)
-                    {
-                        D->Morph_Maps[m] = D->Morph_Maps[m + 1];
-                    }
                     /* free Morphs and Map, update global morph arrays */
                     for (o = 0; o < M->Object_Count; o ++)
                     {
@@ -10426,8 +10425,33 @@ void remove_Morph_Map()
                         }
                     }
                     free_deformer_Morph_Map(M);
+
+                    D->Morph_Maps_Count --;
+                    for (m = index; m < D->Morph_Maps_Count; m ++)
+                    {
+                        D->Morph_Maps[m] = D->Morph_Maps[m + 1];
+                        Map = D->Morph_Maps[m];
+                        for (d = 0; d < Map->Morphs_Count; d ++)
+                        {
+                            Morf = Map->Morphs[d];
+                            for (o = 0; o < Map->Object_Count; o ++)
+                            {
+                                OMD = Morf->Object_Morph_Map[o];
+                                OMD->map_index --;
+                                OM = OMD->O->Morph_Maps[OMD->map_index];
+                                OM->DM = Map;
+                                printf("FFFF %s %s %s\n", Morf->Name, Map->Name, OM->DM->Name);
+                                printf("XXXX %s %d %d\n", OMD->O->Name, OMD->map_index, OMD->morph_index);
+                            }
+                        }
+
+                    }
+
                     create_Morphs_List(0);
                     create_Morphs_List(1);
+                    current_Morph_Map --;
+                    if (current_Morph_Map < 0)
+                        current_Morph_Map = 0;
                     deformer_morph_map_Index = Deformer_Morph_Maps_c;
                     deformer_morph_Index = Deformer_Morphs_c;
                     select_Morph_Map(DEFORMER_MORPH);
@@ -16445,7 +16469,7 @@ void select_current_Morph_Map(int Morph_type)
         {
             deformer_morph_map * M = deformer_morph_maps[current_Morph_Map];
 
-            printf("%s\n", M->Name);
+            printf("A: %s\n", M->Name);
 
             int idx, v, o, m;
 
@@ -16476,7 +16500,7 @@ void select_current_Morph_Map(int Morph_type)
                     for (m = 0; m < O->Morph_Maps_count; m ++)
                     {
                         Morf = O->Morph_Maps[m];
-                        printf("   %s %s\n", Morf->Name, Morf->Object->Name);
+                        printf("B:   %s %s %s\n", Morf->Name, Morf->Object->Name, Morf->DM->Name);
                         if (Morf->DM == M) //(strcmp(Morf->Name, M->Name) == 0)
                         {
                             printf("    %s %s %d\n", O->Name, Morf->Name, Morf->VertCount);
