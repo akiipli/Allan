@@ -80,6 +80,109 @@ void init_poses()
     }
 }
 
+void create_Frame_Pose(deformer * D, int frame)
+{
+    pose * P = D->P;
+    timeline * Tm;
+    transformer * T;
+    int t, frame0;
+
+    float d;
+//    float rotVec_[3][3];
+
+    for (t = 0; t < D->Transformers_Count; t ++)
+    {
+        T = D->Transformers[t];
+
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+
+            if (frame == TimelineStart)
+            {
+                Tm->current_Segment = Tm->start_Segment;
+            }
+            if (frame < Tm->Frames[0])
+            {
+                Tm->current_Segment = Tm->start_Segment;
+            }
+            else
+            {
+                frame0 = Tm->current_Segment;
+
+                P->TP[t].rot_Order = T->rot_Order;
+
+                P->TP[t].scl_vec[0] = Tm->Values[frame0].scl_vec[0];
+                P->TP[t].scl_vec[1] = Tm->Values[frame0].scl_vec[1];
+                P->TP[t].scl_vec[2] = Tm->Values[frame0].scl_vec[2];
+
+                P->TP[t].pos[0] = Tm->Values[frame0].pos[0];
+                P->TP[t].pos[1] = Tm->Values[frame0].pos[1];
+                P->TP[t].pos[2] = Tm->Values[frame0].pos[2];
+
+                P->TP[t].rotVec_[0][0] = Tm->Values[frame0].rotVec_[0][0];
+                P->TP[t].rotVec_[0][1] = Tm->Values[frame0].rotVec_[0][1];
+                P->TP[t].rotVec_[0][2] = Tm->Values[frame0].rotVec_[0][2];
+
+                P->TP[t].rotVec_[1][0] = Tm->Values[frame0].rotVec_[1][0];
+                P->TP[t].rotVec_[1][1] = Tm->Values[frame0].rotVec_[1][1];
+                P->TP[t].rotVec_[1][2] = Tm->Values[frame0].rotVec_[1][2];
+
+                P->TP[t].rotVec_[2][0] = Tm->Values[frame0].rotVec_[2][0];
+                P->TP[t].rotVec_[2][1] = Tm->Values[frame0].rotVec_[2][1];
+                P->TP[t].rotVec_[2][2] = Tm->Values[frame0].rotVec_[2][2];
+
+                //rotate_matrix_I(P->TP[t].rotVec_, rotVec_, T->parent->rotVec_);
+
+                d = sqrt(P->TP[t].rotVec_[0][0] * P->TP[t].rotVec_[0][0] +
+                         P->TP[t].rotVec_[0][1] * P->TP[t].rotVec_[0][1] +
+                         P->TP[t].rotVec_[0][2] * P->TP[t].rotVec_[0][2]);
+
+                if (d > 0)
+                {
+                    P->TP[t].rotVec_[0][0] /= d;
+                    P->TP[t].rotVec_[0][1] /= d;
+                    P->TP[t].rotVec_[0][2] /= d;
+                }
+
+                P->TP[t].rotVec[0][0] = P->TP[t].rotVec_[0][0] * P->TP[t].scl_vec[0];
+                P->TP[t].rotVec[0][1] = P->TP[t].rotVec_[0][1] * P->TP[t].scl_vec[0];
+                P->TP[t].rotVec[0][2] = P->TP[t].rotVec_[0][2] * P->TP[t].scl_vec[0];
+
+                d = sqrt(P->TP[t].rotVec_[1][0] * P->TP[t].rotVec_[1][0] +
+                         P->TP[t].rotVec_[1][1] * P->TP[t].rotVec_[1][1] +
+                         P->TP[t].rotVec_[1][2] * P->TP[t].rotVec_[1][2]);
+
+                if (d > 0)
+                {
+                    P->TP[t].rotVec_[1][0] /= d;
+                    P->TP[t].rotVec_[1][1] /= d;
+                    P->TP[t].rotVec_[1][2] /= d;
+                }
+
+                P->TP[t].rotVec[1][0] = P->TP[t].rotVec_[1][0] * P->TP[t].scl_vec[1];
+                P->TP[t].rotVec[1][1] = P->TP[t].rotVec_[1][1] * P->TP[t].scl_vec[1];
+                P->TP[t].rotVec[1][2] = P->TP[t].rotVec_[1][2] * P->TP[t].scl_vec[1];
+
+                d = sqrt(P->TP[t].rotVec_[2][0] * P->TP[t].rotVec_[2][0] +
+                         P->TP[t].rotVec_[2][1] * P->TP[t].rotVec_[2][1] +
+                         P->TP[t].rotVec_[2][2] * P->TP[t].rotVec_[2][2]);
+
+                if (d > 0)
+                {
+                    P->TP[t].rotVec_[2][0] /= d;
+                    P->TP[t].rotVec_[2][1] /= d;
+                    P->TP[t].rotVec_[2][2] /= d;
+                }
+
+                P->TP[t].rotVec[2][0] = P->TP[t].rotVec_[2][0] * P->TP[t].scl_vec[2];
+                P->TP[t].rotVec[2][1] = P->TP[t].rotVec_[2][1] * P->TP[t].scl_vec[2];
+                P->TP[t].rotVec[2][2] = P->TP[t].rotVec_[2][2] * P->TP[t].scl_vec[2];
+            }
+        }
+    }
+}
+
 void create_Inbetween_Frame_Pose(deformer * D, int frame)
 {
     pose * P = D->P;

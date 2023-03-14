@@ -7612,7 +7612,14 @@ void goto_Deformer_Frame_(deformer * D, int frame)
             Tm = T->Timeline;
             if (Tm->key_frames > 0 && frame >= Tm->Frames[0])
             {
-                create_Inbetween_Frame_Pose(D, frame);
+                if (frame >= Tm->Frames[Tm->key_frames - 1])
+                {
+                    create_Frame_Pose(D, frame);
+                }
+                else
+                {
+                    create_Inbetween_Frame_Pose(D, frame);
+                }
             }
             apply_Pose_position_keyframes(D, D->P, D->Delta);
 
@@ -7751,7 +7758,14 @@ void goto_Deformer_Frame(deformer * D, int frame)
             Tm = T->Timeline;
             if (Tm->key_frames > 0 && frame >= Tm->Frames[0])
             {
-                create_Inbetween_Frame_Pose(D, frame);
+                if (frame >= Tm->Frames[Tm->key_frames - 1])
+                {
+                    create_Frame_Pose(D, frame);
+                }
+                else
+                {
+                    create_Inbetween_Frame_Pose(D, frame);
+                }
             }
             apply_Pose_position_keyframes(D, D->P, D->Delta);
 
