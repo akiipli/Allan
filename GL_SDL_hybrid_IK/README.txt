@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+1:40 PM 3/15/2023
+With Deformer Dialog open and in Bind Mode, pressing M scans Objects for exsisting Morphs.
+
 7:52 PM 3/11/2023
 Morph Dialog shortcut R to reset current Deformers Morphs to zero.
 

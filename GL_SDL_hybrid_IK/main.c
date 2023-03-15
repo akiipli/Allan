@@ -11436,6 +11436,10 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
                 D = deformers[currentDeformer_Node];
                 if (BIND_POSE && D != NULL)
                     init_Deformer_Objects_Binding(D);
+//                    scan_Deformer_Objects_Morphs(D);
+//                    create_Morphs_List(0);
+//                    deformer_morph_map_Index = Deformer_Morph_Maps_c;
+//                    deformer_morph_Index = Deformer_Morphs_c;
             }
         }
         else if (letter == 's')
@@ -11466,6 +11470,18 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
                 D = deformers[currentDeformer_Node];
                 if (D != NULL)
                     print_Deformer_IK_Chains(D);
+            }
+        }
+        else if (letter == 'm')
+        {
+            if (deformerIndex > 0)
+            {
+                D = deformers[currentDeformer_Node];
+                if (BIND_POSE && D != NULL)
+                    scan_Deformer_Objects_Morphs(D);
+                    create_Morphs_List(0);
+                    deformer_morph_map_Index = Deformer_Morph_Maps_c;
+                    deformer_morph_Index = Deformer_Morphs_c;
             }
         }
     }

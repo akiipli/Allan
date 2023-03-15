@@ -1051,4 +1051,214 @@ void reset_deformer_Morphs(deformer * D, float value)
     }
 }
 
+int init_Deformer_Morph_Map_(deformer_morph_map * M, deformer * D, const char * Name);
+int init_Deformer_Morph_(deformer_morph * Morph, deformer_morph_map * M, deformer * D, const char * Name);
+void add_Morph_To_Object(deformer * D, deformer_morph_map * DM, deformer_morph * Morph, object * O, const char * Name, object_morph_dialer * OMD);
+
+deformer_morph_map * create_Deformer_Morph_Map(morph_map * M, deformer * D)
+{
+    int result = 0;
+    char Name[STRLEN];
+
+    deformer_morph_map * Map = NULL;
+    deformer_morph_map ** Morph_Maps;
+
+    Morph_Maps = realloc(D->Morph_Maps, (D->Morph_Maps_Count + 1) * sizeof(deformer_morph_map*));
+
+    if (Morph_Maps != NULL)
+    {
+        Map = malloc(sizeof(deformer_morph_map));
+        if (Map != NULL)
+        {
+            D->Morph_Maps = Morph_Maps;
+            D->Morph_Maps[D->Morph_Maps_Count] = Map;
+
+            sprintf(Name, "%s", M->Name);
+            result = init_Deformer_Morph_Map_(Map, D, Name);
+
+            if (result)
+            {
+                D->Morph_Maps_Count ++;
+                return Map;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+    }
+    return Map;
+}
+
+int insert_Object_To_Deformer_Morph_Map(deformer_morph_map * Map, object * O)
+{
+    /* update Map Objects */
+
+    int o, condition = 1;
+
+    for (o = 0; o < Map->Object_Count; o ++)
+    {
+        if (O == Map->Objects[o])
+        {
+            condition = 0;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        object ** Objects;
+
+        Objects = realloc(Map->Objects, (Map->Object_Count + 1) * sizeof(object*));
+        if (Objects != NULL)
+        {
+            Map->Objects = Objects;
+            Map->Objects[Map->Object_Count] = O;
+            Map->Object_Count ++;
+
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int insert_Morph_To_Deformer(deformer * D, deformer_morph_map * Map, morph * Morf, object_morph_dialer * OMD)
+{
+    /* update Map Morphs */
+    /* update Map Objects */
+
+    char Name[STRLEN];
+
+    int r = 0;
+    int m, condition = 1;
+
+    deformer_morph * Morph;
+    deformer_morph ** Morphs;
+
+    for (m = 0; m < Map->Morphs_Count; m ++)
+    {
+        Morph = Map->Morphs[m];
+        if (strcmp(Morf->Name, Morph->Name) == 0)
+        {
+            condition = 0;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        /* create new morph inside Map */
+        /* insert Object Morf */
+
+        Morphs = realloc(Map->Morphs, (Map->Morphs_Count + 1) * sizeof(deformer_morph*));
+        if (Morphs != NULL)
+        {
+            Map->Morphs = Morphs;
+            Morph = malloc(sizeof(deformer_morph));
+            if (Morph != NULL)
+            {
+                Map->Morphs[Map->Morphs_Count] = Morph;
+                sprintf(Name, "%s", Morf->Name);
+                result = init_Deformer_Morph_(Morph, Map, D, Name);
+
+                if (result)
+                {
+                    Morf->M = Morph;
+                    Morph->Object_Morph_Map = realloc(Morph->Object_Morph_Map, (Morph->objectCount + 1) * sizeof(object_morph_dialer*));
+                    if (Morph->Object_Morph_Map != NULL)
+                    {
+                        Morph->Object_Morph_Map[Morph->objectCount] = OMD;
+                        Morph->objectCount ++;
+                    }
+                }
+                Map->Morphs_Count ++;
+            }
+        }
+    }
+    else
+    {
+        Morf->M = Morph;
+        Morph->Object_Morph_Map = realloc(Morph->Object_Morph_Map, (Morph->objectCount + 1) * sizeof(object_morph_dialer*));
+        if (Morph->Object_Morph_Map != NULL)
+        {
+            Morph->Object_Morph_Map[Morph->objectCount] = OMD;
+            Morph->objectCount ++;
+        }
+    }
+
+    return r;
+}
+
+void scan_Deformer_Objects_Morphs(deformer * D)
+{
+    int o, m, d, s, condition, result;
+
+    object * O;
+    morph * Morf;
+    morph_map * M;
+    deformer_morph_map * Map;
+
+    object_morph_dialer * OMD;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+        printf("%s\n", O->Name);
+
+        for (m = 0; m < O->Morph_Maps_count; m ++)
+        {
+            M = O->Morph_Maps[m];
+            condition = 1;
+
+            for (d = 0; d < D->Morph_Maps_Count; d ++)
+            {
+                Map = D->Morph_Maps[d];
+                if (strcmp(M->Name, Map->Name) == 0)
+                {
+                    condition = 0;
+                    break;
+                }
+            }
+
+            if (condition)
+            {
+                Map = create_Deformer_Morph_Map(M, D);
+                if (Map != NULL)
+                {
+                    result = insert_Object_To_Deformer_Morph_Map(Map, O);
+                }
+            }
+            else
+            {
+                result = insert_Object_To_Deformer_Morph_Map(Map, O);
+            }
+
+            /* insert M Morphs to Deformer */
+
+            if (result)
+            {
+                M->Deformer = D;
+                M->DM = Map;
+                printf("C: %s MorphsCount %d\n", M->Name, M->MorphsCount);
+
+                for (s = 0; s < M->MorphsCount; s ++)
+                {
+                    Morf = M->Morphs[s];
+                    printf("\t %s\n", Morf->Name);
+
+                    OMD = malloc(sizeof(object_morph_dialer));
+                    if (OMD != NULL)
+                    {
+                        OMD->O = O;
+                        OMD->map_index = m;
+                        OMD->morph_index = s;
+                        insert_Morph_To_Deformer(D, Map, Morf, OMD);
+                    }
+                }
+            }
+        }
+    }
+}
+
 #endif // MORPHS_H_INCLUDED
