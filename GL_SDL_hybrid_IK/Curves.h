@@ -797,9 +797,18 @@ void scan_for_Object_Patches(object * O, int level)
 
             if (E->S != NULL)
             {
-                V->patch = 1;
-                break;
+                V->patch ++;
+                //break;
             }
+        }
+
+        if (V->patch >= P->edgecount / 2)
+        {
+            V->patch = 1;
+        }
+        else
+        {
+            V->patch = 0;
         }
 
         if (V->patch)
