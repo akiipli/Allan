@@ -2460,6 +2460,9 @@ void Draw_Timeline()
     glOrtho(0, w, h, 0, 1, -1);
 
 	GLfloat white[4] = {1, 1, 1, 1};
+	GLfloat accel_0[4] = {0.0, 0.0, 0.0, 1};
+	GLfloat accel_1[4] = {0.0, 0.0, 0.0, 1};
+	GLfloat accel_2[4] = {0.0, 0.0, 0.0, 1};
 
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
@@ -2480,7 +2483,7 @@ void Draw_Timeline()
 	glBegin(GL_LINES);
 
 	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
-	int vline, f;
+	int vline, vline0, vline1, vline2, f;
 
 	timeline * Tm;
 
@@ -2503,6 +2506,34 @@ void Draw_Timeline()
                         glVertex2f(vline, 0);
                         glVertex2f(vline, h - inc * Tm->Acceleration[f].segment_type);
                         glEnd();
+
+                        if (f == Tm->current_Segment)
+                        {
+                            find_Segment_Acceleration_Colors(Tm->Acceleration[f], grayb, white, accel_0, accel_1, accel_2);
+
+                            vline0 = (int)((Tm->Frames[f] - TimelineStart) * tickw + TIMELINE_ENTRY);
+                            glBegin(GL_QUAD_STRIP);
+                            glColor4fv(accel_0);
+                            glVertex2f(vline0 + tickw, 0);
+                            glVertex2f(vline0 + tickw, h);
+                            if (f + 1 < Tm->key_frames)
+                            {
+                                vline2 = (int)((Tm->Frames[f + 1] - TimelineStart) * tickw + TIMELINE_ENTRY);
+                            }
+                            else
+                            {
+                                 vline2 = screen_width - TIMELINE_ENTRY;
+                            }
+                            glColor4fv(accel_1);
+                            vline1 = vline0 + (vline2 - vline0) / 2;
+                            glVertex2f(vline1, 0);
+                            glVertex2f(vline1, h);
+                            glColor4fv(accel_2);
+                            glVertex2f(vline2, 0);
+                            glVertex2f(vline2, h);
+                            glEnd();
+                            glColor4fv(grayb);
+                        }
                     }
                 }
             }
@@ -2570,6 +2601,9 @@ void Draw_Morph_Timeline()
 	glDisable(GL_DEPTH_TEST);
 
 	glColor4fv(white);
+	GLfloat accel_0[4] = {0.0, 0.0, 0.0, 1};
+	GLfloat accel_1[4] = {0.0, 0.0, 0.0, 1};
+	GLfloat accel_2[4] = {0.0, 0.0, 0.0, 1};
 
 	//glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -2586,6 +2620,7 @@ void Draw_Morph_Timeline()
 
 	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
 	int vline, f, o, Preak = 0;
+	int vline0, vline1, vline2;
 
 	morph_timeline * Tmm;
 
@@ -2608,6 +2643,34 @@ void Draw_Morph_Timeline()
                         glVertex2f(vline, 0);
                         glVertex2f(vline, h - inc * Tmm->Acceleration[f].segment_type);
                         glEnd();
+                        if (f == Tmm->current_Segment)
+                        {
+                            find_Segment_Acceleration_Colors(Tmm->Acceleration[f], grayb, white, accel_0, accel_1, accel_2);
+
+                            vline0 = (int)((Tmm->Frames[f] - TimelineStart) * tickw + TIMELINE_ENTRY);
+                            glBegin(GL_QUAD_STRIP);
+                            glColor4fv(accel_0);
+                            glVertex2f(vline0 + tickw, 0);
+                            glVertex2f(vline0 + tickw, h);
+                            if (f + 1 < Tmm->key_frames)
+                            {
+                                vline2 = (int)((Tmm->Frames[f + 1] - TimelineStart) * tickw + TIMELINE_ENTRY);
+                            }
+                            else
+                            {
+                                 vline2 = screen_width - TIMELINE_ENTRY;
+                            }
+                            glColor4fv(accel_1);
+                            vline1 = vline0 + (vline2 - vline0) / 2;
+                            glVertex2f(vline1, 0);
+                            glVertex2f(vline1, h);
+                            glColor4fv(accel_2);
+                            glVertex2f(vline2, 0);
+                            glVertex2f(vline2, h);
+                            glEnd();
+                            glColor4fv(grayb);
+                        }
+
                         Preak = 1;
                     }
                 }

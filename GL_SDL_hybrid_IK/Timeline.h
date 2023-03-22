@@ -125,4 +125,42 @@ void free_Morph_Timeline(morph_timeline * Tmm)
     if (Tmm->Acceleration != NULL) free(Tmm->Acceleration);
 }
 
+void interpolateColorAcceleration(float a, float b, GLfloat Col_a[4], GLfloat Col_b[4], GLfloat Col_r[4])
+{
+    Col_r[0] = Col_a[0] * a + Col_b[0] * b;
+    Col_r[1] = Col_a[1] * a + Col_b[1] * b;
+    Col_r[2] = Col_a[2] * a + Col_b[2] * b;
+    Col_r[3] = Col_a[3] * a + Col_b[3] * b;
+}
+
+void find_Segment_Acceleration_Colors(acceleration Acceleration, GLfloat Col_a[4], GLfloat Col_b[4], GLfloat Col_0[4], GLfloat Col_1[4], GLfloat Col_2[4])
+{
+    float a = 0.0;
+    float b = 1.0;
+    if (Acceleration.segment_type == ACCELERATION_END)
+    {
+        interpolateColorAcceleration(1, 0, Col_a, Col_b, Col_0);
+        interpolateColorAcceleration(1, 0, Col_a, Col_b, Col_1);
+        interpolateColorAcceleration(a, b, Col_a, Col_b, Col_2);
+    }
+    else if (Acceleration.segment_type == ACCELERATION_START)
+    {
+        interpolateColorAcceleration(a, b, Col_a, Col_b, Col_0);
+        interpolateColorAcceleration(1, 0, Col_a, Col_b, Col_1);
+        interpolateColorAcceleration(1, 0, Col_a, Col_b, Col_2);
+    }
+    else if (Acceleration.segment_type == ACCELERATION_MID)
+    {
+        interpolateColorAcceleration(1, 0, Col_a, Col_b, Col_0);
+        interpolateColorAcceleration(a, b, Col_a, Col_b, Col_1);
+        interpolateColorAcceleration(1, 0, Col_a, Col_b, Col_2);
+    }
+    else if (Acceleration.segment_type == ACCELERATION_NONE)
+    {
+        interpolateColorAcceleration(1, 0, Col_a, Col_b, Col_0);
+        interpolateColorAcceleration(1, 0, Col_a, Col_b, Col_1);
+        interpolateColorAcceleration(1, 0, Col_a, Col_b, Col_2);
+    }
+}
+
 #endif // TIMELINE_H_INCLUDED
