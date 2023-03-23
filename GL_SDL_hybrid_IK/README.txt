@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+8:03 PM 3/23/2023
+Ctrl + Shift + Left / Right changes Timeline 10 frames left or right changing Start and End Times.
+
 1:40 PM 3/15/2023
 With Deformer Dialog open and in Bind Mode, pressing M scans Objects for exsisting Morphs.
 

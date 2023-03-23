@@ -21988,7 +21988,18 @@ int main(int argc, char * args[])
             }
             else if (DRAW_TIMELINE)
             {
-                if (mod & KMOD_SHIFT)
+                if (mod & KMOD_CTRL && mod & KMOD_SHIFT)
+                {
+                    if (TimelineStart - 10 >= 0)
+                    {
+                        TimelineStart -= 10;
+                        TimelineEnd -= 10;
+                        Draw_Timeline();
+                        Draw_Morph_Timeline();
+                        SDL_GL_SwapBuffers();
+                    }
+                }
+                else if (mod & KMOD_SHIFT)
                 {
                     if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
                     {
@@ -22059,7 +22070,15 @@ int main(int argc, char * args[])
             }
             else if (DRAW_TIMELINE)
             {
-                if (mod & KMOD_SHIFT)
+                if (mod & KMOD_CTRL && mod & KMOD_SHIFT)
+                {
+                    TimelineStart += 10;
+                    TimelineEnd += 10;
+                    Draw_Timeline();
+                    Draw_Morph_Timeline();
+                    SDL_GL_SwapBuffers();
+                }
+                else if (mod & KMOD_SHIFT)
                 {
                     if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
                     {
