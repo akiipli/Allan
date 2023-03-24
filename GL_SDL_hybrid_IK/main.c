@@ -7124,54 +7124,18 @@ void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
-void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
-{
-    if (!BIND_POSE)
-    {
-        paste_Pose_position(D, P);
-
-        if (!linear_pose)
-            apply_Pose_position_Play(D, Delta);
-
-        if (D->Transformers_Count > 0)
-        {
-            transformer * T = D->Transformers[0];
-
-            float Delta_[3];
-
-            if (linear_pose)
-            {
-                Delta_[0] = Delta[0];
-                Delta_[1] = Delta[1];
-                Delta_[2] = Delta[2];
-            }
-            else
-            {
-                Delta_[0] = Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
-                Delta_[1] = Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
-                Delta_[2] = Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
-            }
-
-            move_Pose_T(T, Delta_);
-
-            if (ROTATED_POSE)
-                rotate_Pose(D);
-
-            rotate_Deformer_verts(D);
-        }
-    }
-}
-
 void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
     {
-        paste_Pose_position(D, P);
-
-        if (!linear_pose)
+        if (linear_pose)
+            paste_Pose_position(D, P);
+        else
+        {
+            paste_Pose_rotation(D, P);
             apply_Pose_position_Play(D, Delta);
-
-        //paste_Pose_rotation(D, P);
+            solve_IK_Chains(D);
+        }
 
         if (D->Transformers_Count > 0)
         {
@@ -7188,17 +7152,15 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
             }
             else
             {
-                Delta_[0] = Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
-                Delta_[1] = Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
-                Delta_[2] = Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
+                Delta_[0] = Delta[0];// + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
+                Delta_[1] = Delta[1];// + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
+                Delta_[2] = Delta[2];// + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
             }
 
             move_Pose_T(T, Delta_);
 
             if (ROTATED_POSE)
                 rotate_Pose(D);
-
-            //rotate_Deformer_pose(T);
 
             rotate_Deformer_verts(D);
         }
@@ -7390,7 +7352,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
     {
         w1 = (float)f / frames_count;
         w0 = 1 - w1;
-        create_Inbetween_Pose_(D, D->P, P0, P1, w0, w1);
+        create_Inbetween_Pose_(D, D->P, P0, P1, w0, w1, linear_pose);
 
         rotate_vertex_groups_D_Init();
 
@@ -7681,10 +7643,10 @@ void goto_Deformer_Frame_(deformer * D, int frame)
                 }
                 else
                 {
-                    create_Inbetween_Frame_Pose(D, frame);
+                    create_Inbetween_Frame_Pose(D, frame, linear_pose);
                 }
             }
-            apply_Pose_position_keyframes(D, D->P, D->Delta);
+            apply_Pose_position_(D, D->P, D->Delta);
 
             update_Deformer_Objects_Curves_Coordinates(D);
             update_Deformer_object_Curves(D, subdLevel);
@@ -7827,10 +7789,10 @@ void goto_Deformer_Frame(deformer * D, int frame)
                 }
                 else
                 {
-                    create_Inbetween_Frame_Pose(D, frame);
+                    create_Inbetween_Frame_Pose(D, frame, linear_pose);
                 }
             }
-            apply_Pose_position_keyframes(D, D->P, D->Delta);
+            apply_Pose_position_(D, D->P, D->Delta);
 
             update_Deformer_Objects_Curves_Coordinates(D);
             update_Deformer_object_Curves(D, subdLevel);
@@ -8031,6 +7993,7 @@ void deformer_Keyframe_Player()
                     if (mod & KMOD_SHIFT)
                     {
                         linear_pose = !linear_pose;
+                        printf("linear_pose %d\n", linear_pose);
                         make_osd(O);
                     }
                     else
@@ -8164,10 +8127,10 @@ void deformer_Keyframe_Player()
                     {
                         if (D->play < 0)
                         {
-                            create_Inbetween_Frame_Pose(D, frame);
+                            create_Inbetween_Frame_Pose(D, frame, linear_pose);
                         }
                     }
-                    apply_Pose_position_keyframes(D, D->P, D->Delta);
+                    apply_Pose_position_(D, D->P, D->Delta);
 
                     update_Deformer_Objects_Curves_Coordinates(D);
                     update_Deformer_object_Curves(D, subdLevel);
@@ -8515,7 +8478,7 @@ void deformer_Player()
                 {
                     if (D->play < 0)
                     {
-                        create_Inbetween_Pose_(D, D->P, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1);
+                        create_Inbetween_Pose_(D, D->P, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1, linear_pose);
                     }
 //                    else
 //                    {
@@ -11320,28 +11283,8 @@ void update_Pose()
 
         if (D->Transformers_Count > 0 && P != D->Poses[0])
         {
-            transformer * T0 = D->Transformers[0];
-
-            if (T != T0)
-            {
-                D->Delta[0] = T0->pos[0] - D->Poses[D->current_pose]->TP[0].pos[0];
-                D->Delta[1] = T0->pos[1] - D->Poses[D->current_pose]->TP[0].pos[1];
-                D->Delta[2] = T0->pos[2] - D->Poses[D->current_pose]->TP[0].pos[2];
-
-                T0->pos[0] -= D->Delta[0];
-                T0->pos[1] -= D->Delta[1];
-                T0->pos[2] -= D->Delta[2];
-            }
-
-            update_Deformer_Pose(D, P);
+            update_Deformer_Pose(D, P, 1);
             update_Poses_List(0, 0);
-
-            if (T != T0)
-            {
-                T0->pos[0] += D->Delta[0];
-                T0->pos[1] += D->Delta[1];
-                T0->pos[2] += D->Delta[2];
-            }
         }
     }
 }
@@ -23895,11 +23838,19 @@ int main(int argc, char * args[])
         {
             if (mod & KMOD_SHIFT)
             {
-                select_Loop();
-                assert_Element_Selection();
-                if (Edge_Mode)
+                if (Object_Mode)
                 {
-                    ordered_Edges_Selection(O);
+                    linear_pose = !linear_pose;
+                    make_osd(O);
+                }
+                else
+                {
+                    select_Loop();
+                    assert_Element_Selection();
+                    if (Edge_Mode)
+                    {
+                        ordered_Edges_Selection(O);
+                    }
                 }
             }
             else

@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+10:00 AM 3/24/2023
+Shift + L in Object Mode switches linear pose in and off.
+
 8:03 PM 3/23/2023
 Ctrl + Shift + Left / Right changes Timeline 10 frames left or right changing Start and End Times.
 

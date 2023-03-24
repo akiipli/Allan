@@ -1504,6 +1504,8 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
         T->pos[2] = rotVec[0][2] * X + rotVec[1][2] * Y + rotVec[2][2] * Z + pos[2];
     }
 
+    rotate_T(T);
+
     float rotVec_[3][3];
     rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
 
@@ -1518,6 +1520,8 @@ void rotate_rotVec_pose(transformer * T)
 {
     int c;
     transformer * C;
+
+    rotate_T(T);
 
     float rotVec_[3][3];
     rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);

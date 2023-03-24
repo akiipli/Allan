@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1679593971 source:c:\gl_sdl_hybrid_ik\main.c
+1679646557 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -68,7 +68,7 @@
 1636367110 c:\gl_sdl_hybrid_ik\cursors.h
 	"SDL/SDL.h"
 
-1662206207 c:\gl_sdl_hybrid_ik\transformer.h
+1679641464 c:\gl_sdl_hybrid_ik\transformer.h
 
 1678288370 c:\gl_sdl_hybrid_ik\object.h
 
@@ -80,11 +80,11 @@
 	<unistd.h>
 	<errno.h>
 
-1662612390 c:\gl_sdl_hybrid_ik\iksolution.h
+1679641464 c:\gl_sdl_hybrid_ik\iksolution.h
 
 1678557025 c:\gl_sdl_hybrid_ik\deformer.h
 
-1679594487 c:\gl_sdl_hybrid_ik\poses.h
+1679646531 c:\gl_sdl_hybrid_ik\poses.h
 
 1638809207 c:\gl_sdl_hybrid_ik\bones.h
 
