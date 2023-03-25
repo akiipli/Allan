@@ -379,7 +379,7 @@ int save_Morphs(char * morph_files_dir)
             fprintf(F, "%u\n", (unsigned)OM->DM);
             fprintf(F, "%u\n", (unsigned)OM->Object);
 
-            printf("SAVING: %u %s\n", (unsigned)OM->Object, OM->Object->Name);
+            //printf("SAVING: %u %s\n", (unsigned)OM->Object, OM->Object->Name);
 
             for (v = 0; v < OM->VertCount; v ++)
             {

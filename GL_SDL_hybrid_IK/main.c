@@ -7085,7 +7085,7 @@ void update_Selections_List(int update, int blit)
     glDrawBuffer(GL_BACK);
 }
 
-void apply_Pose_position_Play(deformer * D, float Delta[3])
+void apply_Pose_position_Play(deformer * D)
 {
     if (!BIND_POSE)
     {
@@ -7124,6 +7124,33 @@ void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
+void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
+{
+    if (!BIND_POSE)
+    {
+        if (linear_pose)
+            paste_Pose_position(D, P);
+        else
+        {
+            paste_Pose_rotation(D, P);
+            apply_Pose_position_Play(D);
+            solve_IK_Chains(D);
+        }
+
+        if (D->Transformers_Count > 0)
+        {
+            transformer * T = D->Transformers[0];
+
+            move_Pose_T(T, Delta);
+
+            if (ROTATED_POSE)
+                rotate_Pose(D);
+
+            rotate_Deformer_verts(D);
+        }
+    }
+}
+
 void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
@@ -7133,31 +7160,15 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
         else
         {
             paste_Pose_rotation(D, P);
-            apply_Pose_position_Play(D, Delta);
-            solve_IK_Chains(D);
+            apply_Pose_position_Play(D);
         }
+        solve_IK_Chains(D);
 
         if (D->Transformers_Count > 0)
         {
             transformer * T = D->Transformers[0];
 
-
-            float Delta_[3];
-
-            if (linear_pose)
-            {
-                Delta_[0] = Delta[0];
-                Delta_[1] = Delta[1];
-                Delta_[2] = Delta[2];
-            }
-            else
-            {
-                Delta_[0] = Delta[0];// + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
-                Delta_[1] = Delta[1];// + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
-                Delta_[2] = Delta[2];// + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
-            }
-
-            move_Pose_T(T, Delta_);
+            move_Pose_T(T, Delta);
 
             if (ROTATED_POSE)
                 rotate_Pose(D);
@@ -7356,7 +7367,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
 
         rotate_vertex_groups_D_Init();
 
-        apply_Pose_position_(D, D->P, D->Delta);
+        apply_Pose_position_keyframes(D, D->P, D->Delta);
         //apply_Pose_rotation_(D, P, f, Delta);
 
         update_Deformer_Objects_Curves_Coordinates(D);
@@ -8130,7 +8141,7 @@ void deformer_Keyframe_Player()
                             create_Inbetween_Frame_Pose(D, frame, linear_pose);
                         }
                     }
-                    apply_Pose_position_(D, D->P, D->Delta);
+                    apply_Pose_position_keyframes(D, D->P, D->Delta);
 
                     update_Deformer_Objects_Curves_Coordinates(D);
                     update_Deformer_object_Curves(D, subdLevel);
@@ -8487,7 +8498,7 @@ void deformer_Player()
 //                    Delta[0] = D->Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
 //                    Delta[1] = D->Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
 //                    Delta[2] = D->Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
-                    apply_Pose_position_(D, D->P, D->Delta);
+                    apply_Pose_position_keyframes(D, D->P, D->Delta);
                     //apply_Pose_rotation_Play(D, P, f % frames, Delta);
 
                     update_Deformer_Objects_Curves_Coordinates(D);

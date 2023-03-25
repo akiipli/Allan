@@ -2171,7 +2171,7 @@ int read_Morf_Keyframes_file(Morf_Keyframes_In * KEYFR_IN, char * fileName, int 
     char buff[BUF_SIZE];
     buff[0] = '\0';
 
-    int o, f, v, vertcount;
+    int o, o0, f, v, vertcount;
     unsigned o_address;
 
     object * O;
@@ -2183,80 +2183,88 @@ int read_Morf_Keyframes_file(Morf_Keyframes_In * KEYFR_IN, char * fileName, int 
     {
         if (strcmp("Morf Keyframes\n", buff) == 0)
         {
-            for (o = objectIndex - o_index; o < objectIndex; o ++)
+            for (o0 = objectIndex - o_index; o0 < objectIndex; o0 ++)
             {
-                O = objects[o];
-
                 fgets(buff, BUF_SIZE, fp);
                 sscanf(buff, "%u", &o_address);
 
-                if (o_address != 0 && O->address == o_address)
+                if (o_address == 0)
                 {
-                    result = init_morph_timeline(O);
+                    continue;
+                }
 
-                    if (result == 0)
+                for (o = objectIndex - o_index; o < objectIndex; o ++)
+                {
+                    O = objects[o];
+
+                    if (O->address == o_address)
                     {
-                        fclose(fp);
-                        return 0;
-                    }
-                    else
-                    {
-                        Tmm = O->Morph_Timeline;
+                        result = init_morph_timeline(O);
 
-                        fgets(buff, BUF_SIZE, fp);
-                        sscanf(buff, "%d", &vertcount);
-                        fgets(buff, BUF_SIZE, fp);
-                        sscanf(buff, "%d", &Tmm->key_frames);
-
-                        Tmm->Frames = malloc(Tmm->key_frames * sizeof(int));
-                        if (Tmm->Frames == NULL)
+                        if (result == 0)
                         {
-                            Tmm->key_frames = 0;
                             fclose(fp);
                             return 0;
                         }
                         else
                         {
-                            Tmm->Values = malloc(Tmm->key_frames * sizeof(morph_values));
-                            Tmm->Acceleration = malloc(Tmm->key_frames * sizeof(acceleration));
-                        }
-                        if (Tmm->Values == NULL || Tmm->Acceleration == NULL)
-                        {
-                            Tmm->key_frames = 0;
-                            fclose(fp);
-                            return 0;
-                        }
-                        else
-                        {
-                            for (f = 0; f < Tmm->key_frames; f ++)
+                            Tmm = O->Morph_Timeline;
+
+                            fgets(buff, BUF_SIZE, fp);
+                            sscanf(buff, "%d", &vertcount);
+                            fgets(buff, BUF_SIZE, fp);
+                            sscanf(buff, "%d", &Tmm->key_frames);
+
+                            Tmm->Frames = malloc(Tmm->key_frames * sizeof(int));
+                            if (Tmm->Frames == NULL)
                             {
-                                fgets(buff, BUF_SIZE, fp);
-                                sscanf(buff, "%d", &Tmm->Frames[f]);
-
-                                Tmm->Values[f].R_Coords = malloc(vertcount * sizeof(morph_Pos));
-
-                                if (Tmm->Values[f].R_Coords == NULL)
-                                {
-                                    Tmm->key_frames = 0;
-                                    fclose(fp);
-                                    return 0;
-                                }
-
-                                for (v = 0; v < vertcount; v ++)
+                                Tmm->key_frames = 0;
+                                fclose(fp);
+                                return 0;
+                            }
+                            else
+                            {
+                                Tmm->Values = malloc(Tmm->key_frames * sizeof(morph_values));
+                                Tmm->Acceleration = malloc(Tmm->key_frames * sizeof(acceleration));
+                            }
+                            if (Tmm->Values == NULL || Tmm->Acceleration == NULL)
+                            {
+                                Tmm->key_frames = 0;
+                                fclose(fp);
+                                return 0;
+                            }
+                            else
+                            {
+                                for (f = 0; f < Tmm->key_frames; f ++)
                                 {
                                     fgets(buff, BUF_SIZE, fp);
-                                    sscanf(buff, "%f %f %f", &Tmm->Values[f].R_Coords[v].x, &Tmm->Values[f].R_Coords[v].y, &Tmm->Values[f].R_Coords[v].z);
+                                    sscanf(buff, "%d", &Tmm->Frames[f]);
+
+                                    Tmm->Values[f].R_Coords = malloc(vertcount * sizeof(morph_Pos));
+
+                                    if (Tmm->Values[f].R_Coords == NULL)
+                                    {
+                                        Tmm->key_frames = 0;
+                                        fclose(fp);
+                                        return 0;
+                                    }
+
+                                    for (v = 0; v < vertcount; v ++)
+                                    {
+                                        fgets(buff, BUF_SIZE, fp);
+                                        sscanf(buff, "%f %f %f", &Tmm->Values[f].R_Coords[v].x, &Tmm->Values[f].R_Coords[v].y, &Tmm->Values[f].R_Coords[v].z);
+                                    }
+                                    fgets(buff, BUF_SIZE, fp);
+                                    sscanf(buff, "%d", &Tmm->Acceleration[f].segment_type);
+                                    fgets(buff, BUF_SIZE, fp);
+                                    sscanf(buff, "%f", &Tmm->Acceleration[f].a_exponent);
+                                    fgets(buff, BUF_SIZE, fp);
+                                    sscanf(buff, "%f", &Tmm->Acceleration[f].b_exponent);
                                 }
-                                fgets(buff, BUF_SIZE, fp);
-                                sscanf(buff, "%d", &Tmm->Acceleration[f].segment_type);
-                                fgets(buff, BUF_SIZE, fp);
-                                sscanf(buff, "%f", &Tmm->Acceleration[f].a_exponent);
-                                fgets(buff, BUF_SIZE, fp);
-                                sscanf(buff, "%f", &Tmm->Acceleration[f].b_exponent);
                             }
                         }
+                        k_index ++;
                     }
-                    k_index ++;
                 }
             }
         }
