@@ -6747,6 +6747,12 @@ void update_IK_List(int update, int blit)
             draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
     }
 
+    if (DRAW_TIMELINE)
+    {
+        Draw_Timeline();
+        Draw_Morph_Timeline();
+    }
+
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -6875,6 +6881,12 @@ void update_Bones_List(int update, int blit)
             draw_Properties("", screen_height, 1, PROPERTIES_BONE, Type);
     }
 
+    if (DRAW_TIMELINE)
+    {
+        Draw_Timeline();
+        Draw_Morph_Timeline();
+    }
+
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -6957,6 +6969,12 @@ void update_Items_List(int update, int blit)
         draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
     }
 
+    if (DRAW_TIMELINE)
+    {
+        Draw_Timeline();
+        Draw_Morph_Timeline();
+    }
+
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -6992,6 +7010,12 @@ void update_Materials_List(int update, int blit)
     if (Edit_Properties && Edit_Color)
     {
         draw_Properties_Edit(EditString, screen_height, 0, Color_Component + 1, 0);
+    }
+
+    if (DRAW_TIMELINE)
+    {
+        Draw_Timeline();
+        Draw_Morph_Timeline();
     }
 
     SDL_GL_SwapBuffers();
@@ -8906,6 +8930,12 @@ void update_Hierarchys_List(int update, int blit)
 
     if (HierIndex - hier_start >= 0)
         HierList[HierIndex - hier_start].color = UI_BLACK;
+
+    if (DRAW_TIMELINE)
+    {
+        Draw_Timeline();
+        Draw_Morph_Timeline();
+    }
 
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
@@ -22193,8 +22223,11 @@ int main(int argc, char * args[])
             int o;
             for (o = 0; o < objectIndex; o ++)
             {
-                if (subdLevel <= objects[o]->subdlevel_Max)
-                    objects[o]->subdlevel = subdLevel;
+                O = objects[o];
+                if (subdLevel <= O->subdlevel_Max && subdLevel <= O->allocated_subdlevel)
+                    O->subdlevel = subdLevel;
+                else
+                    O->subdlevel = O->allocated_subdlevel;
             }
 
             UPDATE_COLORS = 1;
