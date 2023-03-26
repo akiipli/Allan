@@ -1490,6 +1490,12 @@ void tune_subdivide_post_Objects()
 void subdivide_post(object * O, int level, int tune)
 {
     O->subdlevel++;
+    if (O->subdlevel >= O->subdlevel_Max)
+    {
+        O->subdlevel = O->subdlevel_Max;
+        level = O->subdlevel;
+    }
+
     if (tune)
     {
         if (level > 0)
@@ -1544,7 +1550,7 @@ int subdivide_after_Creation(object * O, int level, int tune)
 
     int result;
 
-    if (O->subdlevel == level - 1)
+    if (level <= O->subdlevel_Max && O->subdlevel == level - 1)
     {
         if (level > 0)
         {
@@ -1650,6 +1656,8 @@ int create_Objects()
 
     if (result) objectIndex ++; else return level;
 
+    objects[0]->subdlevel_Max = 2;
+
 //
 //    result = create_Z(objectIndex, "Z");
 //
@@ -1739,134 +1747,66 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
 {
     glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
 
-    if (level < 0)
+    if (uv_draw && C->ID == CAMERA_PERSPECTIVE)
     {
-        if (uv_draw && C->ID == CAMERA_PERSPECTIVE)
+        if (rendermode == ID_RENDER)
         {
-            if (rendermode == ID_RENDER)
-            {
-                if (VERTS_ID_RENDER)
-                    render_UV_Verts_ID(C, O);
-                else if (EDGES_ID_RENDER)
-                    render_UV_Edges_ID(C, O);
-                else if (POLYS_ID_RENDER)
-                    render_UV_Polys_ID(C, O);
-            }
-            else
-            {
-                render_uv_view(C, currentObject, NormalMode, BumpMode);
-            }
+            if (VERTS_ID_RENDER)
+                render_UV_Verts_ID_(C, O, level);
+            else if (EDGES_ID_RENDER)
+                render_UV_Edges_ID_(C, O, level);
+            else if (POLYS_ID_RENDER)
+                render_UV_Polys_Quads_ID(C, O, level);
         }
-        else if (CURVE_ID_RENDER)
+        else
         {
-            render_Curves_ID();
+            render_uv_view_(C, currentObject, level, NormalMode, BumpMode);
         }
-        else if (CPS_ID_RENDER)
-        {
-            render_Cps_ID();
-        }
-        else if (SEGMENTS_ID_RENDER)
-        {
-            render_Segments_ID(O);
-        }
-        else if (VERTS_ID_RENDER)
-        {
-            render_poly_Verts_ID(C, O);
-        }
-        else if (EDGES_ID_RENDER)
-        {
-            render_poly_Edges_ID(C, O);
-        }
+    }
+    else if (CURVE_ID_RENDER)
+    {
+        render_Curves_ID_(level);
+    }
+    else if (CPS_ID_RENDER)
+    {
+        render_Cps_ID();
+    }
+    else if (SEGMENTS_ID_RENDER)
+    {
+        render_Segments_ID_(O, level);
+    }
+    else if (VERTS_ID_RENDER)
+    {
+        render_poly_quad_Verts_ID(C, O, level);
+    }
+    else if (EDGES_ID_RENDER)
+    {
+        render_poly_quads_Edges_ID(C, O, level);
+    }
 //        else if (Polygon_Mode && POLYS_ID_RENDER)
 //        {
 //            render_poly_ID(C, O); // because draw_Fan_Arrays_Shader_ID requires polygon based approach
 //        }
-        else if (BONES_ID_RENDER)
-        {
-            render_Bones_ID();
-        }
-        else if (LOCAT_ID_RENDER && rendermode == ID_RENDER && !POLYS_ID_RENDER)
-        {
-            render_Transformers_ID();
-        }
-        else if (tripsRender)
-        {
-            render_trips_OnScreen(C, wireframe, edgedraw, vertdraw, currentObject, selection_Mode);
-        }
-        else
-        {
-            render_polys_OnScreen(C, wireframe, edgedraw, vertdraw, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
-
-            if (curve_Draw)
-            {
-                render_Curves();
-                render_Cps();
-            }
-        }
+    else if (BONES_ID_RENDER)
+    {
+        render_Bones_ID();
+    }
+    else if (LOCAT_ID_RENDER && rendermode == ID_RENDER && !POLYS_ID_RENDER)
+    {
+        render_Transformers_ID();
+    }
+    else if (tripsRender)
+    {
+        render_trips_OnScreen_(C, wireframe, edgedraw, vertdraw, level, currentObject, selection_Mode);
     }
     else
     {
-        if (uv_draw && C->ID == CAMERA_PERSPECTIVE)
-        {
-            if (rendermode == ID_RENDER)
-            {
-                if (VERTS_ID_RENDER)
-                    render_UV_Verts_ID_(C, O, level);
-                else if (EDGES_ID_RENDER)
-                    render_UV_Edges_ID_(C, O, level);
-                else if (POLYS_ID_RENDER)
-                    render_UV_Quads_ID(C, O, level);
-            }
-            else
-            {
-                render_uv_view_(C, currentObject, level, NormalMode, BumpMode);
-            }
-        }
-        else if (CURVE_ID_RENDER)
-        {
-            render_Curves_ID_(level);
-        }
-        else if (CPS_ID_RENDER)
-        {
-            render_Cps_ID();
-        }
-        else if (SEGMENTS_ID_RENDER)
-        {
-            render_Segments_ID_(O, level);
-        }
-        else if (VERTS_ID_RENDER)
-        {
-            render_quad_Verts_ID(C, O, level);
-        }
-        else if (EDGES_ID_RENDER)
-        {
-            render_quads_Edges_ID(C, O, level);
-        }
-//        else if (Polygon_Mode && POLYS_ID_RENDER)
-//        {
-//            render_Quads_ID(C, O, level); // because draw_Arrays_Shader_ID requires quad based approach
-//        }
-        else if (BONES_ID_RENDER)
-        {
-            render_Bones_ID();
-        }
-        else if (LOCAT_ID_RENDER && rendermode == ID_RENDER && !POLYS_ID_RENDER)
-        {
-            render_Transformers_ID();
-        }
-        else if (tripsRender)
-        {
-            render_trips_OnScreen_(C, wireframe, edgedraw, vertdraw, level, currentObject, selection_Mode);
-        }
-        else
-        {
-            render_quads_OnScreen(C, wireframe, edgedraw, vertdraw, level, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
+        render_polys_quads_OnScreen(C, wireframe, edgedraw, vertdraw, level, currentObject, rendermode, selection_Mode, UPDATE_COLORS, UPDATE_UV, ELEMENT_ARRAYS);
 
-            if (curve_Draw)
-            {
-                render_Curves_(subdLevel);
-                render_Cps();
-            }
+        if (curve_Draw)
+        {
+            render_Curves_(subdLevel);
+            render_Cps();
         }
     }
 }
@@ -2892,10 +2832,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
 {
     if (!drag_rectangle && (rendermode != ID_RENDER) && SHADERS && SHADOWS)
     {
-        if (Fan_Arrays_Shader || subdLevel > -1)
-        {
-            SceneShadowMap_render(Camera, screen_width, screen_height, Level, ELEMENT_ARRAYS);
-        }
+        SceneShadowMap_render(Camera, screen_width, screen_height, Level, ELEMENT_ARRAYS);
     }
 
     if (drag_rectangle)
@@ -2926,14 +2863,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
 
     if (!tripsRender)
     {
-        if (Level > -1)
-        {
-            fill_in_VertCoords_quads(Camera, Level, ELEMENT_ARRAYS);
-        }
-        else
-        {
-            fill_in_VertCoords_Fan(Camera, ELEMENT_ARRAYS);
-        }
+        fill_in_VertCoords_Fan_Quads(Camera, Level, ELEMENT_ARRAYS);
     }
 
     if (splitview)
@@ -16358,6 +16288,36 @@ void change_Object_Smooth()
     }
 }
 
+void change_Object_Subdiv_Max()
+{
+    if (currentObject >= 0 && currentObject < objectIndex)
+    {
+        O = objects[currentObject];
+        O->subdlevel_Max ++;
+        if (O->subdlevel_Max >= SUBD)
+        {
+            O->subdlevel_Max = -1;
+        }
+
+        int s;
+        object * O0;
+
+        for (s = 0; s < selected_object_count; s ++)
+        {
+            O0 = objects[selected_objects[s]];
+            O0->subdlevel_Max = O->subdlevel_Max;
+        }
+
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        DRAW_UI = 1;
+
+        draw_Dialog();
+
+        SDL_GL_SwapBuffers();
+    }
+}
+
 void change_Transformer_Pin()
 {
     if (currentLocator >= 0 && currentLocator < transformerIndex)
@@ -19457,11 +19417,18 @@ int main(int argc, char * args[])
                             }
                             else if (dialog_type == ITEM_DIALOG && PROPERTIES == PROPERTIES_OBJECT)
                             {
-                                if (mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 4 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 5)
+                                if (v_index == 4)
                                 {
                                     if (h_index == 1)
                                     {
                                         change_Object_Smooth();
+                                    }
+                                }
+                                else if (v_index == 5)
+                                {
+                                    if (h_index == 1)
+                                    {
+                                        change_Object_Subdiv_Max();
                                     }
                                 }
                             }
@@ -22670,28 +22637,28 @@ int main(int argc, char * args[])
         {
             cage_v -= 0.1;
             printf("cage_v %f\n", cage_v);
-            tune_subdivide_post_Objects();
+//            tune_subdivide_post_Objects();
             message = -1;
         }
         else if (message == 20)
         {
             cage_v += 0.1;
             printf("cage_v %f\n", cage_v);
-            tune_subdivide_post_Objects();
+//            tune_subdivide_post_Objects();
             message = -1;
         }
         else if (message == 21)
         {
             edge_c -= 0.1;
             printf("edge_c %f\n", edge_c);
-            tune_subdivide_post_Objects();
+//            tune_subdivide_post_Objects();
             message = -1;
         }
         else if (message == 22)
         {
             edge_c += 0.1;
             printf("edge_c %f\n", edge_c);
-            tune_subdivide_post_Objects();
+//            tune_subdivide_post_Objects();
             message = -1;
         }
         else if (message == 23)
@@ -23070,7 +23037,7 @@ int main(int argc, char * args[])
                         printf("tune %u\n", O->tune[subdLevel]);
                     }
                 }
-                tune_subdivide_post(O);
+                //tune_subdivide_post(O);
             }
             message = -1;
         }

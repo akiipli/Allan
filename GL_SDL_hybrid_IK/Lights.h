@@ -246,6 +246,7 @@ void init_fog()
 
 void render_polys_OnScreen_Shadows(camera * C, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem);
 void render_quads_OnScreen_Shadows(camera * C, int l, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem);
+void render_polys_quads_OnScreen_Shadows(camera * C, int l, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem);
 
 void SceneShadowMap_render(camera * C, int width, int height, int subdLevel, int elem)
 {
@@ -285,11 +286,13 @@ void SceneShadowMap_render(camera * C, int width, int height, int subdLevel, int
     //glStencilMask(0x00);
     //glDepthMask(GL_TRUE);
 
+    render_polys_quads_OnScreen_Shadows(C, subdLevel, 0, 0, 0, 0, 0, elem);
+/*
     if (subdLevel == -1)
         render_polys_OnScreen_Shadows(C, 0, 0, 0, 0, 0, elem);
     else
         render_quads_OnScreen_Shadows(C, subdLevel, 0, 0, 0, 0, 0, elem);
-
+*/
     //glDisable(GL_STENCIL_TEST);
     //glDisable(GL_ALPHA_TEST);
 
@@ -568,7 +571,7 @@ int setupFBO()
 }
 
 void render_polys_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw, int currentObject, int rendermode, int Selection_Mode, int update_colors, int update_uv, int elem);
-void render_quads_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw, int l, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem);
+void render_polys_quads_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw, int l, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem);
 void load_m_colors_object(object * O);
 
 void Materials_Thumbnail_render(camera * C, int width, int height, int subdLevel, int elem)
@@ -642,10 +645,7 @@ void Materials_Thumbnail_render(camera * C, int width, int height, int subdLevel
             O->surface = s;
             load_m_colors_object(O);
 
-            if (subdLevel == -1)
-                render_polys_OnScreen(C, 0, 0, 0, 0, POLY_RENDER, 0, 1, 0, elem);
-            else
-                render_quads_OnScreen(C, subdLevel, 0, 0, 1, 0, POLY_RENDER, 0, 1, 0, elem);
+            render_polys_quads_OnScreen(C, subdLevel, 0, 0, 1, 0, POLY_RENDER, 0, 1, 0, elem);
 
             SDL_Surface * surface = Material_Thumbnail_Surfaces[s];
 

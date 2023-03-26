@@ -967,6 +967,8 @@ int initialize_object(int index,
 
     O->subdlevel = -1;
 
+    O->subdlevel_Max = 1;
+
     O->deforms = 1;
 
     O->binding = 0;

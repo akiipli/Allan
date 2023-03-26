@@ -714,6 +714,13 @@ void subdivide_Curve_Segments(curve * C, int level)
     vertex * V;
     curve_segment * S;
 
+    object * O = C->O;
+
+    if (O != NULL && level > O->subdlevel)
+    {
+        level = O->subdlevel;
+    }
+
     for (s = 0; s < C->segment_count; s ++)
     {
         S = C->segments[s];
@@ -762,123 +769,131 @@ void scan_for_Object_Patches(object * O, int level)
     quadrant * Q, * Q0;
     vertex * V, * V0;
 
-    for (l = 0; l <= level; l ++)
+    if (level > O->subdlevel)
     {
-        for (v = 0; v < O->vertcount_[l]; v ++)
-        {
-            V = &O->verts_[l][v / ARRAYSIZE][v % ARRAYSIZE];
-            V->patch = 0;
-        }
+        level = O->subdlevel;
     }
 
-    for (l = 0; l <= level; l ++)
+    if (level >= 0)
     {
-        for (e = 0; e < O->edgecount_[l]; e ++)
+        for (l = 0; l <= level; l ++)
         {
-            E = &O->edges_[l][e / ARRAYSIZE][e % ARRAYSIZE];
-            E->patch = 0;
-        }
-    }
-
-    int v_start = O->vertcount + O->edgecount;
-    int v_start0 = O->vertcount_[0] + O->edgecount_[0];
-
-    for (p = 0; p < O->polycount; p ++)
-    {
-        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-        V = &O->verts_[0][(p + v_start) / ARRAYSIZE][(p + v_start) % ARRAYSIZE];
-
-        P->patch = 0;
-
-        for (e = 0; e < P->edgecount; e ++)
-        {
-            idx = P->edges[e];
-            E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-            if (E->S != NULL)
+            for (v = 0; v < O->vertcount_[l]; v ++)
             {
-                V->patch ++;
-                //break;
+                V = &O->verts_[l][v / ARRAYSIZE][v % ARRAYSIZE];
+                V->patch = 0;
             }
         }
 
-        if (V->patch >= P->edgecount / 2)
+        for (l = 0; l <= level; l ++)
         {
-            V->patch = 1;
-        }
-        else
-        {
-            V->patch = 0;
+            for (e = 0; e < O->edgecount_[l]; e ++)
+            {
+                E = &O->edges_[l][e / ARRAYSIZE][e % ARRAYSIZE];
+                E->patch = 0;
+            }
         }
 
-        if (V->patch)
+        int v_start = O->vertcount + O->edgecount;
+        int v_start0 = O->vertcount_[0] + O->edgecount_[0];
+
+        for (p = 0; p < O->polycount; p ++)
         {
-            P->patch = 1;
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+            V = &O->verts_[0][(p + v_start) / ARRAYSIZE][(p + v_start) % ARRAYSIZE];
+
+            P->patch = 0;
 
             for (e = 0; e < P->edgecount; e ++)
             {
-                idx = P->quads[e];
-
-                Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                if (Q->subdivs)
-                {
-                    idx = v_start0 + Q->index;
-                    V0 = &O->verts_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                    V0->patch = 1;
-                }
-
                 idx = P->edges[e];
-
                 E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                E->patch = 1;
 
-                idx = V->edges[e];
-
-                E = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                E->patch = 1;
+                if (E->S != NULL)
+                {
+                    V->patch ++;
+                    //break;
+                }
             }
-        }
-    }
 
-    for (l = 0; l < level; l ++)
-    {
-        v_start = O->vertcount_[l] + O->edgecount_[l];
-        v_start0 = O->vertcount_[l + 1] + O->edgecount_[l + 1];
-
-        for (q = 0; q < O->quadcount_[l]; q ++)
-        {
-            Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
-            V = &O->verts_[l + 1][(q + v_start) / ARRAYSIZE][(q + v_start) % ARRAYSIZE];
-
-            Q->patch = 0;
+            if (V->patch >= P->edgecount / 2)
+            {
+                V->patch = 1;
+            }
+            else
+            {
+                V->patch = 0;
+            }
 
             if (V->patch)
             {
-                Q->patch = 1;
+                P->patch = 1;
 
-                for (e = 0; e < 4; e ++)
+                for (e = 0; e < P->edgecount; e ++)
                 {
-                    idx = Q->quads[e];
+                    idx = P->quads[e];
 
-                    Q0 = &O->quads_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    if (Q0->subdivs)
+                    if (Q->subdivs)
                     {
-                        idx = v_start0 + Q0->index;
-                        V0 = &O->verts_[l + 2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        idx = v_start0 + Q->index;
+                        V0 = &O->verts_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
                         V0->patch = 1;
                     }
 
-                    idx = Q->edges[e];
+                    idx = P->edges[e];
 
-                    E = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
                     E->patch = 1;
 
                     idx = V->edges[e];
 
-                    E = &O->edges_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    E = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
                     E->patch = 1;
+                }
+            }
+        }
+
+        for (l = 0; l < level; l ++)
+        {
+            v_start = O->vertcount_[l] + O->edgecount_[l];
+            v_start0 = O->vertcount_[l + 1] + O->edgecount_[l + 1];
+
+            for (q = 0; q < O->quadcount_[l]; q ++)
+            {
+                Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
+                V = &O->verts_[l + 1][(q + v_start) / ARRAYSIZE][(q + v_start) % ARRAYSIZE];
+
+                Q->patch = 0;
+
+                if (V->patch)
+                {
+                    Q->patch = 1;
+
+                    for (e = 0; e < 4; e ++)
+                    {
+                        idx = Q->quads[e];
+
+                        Q0 = &O->quads_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        if (Q0->subdivs)
+                        {
+                            idx = v_start0 + Q0->index;
+                            V0 = &O->verts_[l + 2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            V0->patch = 1;
+                        }
+
+                        idx = Q->edges[e];
+
+                        E = &O->edges_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        E->patch = 1;
+
+                        idx = V->edges[e];
+
+                        E = &O->edges_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        E->patch = 1;
+                    }
                 }
             }
         }

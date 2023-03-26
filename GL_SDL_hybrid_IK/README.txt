@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+12:55 PM 3/26/2023
+Changes for subdivision system. Subdivision is restrictable to Max level in Objects. Also combo value in Properties panel introduced.
+This value highlights in yellow and affects multiple selected items.
+
 10:00 AM 3/24/2023
 Shift + L in Object Mode switches linear pose in and off.
 

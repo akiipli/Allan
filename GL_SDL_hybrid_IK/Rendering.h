@@ -3306,267 +3306,6 @@ void render_Outline_polys(object * O, camera * C)
     }
 }
 
-void render_trips_OnScreen_(camera * C, int wireframe, int edgedraw, int vertdraw, int l, int currentObject, int Selection_Mode)
-{
-    int v, o, t, e, idx, x_, y_, L;
-    object * O;
-    triangle * T;
-    edge * E, * E0;
-    vertex * V;
-
-    normal polynormal;
-
-    surface_Material Material;
-
-    float dot_light;
-
-    Uint32 pix;
-
-    static GLubyte color[4];
-
-    Uint8 r, g, b, a;
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_LIGHTING);
-
-    for (o = 0; o < C->object_count; o++)
-    {
-        idx = C->objects[o];
-        O = objects[idx];
-
-        if (l > O->subdlevel)
-        {
-            L = O->subdlevel;
-        }
-        else
-        {
-            L = l;
-        }
-
-        for (t = 0; t < O->tripcount_[L]; t++)
-        {
-            T = &O->trips_[L][t / ARRAYSIZE][t % ARRAYSIZE];
-            polynormal.x = -T->N.Tx;
-            polynormal.y = -T->N.Ty;
-            polynormal.z = -T->N.Tz;
-
-            idx = T->surface;
-            Material = Materials[idx];
-
-            texture = Surf_Text[Material.texture];
-
-            if (Material.use_texture && texture != NULL)
-            {
-                x_ = abs((int)(texture->w * T->B2.u)) % texture->w;
-                y_ = abs((int)(texture->h * T->B2.v)) % texture->h;
-                pix = get_pixel32(texture, x_, y_);
-                SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
-            }
-            else if (T->selected)
-            {
-                r = 0;
-                g = 0;
-                b = 255;
-                a = 255;
-            }
-            else
-            {
-                r = Material.RGBA.R;
-                g = Material.RGBA.G;
-                b = Material.RGBA.B;
-                a = Material.RGBA.A;
-            }
-
-            dot_light = dot_productN(&polynormal, light_vec);
-
-            if (dot_light < 0) dot_light = 0;
-
-            r *= dot_light;
-            g *= dot_light;
-            b *= dot_light;
-
-            color[0] = r;
-            color[1] = g;
-            color[2] = b;
-            color[3] = a;
-
-            glColor4ubv(color);
-
-            if (wireframe)
-            {
-                glBegin(GL_LINE_LOOP);
-                for (e = 0; e < 3; e ++)
-                {
-                    idx = T->verts[e];
-                    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                    glVertex3f(V->Tx, V->Ty, V->Tz);
-                }
-                glEnd();
-            }
-            else
-            {
-                glBegin(GL_TRIANGLES);
-                for (e = 0; e < 3; e ++)
-                {
-                    idx = T->verts[e];
-                    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                    glVertex3f(V->Tx, V->Ty, V->Tz);
-                }
-                glEnd();
-            }
-        }
-
-        if (edgedraw && O->subdlevel >= L) // assuming some objects have no geometry on all levels.
-        {
-            glDisable(GL_BLEND);
-            glEnable(GL_LINE_STIPPLE);
-            if (C->objects[o] == currentObject && O->selected)
-            {
-                if (Selection_Mode == POLYS)
-                glLineStipple(1, 0xEEEE);
-                else if (Selection_Mode == VERTS)
-                glLineWidth(1);
-                else if (Selection_Mode == EDGES)
-                glLineWidth(1);
-                else
-                glLineWidth(2);
-                if (O->deforms)
-                line_color = &current_deform_color[0];
-                else
-                line_color = &current_color[0];
-            }
-            else if (O->selected)
-            {
-                if (Selection_Mode == POLYS)
-                glLineStipple(1, 0xEEEE);
-                else if (Selection_Mode == VERTS)
-                glLineWidth(1);
-                else
-                glLineWidth(1);
-                if (O->deforms)
-                line_color = &selected_deform_color[0];
-                else
-                line_color = &selected_color[0];
-            }
-            else
-            {
-                glLineStipple(1, 0xFFFF);
-                glLineWidth(1);
-                if (O->deforms)
-                line_color = &deform_color[0];
-                else
-                line_color = &wire_color[0];
-            }
-            if (Selection_Mode != OBJES)
-            {
-                memcpy(Line_Color, line_color, sizeof Line_Color);
-                for (e = 0; e < O->edgecount; e++)
-                {
-                    E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-                    if (E->selected)
-                    {
-                        line_color = &selected_edge_color[0];
-                    }
-                    else if (!glIsEnabled(GL_LIGHTING))
-                    {
-                        line_color = Line_Color;
-                    }
-                    idx = E->edges[0];
-                    E0 = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                    draw_Edge_recursive(O, E0, 0, L, C, wireframe, E->B.Tradius);
-                    idx = E->edges[1];
-                    E0 = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                    draw_Edge_recursive(O, E0, 0, L, C, wireframe, E->B.Tradius);
-                }
-            }
-            else
-            {
-                if (C->objects[o] == currentObject || O->selected)
-                {
-                    render_Outline_quads(O, C, L);
-                }
-                else
-                {
-                    for (e = 0; e < O->edgecount; e++)
-                    {
-                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-                        idx = E->edges[0];
-                        E0 = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                        draw_Edge_recursive(O, E0, 0, L, C, wireframe, E->B.Tradius);
-                        idx = E->edges[1];
-                        E0 = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                        draw_Edge_recursive(O, E0, 0, L, C, wireframe, E->B.Tradius);
-                    }
-                }
-            }
-            glEnable(GL_BLEND);
-            glDisable(GL_LINE_STIPPLE);
-            glLineWidth(1);
-        }
-        if (vertdraw)
-        {
-            if (C->objects[o] == currentObject)
-            glPointSize(3);
-            else
-            glPointSize(2);
-            glBegin(GL_POINTS);
-            glColor4ubv(vert_color);
-
-            float factor;
-            float dot;
-            float view_minor;
-
-            aim Aim;
-            normal Normal;
-
-            if (C->view_minor > 1)
-                view_minor = C->view_minor;
-            else
-                view_minor = 1;
-
-            for (v = 0; v < O->vertcount; v ++)
-            {
-                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-
-                Normal.x = -V->N.Tx;
-                Normal.y = -V->N.Ty;
-                Normal.z = -V->N.Tz;
-
-                Aim = vector3d_T(V, C->T->pos);
-
-                if (C->ortho)
-                {
-                    dot = dot_productN(&Normal, C->T->aim);
-                }
-                else
-                {
-                    dot = dot_productN(&Normal, Aim.vec);
-                }
-
-                if (dot < 0)
-                    continue;
-
-                if (C->ortho)
-                {
-                    factor = Aim.dist * view_minor * 0.002 * dot;
-                    glVertex3f(V->Tx + V->N.Tx * factor, V->Ty + V->N.Ty * factor, V->Tz + V->N.Tz * factor);
-                }
-                else
-                {
-                    factor = Aim.dist * view_minor * 0.3 * O->mean_Edge * dot;
-                    if (factor > Aim.dist / 2)
-                    {
-                        factor = Aim.dist / 2;
-                    }
-                    glVertex3f(V->Tx - Aim.vec[0] * factor, V->Ty - Aim.vec[1] * factor, V->Tz - Aim.vec[2] * factor);
-                }
-            }
-            glEnd();
-        }
-    }
-    glEnable(GL_LIGHTING);
-}
-
 int draw_Edge(object * O, edge * E, camera * C, int wireframe, float edge_length)
 {
     int idx;
@@ -3678,6 +3417,482 @@ int draw_Edge(object * O, edge * E, camera * C, int wireframe, float edge_length
     glEnd();
 
     return 1;
+}
+
+void render_trips_OnScreen_(camera * C, int wireframe, int edgedraw, int vertdraw, int l, int currentObject, int Selection_Mode)
+{
+    int v, o, t, e, idx, x_, y_, L;
+    object * O;
+    triangle * T;
+    edge * E, * E0;
+    vertex * V;
+
+    normal polynormal;
+
+    surface_Material Material;
+
+    float dot_light;
+
+    Uint32 pix;
+
+    static GLubyte color[4];
+
+    Uint8 r, g, b, a;
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_LIGHTING);
+
+    for (o = 0; o < C->object_count; o++)
+    {
+        idx = C->objects[o];
+        O = objects[idx];
+
+        if (l > O->subdlevel)
+        {
+            L = O->subdlevel;
+        }
+        else
+        {
+            L = l;
+        }
+
+        if (L == -1)
+        {
+            for (t = 0; t < O->tripcount; t++)
+            {
+                T = &O->trips[t / ARRAYSIZE][t % ARRAYSIZE];
+                polynormal.x = -T->N.Tx;
+                polynormal.y = -T->N.Ty;
+                polynormal.z = -T->N.Tz;
+
+                idx = T->surface;
+                Material = Materials[idx];
+
+                texture = Surf_Text[Material.texture];
+
+                if (Material.use_texture && texture != NULL)
+                {
+                    x_ = abs((int)(texture->w * T->B2.u)) % texture->w;
+                    y_ = abs((int)(texture->h * T->B2.v)) % texture->h;
+                    pix = get_pixel32(texture, x_, y_);
+                    SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+                }
+                else if (T->selected)
+                {
+                    r = 0;
+                    g = 0;
+                    b = 255;
+                    a = 255;
+                }
+                else
+                {
+                    r = Material.RGBA.R;
+                    g = Material.RGBA.G;
+                    b = Material.RGBA.B;
+                    a = Material.RGBA.A;
+                }
+
+                dot_light = dot_productN(&polynormal, light_vec);
+
+                if (dot_light < 0) dot_light = 0;
+
+                r *= dot_light;
+                g *= dot_light;
+                b *= dot_light;
+
+                color[0] = r;
+                color[1] = g;
+                color[2] = b;
+                color[3] = a;
+
+                glColor4ubv(color);
+
+                if (wireframe)
+                {
+                    glBegin(GL_LINE_LOOP);
+                    for (e = 0; e < 3; e ++)
+                    {
+                        idx = T->verts[e];
+                        V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        glVertex3f(V->Tx, V->Ty, V->Tz);
+                    }
+                    glEnd();
+                }
+                else
+                {
+                    glBegin(GL_TRIANGLES);
+                    for (e = 0; e < 3; e ++)
+                    {
+                        idx = T->verts[e];
+                        V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        glVertex3f(V->Tx, V->Ty, V->Tz);
+                    }
+                    glEnd();
+                }
+            }
+            if (edgedraw) // assuming some objects have no geometry on all levels.
+            {
+                glDisable(GL_BLEND);
+                glEnable(GL_LINE_STIPPLE);
+                if (C->objects[o] == currentObject && O->selected)
+                {
+                    if (Selection_Mode == POLYS)
+                    glLineStipple(1, 0xEEEE);
+                    else if (Selection_Mode == VERTS)
+                    glLineWidth(1);
+                    else if (Selection_Mode == EDGES)
+                    glLineWidth(1);
+                    else
+                    glLineWidth(2);
+                    if (O->deforms)
+                    line_color = &current_deform_color[0];
+                    else
+                    line_color = &current_color[0];
+                }
+                else if (O->selected)
+                {
+                    if (Selection_Mode == POLYS)
+                    glLineStipple(1, 0xEEEE);
+                    else if (Selection_Mode == VERTS)
+                    glLineWidth(1);
+                    else
+                    glLineWidth(1);
+                    if (O->deforms)
+                    line_color = &selected_deform_color[0];
+                    else
+                    line_color = &selected_color[0];
+                }
+                else
+                {
+                    glLineStipple(1, 0xFFFF);
+                    glLineWidth(1);
+                    if (O->deforms)
+                    line_color = &deform_color[0];
+                    else
+                    line_color = &wire_color[0];
+                }
+                if (Selection_Mode != OBJES)
+                {
+                    memcpy(Line_Color, line_color, sizeof Line_Color);
+                    for (e = 0; e < O->edgecount; e++)
+                    {
+                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+                        if (E->selected)
+                        {
+                            line_color = &selected_edge_color[0];
+                        }
+                        else if (!glIsEnabled(GL_LIGHTING))
+                        {
+                            line_color = Line_Color;
+                        }
+                        draw_Edge(O, E, C, wireframe, E->B.Tradius);
+                    }
+                }
+                else
+                {
+                    if (C->objects[o] == currentObject || O->selected)
+                    {
+                        render_Outline_polys(O, C);
+                    }
+                    else
+                    {
+                        for (e = 0; e < O->edgecount; e++)
+                        {
+                            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+                            draw_Edge(O, E, C, wireframe, E->B.Tradius);
+                        }
+                    }
+                }
+                glEnable(GL_BLEND);
+                glLineWidth(1);
+                glDisable(GL_LINE_STIPPLE);
+            }
+            if (vertdraw)
+            {
+                if (C->objects[o] == currentObject)
+                glPointSize(3);
+                else
+                glPointSize(2);
+                glBegin(GL_POINTS);
+                glColor4ubv(vert_color);
+
+                float factor;
+                float dot;
+                float view_minor;
+
+                aim Aim;
+                normal Normal;
+
+                if (C->view_minor > 1)
+                    view_minor = C->view_minor;
+                else
+                    view_minor = 1;
+
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                    Normal.x = -V->N.Tx;
+                    Normal.y = -V->N.Ty;
+                    Normal.z = -V->N.Tz;
+
+                    Aim = vector3d_T(V, C->T->pos);
+
+                    if (C->ortho)
+                    {
+                        dot = dot_productN(&Normal, C->T->aim);
+                    }
+                    else
+                    {
+                        dot = dot_productN(&Normal, Aim.vec);
+                    }
+
+                    if (dot < 0)
+                        continue;
+
+                    if (C->ortho)
+                    {
+                        factor = Aim.dist * view_minor * 0.002 * dot;
+                        glVertex3f(V->Tx + V->N.Tx * factor, V->Ty + V->N.Ty * factor, V->Tz + V->N.Tz * factor);
+                    }
+                    else
+                    {
+                        factor = Aim.dist * view_minor * 0.3 * O->mean_Edge * dot;
+                        if (factor > Aim.dist / 2)
+                        {
+                            factor = Aim.dist / 2;
+                        }
+                        glVertex3f(V->Tx - Aim.vec[0] * factor, V->Ty - Aim.vec[1] * factor, V->Tz - Aim.vec[2] * factor);
+                    }
+                }
+                glEnd();
+            }
+        }
+        else
+        {
+            for (t = 0; t < O->tripcount_[L]; t++)
+            {
+                T = &O->trips_[L][t / ARRAYSIZE][t % ARRAYSIZE];
+                polynormal.x = -T->N.Tx;
+                polynormal.y = -T->N.Ty;
+                polynormal.z = -T->N.Tz;
+
+                idx = T->surface;
+                Material = Materials[idx];
+
+                texture = Surf_Text[Material.texture];
+
+                if (Material.use_texture && texture != NULL)
+                {
+                    x_ = abs((int)(texture->w * T->B2.u)) % texture->w;
+                    y_ = abs((int)(texture->h * T->B2.v)) % texture->h;
+                    pix = get_pixel32(texture, x_, y_);
+                    SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+                }
+                else if (T->selected)
+                {
+                    r = 0;
+                    g = 0;
+                    b = 255;
+                    a = 255;
+                }
+                else
+                {
+                    r = Material.RGBA.R;
+                    g = Material.RGBA.G;
+                    b = Material.RGBA.B;
+                    a = Material.RGBA.A;
+                }
+
+                dot_light = dot_productN(&polynormal, light_vec);
+
+                if (dot_light < 0) dot_light = 0;
+
+                r *= dot_light;
+                g *= dot_light;
+                b *= dot_light;
+
+                color[0] = r;
+                color[1] = g;
+                color[2] = b;
+                color[3] = a;
+
+                glColor4ubv(color);
+
+                if (wireframe)
+                {
+                    glBegin(GL_LINE_LOOP);
+                    for (e = 0; e < 3; e ++)
+                    {
+                        idx = T->verts[e];
+                        V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        glVertex3f(V->Tx, V->Ty, V->Tz);
+                    }
+                    glEnd();
+                }
+                else
+                {
+                    glBegin(GL_TRIANGLES);
+                    for (e = 0; e < 3; e ++)
+                    {
+                        idx = T->verts[e];
+                        V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        glVertex3f(V->Tx, V->Ty, V->Tz);
+                    }
+                    glEnd();
+                }
+            }
+
+            if (edgedraw && O->subdlevel >= L) // assuming some objects have no geometry on all levels.
+            {
+                glDisable(GL_BLEND);
+                glEnable(GL_LINE_STIPPLE);
+                if (C->objects[o] == currentObject && O->selected)
+                {
+                    if (Selection_Mode == POLYS)
+                    glLineStipple(1, 0xEEEE);
+                    else if (Selection_Mode == VERTS)
+                    glLineWidth(1);
+                    else if (Selection_Mode == EDGES)
+                    glLineWidth(1);
+                    else
+                    glLineWidth(2);
+                    if (O->deforms)
+                    line_color = &current_deform_color[0];
+                    else
+                    line_color = &current_color[0];
+                }
+                else if (O->selected)
+                {
+                    if (Selection_Mode == POLYS)
+                    glLineStipple(1, 0xEEEE);
+                    else if (Selection_Mode == VERTS)
+                    glLineWidth(1);
+                    else
+                    glLineWidth(1);
+                    if (O->deforms)
+                    line_color = &selected_deform_color[0];
+                    else
+                    line_color = &selected_color[0];
+                }
+                else
+                {
+                    glLineStipple(1, 0xFFFF);
+                    glLineWidth(1);
+                    if (O->deforms)
+                    line_color = &deform_color[0];
+                    else
+                    line_color = &wire_color[0];
+                }
+                if (Selection_Mode != OBJES)
+                {
+                    memcpy(Line_Color, line_color, sizeof Line_Color);
+                    for (e = 0; e < O->edgecount; e++)
+                    {
+                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+                        if (E->selected)
+                        {
+                            line_color = &selected_edge_color[0];
+                        }
+                        else if (!glIsEnabled(GL_LIGHTING))
+                        {
+                            line_color = Line_Color;
+                        }
+                        idx = E->edges[0];
+                        E0 = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        draw_Edge_recursive(O, E0, 0, L, C, wireframe, E->B.Tradius);
+                        idx = E->edges[1];
+                        E0 = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        draw_Edge_recursive(O, E0, 0, L, C, wireframe, E->B.Tradius);
+                    }
+                }
+                else
+                {
+                    if (C->objects[o] == currentObject || O->selected)
+                    {
+                        render_Outline_quads(O, C, L);
+                    }
+                    else
+                    {
+                        for (e = 0; e < O->edgecount; e++)
+                        {
+                            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+                            idx = E->edges[0];
+                            E0 = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            draw_Edge_recursive(O, E0, 0, L, C, wireframe, E->B.Tradius);
+                            idx = E->edges[1];
+                            E0 = &O->edges_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            draw_Edge_recursive(O, E0, 0, L, C, wireframe, E->B.Tradius);
+                        }
+                    }
+                }
+                glEnable(GL_BLEND);
+                glDisable(GL_LINE_STIPPLE);
+                glLineWidth(1);
+            }
+            if (vertdraw)
+            {
+                if (C->objects[o] == currentObject)
+                glPointSize(3);
+                else
+                glPointSize(2);
+                glBegin(GL_POINTS);
+                glColor4ubv(vert_color);
+
+                float factor;
+                float dot;
+                float view_minor;
+
+                aim Aim;
+                normal Normal;
+
+                if (C->view_minor > 1)
+                    view_minor = C->view_minor;
+                else
+                    view_minor = 1;
+
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                    Normal.x = -V->N.Tx;
+                    Normal.y = -V->N.Ty;
+                    Normal.z = -V->N.Tz;
+
+                    Aim = vector3d_T(V, C->T->pos);
+
+                    if (C->ortho)
+                    {
+                        dot = dot_productN(&Normal, C->T->aim);
+                    }
+                    else
+                    {
+                        dot = dot_productN(&Normal, Aim.vec);
+                    }
+
+                    if (dot < 0)
+                        continue;
+
+                    if (C->ortho)
+                    {
+                        factor = Aim.dist * view_minor * 0.002 * dot;
+                        glVertex3f(V->Tx + V->N.Tx * factor, V->Ty + V->N.Ty * factor, V->Tz + V->N.Tz * factor);
+                    }
+                    else
+                    {
+                        factor = Aim.dist * view_minor * 0.3 * O->mean_Edge * dot;
+                        if (factor > Aim.dist / 2)
+                        {
+                            factor = Aim.dist / 2;
+                        }
+                        glVertex3f(V->Tx - Aim.vec[0] * factor, V->Ty - Aim.vec[1] * factor, V->Tz - Aim.vec[2] * factor);
+                    }
+                }
+                glEnd();
+            }
+        }
+    }
+    glEnable(GL_LIGHTING);
 }
 
 void render_trips_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw, int currentObject, int Selection_Mode)
@@ -3936,40 +4151,53 @@ void render_UV_Edges_ID_(camera * C, object * O, int l)
     {
         L = l;
     }
-    if (O->subdlevel >= L)
+
+    int e, idx, idx0, idx1, idx2;
+    uv_edge * UVE, * UVE0;
+    uv * UV0, * UV1;
+
+    int M0 = 255 * 255 * 255;
+    int M1 = 255 * 255;
+
+    float R, G, B, A;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DITHER);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_MULTISAMPLE);
+
+    glLineWidth(6);
+
+    glBegin(GL_LINES);
+
+    for (e = 0; e < O->uvedcount; e++)
     {
-        int e, idx, idx0, idx1, idx2;
-        uv_edge * UVE, * UVE0;
+        UVE = &O->uveds[e / ARRAYSIZE][e % ARRAYSIZE];
 
-        int M0 = 255 * 255 * 255;
-        int M1 = 255 * 255;
+        R = (float)(e / M0) / (float)255;
+        idx0 = e % M0;
+        G = (float)(idx0 / M1) / (float)255;
+        idx1 = idx0 % M1;
+        B = (float)(idx1 / 255) / (float)255;
+        idx2 = idx1 % 255;
+        A = (float)(idx2) / (float)255;
 
-        float R, G, B, A;
+        glColor4f(R, G, B, A);
 
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DITHER);
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_BLEND);
-        glDisable(GL_MULTISAMPLE);
-
-        glLineWidth(6);
-
-        glBegin(GL_LINES);
-
-        for (e = 0; e < O->uvedcount; e++)
+        if (L == -1)
         {
-            UVE = &O->uveds[e / ARRAYSIZE][e % ARRAYSIZE];
+            idx = UVE->uv_verts[0];
+            UV0 = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-            R = (float)(e / M0) / (float)255;
-            idx0 = e % M0;
-            G = (float)(idx0 / M1) / (float)255;
-            idx1 = idx0 % M1;
-            B = (float)(idx1 / 255) / (float)255;
-            idx2 = idx1 % 255;
-            A = (float)(idx2) / (float)255;
+            idx = UVE->uv_verts[1];
+            UV1 = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-            glColor4f(R, G, B, A);
-
+            glVertex2f(UV0->u, UV0->v);
+            glVertex2f(UV1->u, UV1->v);
+        }
+        else if (O->subdlevel >= L)
+        {
             idx = UVE->uv_edges[0];
             UVE0 = &O->uveds_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
             draw_UV_Edge_ID_recursive(C, O, UVE0, 0, L);
@@ -3977,17 +4205,17 @@ void render_UV_Edges_ID_(camera * C, object * O, int l)
             UVE0 = &O->uveds_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
             draw_UV_Edge_ID_recursive(C, O, UVE0, 0, L);
         }
-
-        glEnd();
-
-        glLineWidth(1);
-
-        glEnable(GL_MULTISAMPLE);
-        glEnable(GL_BLEND);
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_DITHER);
-        glEnable(GL_LIGHTING);
     }
+
+    glEnd();
+
+    glLineWidth(1);
+
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DITHER);
+    glEnable(GL_LIGHTING);
 }
 
 int render_Quads_ID_recursive(object * O, quadrant * Q, int L, int l)
@@ -4098,25 +4326,71 @@ void render_Segments_ID_(object * O, int l)
         L = l;
     }
 
-    if (O->subdlevel >= L)
+    int c, p, s, q, e, idx, idx0, idx1, idx2;
+    quadrant * Q;
+    polygon * P;
+    vertex * V;
+    curve * C;
+    curve_segment * S;
+
+    int M0 = 255 * 255 * 255;
+    int M1 = 255 * 255;
+
+    float R, G, B, A;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DITHER);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_MULTISAMPLE);
+
+    if (L == -1)
     {
-        int c, s, q, e, idx, idx0, idx1, idx2;
-        quadrant * Q;
-        vertex * V;
-        curve * C;
-        curve_segment * S;
+        for (p = 0; p < O->polycount; p++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
 
-        int M0 = 255 * 255 * 255;
-        int M1 = 255 * 255;
+            glBegin(GL_TRIANGLE_FAN);
+            for (e = 0; e < P->edgecount; e ++)
+            {
+                idx = P->verts[e];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                glVertex3f(V->Tx, V->Ty, V->Tz);
+            }
+            glEnd();
+        }
 
-        float R, G, B, A;
+        glLineWidth(6);
+        glColor4f(1, 1, 1, 1);
+        glBegin(GL_LINES);
 
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DITHER);
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_BLEND);
-        glDisable(GL_MULTISAMPLE);
+        for (c = 0; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+            if (C->selected)
+            {
+                for (s = 0; s < C->segment_count; s ++)
+                {
+                    S = C->segments[s];
+                    idx = S->index;
 
+                    R = (float)(idx / M0) / (float)255;
+                    idx0 = idx % M0;
+                    G = (float)(idx0 / M1) / (float)255;
+                    idx1 = idx0 % M1;
+                    B = (float)(idx1 / 255) / (float)255;
+                    idx2 = idx1 % 255;
+                    A = (float)(idx2) / (float)255;
+
+                    glColor4f(R, G, B, A);
+                    glVertex3fv(S->A);
+                    glVertex3fv(S->C);
+                }
+            }
+        }
+    }
+    else if (O->subdlevel >= L)
+    {
         for (q = 0; q < O->quadcount_[L]; q ++)
         {
             Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
@@ -4166,18 +4440,18 @@ void render_Segments_ID_(object * O, int l)
         }
 
         glEnd();
-
-        glLineWidth(1);
-
-        glEnable(GL_MULTISAMPLE);
-        glEnable(GL_BLEND);
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_DITHER);
-        glEnable(GL_LIGHTING);
     }
+
+    glLineWidth(1);
+
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DITHER);
+    glEnable(GL_LIGHTING);
 }
 
-void render_quads_Edges_ID(camera * C, object * O, int l)
+void render_poly_quads_Edges_ID(camera * C, object * O, int l)
 {
     int L;
     if (l > O->subdlevel)
@@ -4188,25 +4462,160 @@ void render_quads_Edges_ID(camera * C, object * O, int l)
     {
         L = l;
     }
+    int p, q, e, idx, idx0, idx1, idx2;
+    quadrant * Q;
+    polygon * P;
+    edge * E, * E0;
+    vertex * V, * V0, * V1;
 
-    if (O->subdlevel >= L)
+    int M0 = 255 * 255 * 255;
+    int M1 = 255 * 255;
+
+    float R, G, B, A;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DITHER);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_MULTISAMPLE);
+
+    if (L == -1)
     {
-        int q, e, idx, idx0, idx1, idx2;
-        quadrant * Q;
-        edge * E, * E0;
-        vertex * V;
+        for (p = 0; p < O->polycount; p++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
 
-        int M0 = 255 * 255 * 255;
-        int M1 = 255 * 255;
+            glColor4f(1, 1, 1, 1);
 
-        float R, G, B, A;
+            glBegin(GL_TRIANGLE_FAN);
+            for (e = 0; e < P->edgecount; e ++)
+            {
+                idx = P->verts[e];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                glVertex3f(V->Tx, V->Ty, V->Tz);
+            }
+            glEnd();
+        }
 
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DITHER);
-        glDisable(GL_TEXTURE_2D);
-        glDisable(GL_BLEND);
-        glDisable(GL_MULTISAMPLE);
+        glLineWidth(6);
 
+        glBegin(GL_LINES);
+
+        float factor;
+        float dot;
+        float view_minor;
+
+        aim Aim;
+        normal Normal;
+
+        if (C->view_minor > 1)
+            view_minor = C->view_minor;
+        else
+            view_minor = 1;
+
+        for (e = 0; e < O->edgecount; e++)
+        {
+            E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+
+            Normal.x = -E->N.Tx;
+            Normal.y = -E->N.Ty;
+            Normal.z = -E->N.Tz;
+
+            Aim = vector3d(E->B, C->T->pos);
+
+            if (C->ortho)
+            {
+                dot = dot_productN(&Normal, C->T->aim);
+            }
+            else
+            {
+                dot = dot_productN(&Normal, Aim.vec);
+            }
+
+            if (dot < 0)
+                continue;
+
+            idx = E->verts[0];
+            V0 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            idx = E->verts[1];
+            V1 = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            R = (float)(e / M0) / (float)255;
+            idx0 = e % M0;
+            G = (float)(idx0 / M1) / (float)255;
+            idx1 = idx0 % M1;
+            B = (float)(idx1 / 255) / (float)255;
+            idx2 = idx1 % 255;
+            A = (float)(idx2) / (float)255;
+
+            glColor4f(R, G, B, A);
+
+            Normal.x = -V0->N.Tx;
+            Normal.y = -V0->N.Ty;
+            Normal.z = -V0->N.Tz;
+
+            Aim = vector3d_T(V0, C->T->pos);
+
+            if (C->ortho)
+            {
+                dot = dot_productN(&Normal, C->T->aim);
+            }
+            else
+            {
+                dot = dot_productN(&Normal, Aim.vec);
+            }
+
+            if (C->ortho)
+            {
+                factor = Aim.dist * view_minor * 0.002 * dot;
+                glVertex3f(V0->Tx + V0->N.Tx * factor, V0->Ty + V0->N.Ty * factor, V0->Tz + V0->N.Tz * factor);
+            }
+            else
+            {
+                factor = Aim.dist * view_minor * 0.3 * O->mean_Edge * dot;
+                if (factor > Aim.dist / 2)
+                {
+                    factor = Aim.dist / 2;
+                }
+                glVertex3f(V0->Tx - Aim.vec[0] * factor, V0->Ty - Aim.vec[1] * factor, V0->Tz - Aim.vec[2] * factor);
+            }
+
+            Normal.x = -V1->N.Tx;
+            Normal.y = -V1->N.Ty;
+            Normal.z = -V1->N.Tz;
+
+            Aim = vector3d_T(V1, C->T->pos);
+
+            if (C->ortho)
+            {
+                dot = dot_productN(&Normal, C->T->aim);
+            }
+            else
+            {
+                dot = dot_productN(&Normal, Aim.vec);
+            }
+
+            if (C->ortho)
+            {
+                factor = Aim.dist * view_minor * 0.002 * dot;
+                glVertex3f(V1->Tx + V1->N.Tx * factor, V1->Ty + V1->N.Ty * factor, V1->Tz + V1->N.Tz * factor);
+            }
+            else
+            {
+                factor = Aim.dist * view_minor * 0.3 * O->mean_Edge * dot;
+                if (factor > Aim.dist / 2)
+                {
+                    factor = Aim.dist / 2;
+                }
+                glVertex3f(V1->Tx - Aim.vec[0] * factor, V1->Ty - Aim.vec[1] * factor, V1->Tz - Aim.vec[2] * factor);
+            }
+        }
+
+        glEnd();
+    }
+    else if (O->subdlevel >= L)
+    {
         for (q = 0; q < O->quadcount_[L]; q ++)
         {
             Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
@@ -4250,15 +4659,15 @@ void render_quads_Edges_ID(camera * C, object * O, int l)
         }
 
         glEnd();
-
-        glLineWidth(1);
-
-        glEnable(GL_MULTISAMPLE);
-        glEnable(GL_BLEND);
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_DITHER);
-        glEnable(GL_LIGHTING);
     }
+
+    glLineWidth(1);
+
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DITHER);
+    glEnable(GL_LIGHTING);
 }
 
 void render_UV_Verts_ID_(camera * C, object * O, int l)
@@ -4329,10 +4738,11 @@ void render_UV_Verts_ID_(camera * C, object * O, int l)
     glEnable(GL_LIGHTING);
 }
 
-void render_quad_Verts_ID(camera * C, object * O, int l)
+void render_poly_quad_Verts_ID(camera * C, object * O, int l)
 {
-    int level, e, q, v, idx, idx0, idx1, idx2;
+    int level, e, p, q, v, idx, idx0, idx1, idx2;
     quadrant * Q;
+    polygon * P;
     vertex * V;
 
     int M0 = 255 * 255 * 255;
@@ -4365,85 +4775,161 @@ void render_quad_Verts_ID(camera * C, object * O, int l)
     }
 
     glColor4f(1, 1, 1, 1);
-    glBegin(GL_QUADS);
 
-    for (q = 0; q < O->quadcount_[L]; q ++)
+    if (L == -1)
     {
-        Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
-        for (e = 0; e < 4; e ++)
+        for (p = 0; p < O->polycount; p++)
         {
-            idx = Q->verts[e];
-            V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-            glVertex3f(V->Tx, V->Ty, V->Tz);
-        }
-    }
-    glEnd();
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
 
-    glPointSize(6);
-    glBegin(GL_POINTS);
-
-    if (C->view_minor > 1)
-        view_minor = C->view_minor;
-    else
-        view_minor = 1;
-
-    for (v = 0; v < O->vertcount; v ++)
-    {
-        V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-
-        level = -1;
-
-        while (V->vert != NULL && level < L)
-        {
-            V = V->vert;
-            level ++;
-        }
-
-        R = (float)(v / M0) / (float)255;
-        idx0 = v % M0;
-        G = (float)(idx0 / M1) / (float)255;
-        idx1 = idx0 % M1;
-        B = (float)(idx1 / 255) / (float)255;
-        idx2 = idx1 % 255;
-        A = (float)(idx2) / (float)255;
-
-        glColor4f(R, G, B, A);
-
-        Normal.x = -V->N.Tx;
-        Normal.y = -V->N.Ty;
-        Normal.z = -V->N.Tz;
-
-        Aim = vector3d_T(V, C->T->pos);
-
-        if (C->ortho)
-        {
-            dot = dot_productN(&Normal, C->T->aim);
-        }
-        else
-        {
-            dot = dot_productN(&Normal, Aim.vec);
-        }
-
-        if (dot < 0)
-            continue;
-
-        if (C->ortho)
-        {
-            factor = Aim.dist * view_minor * 0.002 * dot;
-            glVertex3f(V->Tx + V->N.Tx * factor, V->Ty + V->N.Ty * factor, V->Tz + V->N.Tz * factor);
-        }
-        else
-        {
-            factor = Aim.dist * view_minor * 0.3 * O->mean_Edge * dot;
-            if (factor > Aim.dist / 2)
+            glBegin(GL_TRIANGLE_FAN);
+            for (e = 0; e < P->edgecount; e ++)
             {
-                factor = Aim.dist / 2;
+                idx = P->verts[e];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                glVertex3f(V->Tx, V->Ty, V->Tz);
             }
-            glVertex3f(V->Tx - Aim.vec[0] * factor, V->Ty - Aim.vec[1] * factor, V->Tz - Aim.vec[2] * factor);
+            glEnd();
         }
-    }
 
-    glEnd();
+        glPointSize(6);
+        glBegin(GL_POINTS);
+
+        if (C->view_minor > 1)
+            view_minor = C->view_minor;
+        else
+            view_minor = 1;
+
+        for (v = 0; v < O->vertcount; v ++)
+        {
+            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+            R = (float)(v / M0) / (float)255;
+            idx0 = v % M0;
+            G = (float)(idx0 / M1) / (float)255;
+            idx1 = idx0 % M1;
+            B = (float)(idx1 / 255) / (float)255;
+            idx2 = idx1 % 255;
+            A = (float)(idx2) / (float)255;
+
+            glColor4f(R, G, B, A);
+
+            Normal.x = -V->N.Tx;
+            Normal.y = -V->N.Ty;
+            Normal.z = -V->N.Tz;
+
+            Aim = vector3d_T(V, C->T->pos);
+
+            if (C->ortho)
+            {
+                dot = dot_productN(&Normal, C->T->aim);
+            }
+            else
+            {
+                dot = dot_productN(&Normal, Aim.vec);
+            }
+
+            if (dot < 0)
+                continue;
+
+            if (C->ortho)
+            {
+                factor = Aim.dist * view_minor * 0.002 * dot;
+                glVertex3f(V->Tx + V->N.Tx * factor, V->Ty + V->N.Ty * factor, V->Tz + V->N.Tz * factor);
+            }
+            else
+            {
+                factor = Aim.dist * view_minor * 0.3 * O->mean_Edge * dot;
+                if (factor > Aim.dist / 2)
+                {
+                    factor = Aim.dist / 2;
+                }
+                glVertex3f(V->Tx - Aim.vec[0] * factor, V->Ty - Aim.vec[1] * factor, V->Tz - Aim.vec[2] * factor);
+            }
+        }
+        glEnd();
+    }
+    else
+    {
+        glBegin(GL_QUADS);
+
+        for (q = 0; q < O->quadcount_[L]; q ++)
+        {
+            Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
+            for (e = 0; e < 4; e ++)
+            {
+                idx = Q->verts[e];
+                V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                glVertex3f(V->Tx, V->Ty, V->Tz);
+            }
+        }
+        glEnd();
+
+        glPointSize(6);
+        glBegin(GL_POINTS);
+
+        if (C->view_minor > 1)
+            view_minor = C->view_minor;
+        else
+            view_minor = 1;
+
+        for (v = 0; v < O->vertcount; v ++)
+        {
+            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+            level = -1;
+
+            while (V->vert != NULL && level < L)
+            {
+                V = V->vert;
+                level ++;
+            }
+
+            R = (float)(v / M0) / (float)255;
+            idx0 = v % M0;
+            G = (float)(idx0 / M1) / (float)255;
+            idx1 = idx0 % M1;
+            B = (float)(idx1 / 255) / (float)255;
+            idx2 = idx1 % 255;
+            A = (float)(idx2) / (float)255;
+
+            glColor4f(R, G, B, A);
+
+            Normal.x = -V->N.Tx;
+            Normal.y = -V->N.Ty;
+            Normal.z = -V->N.Tz;
+
+            Aim = vector3d_T(V, C->T->pos);
+
+            if (C->ortho)
+            {
+                dot = dot_productN(&Normal, C->T->aim);
+            }
+            else
+            {
+                dot = dot_productN(&Normal, Aim.vec);
+            }
+
+            if (dot < 0)
+                continue;
+
+            if (C->ortho)
+            {
+                factor = Aim.dist * view_minor * 0.002 * dot;
+                glVertex3f(V->Tx + V->N.Tx * factor, V->Ty + V->N.Ty * factor, V->Tz + V->N.Tz * factor);
+            }
+            else
+            {
+                factor = Aim.dist * view_minor * 0.3 * O->mean_Edge * dot;
+                if (factor > Aim.dist / 2)
+                {
+                    factor = Aim.dist / 2;
+                }
+                glVertex3f(V->Tx - Aim.vec[0] * factor, V->Ty - Aim.vec[1] * factor, V->Tz - Aim.vec[2] * factor);
+            }
+        }
+        glEnd();
+    }
 
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_BLEND);
@@ -4536,7 +5022,7 @@ int render_UV_Quads_ID_recursive(object * O, quadrant * Q, int L, int l)
     return 0;
 }
 
-void render_UV_Quads_ID(camera * C, object * O, int l)
+void render_UV_Polys_Quads_ID(camera * C, object * O, int l)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -4544,6 +5030,7 @@ void render_UV_Quads_ID(camera * C, object * O, int l)
 
     int e, p, idx, idx0, idx1, idx2;
     polygon * P;
+    uv * UV;
     quadrant * Q;
 
     int L;
@@ -4583,14 +5070,28 @@ void render_UV_Quads_ID(camera * C, object * O, int l)
 
         glColor4f(R, G, B, A);
 
-        glBegin(GL_QUADS);
-        for (e = 0; e < P->edgecount; e ++)
+        if (L == -1)
         {
-            idx = P->quads[e];
-            Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-            render_UV_Quads_ID_recursive(O, Q, 0, L);
+            glBegin(GL_TRIANGLE_FAN);
+            for (e = 0; e < P->edgecount; e ++)
+            {
+                idx = P->texts[e];
+                UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                glVertex2f(UV->u, UV->v);
+            }
+            glEnd();
         }
-        glEnd();
+        else
+        {
+            glBegin(GL_QUADS);
+            for (e = 0; e < P->edgecount; e ++)
+            {
+                idx = P->quads[e];
+                Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                render_UV_Quads_ID_recursive(O, Q, 0, L);
+            }
+            glEnd();
+        }
     }
 
     glEnable(GL_CULL_FACE);
@@ -6231,6 +6732,63 @@ void render_Transformers(int currentLocator)
     glEnable(GL_BLEND);
 }
 
+void render_polys_quads_OnScreen_Shadows(camera * C, int l, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem)
+{
+    int o, idx, L;
+    object * O;
+
+    glEnable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
+
+    for (o = 0; o < C->object_count; o++)
+    {
+        idx = C->objects[o];
+        O = objects[idx];
+
+        glCallList(displayLists[Materials[O->surface].Texture_idx % Textures_c]);
+
+        if (l > O->subdlevel)
+        {
+            L = O->subdlevel;
+        }
+        else
+        {
+            L = l;
+        }
+
+        if (O->shadow)
+        {
+            if (VAO && SHADERS)
+            {
+                if (SHADOWS)
+                {
+                    glUseProgram(T_program[4]);
+                    glUniform1i(uniform_tex2, 0);
+                    glUniformMatrix3fv(uniform_cam4, 1, GL_TRUE, (GLfloat*)C->T->rotVec_);
+                    glUniformMatrix4fv(uniform_proj4, 1, GL_FALSE, projectionMatrix);
+                    glUniformMatrix4fv(uniform_sha4, 1, GL_FALSE, shadowMatrix);
+                    if (L == -1)
+                    {
+                        if (Fan_Arrays_Shader)
+                        {
+                            draw_Fan_Arrays_Shader(O, update_colors, update_uv, elem);
+                        }
+                    }
+                    else
+                    {
+                        draw_Arrays_Shader(O, L, update_colors, update_uv, elem);
+                    }
+                    glUseProgram(0);
+                }
+            }
+        }
+    }
+}
+
 void render_polys_OnScreen_Shadows(camera * C, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem)
 {
     int o, idx;
@@ -7433,6 +7991,165 @@ void fill_in_VertCoords_Fan_Object(object * O, int E)
     }
 }
 
+void fill_in_VertCoords_Fan_Quads(camera * C, int l, int E)
+{
+    int p, q, e, o, v, idx, L;
+
+    object * O;
+    polygon * P;
+    quadrant * Q;
+    vertex * V;
+    uv * UV;
+
+    int v_c, n_c, t_a;
+
+    for (o = 0; o < C->object_count; o++)
+    {
+        idx = C->objects[o];
+        O = objects[idx];
+        if (l > O->subdlevel)
+        {
+            L = O->subdlevel;
+        }
+        else
+        {
+            L = l;
+        }
+        if (L == -1)
+        {
+            if (O->vertex_array)
+            {
+                v_c = 0;
+                n_c = 0;
+                t_a = 0;
+    //            t_c = 0;
+
+                if (E)
+                {
+                    for (v = 0; v < O->textcount; v ++)
+                    {
+                        UV = &O->uvtex[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                        idx = UV->vert;
+                        V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        O->vert_array[1][v_c++] = V->Tx;
+                        O->vert_array[1][v_c++] = V->Ty;
+                        O->vert_array[1][v_c++] = V->Tz;
+                        O->norm_array[1][n_c++] = V->N.Tx;
+                        O->norm_array[1][n_c++] = V->N.Ty;
+                        O->norm_array[1][n_c++] = V->N.Tz;
+                        O->tang_array[1][t_a++] = UV->tangent[0];
+                        O->tang_array[1][t_a++] = UV->tangent[1];
+                        O->tang_array[1][t_a++] = UV->tangent[2];
+                        O->tang_array[1][t_a++] = UV->tangent[3];
+                    }
+                }
+                else
+                {
+                    for (p = 0; p < O->polycount; p ++)
+                    {
+                        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+                        for (e = 0; e < P->edgecount; e ++)
+                        {
+                            idx = P->verts[e];
+                            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            idx = P->texts[e];
+                            UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            O->vert_array[0][v_c++] = V->Tx;
+                            O->vert_array[0][v_c++] = V->Ty;
+                            O->vert_array[0][v_c++] = V->Tz;
+
+                            if (O->smooth)
+                            {
+                                O->norm_array[0][n_c++] = V->N.Tx;
+                                O->norm_array[0][n_c++] = V->N.Ty;
+                                O->norm_array[0][n_c++] = V->N.Tz;
+                            }
+                            else
+                            {
+                                O->norm_array[0][n_c++] = P->N.Tx;
+                                O->norm_array[0][n_c++] = P->N.Ty;
+                                O->norm_array[0][n_c++] = P->N.Tz;
+                            }
+    //                        O->text_array[t_c++] = UV->u;
+    //                        O->text_array[t_c++] = UV->v;
+                            O->tang_array[0][t_a++] = UV->tangent[0];
+                            O->tang_array[0][t_a++] = UV->tangent[1];
+                            O->tang_array[0][t_a++] = UV->tangent[2];
+                            O->tang_array[0][t_a++] = UV->tangent[3];
+                        }
+                    }
+                }
+            }
+        }
+        else if (O->vertex_arrays[L])
+        {
+            v_c = 0;
+            n_c = 0;
+            t_a = 0;
+
+            if (E)
+            {
+                for (v = 0; v < O->textcount_[L]; v ++)
+                {
+                    UV = &O->uvtex_[L][v / ARRAYSIZE][v % ARRAYSIZE];
+
+                    idx = UV->vert;
+                    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    O->vert_array_[L][1][v_c++] = V->Tx;
+                    O->vert_array_[L][1][v_c++] = V->Ty;
+                    O->vert_array_[L][1][v_c++] = V->Tz;
+                    O->norm_array_[L][1][n_c++] = V->N.Tx;
+                    O->norm_array_[L][1][n_c++] = V->N.Ty;
+                    O->norm_array_[L][1][n_c++] = V->N.Tz;
+                    O->tang_array_[L][1][t_a++] = UV->tangent[0];
+                    O->tang_array_[L][1][t_a++] = UV->tangent[1];
+                    O->tang_array_[L][1][t_a++] = UV->tangent[2];
+                    O->tang_array_[L][1][t_a++] = UV->tangent[3];
+                }
+            }
+            else
+            {
+                for (q = 0; q < O->quadcount_[L]; q++)
+                {
+                    Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
+
+                    for (e = 0; e < 4; e ++)
+                    {
+                        idx = Q->verts[e];
+                        V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        idx = Q->texts[e];
+                        UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        O->vert_array_[L][0][v_c++] = V->Tx;
+                        O->vert_array_[L][0][v_c++] = V->Ty;
+                        O->vert_array_[L][0][v_c++] = V->Tz;
+
+                        if (O->smooth)
+                        {
+                            O->norm_array_[L][0][n_c++] = V->N.Tx;
+                            O->norm_array_[L][0][n_c++] = V->N.Ty;
+                            O->norm_array_[L][0][n_c++] = V->N.Tz;
+                        }
+                        else
+                        {
+                            O->norm_array_[L][0][n_c++] = Q->N.Tx;
+                            O->norm_array_[L][0][n_c++] = Q->N.Ty;
+                            O->norm_array_[L][0][n_c++] = Q->N.Tz;
+                        }
+    //                    O->text_array_[L][t_c++] = UV->u;
+    //                    O->text_array_[L][t_c++] = UV->v;
+                        O->tang_array_[L][0][t_a++] = UV->tangent[0];
+                        O->tang_array_[L][0][t_a++] = UV->tangent[1];
+                        O->tang_array_[L][0][t_a++] = UV->tangent[2];
+                        O->tang_array_[L][0][t_a++] = UV->tangent[3];
+                    }
+                }
+            }
+        }
+    }
+}
+
 void fill_in_VertCoords_Fan(camera * C, int E)
 {
     int p, e, o, v, idx;
@@ -7834,9 +8551,18 @@ void render_uv_view_(camera * C, int index, int l, int normalMode, int bumpMode)
         {
             for (e = 0; e < P->edgecount; e ++)
             {
-                idx = P->quads[e];
-                Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                render_UV_Quads_ID_recursive(O, Q, 0, L);
+                if (L == -1)
+                {
+                    idx = P->texts[e];
+                    UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    glVertex2f(UV->u, UV->v);
+                }
+                else
+                {
+                    idx = P->quads[e];
+                    Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    render_UV_Quads_ID_recursive(O, Q, 0, L);
+                }
             }
         }
     }
@@ -7858,12 +8584,24 @@ void render_uv_view_(camera * C, int index, int l, int normalMode, int bumpMode)
 
         glBegin(GL_LINES);
 
-        idx = UVE->uv_edges[0];
-        UVE0 = &O->uveds_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-        draw_UVEdge_recursive(O, UVE0, 0, L);
-        idx = UVE->uv_edges[1];
-        UVE0 = &O->uveds_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-        draw_UVEdge_recursive(O, UVE0, 0, L);
+        if (L == -1)
+        {
+            idx = UVE->uv_verts[0];
+            UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            glVertex2f(UV->u, UV->v);
+            idx = UVE->uv_verts[1];
+            UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            glVertex2f(UV->u, UV->v);
+        }
+        else
+        {
+            idx = UVE->uv_edges[0];
+            UVE0 = &O->uveds_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+            draw_UVEdge_recursive(O, UVE0, 0, L);
+            idx = UVE->uv_edges[1];
+            UVE0 = &O->uveds_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+            draw_UVEdge_recursive(O, UVE0, 0, L);
+        }
 
         glEnd();
 
@@ -8096,11 +8834,13 @@ void render_quads_OnScreen_Shadows(camera * C, int l, int currentObject, int mod
     }
 }
 
-void render_quads_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw, int l, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem)
+void render_polys_quads_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw, int l, int currentObject, int mode, int Selection_Mode, int update_colors, int update_uv, int elem)
 {
-    int level, v, o, q, e, idx, L;
+    int level, v, o, p, q, e, idx, L;
     object * O;
+    id_color * I;
     quadrant * Q;
+    polygon * P;
     vertex * V;
     uv * UV;
     edge * E, * E0;
@@ -8141,7 +8881,279 @@ void render_quads_OnScreen(camera * C, int wireframe, int edgedraw, int vertdraw
             L = l;
         }
 
-        if (O->vertex_arrays[L])
+        if (L == -1)
+        {
+            if (O->vertex_array)
+            {
+                if (VAO && SHADERS && Fan_Arrays_Shader)
+                {
+                    if (mode == ID_RENDER)
+                    {
+                        glUseProgram(T_program[3]);
+                        glUniformMatrix4fv(uniform_proj3, 1, GL_FALSE, projectionMatrix);
+
+                        draw_Fan_Arrays_Shader_ID(O, update_colors, update_uv, elem);
+                        glUseProgram(0);
+                    }
+                    else if (SHADOWS)
+                    {
+                        glUseProgram(T_program[4]);
+
+                        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass2Index);
+
+                        glUniform1i(uniform_tex2, 0); // 0th texture
+                        glUniform1i(uniform_smap4, 1); // 0th texture
+                        glUniform1i(uniform_nmap4, 2); // 0th texture
+                        glUniform1i(uniform_bmap4, 3); // 0th texture
+                        glBindBufferBase(GL_UNIFORM_BUFFER, 0, lightHandle);
+                        glBindBufferBase(GL_UNIFORM_BUFFER, 1, fogHandle);
+                        glUniformMatrix3fv(uniform_cam4, 1, GL_TRUE, (GLfloat*)C->T->rotVec_);
+                        glUniformMatrix4fv(uniform_proj4, 1, GL_FALSE, projectionMatrix);
+                        glUniformMatrix4fv(uniform_sha4, 1, GL_FALSE, shadowMatrix);
+                        glUniform1i(uniform_night4, NIGHT);
+                        glUniform1f(uniform_refls4, Reflect);
+                        glUniform1f(uniform_shine4, Materials[O->surface].Shininess);
+                        glUniform1f(uniform_displ4, Materials[O->surface].Displacement);
+                        draw_Fan_Arrays_Shader(O, update_colors, update_uv, elem);
+                        glUseProgram(0);
+                    }
+                    else
+                    {
+                        glUseProgram(T_program[2]);
+                        glUniform1i(uniform_tex2, 0); // 0th texture
+                        glBindBufferBase(GL_UNIFORM_BUFFER, 0, lightHandle);
+                        glBindBufferBase(GL_UNIFORM_BUFFER, 1, fogHandle);
+                        glUniformMatrix3fv(uniform_cam2, 1, GL_TRUE, (GLfloat*)C->T->rotVec_);
+                        glUniformMatrix4fv(uniform_proj2, 1, GL_FALSE, projectionMatrix);
+                        glUniform1i(uniform_night2, NIGHT);
+                        glUniform1f(uniform_refls2, Reflect);
+                        draw_Fan_Arrays_Shader(O, update_colors, update_uv, elem);
+                        glUseProgram(0);
+                    }
+                }
+                else
+                {
+                    draw_Fan_Arrays(O, mode, update_colors, update_uv, elem);
+                }
+            }
+            else
+            {
+                for (p = 0; p < O->polycount; p++)
+                {
+                    P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+                    idx = P->surface;
+                    Material = Materials[idx];
+
+                    r = Material.RGBA.R;
+                    g = Material.RGBA.G;
+                    b = Material.RGBA.B;
+                    a = Material.RGBA.A;
+
+                    if (mode == ID_RENDER)
+                    {
+                        idx = P->color;
+                        I = &O->icols[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        glColor4f(I->R, I->G, I->B, I->A);
+                    }
+                    else
+                    {
+                        glColor4ub(r, g, b, a);
+                    }
+
+                    if (wireframe)
+                    {
+                        glBegin(GL_LINE_LOOP);
+                        for (e = 0; e < P->edgecount; e ++)
+                        {
+                            idx = P->verts[e];
+                            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            glVertex3f(V->Tx, V->Ty, V->Tz);
+                        }
+                        glEnd();
+                    }
+                    else
+                    {
+                        glBegin(GL_TRIANGLE_FAN);
+                        for (e = 0; e < P->edgecount; e ++)
+                        {
+                            idx = P->verts[e];
+                            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            idx = P->texts[e];
+                            UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            glNormal3f(V->N.Tx, V->N.Ty, V->N.Tz);
+                            glTexCoord2f(UV->u, UV->v);
+                            glVertex3f(V->Tx, V->Ty, V->Tz);
+                        }
+                        glEnd();
+                    }
+                }
+            }
+
+            if (edgedraw) // assuming some objects have no geometry on all levels.
+            {
+                glDisable(GL_TEXTURE_2D);
+                //glDisable(GL_MULTISAMPLE);
+                if (Selection_Mode == POLYS)
+                    glEnable(GL_LINE_STIPPLE);
+                if (C->objects[o] == currentObject && O->selected)
+                {
+                    if (Selection_Mode == POLYS)
+                    glLineStipple(1, 0xEEEE);
+                    else if (Selection_Mode == VERTS)
+                    glLineWidth(1);
+                    else if (Selection_Mode == EDGES)
+                    glLineWidth(1);
+                    else
+                    glLineWidth(2);
+                    if (O->deforms)
+                    line_color = &current_deform_color[0];
+                    else
+                    line_color = &current_color[0];
+                }
+                else if (O->selected)
+                {
+                    if (Selection_Mode == POLYS)
+                    glLineStipple(1, 0xEEEE);
+                    else if (Selection_Mode == VERTS)
+                    glLineWidth(1);
+                    else
+                    glLineWidth(1);
+                    if (O->deforms)
+                    line_color = &selected_deform_color[0];
+                    else
+                    line_color = &selected_color[0];
+                }
+                else
+                {
+                    glLineStipple(1, 0xFFFF);
+                    glLineWidth(1);
+                    if (O->deforms)
+                    line_color = &dark_deform_color[0];
+                    else
+                    line_color = &dark_wire_color[0];
+                }
+                if (Selection_Mode != OBJES)
+                {
+                    memcpy(Line_Color, line_color, sizeof Line_Color);
+                    for (e = 0; e < O->edgecount; e++)
+                    {
+                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+                        if (E->selected)
+                        {
+                            glDisable(GL_LIGHTING);
+    //                        if (O->selected)
+    //                            glLineWidth(2);
+    //                        else
+    //                            glLineWidth(1);
+                            line_color = &selected_edge_color[0];
+                        }
+                        else if (!glIsEnabled(GL_LIGHTING))
+                        {
+                            glEnable(GL_LIGHTING);
+    //                        glLineWidth(1);
+                            line_color = Line_Color;
+                        }
+                        draw_Edge(O, E, C, wireframe, E->B.Tradius);
+                    }
+                }
+                else
+                {
+                    //if (C->objects[o] == currentObject || O->selected)
+                    //{
+                        render_Outline_polys(O, C);
+                    //}
+    //                else
+    //                {
+    //                    for (e = 0; e < O->edgecount; e ++)
+    //                    {
+    //                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+    //                        draw_Edge(O, E, C, wireframe, E->B.Tradius);
+    //                    }
+    //                }
+                }
+                glEnable(GL_TEXTURE_2D);
+                //glEnable(GL_MULTISAMPLE);
+                glEnable(GL_LIGHTING);
+                glDisable(GL_LINE_STIPPLE);
+                glLineWidth(1);
+            }
+
+            if (vertdraw)
+            {
+                if (C->objects[o] == currentObject)
+                glPointSize(3);
+                else
+                glPointSize(2);
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_LIGHTING);
+                glBegin(GL_POINTS);
+                glColor4ubv(vert_color);
+
+                float factor;
+                float dot;
+                float view_minor;
+
+                aim Aim;
+                normal Normal;
+
+                if (C->view_minor > 1)
+                    view_minor = C->view_minor;
+                else
+                    view_minor = 1;
+
+                for (v = 0; v < O->vertcount; v ++)
+                {
+                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                    if (V->selected)
+                    {
+                        glColor4ubv(selected_vert_color);
+                    }
+                    else
+                    {
+                        glColor4ubv(vert_color);
+                    }
+
+                    Normal.x = -V->N.Tx;
+                    Normal.y = -V->N.Ty;
+                    Normal.z = -V->N.Tz;
+
+                    Aim = vector3d_T(V, C->T->pos);
+
+                    if (C->ortho)
+                    {
+                        dot = dot_productN(&Normal, C->T->aim);
+                    }
+                    else
+                    {
+                        dot = dot_productN(&Normal, Aim.vec);
+                    }
+
+                    if (dot < 0)
+                        continue;
+
+                    if (C->ortho)
+                    {
+                        factor = Aim.dist * view_minor * 0.002 * dot;
+                        glVertex3f(V->Tx + V->N.Tx * factor, V->Ty + V->N.Ty * factor, V->Tz + V->N.Tz * factor);
+                    }
+                    else
+                    {
+                        factor = Aim.dist * view_minor * 0.3 * O->mean_Edge * dot;
+                        if (factor > Aim.dist / 2)
+                        {
+                            factor = Aim.dist / 2;
+                        }
+                        glVertex3f(V->Tx - Aim.vec[0] * factor, V->Ty - Aim.vec[1] * factor, V->Tz - Aim.vec[2] * factor);
+                    }
+                }
+                glEnd();
+                glEnable(GL_LIGHTING);
+                glEnable(GL_TEXTURE_2D);
+            }
+        }
+        else if (O->vertex_arrays[L])
         {
             if (VAO && SHADERS)
             {
@@ -8806,16 +9818,29 @@ void render_Curves_ID_(int level)
     glDisable(GL_BLEND);
     glDisable(GL_MULTISAMPLE);
 
-    int c, s, idx, idx0, idx1, idx2;
+    int c, p, s, idx, idx0, idx1, idx2, L;
 
+    object * O;
     curve * C;
     curve_segment * S;
+    cp * CP;
 
     glLineWidth(1);
 
     for (c = 0; c < curvesIndex; c ++)
     {
         C = curves[c];
+
+        O = C->O;
+
+        if (O != NULL && level > O->subdlevel)
+        {
+            L = O->subdlevel;
+        }
+        else
+        {
+            L = level;
+        }
 
         if (C->visible)
         {
@@ -8831,20 +9856,36 @@ void render_Curves_ID_(int level)
 
             glColor4f(R, G, B, A);
 
-            if (C->open)
+            if (L == -1)
             {
-                for (s = 0; s < C->segment_count - 1; s ++)
+                if (C->open)
+                    glBegin(GL_LINE_STRIP);
+                else
+                    glBegin(GL_LINE_LOOP);
+                for (p = 0; p < C->cps_count; p ++)
                 {
-                    S = C->segments[s];
-                    draw_Curve_Segment_Recursive_ID(S, level);
+                    CP = C->cps[p];
+                    glVertex3fv(CP->pos);
                 }
+                glEnd();
             }
             else
             {
-                for (s = 0; s < C->segment_count; s ++)
+                if (C->open)
                 {
-                    S = C->segments[s];
-                    draw_Curve_Segment_Recursive_ID(S, level);
+                    for (s = 0; s < C->segment_count - 1; s ++)
+                    {
+                        S = C->segments[s];
+                        draw_Curve_Segment_Recursive_ID(S, L);
+                    }
+                }
+                else
+                {
+                    for (s = 0; s < C->segment_count; s ++)
+                    {
+                        S = C->segments[s];
+                        draw_Curve_Segment_Recursive_ID(S, L);
+                    }
                 }
             }
         }
@@ -8861,13 +9902,27 @@ void render_Curves_(int level)
 {
     glDisable(GL_TEXTURE_2D);
 
-    int c, s;
+    int p, c, s, L;
+
+    object * O;
     curve * C;
+    cp * CP;
     curve_segment * S;
 
     for (c = 0; c < curvesIndex; c ++)
     {
         C = curves[c];
+
+        O = C->O;
+
+        if (O != NULL && level > O->subdlevel)
+        {
+            L = O->subdlevel;
+        }
+        else
+        {
+            L = level;
+        }
 
         if (C->visible)
         {
@@ -8885,13 +9940,16 @@ void render_Curves_(int level)
                     glEnable(GL_LIGHTING);
             }
 
-            if (C->open)
+            if (L == -1)
             {
-                for (s = 0; s < C->segment_count - 1; s ++)
-                {
-                    S = C->segments[s];
+                if (C->open)
+                    glBegin(GL_LINE_STRIP);
+                else
+                    glBegin(GL_LINE_LOOP);
 
-                    if (S->selected)
+                for (p = 0; p < C->cps_count; p ++)
+                {
+                    if (C->segments[p]->selected)
                     {
                         glColor4ubv(segment_color);
                     }
@@ -8899,26 +9957,48 @@ void render_Curves_(int level)
                     {
                         glColor4ubv(line_color);
                     }
-
-                    draw_Curve_Segment_Recursive(S, level);
+                    CP = C->cps[p];
+                    glVertex3fv(CP->pos);
                 }
+                glEnd();
             }
             else
             {
-                for (s = 0; s < C->segment_count; s ++)
+                if (C->open)
                 {
-                    S = C->segments[s];
-
-                    if (S->selected)
+                    for (s = 0; s < C->segment_count - 1; s ++)
                     {
-                        glColor4ubv(segment_color);
-                    }
-                    else
-                    {
-                        glColor4ubv(line_color);
-                    }
+                        S = C->segments[s];
 
-                    draw_Curve_Segment_Recursive(S, level);
+                        if (S->selected)
+                        {
+                            glColor4ubv(segment_color);
+                        }
+                        else
+                        {
+                            glColor4ubv(line_color);
+                        }
+
+                        draw_Curve_Segment_Recursive(S, L);
+                    }
+                }
+                else
+                {
+                    for (s = 0; s < C->segment_count; s ++)
+                    {
+                        S = C->segments[s];
+
+                        if (S->selected)
+                        {
+                            glColor4ubv(segment_color);
+                        }
+                        else
+                        {
+                            glColor4ubv(line_color);
+                        }
+
+                        draw_Curve_Segment_Recursive(S, L);
+                    }
                 }
             }
         }

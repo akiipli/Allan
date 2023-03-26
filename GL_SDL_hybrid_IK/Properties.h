@@ -102,7 +102,7 @@ void draw_Properties_Text(const char * text, int width, int height, int index, i
 	//glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-    int font_height = 11;
+    int font_height = 11, idx;
 
 	FT_Set_Pixel_Sizes(face[0], 0, font_height);
 
@@ -110,7 +110,17 @@ void draw_Properties_Text(const char * text, int width, int height, int index, i
 	float origin_y = BUTTON_HEIGHT * index + 15;
 
 	if (highlight)
-        glColor4fv(buttoncolors[properties[index][x_offset]].color);
+	{
+	    idx = properties[index][x_offset];
+	    if (highlight == 2)
+	    {
+	        if (idx == UI_BACKL)
+            {
+                idx = UI_YELLO;
+            }
+	    }
+        glColor4fv(buttoncolors[idx].color);
+	}
     else
         glColor4fv(buttoncolors[UI_BLACK].color);
 
@@ -175,6 +185,11 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         sprintf(text, "%d", O->smooth);
         draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+        idx ++;
+        sprintf(text, "subdivMax");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%d", O->subdlevel_Max);
+        draw_Properties_Text(text, d_width, p_height, idx, 2, 1); /* index 2 indicates combo value */
         idx ++;
     }
     else if (type == PROPERTIES_MATERIAL)

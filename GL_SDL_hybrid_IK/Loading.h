@@ -3020,9 +3020,14 @@ int read_Object_file(Object_In * OB_IN, char * fileName, int VBO)
 
                 fgets(buff, BUF_SIZE, fp);
 
-                if (loading_version >= 1010)
+                if (loading_version >= 1014)
+                {
+                    sscanf(buff, "%d %d %d %d", &O->deforms, &O->binding, &O->smooth, &O->subdlevel_Max);
+                }
+                else if (loading_version >= 1010)
                 {
                     sscanf(buff, "%d %d %d", &O->deforms, &O->binding, &O->smooth);
+                    O->subdlevel_Max = 1;
                 }
                 else
                 {
