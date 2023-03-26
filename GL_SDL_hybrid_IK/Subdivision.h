@@ -2488,6 +2488,8 @@ int object_Subdivide_Quads(object * O, int L)
         }
     }
 
+    O->allocated_subdlevel = L;
+
     return 1;
 
 }
@@ -3099,6 +3101,7 @@ int object_Subdivide(object * O, int L)
     */
     // calculate center
     // add edge mean vertex
+    O->allocated_subdlevel = L;
     return 1;
 
 }

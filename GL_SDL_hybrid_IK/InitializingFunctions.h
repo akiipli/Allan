@@ -628,7 +628,7 @@ void free_object(object * O)
 
     int l;
 
-    for (l = 0; l <= O->subdlevel; l ++)
+    for (l = 0; l <= O->allocated_subdlevel; l ++)
     {
         for (i = 0; i < O->textcount_[l]; i ++)
         {
@@ -742,7 +742,7 @@ void free_object(object * O)
         glDeleteBuffers(1, &O->tang_array_buffer[1]);
         glDeleteBuffers(1, &O->elem_array_buffer);
     }
-    for (l = 0; l <= O->subdlevel; l ++)
+    for (l = 0; l <= O->allocated_subdlevel; l ++)
     {
         if (O->vertex_arrays[l])
         {
@@ -968,6 +968,8 @@ int initialize_object(int index,
     O->subdlevel = -1;
 
     O->subdlevel_Max = 1;
+
+    O->allocated_subdlevel = -1;
 
     O->deforms = 1;
 

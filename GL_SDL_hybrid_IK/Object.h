@@ -469,6 +469,7 @@ struct object
     transformer * T;
     int subdlevel;
     int subdlevel_Max;
+    int allocated_subdlevel;
     int tune[SUBD];
     int tune_in_uvtex[SUBD];
     int vertex_arrays[SUBD];

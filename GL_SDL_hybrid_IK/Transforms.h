@@ -327,16 +327,23 @@ void move_verts_(object * O, float x, float y, float z, int l)
     {
         L = l;
     }
-    for (i = 0; i < O->vertcount_[L]; i++)
+    if (L == -1)
     {
-        V = &O->verts_[L][i / ARRAYSIZE][i % ARRAYSIZE];
-        V->Tx = V->x + x;
-        V->Ty = V->y + y;
-        V->Tz = V->z + z;
+
     }
-    update_bounding_box_for_transformed_Trips_(O, L, 0); // does not update radius
-    update_transformed_bounding_box_for_Trip_Quads_(O, L);
-    update_bounding_box_for_transformed_Edges_(O, L, 0);
+    else
+    {
+        for (i = 0; i < O->vertcount_[L]; i++)
+        {
+            V = &O->verts_[L][i / ARRAYSIZE][i % ARRAYSIZE];
+            V->Tx = V->x + x;
+            V->Ty = V->y + y;
+            V->Tz = V->z + z;
+        }
+        update_bounding_box_for_transformed_Trips_(O, L, 0); // does not update radius
+        update_transformed_bounding_box_for_Trip_Quads_(O, L);
+        update_bounding_box_for_transformed_Edges_(O, L, 0);
+    }
 }
 
 void rotate_vertex_groups_D_Init()
@@ -548,30 +555,37 @@ void rotate_verts_(object * O, transformer T, int l)
     {
         L = l;
     }
-    for (i = 0; i < O->vertcount_[L]; i++)
+    if (L == -1)
     {
-        V = &O->verts_[L][i / ARRAYSIZE][i % ARRAYSIZE];
-        V->Tx = T.rotVec[0][0] * V->x + T.rotVec[1][0] * V->y + T.rotVec[2][0] * V->z + T.pos[0];
-        V->Ty = T.rotVec[0][1] * V->x + T.rotVec[1][1] * V->y + T.rotVec[2][1] * V->z + T.pos[1];
-        V->Tz = T.rotVec[0][2] * V->x + T.rotVec[1][2] * V->y + T.rotVec[2][2] * V->z + T.pos[2];
 
-        V->N.Tx = T.rotVec_[0][0] * V->N.x + T.rotVec_[1][0] * V->N.y + T.rotVec_[2][0] * V->N.z;
-        V->N.Ty = T.rotVec_[0][1] * V->N.x + T.rotVec_[1][1] * V->N.y + T.rotVec_[2][1] * V->N.z;
-        V->N.Tz = T.rotVec_[0][2] * V->N.x + T.rotVec_[1][2] * V->N.y + T.rotVec_[2][2] * V->N.z;
     }
-
-    update_bounding_box_for_transformed_Trips_(O, L, 0); // does not update radius
-    update_bounding_box_for_transformed_Quads(O, L, 1);
-    update_bounding_box_for_transformed_Edges_(O, L, 1);
-    update_transformed_Triangles_level_(O, L); // updates also quad normals
-    generate_transformed_edgeNormals_(O, L);
-
-    if (SHADERS)
+    else
     {
-        calculate_Triangle_Tangents_(O, L);
-        average_Quadrant_Tangents_(O, L);
-        average_Edge_Tangents_(O, L);
-        average_Vert_Tangents_(O, L);
+        for (i = 0; i < O->vertcount_[L]; i++)
+        {
+            V = &O->verts_[L][i / ARRAYSIZE][i % ARRAYSIZE];
+            V->Tx = T.rotVec[0][0] * V->x + T.rotVec[1][0] * V->y + T.rotVec[2][0] * V->z + T.pos[0];
+            V->Ty = T.rotVec[0][1] * V->x + T.rotVec[1][1] * V->y + T.rotVec[2][1] * V->z + T.pos[1];
+            V->Tz = T.rotVec[0][2] * V->x + T.rotVec[1][2] * V->y + T.rotVec[2][2] * V->z + T.pos[2];
+
+            V->N.Tx = T.rotVec_[0][0] * V->N.x + T.rotVec_[1][0] * V->N.y + T.rotVec_[2][0] * V->N.z;
+            V->N.Ty = T.rotVec_[0][1] * V->N.x + T.rotVec_[1][1] * V->N.y + T.rotVec_[2][1] * V->N.z;
+            V->N.Tz = T.rotVec_[0][2] * V->N.x + T.rotVec_[1][2] * V->N.y + T.rotVec_[2][2] * V->N.z;
+        }
+
+        update_bounding_box_for_transformed_Trips_(O, L, 0); // does not update radius
+        update_bounding_box_for_transformed_Quads(O, L, 1);
+        update_bounding_box_for_transformed_Edges_(O, L, 1);
+        update_transformed_Triangles_level_(O, L); // updates also quad normals
+        generate_transformed_edgeNormals_(O, L);
+
+        if (SHADERS)
+        {
+            calculate_Triangle_Tangents_(O, L);
+            average_Quadrant_Tangents_(O, L);
+            average_Edge_Tangents_(O, L);
+            average_Vert_Tangents_(O, L);
+        }
     }
 }
 

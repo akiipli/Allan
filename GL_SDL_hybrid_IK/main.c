@@ -1552,28 +1552,35 @@ int subdivide_after_Creation(object * O, int level, int tune)
 
     if (level <= O->subdlevel_Max && O->subdlevel == level - 1)
     {
-        if (level > 0)
+        if (O->allocated_subdlevel < level)
         {
-            result = object_Subdivide_Quads(O, level);
+            if (level > 0)
+            {
+                result = object_Subdivide_Quads(O, level);
+            }
+            else
+            {
+                result = object_Subdivide(O, level);
+            }
+
+    //        write_Object_to_Disk_level_(O, level);
+
+            if (result)
+            {
+                create_flow_In_Edges_(O, level);
+                subdivide_post(O, level, tune);
+            }
+            else
+            {
+                //free_object_Level(O, level);
+                return 0;
+            }
+            //rotate_verts_(O, O->T, level);
         }
         else
         {
-            result = object_Subdivide(O, level);
+            O->subdlevel = level;
         }
-
-//        write_Object_to_Disk_level_(O, level);
-
-        if (result)
-        {
-            create_flow_In_Edges_(O, level);
-            subdivide_post(O, level, tune);
-        }
-        else
-        {
-            //free_object_Level(O, level);
-            return 0;
-        }
-        //rotate_verts_(O, O->T, level);
     }
     return 1;
 }
@@ -22183,6 +22190,13 @@ int main(int argc, char * args[])
             {
                 printf("level quads %d %d\n", subdLevel, O->quadcount_[subdLevel]);
             }
+            int o;
+            for (o = 0; o < objectIndex; o ++)
+            {
+                if (subdLevel <= objects[o]->subdlevel_Max)
+                    objects[o]->subdlevel = subdLevel;
+            }
+
             UPDATE_COLORS = 1;
             message = -10;
         }
