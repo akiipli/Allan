@@ -3743,7 +3743,7 @@ void render_trips_OnScreen_(camera * C, int wireframe, int edgedraw, int vertdra
                 }
             }
 
-            if (edgedraw && O->subdlevel >= L) // assuming some objects have no geometry on all levels.
+            if (edgedraw && O->subdlevel >= 0) // assuming some objects have no geometry on all levels.
             {
                 glDisable(GL_BLEND);
                 glEnable(GL_LINE_STIPPLE);
@@ -9237,7 +9237,7 @@ void render_polys_quads_OnScreen(camera * C, int wireframe, int edgedraw, int ve
             }
         }
 
-        if (edgedraw && O->subdlevel >= L) // assuming some objects have no geometry on all levels.
+        if (edgedraw && O->subdlevel >= 0) // assuming some objects have no geometry on all levels.
         {
             glDisable(GL_TEXTURE_2D);
             //glDisable(GL_MULTISAMPLE);
