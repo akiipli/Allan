@@ -189,11 +189,6 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
     {
         O = objects[C->objects[o]];
 
-        if (level > O->subdlevel)
-        {
-            continue;
-        }
-
         if (O->subdlevel == -1)
         {
             for (v = 0; v < O->vertcount; v ++)
@@ -423,7 +418,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                 l = 1;
 
-                while (l < level) // delegates to current subdivision
+                while (l < level && l < O->subdlevel) // delegates to current subdivision
                 {
                     l ++;
                     V = V->vert;
@@ -441,7 +436,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                     l = 0;
 
-                    while (l < level) // delegates to current subdivision
+                    while (l < level && l < O->subdlevel) // delegates to current subdivision
                     {
                         l ++;
                         V = V->vert;
@@ -462,7 +457,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                     l = -1;
 
-                    while (l < level) // delegates to current subdivision
+                    while (l < level && l < O->subdlevel) // delegates to current subdivision
                     {
                         l ++;
                         V = V->vert;
