@@ -185,12 +185,88 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
     if (level > 3) level = 3;
 
-    if (level > -1) // has levels
+    for (o = 0; o < C->object_count; o ++)
     {
-        for (o = 0; o < C->object_count; o ++)
-        {
-            O = objects[C->objects[o]];
+        O = objects[C->objects[o]];
 
+        if (level > O->subdlevel)
+        {
+            continue;
+        }
+
+        if (O->subdlevel == -1)
+        {
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                vertexAim = vector3d_T(V, C->T->pos);
+
+                V->aim_vec[0] = vertexAim.vec[0];
+                V->aim_vec[1] = vertexAim.vec[1];
+                V->aim_vec[2] = vertexAim.vec[2];
+            }
+
+            for (p = 0; p < O->polycount; p ++)
+            {
+                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+                polyAim = vector3d(P->B, C->T->pos);
+
+                Dot = 1.0;
+
+                for (v = 0; v < P->edgecount; v ++)
+                {
+                    idx = P->verts[v];
+
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    dot = dot_productFF(V->aim_vec, polyAim.vec);
+
+                    if (dot < Dot)
+                    {
+                        Dot = dot;
+                    }
+                }
+
+                P->B.deviation = acos(Dot);
+                P->B.Aim.dist = polyAim.dist;
+                P->B.Aim.vec[0] = polyAim.vec[0];
+                P->B.Aim.vec[1] = polyAim.vec[1];
+                P->B.Aim.vec[2] = polyAim.vec[2];
+
+                P->B.backface = 1;
+
+                for (t = 0; t < P->tripcount; t ++)
+                {
+                    idx = P->trips[t];
+
+                    T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    polyAim = vector3d(T->B, C->T->pos);
+
+                    T->B.Aim.dist = polyAim.dist;
+
+                    polynormal.x = -T->N.Tx;
+                    polynormal.y = -T->N.Ty;
+                    polynormal.z = -T->N.Tz;
+
+                    dot = dot_productN(&polynormal, polyAim.vec);
+
+                    if (dot > 0)
+                    {
+                        T->B.backface = 0;
+                        P->B.backface = 0;
+                    }
+                    else
+                    {
+                        T->B.backface = 1;
+                    }
+                }
+            }
+        }
+        else
+        {
             for (l = level; l >= 0; l --)
             {
                 if (O->subdlevel < l)
@@ -418,82 +494,6 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
                     {
                         P->B.backface = 0;
                         break;
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        for (o = 0; o < C->object_count; o ++)
-        {
-            O = objects[C->objects[o]];
-
-            for (v = 0; v < O->vertcount; v ++)
-            {
-                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-
-                vertexAim = vector3d_T(V, C->T->pos);
-
-                V->aim_vec[0] = vertexAim.vec[0];
-                V->aim_vec[1] = vertexAim.vec[1];
-                V->aim_vec[2] = vertexAim.vec[2];
-            }
-
-            for (p = 0; p < O->polycount; p ++)
-            {
-                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-
-                polyAim = vector3d(P->B, C->T->pos);
-
-                Dot = 1.0;
-
-                for (v = 0; v < P->edgecount; v ++)
-                {
-                    idx = P->verts[v];
-
-                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                    dot = dot_productFF(V->aim_vec, polyAim.vec);
-
-                    if (dot < Dot)
-                    {
-                        Dot = dot;
-                    }
-                }
-
-                P->B.deviation = acos(Dot);
-                P->B.Aim.dist = polyAim.dist;
-                P->B.Aim.vec[0] = polyAim.vec[0];
-                P->B.Aim.vec[1] = polyAim.vec[1];
-                P->B.Aim.vec[2] = polyAim.vec[2];
-
-                P->B.backface = 1;
-
-                for (t = 0; t < P->tripcount; t ++)
-                {
-                    idx = P->trips[t];
-
-                    T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                    polyAim = vector3d(T->B, C->T->pos);
-
-                    T->B.Aim.dist = polyAim.dist;
-
-                    polynormal.x = -T->N.Tx;
-                    polynormal.y = -T->N.Ty;
-                    polynormal.z = -T->N.Tz;
-
-                    dot = dot_productN(&polynormal, polyAim.vec);
-
-                    if (dot > 0)
-                    {
-                        T->B.backface = 0;
-                        P->B.backface = 0;
-                    }
-                    else
-                    {
-                        T->B.backface = 1;
                     }
                 }
             }
