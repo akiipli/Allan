@@ -23802,6 +23802,7 @@ int main(int argc, char * args[])
                     convert_Curves_To_Cp_Selection();
                     ordered_Cp_Selection();
                     set_Button_sels(3);
+                    assert_Element_Selection();
                 }
                 else if (currentCurve >= 0 && currentCurve < curvesIndex)
                 {
