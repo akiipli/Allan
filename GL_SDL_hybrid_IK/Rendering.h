@@ -9586,6 +9586,8 @@ void * perform_work(void * arguments)
                 idx = come_With_Pixel_(&P, Args->C, &D.N, Args->L, gx, gy);
             }
 
+            /* raycasting to environment map, lightsources here */
+
             Args->data[index] = (unsigned char)P.R[idx];
             Args->data[index + 1] = (unsigned char)P.G[idx];
             Args->data[index + 2] = (unsigned char)P.B[idx];
