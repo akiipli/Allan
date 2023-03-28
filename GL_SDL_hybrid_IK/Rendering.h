@@ -159,7 +159,7 @@ aim vector3d_T(vertex * V, float B[3])
 
 void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int height)
 {
-    int o, p, q, q0, idx, t, v;
+    int o, p, q, q0, idx, t, v, L;
 
     vertex * V;
     object * O;
@@ -173,6 +173,8 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
     float dot, Dot;
 
     normal polynormal;
+
+    float BACKFACE_QUALIFIER = -0.5;
 
 /*
     normal D;
@@ -188,6 +190,15 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
     for (o = 0; o < C->object_count; o ++)
     {
         O = objects[C->objects[o]];
+
+        if (level > O->subdlevel)
+        {
+            L = O->subdlevel;
+        }
+        else
+        {
+            L = level;
+        }
 
         if (O->subdlevel == -1)
         {
@@ -248,7 +259,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                     dot = dot_productN(&polynormal, polyAim.vec);
 
-                    if (dot > 0)
+                    if (dot > BACKFACE_QUALIFIER)
                     {
                         T->B.backface = 0;
                         P->B.backface = 0;
@@ -262,7 +273,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
         }
         else
         {
-            for (l = level; l >= 0; l --)
+            for (l = L; l >= 0; l --)
             {
                 if (O->subdlevel < l)
                 {
@@ -284,7 +295,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
                 {
                     Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
 
-                    if (Q->subdivs && l < level)
+                    if (Q->subdivs && l < L)
                     {
                         idx = O->vertcount_[l] + O->edgecount_[l] + q;
 
@@ -292,7 +303,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                         l0 = l + 1;
 
-                        while (l0 < level) // delegates to current subdivision
+                        while (l0 < L) // delegates to current subdivision
                         {
                             l0 ++;
                             V = V->vert;
@@ -310,7 +321,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                             l0 = l;
 
-                            while (l0 < level) // delegates to current subdivision
+                            while (l0 < L) // delegates to current subdivision
                             {
                                 l0 ++;
                                 V = V->vert;
@@ -392,7 +403,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                             dot = dot_productN(&polynormal, polyAim.vec);
 
-                            if (dot > 0)
+                            if (dot > BACKFACE_QUALIFIER)
                             {
                                 T->B.backface = 0;
                                 Q->B.backface = 0;
@@ -418,7 +429,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                 l = 1;
 
-                while (l < level && l < O->subdlevel) // delegates to current subdivision
+                while (l < L) // delegates to current subdivision
                 {
                     l ++;
                     V = V->vert;
@@ -436,7 +447,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                     l = 0;
 
-                    while (l < level && l < O->subdlevel) // delegates to current subdivision
+                    while (l < L) // delegates to current subdivision
                     {
                         l ++;
                         V = V->vert;
@@ -457,7 +468,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
                     l = -1;
 
-                    while (l < level && l < O->subdlevel) // delegates to current subdivision
+                    while (l < L) // delegates to current subdivision
                     {
                         l ++;
                         V = V->vert;
