@@ -81,7 +81,8 @@ polyplane;
 typedef struct
 {
     float R[PIXEL_VOLUME], G[PIXEL_VOLUME], B[PIXEL_VOLUME], A[PIXEL_VOLUME], D[PIXEL_VOLUME];
-    float X[PIXEL_VOLUME], Y[PIXEL_VOLUME], Z[PIXEL_VOLUME];
+    float X[PIXEL_VOLUME], Y[PIXEL_VOLUME], Z[PIXEL_VOLUME]; // pixel location
+    float NX[PIXEL_VOLUME], NY[PIXEL_VOLUME], NZ[PIXEL_VOLUME]; // shading normal negative
     int trip[PIXEL_VOLUME];
     int level[PIXEL_VOLUME]; // level of triangle
     int object[PIXEL_VOLUME];
@@ -749,10 +750,16 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
     if (Material.smooth)
     {
         dot_light = dot_productFF(Q_Normal, light_vec);
+        P->NX[volume_counter] = Q_Normal[0];
+        P->NY[volume_counter] = Q_Normal[1];
+        P->NZ[volume_counter] = Q_Normal[2];
     }
     else
     {
         dot_light = dot_productFF(shading_normal, light_vec);
+        P->NX[volume_counter] = shading_normal[0];
+        P->NY[volume_counter] = shading_normal[1];
+        P->NZ[volume_counter] = shading_normal[2];
     }
 
     if (dot_light < 0)
@@ -904,10 +911,16 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
         if (Material.smooth)
         {
             dot_light = dot_productFF(T_uvNormal.normal, light_vec);
+            P->NX[volume_counter] = T_uvNormal.normal[0];
+            P->NY[volume_counter] = T_uvNormal.normal[1];
+            P->NZ[volume_counter] = T_uvNormal.normal[2];
         }
         else
         {
             dot_light = dot_productFF(shading_normal, light_vec);
+            P->NX[volume_counter] = shading_normal[0];
+            P->NY[volume_counter] = shading_normal[1];
+            P->NZ[volume_counter] = shading_normal[2];
         }
 
         if (dot_light < 0)
@@ -922,8 +935,8 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
         P->B[volume_counter] = b * dot_light;
         P->A[volume_counter] = a;
         P->X[volume_counter] = intersection_Point[0];
-        P->Y[volume_counter] = intersection_Point[0];
-        P->Z[volume_counter] = intersection_Point[0];
+        P->Y[volume_counter] = intersection_Point[1];
+        P->Z[volume_counter] = intersection_Point[2];
         volume_counter ++;
 
         Cancel.cancel = 1;
@@ -1061,10 +1074,16 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
         if (Material.smooth)
         {
             dot_light = dot_productFF(T_uvNormal.normal, light_vec);
+            P->NX[volume_counter] = T_uvNormal.normal[0];
+            P->NY[volume_counter] = T_uvNormal.normal[1];
+            P->NZ[volume_counter] = T_uvNormal.normal[2];
         }
         else
         {
             dot_light = dot_productFF(shading_normal, light_vec);
+            P->NX[volume_counter] = shading_normal[0];
+            P->NY[volume_counter] = shading_normal[1];
+            P->NZ[volume_counter] = shading_normal[2];
         }
 
         if (dot_light < 0)
@@ -1079,8 +1098,8 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
         P->B[volume_counter] = b * dot_light;
         P->A[volume_counter] = a;
         P->X[volume_counter] = intersection_Point[0];
-        P->Y[volume_counter] = intersection_Point[0];
-        P->Z[volume_counter] = intersection_Point[0];
+        P->Y[volume_counter] = intersection_Point[1];
+        P->Z[volume_counter] = intersection_Point[2];
         volume_counter ++;
 
         Cancel.cancel = 1;
