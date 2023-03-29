@@ -140,7 +140,7 @@ int BUMP_IMAGE = 0;
 int TURNTABLE = 0;
 int blit_flipped = 0;
 int frames_count = 10;
-int linear_pose = 1;
+//int linear_pose = 1;
 
 int Drag_Dialog = 0;
 int Axis_lock = 0;
@@ -504,7 +504,7 @@ void make_osd(object * O)
     else
         p += sprintf(&osd_font[p], "polys\t%d\n", O->polycount);
 
-    p += sprintf(&osd_font[p], "linear\t%d\n", linear_pose);
+//    p += sprintf(&osd_font[p], "linear\t%d\n", linear_pose);
     p += sprintf(&osd_font[p], "patch\t%d\n", Patch_Mode);
     p += sprintf(&osd_font[p], "locators\t%d\n", DRAW_LOCATORS);
     p += sprintf(&osd_font[p], "curves\t%d\n", curve_Draw);
@@ -7167,7 +7167,7 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
     {
-        if (linear_pose)
+        if (D->linear_pose)
             paste_Pose_position(D, P);
         else
         {
@@ -7375,7 +7375,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
     {
         w1 = (float)f / frames_count;
         w0 = 1 - w1;
-        create_Inbetween_Pose_(D, D->P, P0, P1, w0, w1, linear_pose);
+        create_Inbetween_Pose_(D, D->P, P0, P1, w0, w1, D->linear_pose);
 
         rotate_vertex_groups_D_Init();
 
@@ -7666,7 +7666,7 @@ void goto_Deformer_Frame_(deformer * D, int frame)
                 }
                 else
                 {
-                    create_Inbetween_Frame_Pose(D, frame, linear_pose);
+                    create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
                 }
             }
             apply_Pose_position_(D, D->P, D->Delta);
@@ -7812,7 +7812,7 @@ void goto_Deformer_Frame(deformer * D, int frame)
                 }
                 else
                 {
-                    create_Inbetween_Frame_Pose(D, frame, linear_pose);
+                    create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
                 }
             }
             apply_Pose_position_(D, D->P, D->Delta);
@@ -8015,9 +8015,9 @@ void deformer_Keyframe_Player()
                 {
                     if (mod & KMOD_SHIFT)
                     {
-                        linear_pose = !linear_pose;
-                        printf("linear_pose %d\n", linear_pose);
-                        make_osd(O);
+//                        linear_pose = !linear_pose;
+//                        printf("linear_pose %d\n", linear_pose);
+//                        make_osd(O);
                     }
                     else
                     {
@@ -8387,8 +8387,8 @@ void deformer_Player()
                     {
                         if (mod & KMOD_SHIFT)
                         {
-                            linear_pose = !linear_pose;
-                            make_osd(O);
+//                            linear_pose = !linear_pose;
+//                            make_osd(O);
                         }
                         else
                         {
@@ -8501,7 +8501,7 @@ void deformer_Player()
                 {
                     if (D->play < 0)
                     {
-                        create_Inbetween_Pose_(D, D->P, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1, linear_pose);
+                        create_Inbetween_Pose_(D, D->P, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1, D->linear_pose);
                     }
 //                    else
 //                    {
@@ -23943,8 +23943,8 @@ int main(int argc, char * args[])
             {
                 if (Object_Mode)
                 {
-                    linear_pose = !linear_pose;
-                    make_osd(O);
+//                    linear_pose = !linear_pose;
+//                    make_osd(O);
                 }
                 else
                 {
