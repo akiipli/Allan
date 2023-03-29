@@ -77,6 +77,7 @@ struct deformer
 
     int play;
     pose * P;
+    int linear_pose;
 
     deformer_morph_map ** Morph_Maps;
     int Morph_Maps_Count;
@@ -293,6 +294,7 @@ void add_Deformer()
     deformerIndex ++;
     D->Morph_Maps = malloc(0 * sizeof(deformer_morph_map*));
     D->Morph_Maps_Count = 0;
+    D->linear_pose = 1;
 }
 
 void list_Deformer_Nodes(deformer * D, int SelsIndex, object * O)

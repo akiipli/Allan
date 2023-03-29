@@ -30,6 +30,7 @@ from corner.
 #define PROPERTIES_IK 6
 #define PROPERTIES_BONE 7
 #define PROPERTIES_MORPH 8
+#define PROPERTIES_DEFORMER 9
 
 #define X_OFFSET 5
 #define Y_OFFSET 10
@@ -352,6 +353,16 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
                 Morphs[m_count ++] = OMorph->Amount;
             idx ++;
         }
+    }
+    else if (subject != NULL && type == PROPERTIES_DEFORMER)
+    {
+        deformer * D = (deformer *)subject;
+
+        sprintf(text, "linear pose");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%d", D->linear_pose);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+        idx ++;
     }
 
 	//glEnable(GL_TEXTURE_2D);

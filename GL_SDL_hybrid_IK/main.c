@@ -5975,9 +5975,18 @@ void open_Deformers_List()
     Osd = 0;
     HINTS = 0;
 
-    PROPERTIES = PROPERTIES_NONE;
+    PROPERTIES = PROPERTIES_DEFORMER;
 
     //create_Deformers_List(SelsIndex[3], O);
+
+    if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
+    {
+        Type = deformers[currentDeformer_Node];
+    }
+    else
+    {
+        Type = NULL;
+    }
 
     if (Bottom_Message)
     {
@@ -6008,6 +6017,20 @@ void open_Deformers_List()
                           defr_start, 1, DefrIndex - defr_start,
                           hier_start, HierIndex - hier_start,
                           sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(deformers[currentDeformer_Node]->Name, screen_height, 1, PROPERTIES_DEFORMER, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_DEFORMER, Type);
+    }
+
+    if (DRAW_TIMELINE)
+    {
+        Draw_Timeline();
+        Draw_Morph_Timeline();
+    }
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -6652,14 +6675,28 @@ void assign_No_Surface(object * O)
     }
 }
 
-void update_Deformers_List(int blit)
+void update_Deformers_List(int update)
 {
+    if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
+    {
+        Type = deformers[currentDeformer_Node];
+    }
+    else
+    {
+        Type = NULL;
+    }
+
     if (DefrIndex - defr_start >= 0)
         DefrList[DefrIndex - defr_start].color = UI_BACKL;
 
-    if (blit)
+    if (update)
     {
-        blit_ViewPort();
+        DRAW_UI = 0;
+        UPDATE_COLORS = 1;
+        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        UPDATE_COLORS = 0;
+        DRAW_UI = 1;
     }
 
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
@@ -6668,6 +6705,20 @@ void update_Deformers_List(int blit)
                     defr_start, 1, DefrIndex - defr_start,
                     hier_start, HierIndex - hier_start,
                     sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(deformers[currentDeformer_Node]->Name, screen_height, 1, PROPERTIES_DEFORMER, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_DEFORMER, Type);
+    }
+
+    if (DRAW_TIMELINE)
+    {
+        Draw_Timeline();
+        Draw_Morph_Timeline();
+    }
 
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
@@ -7089,7 +7140,7 @@ void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
     {
-        if (linear_pose)
+        if (D->linear_pose)
             paste_Pose_position(D, P);
         else
         {
@@ -8099,7 +8150,7 @@ void deformer_Keyframe_Player()
                     {
                         if (D->play < 0)
                         {
-                            create_Inbetween_Frame_Pose(D, frame, linear_pose);
+                            create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
                         }
                     }
                     apply_Pose_position_keyframes(D, D->P, D->Delta);
@@ -8923,7 +8974,7 @@ void update_Hierarchys_List(int update, int blit)
         draw_Hierarchys_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
 
-    if (DIALOG_HEIGHT < screen_height)
+    if (DIALOG_HEIGHT < screen_height && PROPERTIES == PROPERTIES_LOCATOR)
     {
         draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
     }
@@ -9050,14 +9101,7 @@ void handle_UP_Defr(int scrollbar)
         {
             currentLocator = Deformer_List[currentDeformer];
         }
-        DRAW_UI = 0;
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
-                            defr_start, 1, DefrIndex - defr_start,
-                            hier_start, HierIndex - hier_start,
-                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
-        SDL_GL_SwapBuffers();
-        DRAW_UI = 1;
+        update_Deformers_List(0);
     }
 }
 
@@ -9650,14 +9694,7 @@ void handle_DOWN_Defr(int scrollbar)
         {
             currentLocator = Deformer_List[currentDeformer];
         }
-        DRAW_UI = 0;
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
-                            defr_start, 1, DefrIndex - defr_start,
-                            hier_start, HierIndex - hier_start,
-                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
-        SDL_GL_SwapBuffers();
-        DRAW_UI = 1;
+        update_Deformers_List(0);
     }
 }
 
@@ -16301,6 +16338,21 @@ void change_Material_Smooth()
     SDL_GL_SwapBuffers();
 }
 
+void change_Deformer_Linear_Pose()
+{
+    //printf("change Deformer Linear Pose\n");
+    if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
+    {
+        D = deformers[currentDeformer_Node];
+        D->linear_pose = !D->linear_pose;
+        //printf("%d\n", D->linear_pose);
+
+        draw_Dialog();
+
+        SDL_GL_SwapBuffers();
+    }
+}
+
 void change_Object_Smooth()
 {
     if (currentObject >= 0 && currentObject < objectIndex)
@@ -18807,21 +18859,13 @@ int main(int argc, char * args[])
                                                 currentDeformer_Node = -(Deformer_List[index + defr_start] + 1);
                                                 assert_Deformers_Selected();
                                                 select_Deformer_Objects();
+                                                set_Object_Mode();
+                                                DRAW_LOCATORS = 0;
+                                                frame_object(Camera, 1);
                                             }
                                             create_Deformers_List(SelsIndex[3], O);
                                         }
-                                        DRAW_UI = 0;
-                                        UPDATE_COLORS = 1;
-                                        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-                                        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-                                        draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
-                                                            defr_start, 1, DefrIndex - defr_start,
-                                                            hier_start, HierIndex - hier_start,
-                                                            sels_start[3], SelsIndex[3] - sels_start[3], 0);
-                                        SDL_GL_SwapBuffers();
-                                        glDrawBuffer(GL_BACK);
-                                        UPDATE_COLORS = 0;
-                                        DRAW_UI = 1;
+                                        update_Deformers_List(1);
                                     }
                                 }
                                 else if (current_defr_type == 1) // hier
@@ -19482,6 +19526,16 @@ int main(int argc, char * args[])
                                             //printf("morph %d %d %1.2f\n", v_index, h_index, Morph);
                                             Drag_Morph = 1;
                                         }
+                                    }
+                                }
+                            }
+                            else if (dialog_type == DEFR_DIALOG && PROPERTIES == PROPERTIES_DEFORMER)
+                            {
+                                if (v_index == 0)
+                                {
+                                    if (h_index == 2)
+                                    {
+                                        change_Deformer_Linear_Pose();
                                     }
                                 }
                             }
@@ -20318,6 +20372,29 @@ int main(int argc, char * args[])
                                         draw_Properties(Deformer_Morph->Name, screen_height, 1, PROPERTIES_MORPH, Type);
                                     else
                                         draw_Properties("", screen_height, 1, PROPERTIES_MORPH, Type);
+                                    SDL_GL_SwapBuffers();
+                                }
+                            }
+                            else if (PROPERTIES == PROPERTIES_DEFORMER)
+                            {
+                                if (properties[prop_y][prop_x] != UI_BACKL)
+                                {
+                                    black_out_properties();
+                                    properties[prop_y][prop_x] = UI_BACKL;
+                                    if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
+                                    {
+                                        D = deformers[currentDeformer_Node];
+                                        Type = D;
+                                    }
+                                    else
+                                    {
+                                        D = NULL;
+                                        Type = NULL;
+                                    }
+                                    if (Type != NULL && D != NULL)
+                                        draw_Properties(D->Name, screen_height, 1, PROPERTIES_DEFORMER, Type);
+                                    else
+                                        draw_Properties("", screen_height, 1, PROPERTIES_DEFORMER, Type);
                                     SDL_GL_SwapBuffers();
                                 }
                             }
