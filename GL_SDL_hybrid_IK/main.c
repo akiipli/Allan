@@ -2443,12 +2443,12 @@ void Draw_Timeline()
             if (T->Timeline != NULL)
             {
                 Tm = T->Timeline;
-                glColor4fv(grayb);
                 for (f = 0; f < Tm->key_frames; f ++)
                 {
                     if (Tm->Frames[f] >= TimelineStart && Tm->Frames[f] < TimelineEnd)
                     {
                         vline = (int)((Tm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0) + TIMELINE_ENTRY);
+                        glColor4fv(grayb);
                         glBegin(GL_LINES);
                         glVertex2f(vline, 0);
                         glVertex2f(vline, h - inc * Tm->Acceleration[f].segment_type);
@@ -2479,7 +2479,6 @@ void Draw_Timeline()
                             glVertex2f(vline2, 0);
                             glVertex2f(vline2, h);
                             glEnd();
-                            glColor4fv(grayb);
                         }
                     }
                 }
@@ -2580,12 +2579,12 @@ void Draw_Morph_Timeline()
             if (O->Morph_Timeline != NULL)
             {
                 Tmm = O->Morph_Timeline;
-                glColor4fv(grayb);
                 for (f = 0; f < Tmm->key_frames; f ++)
                 {
                     if (Tmm->Frames[f] >= TimelineStart && Tmm->Frames[f] < TimelineEnd)
                     {
                         vline = (int)((Tmm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0) + TIMELINE_ENTRY);
+                        glColor4fv(grayb);
                         glBegin(GL_LINES);
                         glVertex2f(vline, 0);
                         glVertex2f(vline, h - inc * Tmm->Acceleration[f].segment_type);
@@ -2615,7 +2614,6 @@ void Draw_Morph_Timeline()
                             glVertex2f(vline2, 0);
                             glVertex2f(vline2, h);
                             glEnd();
-                            glColor4fv(grayb);
                         }
 
                         Preak = 1;
@@ -7119,7 +7117,6 @@ void apply_Pose_position_Play(deformer * D)
             rotate_rotVec_pose(T);
 
             move_IKs_To_Parent(T);
-
         }
     }
 }
@@ -7141,6 +7138,27 @@ void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
             rotate_Deformer_pose(T);
 
             rotate_Deformer_verts(D);
+        }
+    }
+}
+
+void apply_Pose_rotation_keyframes(deformer * D, float Delta[3])
+{
+    if (!BIND_POSE)
+    {
+        apply_Pose_position_Play(D);
+        solve_IK_Chains(D);
+
+        if (D->Transformers_Count > 0)
+        {
+            transformer * T = D->Transformers[0];
+
+            move_Pose_T(T, Delta);
+
+            if (ROTATED_POSE)
+                rotate_Pose(D);
+
+            //rotate_Deformer_verts(D);
         }
     }
 }
@@ -12771,12 +12789,17 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             {
                 Float_Value = atof(EditString);
             }
-            printf("Float Value %s %f\n", EditString, Float_Value);
+            //printf("Float Value %s %f\n", EditString, Float_Value);
             Locator_Values[Locator_v_index][Locator_h_index] = Float_Value;
+
+            T = transformers[currentLocator];
 
             if (T->Deformer != NULL)
             {
-
+                D = T->Deformer;
+                transfer_Locator_Values(T);
+                apply_Pose_rotation_keyframes(D, D->Delta);
+                update_Deformed_View(D, 0);
             }
             else if (T->Object != NULL)
             {
@@ -12864,6 +12887,20 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
     else if (letter == 'c')
     {
         clean_Unused_Transformers();
+    }
+    else if (letter == 'i')
+    {
+        if (deformerIndex > 0 && currentDeformer_Node >= 0)
+        {
+            frame = currentFrame;
+
+            D = deformers[currentDeformer_Node];
+            insert_Deformer_keyframe(D, frame);
+
+            Draw_Timeline();
+            Draw_Morph_Timeline();
+            SDL_GL_SwapBuffers();
+        }
     }
 }
 

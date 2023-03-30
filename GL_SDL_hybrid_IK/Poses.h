@@ -120,6 +120,14 @@ void create_Frame_Pose(deformer * D, int frame)
                 P->TP[t].pos[1] = Tm->Values[frame0].pos[1];
                 P->TP[t].pos[2] = Tm->Values[frame0].pos[2];
 
+                P->TP[t].rot[0] = Tm->Values[frame0].rot[0];
+                P->TP[t].rot[1] = Tm->Values[frame0].rot[1];
+                P->TP[t].rot[2] = Tm->Values[frame0].rot[2];
+
+                P->TP[t].scl[0] = Tm->Values[frame0].scl[0];
+                P->TP[t].scl[1] = Tm->Values[frame0].scl[1];
+                P->TP[t].scl[2] = Tm->Values[frame0].scl[2];
+
                 P->TP[t].rotVec_[0][0] = Tm->Values[frame0].rotVec_[0][0];
                 P->TP[t].rotVec_[0][1] = Tm->Values[frame0].rotVec_[0][1];
                 P->TP[t].rotVec_[0][2] = Tm->Values[frame0].rotVec_[0][2];
@@ -288,15 +296,17 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame, int linear_pose)
                 P->TP[t].pos[1] = Tm->Values[frame0].pos[1] * a + Tm->Values[frame1].pos[1] * b;
                 P->TP[t].pos[2] = Tm->Values[frame0].pos[2] * a + Tm->Values[frame1].pos[2] * b;
 
+                P->TP[t].scl[0] = Tm->Values[frame0].scl[0] * a + Tm->Values[frame1].scl[0] * b;
+                P->TP[t].scl[1] = Tm->Values[frame0].scl[1] * a + Tm->Values[frame1].scl[1] * b;
+                P->TP[t].scl[2] = Tm->Values[frame0].scl[2] * a + Tm->Values[frame1].scl[2] * b;
+
+                P->TP[t].rot[0] = Tm->Values[frame0].rot[0] * a + Tm->Values[frame1].rot[0] * b;
+                P->TP[t].rot[1] = Tm->Values[frame0].rot[1] * a + Tm->Values[frame1].rot[1] * b;
+                P->TP[t].rot[2] = Tm->Values[frame0].rot[2] * a + Tm->Values[frame1].rot[2] * b;
+
                 if (!linear_pose)
                 {
-                    P->TP[t].scl[0] = Tm->Values[frame0].scl[0] * a + Tm->Values[frame1].scl[0] * b;
-                    P->TP[t].scl[1] = Tm->Values[frame0].scl[1] * a + Tm->Values[frame1].scl[1] * b;
-                    P->TP[t].scl[2] = Tm->Values[frame0].scl[2] * a + Tm->Values[frame1].scl[2] * b;
 
-                    P->TP[t].rot[0] = Tm->Values[frame0].rot[0] * a + Tm->Values[frame1].rot[0] * b;
-                    P->TP[t].rot[1] = Tm->Values[frame0].rot[1] * a + Tm->Values[frame1].rot[1] * b;
-                    P->TP[t].rot[2] = Tm->Values[frame0].rot[2] * a + Tm->Values[frame1].rot[2] * b;
                 }
                 else
                 {
@@ -591,10 +601,10 @@ void paste_Pose_position(deformer * D, pose * P)
         if (t >= D->Transformers_Count)
             break;
         T = D->Transformers[t];
-//        T->rot_Order = P->TP[t].rot_Order;
-//        memcpy(T->scl, P->TP[t].scl, sizeof(T->scl));
-//        memcpy(T->scl_vec, P->TP[t].scl_vec, sizeof(T->scl_vec));
-//        memcpy(T->rot, P->TP[t].rot, sizeof(T->rot));
+        T->rot_Order = P->TP[t].rot_Order;
+        memcpy(T->scl, P->TP[t].scl, sizeof(T->scl));
+        memcpy(T->scl_vec, P->TP[t].scl_vec, sizeof(T->scl_vec));
+        memcpy(T->rot, P->TP[t].rot, sizeof(T->rot));
         memcpy(T->rotVec, P->TP[t].rotVec, sizeof(T->rotVec));
 //        memcpy(T->rotVec_, P->TP[t].rotVec_, sizeof(T->rotVec_));
 //        memcpy(T->rotVec_I, P->TP[t].rotVec_I, sizeof(T->rotVec_I));

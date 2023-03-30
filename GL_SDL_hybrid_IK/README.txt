@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+9:27 PM 3/30/2023
+Locators Properties editing in Hierarchys List. I in Hierarchys List places a keyframe for current Locators Deformer.
+
 12:55 PM 3/26/2023
 Changes for subdivision system. Subdivision is restrictable to Max level in Objects. Also combo value in Properties panel introduced.
 This value highlights in yellow and affects multiple selected items.
