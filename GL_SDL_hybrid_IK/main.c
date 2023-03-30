@@ -3048,6 +3048,7 @@ void update_Resize_Event()
         {
             Edit_Properties = 0;
             Edit_Color = 0;
+            Edit_Locator = 0;
         }
 
         if (Edit_Lock)
@@ -6096,6 +6097,11 @@ void open_Hierarchys_List()
         draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
     }
 
+    if (Edit_Properties && Edit_Locator)
+    {
+        draw_Properties_Edit(EditString, screen_height, Locator_v_index + 2, Locator_h_index + 1, 0);
+    }
+
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
     message = 0;
@@ -6234,7 +6240,10 @@ void update_Properties_Edit(const char * text, int v_index, int h_index, int bli
 
     if (DIALOG_HEIGHT < screen_height)
     {
-        draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
+        if (PROPERTIES == PROPERTIES_MATERIAL)
+            draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
+        else if (PROPERTIES == PROPERTIES_LOCATOR)
+            draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES, Type);
     }
 
     draw_Properties_Edit(text, screen_height, v_index, h_index, 1);
@@ -8982,6 +8991,11 @@ void update_Hierarchys_List(int update, int blit)
     if (HierIndex - hier_start >= 0)
         HierList[HierIndex - hier_start].color = UI_BLACK;
 
+    if (Edit_Properties && Edit_Locator)
+    {
+        draw_Properties_Edit(EditString, screen_height, Locator_v_index + 2, Locator_h_index + 1, 0);
+    }
+
     if (DRAW_TIMELINE)
     {
         Draw_Timeline();
@@ -11193,6 +11207,22 @@ void edit_Timeline_Value()
     }
 }
 
+void edit_Locator_Value()
+{
+    if (dialog_lock)
+    {
+        if (!Edit_Lock)
+        {
+            printf("edit Locator Value\n");
+            sprintf(Properties_Remember, "%1.2f", Float_Value);
+            Edit_Lock = 1;
+            EditCursor = 0;
+            EditString[0] = '\0';
+            update_Properties_Edit("", Locator_v_index + 2, Locator_h_index + 1, 0);
+        }
+    }
+}
+
 void edit_Color_Value()
 {
     if (dialog_lock)
@@ -12653,9 +12683,115 @@ void clean_Unused_Transformers()
     }
 }
 
+void transfer_Transformer_Values(transformer * T)
+{
+    Locator_Values[0][0] = T->rot[0];
+    Locator_Values[0][1] = T->rot[1];
+    Locator_Values[0][2] = T->rot[2];
+
+    Locator_Values[1][0] = T->pos[0];
+    Locator_Values[1][1] = T->pos[1];
+    Locator_Values[1][2] = T->pos[2];
+
+    Locator_Values[2][0] = T->scl[0];
+    Locator_Values[2][1] = T->scl[1];
+    Locator_Values[2][2] = T->scl[2];
+}
+
+void transfer_Locator_Values(transformer * T)
+{
+    T->rot[0] = Locator_Values[0][0];
+    T->rot[1] = Locator_Values[0][1];
+    T->rot[2] = Locator_Values[0][2];
+
+    T->pos[0] = Locator_Values[1][0];
+    T->pos[1] = Locator_Values[1][1];
+    T->pos[2] = Locator_Values[1][2];
+
+    T->scl[0] = Locator_Values[2][0];
+    T->scl[1] = Locator_Values[2][1];
+    T->scl[2] = Locator_Values[2][2];
+}
+
 void handle_Hier_Dialog(char letter, SDLMod mod)
 {
-    if (Edit_Lock)
+    int update = 1;
+
+    if (Edit_Lock && Edit_Properties && Edit_Locator)
+    {
+        if (isdigit(letter) || letter == '.' || (letter == '-' && EditCursor == 0))
+        {
+            if (EditCursor < STRLEN - 1)
+            {
+                EditString[EditCursor] = letter;
+                EditCursor ++;
+                if (EditCursor > 4)
+                {
+                    EditCursor = 4;
+                }
+
+                EditString[EditCursor] = '\0';
+            }
+        }
+        else if (letter == 13 || letter == 10) // return, enter
+        {
+            printf("Finished editing properties\n");
+
+            Edit_Lock = 0;
+            Edit_Properties = 0;
+            Edit_Locator = 0;
+
+            EditCursor = 0;
+
+            update_Hierarchys_List(1, 1);
+
+            update = 0;
+            //printf("%c%s", 13, EditString);
+            message = 0;
+        }
+        else if (letter == 8) // backspace
+        {
+            EditCursor --;
+            if (EditCursor < 0)
+                EditCursor = 0;
+            EditString[EditCursor] = '\0';
+        }
+
+        if (update)
+        {
+            if (atof(EditString) > 1000)
+            {
+                Float_Value = 1000;
+            }
+            else if (atof(EditString) < -1000)
+            {
+                Float_Value = -1000;
+            }
+            else
+            {
+                Float_Value = atof(EditString);
+            }
+            printf("Float Value %s %f\n", EditString, Float_Value);
+            Locator_Values[Locator_v_index][Locator_h_index] = Float_Value;
+
+            if (T->Deformer != NULL)
+            {
+
+            }
+            else if (T->Object != NULL)
+            {
+                transfer_Locator_Values(T);
+                rotate_(T);
+                rotate_verts(T->Object, *T);
+                tune_subdivide_post_transformed(T->Object, subdLevel);
+            }
+
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            draw_Dialog();
+            SDL_GL_SwapBuffers();
+        }
+    }
+    else if (Edit_Lock)
     {
         int update = 1;
         if (controlDown)
@@ -17731,7 +17867,7 @@ int main(int argc, char * args[])
                     case SDLK_PAGEDOWN: message = 10; printf("page down\n"); break;
 
                     case SDLK_KP_PLUS: message = 17; printf("plus\n"); break;
-                    case SDLK_KP_MINUS: message = 18; printf("minus\n"); break;
+                    case SDLK_KP_MINUS: message = 18; if (dialog_lock) handle_dialog('-', mod); break;
                     case SDLK_F1: message = 19; printf("F1\n"); break;
                     case SDLK_F2: message = 20; printf("F2\n"); break;
                     case SDLK_F3: message = 21; printf("F3\n"); break;
@@ -17799,7 +17935,9 @@ int main(int argc, char * args[])
                     case SDLK_BACKQUOTE: message = 71; if (dialog_lock) handle_dialog('`', mod); break;
                     case SDLK_SEMICOLON: message = 72; if (dialog_lock) handle_dialog(':', mod); break;
                     case SDLK_SLASH: message = 74; if (dialog_lock) handle_dialog('/', mod); break;
-                    case SDLK_BACKSLASH: message = 75; if (dialog_lock) handle_dialog('/', mod); break;
+                    case SDLK_BACKSLASH: message = 75; if (dialog_lock) handle_dialog('\\', mod); break;
+                    case SDLK_PERIOD: message = 76; if (dialog_lock) handle_dialog('.', mod); break;
+                    case SDLK_KP_PERIOD: message = 77; if (dialog_lock) handle_dialog('.', mod); break;
                     default: break;
                 }
                 if (message != 1 && message != 2 && message != 3 && message != 4 && message != 25 && message != 35)
@@ -19488,11 +19626,22 @@ int main(int argc, char * args[])
                             }
                             else if (dialog_type == HIER_DIALOG)
                             {
-                                if (mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 1 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 2)
+                                if (v_index == 1)
                                 {
                                     if (h_index == 1)
                                     {
                                         change_Transformer_Pin();
+                                    }
+                                }
+                                else if (v_index >= 2 && v_index <= 4)
+                                {
+                                    Edit_Locator = 1;
+                                    if (h_index >= 1 && h_index <= 3)
+                                    {
+                                        Locator_v_index = v_index - 2;
+                                        Locator_h_index = h_index - 1;
+                                        Float_Value = 0.0;
+                                        transfer_Transformer_Values(transformers[currentLocator]);
                                     }
                                 }
                             }
@@ -20093,6 +20242,16 @@ int main(int argc, char * args[])
                         Drag_Color = 0;
                         Drag_Shine = 0;
                         Drag_Displacement = 0;
+                    }
+                }
+                else if (Edit_Locator)
+                {
+                    if (dialog_lock)
+                    {
+                        Edit_Properties = 1;
+                        printf("Just clicked locator property value\n");
+                        T = transformers[currentLocator];
+                        edit_Locator_Value();
                     }
                 }
 
@@ -22728,34 +22887,34 @@ int main(int argc, char * args[])
         }
         else if (message == 18)
         {
-            if (mod & KMOD_ALT)
-            {
-                float amount = 0;
-                if (O->mean_Edge > 0.1)
-                {
-                    amount = 0.1;
-                }
-                else if (O->mean_Edge > 1)
-                {
-                    amount = 1;
-                }
-                else if (O->mean_Edge > 10)
-                {
-                    amount = 10;
-                }
-                else
-                {
-                    amount = 0.01;
-                }
-                Materials[O->surface].Displacement -= amount;
-                printf("%f\n", Materials[O->surface].Displacement);
-            }
-            else
-            {
-                Materials[O->surface].Shininess --;
-                printf("%f\n", Materials[O->surface].Shininess);
-            }
-            message = -1;
+//            if (mod & KMOD_ALT)
+//            {
+//                float amount = 0;
+//                if (O->mean_Edge > 0.1)
+//                {
+//                    amount = 0.1;
+//                }
+//                else if (O->mean_Edge > 1)
+//                {
+//                    amount = 1;
+//                }
+//                else if (O->mean_Edge > 10)
+//                {
+//                    amount = 10;
+//                }
+//                else
+//                {
+//                    amount = 0.01;
+//                }
+//                Materials[O->surface].Displacement -= amount;
+//                printf("%f\n", Materials[O->surface].Displacement);
+//            }
+//            else
+//            {
+//                Materials[O->surface].Shininess --;
+//                printf("%f\n", Materials[O->surface].Shininess);
+//            }
+//            message = -1;
         }
         else if (message == 19)
         {
@@ -23630,9 +23789,14 @@ int main(int argc, char * args[])
                     {
                         Edit_Properties = 0;
                         Edit_Color = 0;
+                        Edit_Locator = 0;
                         if (dialog_type == MATERIAL_DIALOG)
                         {
                             update_Materials_List(1, 0);
+                        }
+                        else if (dialog_type == HIER_DIALOG)
+                        {
+                            update_Hierarchys_List(1, 0);
                         }
                     }
                     else

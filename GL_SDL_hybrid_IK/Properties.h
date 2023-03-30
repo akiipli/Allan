@@ -50,6 +50,12 @@ int Drag_Color = 0;
 int Color_Component = 0;
 int Edit_Color = 0;
 
+float Float_Value;
+int Edit_Locator = 0;
+int Locator_v_index = 0;
+int Locator_h_index = 0;
+float Locator_Values[3][3];
+
 int Drag_Shine = 0;
 float Shine;
 float Shine_adjusted;
@@ -257,14 +263,32 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "%d", T->pin);
         draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
         idx ++;
-        sprintf(text, "Rotation\tX %1.2f\tY %1.2f\tZ %1.2f", T->rot[0], T->rot[1], T->rot[2]);
+        sprintf(text, "Rotation");
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%1.2f", T->rot[0]);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+        sprintf(text, "%1.2f", T->rot[1]);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+        sprintf(text, "%1.2f", T->rot[2]);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 3);
         idx ++;
-        sprintf(text, "Position\tX %1.2f\tY %1.2f\tZ %1.2f", T->pos[0], T->pos[1], T->pos[2]);
+        sprintf(text, "Position");
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%1.2f", T->pos[0]);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+        sprintf(text, "%1.2f", T->pos[1]);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+        sprintf(text, "%1.2f", T->pos[2]);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 3);
         idx ++;
-        sprintf(text, "Scaling\tX %1.2f\tY %1.2f\tZ %1.2f", T->scl[0], T->scl[1], T->scl[2]);
+        sprintf(text, "Scaling");
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%1.2f", T->scl[0]);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+        sprintf(text, "%1.2f", T->scl[1]);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+        sprintf(text, "%1.2f", T->scl[2]);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 3);
         idx ++;
     }
     else if (subject != NULL && type == PROPERTIES_IK)

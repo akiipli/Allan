@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1680100221 source:c:\gl_sdl_hybrid_ik\main.c
+1680192300 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -143,7 +143,7 @@
 
 1664041329 c:\gl_sdl_hybrid_ik\subcharacters.h
 
-1680087968 c:\gl_sdl_hybrid_ik\properties.h
+1680188483 c:\gl_sdl_hybrid_ik\properties.h
 
 1679517414 c:\gl_sdl_hybrid_ik\timeline.h
 
