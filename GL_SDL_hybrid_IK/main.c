@@ -7151,9 +7151,9 @@ void apply_Pose_rotation_keyframes(deformer * D, float Delta[3])
 
         if (D->Transformers_Count > 0)
         {
-            transformer * T = D->Transformers[0];
+            //transformer * T = D->Transformers[0];
 
-            move_Pose_T(T, Delta);
+            //move_Pose_T(T, Delta);
 
             if (ROTATED_POSE)
                 rotate_Pose(D);
