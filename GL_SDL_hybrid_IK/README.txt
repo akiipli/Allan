@@ -3,12 +3,12 @@
 Author here is:
 Allan Kiipli
 
+9:27 PM 3/30/2023
+Locators Properties editing in Hierarchys List. I in Hierarchys List places a keyframe for current Locators Deformer.
+
 12:55 PM 3/26/2023
 Changes for subdivision system. Subdivision is restrictable to Max level in Objects. Also combo value in Properties panel introduced.
 This value highlights in yellow and affects multiple selected items.
-
-10:00 AM 3/24/2023
-Shift + L in Object Mode switches linear pose in and off.
 
 8:03 PM 3/23/2023
 Ctrl + Shift + Left / Right changes Timeline 10 frames left or right changing Start and End Times.
@@ -166,9 +166,6 @@ Use enter to assign while renaming.
 7:57 PM 1/14/2020
 Ctrl click in hierarchys List toggles selected state for locators.
 Toggling collapsing selects item as current.
-
-5:00 PM 12/22/2019
-Shift + L while playing (ctrl + D). switches linear poses on and off.
 
 4:34 PM 12/9/2019
 Select ik goal and press f to make ik goal fixed.
