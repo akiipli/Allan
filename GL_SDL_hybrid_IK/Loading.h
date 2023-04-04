@@ -831,16 +831,6 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
 
             D->play = -1;
             D->P = NULL;
-
-            if (loading_version >= 1015)
-            {
-                if (fgets(buff, BUF_SIZE, fp))
-                    sscanf(buff, "%d", &D->linear_pose);
-            }
-            else
-            {
-                D->linear_pose = 1;
-            }
         }
     }
     else

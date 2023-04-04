@@ -140,7 +140,7 @@ int BUMP_IMAGE = 0;
 int TURNTABLE = 0;
 int blit_flipped = 0;
 int frames_count = 10;
-//int linear_pose = 1;
+int linear_pose = 1;
 
 int Drag_Dialog = 0;
 int Axis_lock = 0;
@@ -504,7 +504,7 @@ void make_osd(object * O)
     else
         p += sprintf(&osd_font[p], "polys\t%d\n", O->polycount);
 
-//    p += sprintf(&osd_font[p], "linear\t%d\n", linear_pose);
+    p += sprintf(&osd_font[p], "linear\t%d\n", linear_pose);
     p += sprintf(&osd_font[p], "patch\t%d\n", Patch_Mode);
     p += sprintf(&osd_font[p], "locators\t%d\n", DRAW_LOCATORS);
     p += sprintf(&osd_font[p], "curves\t%d\n", curve_Draw);
@@ -2443,12 +2443,12 @@ void Draw_Timeline()
             if (T->Timeline != NULL)
             {
                 Tm = T->Timeline;
+                glColor4fv(grayb);
                 for (f = 0; f < Tm->key_frames; f ++)
                 {
                     if (Tm->Frames[f] >= TimelineStart && Tm->Frames[f] < TimelineEnd)
                     {
                         vline = (int)((Tm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0) + TIMELINE_ENTRY);
-                        glColor4fv(grayb);
                         glBegin(GL_LINES);
                         glVertex2f(vline, 0);
                         glVertex2f(vline, h - inc * Tm->Acceleration[f].segment_type);
@@ -2479,6 +2479,7 @@ void Draw_Timeline()
                             glVertex2f(vline2, 0);
                             glVertex2f(vline2, h);
                             glEnd();
+                            glColor4fv(grayb);
                         }
                     }
                 }
@@ -2579,12 +2580,12 @@ void Draw_Morph_Timeline()
             if (O->Morph_Timeline != NULL)
             {
                 Tmm = O->Morph_Timeline;
+                glColor4fv(grayb);
                 for (f = 0; f < Tmm->key_frames; f ++)
                 {
                     if (Tmm->Frames[f] >= TimelineStart && Tmm->Frames[f] < TimelineEnd)
                     {
                         vline = (int)((Tmm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0) + TIMELINE_ENTRY);
-                        glColor4fv(grayb);
                         glBegin(GL_LINES);
                         glVertex2f(vline, 0);
                         glVertex2f(vline, h - inc * Tmm->Acceleration[f].segment_type);
@@ -2614,6 +2615,7 @@ void Draw_Morph_Timeline()
                             glVertex2f(vline2, 0);
                             glVertex2f(vline2, h);
                             glEnd();
+                            glColor4fv(grayb);
                         }
 
                         Preak = 1;
@@ -3046,7 +3048,6 @@ void update_Resize_Event()
         {
             Edit_Properties = 0;
             Edit_Color = 0;
-            Edit_Locator = 0;
         }
 
         if (Edit_Lock)
@@ -5974,18 +5975,9 @@ void open_Deformers_List()
     Osd = 0;
     HINTS = 0;
 
-    PROPERTIES = PROPERTIES_DEFORMER;
+    PROPERTIES = PROPERTIES_NONE;
 
     //create_Deformers_List(SelsIndex[3], O);
-
-    if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
-    {
-        Type = deformers[currentDeformer_Node];
-    }
-    else
-    {
-        Type = NULL;
-    }
 
     if (Bottom_Message)
     {
@@ -6016,20 +6008,6 @@ void open_Deformers_List()
                           defr_start, 1, DefrIndex - defr_start,
                           hier_start, HierIndex - hier_start,
                           sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
-
-    if (DIALOG_HEIGHT < screen_height)
-    {
-        if (Type != NULL)
-            draw_Properties(deformers[currentDeformer_Node]->Name, screen_height, 1, PROPERTIES_DEFORMER, Type);
-        else
-            draw_Properties("", screen_height, 1, PROPERTIES_DEFORMER, Type);
-    }
-
-    if (DRAW_TIMELINE)
-    {
-        Draw_Timeline();
-        Draw_Morph_Timeline();
-    }
 
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
@@ -6093,11 +6071,6 @@ void open_Hierarchys_List()
     if (DIALOG_HEIGHT < screen_height)
     {
         draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
-    }
-
-    if (Edit_Properties && Edit_Locator)
-    {
-        draw_Properties_Edit(EditString, screen_height, Locator_v_index + 2, Locator_h_index + 1, 0);
     }
 
     glDrawBuffer(GL_BACK);
@@ -6238,10 +6211,7 @@ void update_Properties_Edit(const char * text, int v_index, int h_index, int bli
 
     if (DIALOG_HEIGHT < screen_height)
     {
-        if (PROPERTIES == PROPERTIES_MATERIAL)
-            draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
-        else if (PROPERTIES == PROPERTIES_LOCATOR)
-            draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES, Type);
+        draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
     }
 
     draw_Properties_Edit(text, screen_height, v_index, h_index, 1);
@@ -6682,28 +6652,14 @@ void assign_No_Surface(object * O)
     }
 }
 
-void update_Deformers_List(int update)
+void update_Deformers_List(int blit)
 {
-    if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
-    {
-        Type = deformers[currentDeformer_Node];
-    }
-    else
-    {
-        Type = NULL;
-    }
-
     if (DefrIndex - defr_start >= 0)
         DefrList[DefrIndex - defr_start].color = UI_BACKL;
 
-    if (update)
+    if (blit)
     {
-        DRAW_UI = 0;
-        UPDATE_COLORS = 1;
-        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        UPDATE_COLORS = 0;
-        DRAW_UI = 1;
+        blit_ViewPort();
     }
 
     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
@@ -6712,20 +6668,6 @@ void update_Deformers_List(int update)
                     defr_start, 1, DefrIndex - defr_start,
                     hier_start, HierIndex - hier_start,
                     sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
-
-    if (DIALOG_HEIGHT < screen_height)
-    {
-        if (Type != NULL)
-            draw_Properties(deformers[currentDeformer_Node]->Name, screen_height, 1, PROPERTIES_DEFORMER, Type);
-        else
-            draw_Properties("", screen_height, 1, PROPERTIES_DEFORMER, Type);
-    }
-
-    if (DRAW_TIMELINE)
-    {
-        Draw_Timeline();
-        Draw_Morph_Timeline();
-    }
 
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
@@ -7117,6 +7059,7 @@ void apply_Pose_position_Play(deformer * D)
             rotate_rotVec_pose(T);
 
             move_IKs_To_Parent(T);
+
         }
     }
 }
@@ -7142,32 +7085,11 @@ void apply_Pose_rotation_Play(deformer * D, pose * P, int frame, float Delta[3])
     }
 }
 
-void apply_Pose_rotation_keyframes(deformer * D, float Delta[3])
-{
-    if (!BIND_POSE)
-    {
-        apply_Pose_position_Play(D);
-        solve_IK_Chains(D);
-
-        if (D->Transformers_Count > 0)
-        {
-            //transformer * T = D->Transformers[0];
-
-            //move_Pose_T(T, Delta);
-
-            if (ROTATED_POSE)
-                rotate_Pose(D);
-
-            //rotate_Deformer_verts(D);
-        }
-    }
-}
-
 void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
     {
-        if (D->linear_pose)
+        if (linear_pose)
             paste_Pose_position(D, P);
         else
         {
@@ -7194,7 +7116,7 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
 {
     if (!BIND_POSE)
     {
-        if (D->linear_pose)
+        if (linear_pose)
             paste_Pose_position(D, P);
         else
         {
@@ -7402,7 +7324,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
     {
         w1 = (float)f / frames_count;
         w0 = 1 - w1;
-        create_Inbetween_Pose_(D, D->P, P0, P1, w0, w1, D->linear_pose);
+        create_Inbetween_Pose_(D, D->P, P0, P1, w0, w1, linear_pose);
 
         rotate_vertex_groups_D_Init();
 
@@ -7693,7 +7615,7 @@ void goto_Deformer_Frame_(deformer * D, int frame)
                 }
                 else
                 {
-                    create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
+                    create_Inbetween_Frame_Pose(D, frame, linear_pose);
                 }
             }
             apply_Pose_position_(D, D->P, D->Delta);
@@ -7839,7 +7761,7 @@ void goto_Deformer_Frame(deformer * D, int frame)
                 }
                 else
                 {
-                    create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
+                    create_Inbetween_Frame_Pose(D, frame, linear_pose);
                 }
             }
             apply_Pose_position_(D, D->P, D->Delta);
@@ -8042,9 +7964,9 @@ void deformer_Keyframe_Player()
                 {
                     if (mod & KMOD_SHIFT)
                     {
-//                        linear_pose = !linear_pose;
-//                        printf("linear_pose %d\n", linear_pose);
-//                        make_osd(O);
+                        linear_pose = !linear_pose;
+                        printf("linear_pose %d\n", linear_pose);
+                        make_osd(O);
                     }
                     else
                     {
@@ -8177,7 +8099,7 @@ void deformer_Keyframe_Player()
                     {
                         if (D->play < 0)
                         {
-                            create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
+                            create_Inbetween_Frame_Pose(D, frame, linear_pose);
                         }
                     }
                     apply_Pose_position_keyframes(D, D->P, D->Delta);
@@ -8414,8 +8336,8 @@ void deformer_Player()
                     {
                         if (mod & KMOD_SHIFT)
                         {
-//                            linear_pose = !linear_pose;
-//                            make_osd(O);
+                            linear_pose = !linear_pose;
+                            make_osd(O);
                         }
                         else
                         {
@@ -8528,7 +8450,7 @@ void deformer_Player()
                 {
                     if (D->play < 0)
                     {
-                        create_Inbetween_Pose_(D, D->P, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1, D->linear_pose);
+                        create_Inbetween_Pose_(D, D->P, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1, linear_pose);
                     }
 //                    else
 //                    {
@@ -9001,18 +8923,13 @@ void update_Hierarchys_List(int update, int blit)
         draw_Hierarchys_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
 
-    if (DIALOG_HEIGHT < screen_height && PROPERTIES == PROPERTIES_LOCATOR)
+    if (DIALOG_HEIGHT < screen_height)
     {
         draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
     }
 
     if (HierIndex - hier_start >= 0)
         HierList[HierIndex - hier_start].color = UI_BLACK;
-
-    if (Edit_Properties && Edit_Locator)
-    {
-        draw_Properties_Edit(EditString, screen_height, Locator_v_index + 2, Locator_h_index + 1, 0);
-    }
 
     if (DRAW_TIMELINE)
     {
@@ -9133,7 +9050,14 @@ void handle_UP_Defr(int scrollbar)
         {
             currentLocator = Deformer_List[currentDeformer];
         }
-        update_Deformers_List(0);
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
+                            defr_start, 1, DefrIndex - defr_start,
+                            hier_start, HierIndex - hier_start,
+                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
+        SDL_GL_SwapBuffers();
+        DRAW_UI = 1;
     }
 }
 
@@ -9726,7 +9650,14 @@ void handle_DOWN_Defr(int scrollbar)
         {
             currentLocator = Deformer_List[currentDeformer];
         }
-        update_Deformers_List(0);
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+        draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
+                            defr_start, 1, DefrIndex - defr_start,
+                            hier_start, HierIndex - hier_start,
+                            sels_start[current_sel_type], SelsIndex[current_sel_type] - sels_start[current_sel_type], 0);
+        SDL_GL_SwapBuffers();
+        DRAW_UI = 1;
     }
 }
 
@@ -11225,22 +11156,6 @@ void edit_Timeline_Value()
     }
 }
 
-void edit_Locator_Value()
-{
-    if (dialog_lock)
-    {
-        if (!Edit_Lock)
-        {
-            printf("edit Locator Value\n");
-            sprintf(Properties_Remember, "%1.2f", Float_Value);
-            Edit_Lock = 1;
-            EditCursor = 0;
-            EditString[0] = '\0';
-            update_Properties_Edit("", Locator_v_index + 2, Locator_h_index + 1, 0);
-        }
-    }
-}
-
 void edit_Color_Value()
 {
     if (dialog_lock)
@@ -12701,120 +12616,9 @@ void clean_Unused_Transformers()
     }
 }
 
-void transfer_Transformer_Values(transformer * T)
-{
-    Locator_Values[0][0] = T->rot[0];
-    Locator_Values[0][1] = T->rot[1];
-    Locator_Values[0][2] = T->rot[2];
-
-    Locator_Values[1][0] = T->pos[0];
-    Locator_Values[1][1] = T->pos[1];
-    Locator_Values[1][2] = T->pos[2];
-
-    Locator_Values[2][0] = T->scl[0];
-    Locator_Values[2][1] = T->scl[1];
-    Locator_Values[2][2] = T->scl[2];
-}
-
-void transfer_Locator_Values(transformer * T)
-{
-    T->rot[0] = Locator_Values[0][0];
-    T->rot[1] = Locator_Values[0][1];
-    T->rot[2] = Locator_Values[0][2];
-
-    T->pos[0] = Locator_Values[1][0];
-    T->pos[1] = Locator_Values[1][1];
-    T->pos[2] = Locator_Values[1][2];
-
-    T->scl[0] = Locator_Values[2][0];
-    T->scl[1] = Locator_Values[2][1];
-    T->scl[2] = Locator_Values[2][2];
-}
-
 void handle_Hier_Dialog(char letter, SDLMod mod)
 {
-    int update = 1;
-
-    if (Edit_Lock && Edit_Properties && Edit_Locator)
-    {
-        if (isdigit(letter) || letter == '.' || (letter == '-' && EditCursor == 0))
-        {
-            if (EditCursor < STRLEN - 1)
-            {
-                EditString[EditCursor] = letter;
-                EditCursor ++;
-                if (EditCursor > 4)
-                {
-                    EditCursor = 4;
-                }
-
-                EditString[EditCursor] = '\0';
-            }
-        }
-        else if (letter == 13 || letter == 10) // return, enter
-        {
-            printf("Finished editing properties\n");
-
-            Edit_Lock = 0;
-            Edit_Properties = 0;
-            Edit_Locator = 0;
-
-            EditCursor = 0;
-
-            update_Hierarchys_List(1, 1);
-
-            update = 0;
-            //printf("%c%s", 13, EditString);
-            message = 0;
-        }
-        else if (letter == 8) // backspace
-        {
-            EditCursor --;
-            if (EditCursor < 0)
-                EditCursor = 0;
-            EditString[EditCursor] = '\0';
-        }
-
-        if (update)
-        {
-            if (atof(EditString) > 1000)
-            {
-                Float_Value = 1000;
-            }
-            else if (atof(EditString) < -1000)
-            {
-                Float_Value = -1000;
-            }
-            else
-            {
-                Float_Value = atof(EditString);
-            }
-            //printf("Float Value %s %f\n", EditString, Float_Value);
-            Locator_Values[Locator_v_index][Locator_h_index] = Float_Value;
-
-            T = transformers[currentLocator];
-
-            if (T->Deformer != NULL)
-            {
-                D = T->Deformer;
-                transfer_Locator_Values(T);
-                apply_Pose_rotation_keyframes(D, D->Delta);
-                update_Deformed_View(D, 0);
-            }
-            else if (T->Object != NULL)
-            {
-                transfer_Locator_Values(T);
-                rotate_(T);
-                rotate_verts(T->Object, *T);
-                tune_subdivide_post_transformed(T->Object, subdLevel);
-            }
-
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-            draw_Dialog();
-            SDL_GL_SwapBuffers();
-        }
-    }
-    else if (Edit_Lock)
+    if (Edit_Lock)
     {
         int update = 1;
         if (controlDown)
@@ -12887,20 +12691,6 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
     else if (letter == 'c')
     {
         clean_Unused_Transformers();
-    }
-    else if (letter == 'i')
-    {
-        if (deformerIndex > 0 && currentDeformer_Node >= 0)
-        {
-            frame = currentFrame;
-
-            D = deformers[currentDeformer_Node];
-            insert_Deformer_keyframe(D, frame);
-
-            Draw_Timeline();
-            Draw_Morph_Timeline();
-            SDL_GL_SwapBuffers();
-        }
     }
 }
 
@@ -16511,21 +16301,6 @@ void change_Material_Smooth()
     SDL_GL_SwapBuffers();
 }
 
-void change_Deformer_Linear_Pose()
-{
-    //printf("change Deformer Linear Pose\n");
-    if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
-    {
-        D = deformers[currentDeformer_Node];
-        D->linear_pose = !D->linear_pose;
-        //printf("%d\n", D->linear_pose);
-
-        draw_Dialog();
-
-        SDL_GL_SwapBuffers();
-    }
-}
-
 void change_Object_Smooth()
 {
     if (currentObject >= 0 && currentObject < objectIndex)
@@ -17904,7 +17679,7 @@ int main(int argc, char * args[])
                     case SDLK_PAGEDOWN: message = 10; printf("page down\n"); break;
 
                     case SDLK_KP_PLUS: message = 17; printf("plus\n"); break;
-                    case SDLK_KP_MINUS: message = 18; if (dialog_lock) handle_dialog('-', mod); break;
+                    case SDLK_KP_MINUS: message = 18; printf("minus\n"); break;
                     case SDLK_F1: message = 19; printf("F1\n"); break;
                     case SDLK_F2: message = 20; printf("F2\n"); break;
                     case SDLK_F3: message = 21; printf("F3\n"); break;
@@ -17972,9 +17747,7 @@ int main(int argc, char * args[])
                     case SDLK_BACKQUOTE: message = 71; if (dialog_lock) handle_dialog('`', mod); break;
                     case SDLK_SEMICOLON: message = 72; if (dialog_lock) handle_dialog(':', mod); break;
                     case SDLK_SLASH: message = 74; if (dialog_lock) handle_dialog('/', mod); break;
-                    case SDLK_BACKSLASH: message = 75; if (dialog_lock) handle_dialog('\\', mod); break;
-                    case SDLK_PERIOD: message = 76; if (dialog_lock) handle_dialog('.', mod); break;
-                    case SDLK_KP_PERIOD: message = 77; if (dialog_lock) handle_dialog('.', mod); break;
+                    case SDLK_BACKSLASH: message = 75; if (dialog_lock) handle_dialog('/', mod); break;
                     default: break;
                 }
                 if (message != 1 && message != 2 && message != 3 && message != 4 && message != 25 && message != 35)
@@ -19034,13 +18807,21 @@ int main(int argc, char * args[])
                                                 currentDeformer_Node = -(Deformer_List[index + defr_start] + 1);
                                                 assert_Deformers_Selected();
                                                 select_Deformer_Objects();
-                                                set_Object_Mode();
-                                                DRAW_LOCATORS = 0;
-                                                frame_object(Camera, 1);
                                             }
                                             create_Deformers_List(SelsIndex[3], O);
                                         }
-                                        update_Deformers_List(1);
+                                        DRAW_UI = 0;
+                                        UPDATE_COLORS = 1;
+                                        if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+                                        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                        draw_Deformers_Dialog("Deformers L.", screen_height, defr_type, defr_types, defr_type_count,
+                                                            defr_start, 1, DefrIndex - defr_start,
+                                                            hier_start, HierIndex - hier_start,
+                                                            sels_start[3], SelsIndex[3] - sels_start[3], 0);
+                                        SDL_GL_SwapBuffers();
+                                        glDrawBuffer(GL_BACK);
+                                        UPDATE_COLORS = 0;
+                                        DRAW_UI = 1;
                                     }
                                 }
                                 else if (current_defr_type == 1) // hier
@@ -19663,22 +19444,11 @@ int main(int argc, char * args[])
                             }
                             else if (dialog_type == HIER_DIALOG)
                             {
-                                if (v_index == 1)
+                                if (mouse_y > DIALOG_HEIGHT + BUTTON_HEIGHT * 1 && mouse_y < DIALOG_HEIGHT + BUTTON_HEIGHT * 2)
                                 {
                                     if (h_index == 1)
                                     {
                                         change_Transformer_Pin();
-                                    }
-                                }
-                                else if (v_index >= 2 && v_index <= 4)
-                                {
-                                    Edit_Locator = 1;
-                                    if (h_index >= 1 && h_index <= 3)
-                                    {
-                                        Locator_v_index = v_index - 2;
-                                        Locator_h_index = h_index - 1;
-                                        Float_Value = 0.0;
-                                        transfer_Transformer_Values(transformers[currentLocator]);
                                     }
                                 }
                             }
@@ -19712,16 +19482,6 @@ int main(int argc, char * args[])
                                             //printf("morph %d %d %1.2f\n", v_index, h_index, Morph);
                                             Drag_Morph = 1;
                                         }
-                                    }
-                                }
-                            }
-                            else if (dialog_type == DEFR_DIALOG && PROPERTIES == PROPERTIES_DEFORMER)
-                            {
-                                if (v_index == 0)
-                                {
-                                    if (h_index == 2)
-                                    {
-                                        change_Deformer_Linear_Pose();
                                     }
                                 }
                             }
@@ -20281,16 +20041,6 @@ int main(int argc, char * args[])
                         Drag_Displacement = 0;
                     }
                 }
-                else if (Edit_Locator)
-                {
-                    if (dialog_lock)
-                    {
-                        Edit_Properties = 1;
-                        printf("Just clicked locator property value\n");
-                        T = transformers[currentLocator];
-                        edit_Locator_Value();
-                    }
-                }
 
                 if (drag_rectangle)
                 {
@@ -20568,29 +20318,6 @@ int main(int argc, char * args[])
                                         draw_Properties(Deformer_Morph->Name, screen_height, 1, PROPERTIES_MORPH, Type);
                                     else
                                         draw_Properties("", screen_height, 1, PROPERTIES_MORPH, Type);
-                                    SDL_GL_SwapBuffers();
-                                }
-                            }
-                            else if (PROPERTIES == PROPERTIES_DEFORMER)
-                            {
-                                if (properties[prop_y][prop_x] != UI_BACKL)
-                                {
-                                    black_out_properties();
-                                    properties[prop_y][prop_x] = UI_BACKL;
-                                    if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
-                                    {
-                                        D = deformers[currentDeformer_Node];
-                                        Type = D;
-                                    }
-                                    else
-                                    {
-                                        D = NULL;
-                                        Type = NULL;
-                                    }
-                                    if (Type != NULL && D != NULL)
-                                        draw_Properties(D->Name, screen_height, 1, PROPERTIES_DEFORMER, Type);
-                                    else
-                                        draw_Properties("", screen_height, 1, PROPERTIES_DEFORMER, Type);
                                     SDL_GL_SwapBuffers();
                                 }
                             }
@@ -22924,34 +22651,34 @@ int main(int argc, char * args[])
         }
         else if (message == 18)
         {
-//            if (mod & KMOD_ALT)
-//            {
-//                float amount = 0;
-//                if (O->mean_Edge > 0.1)
-//                {
-//                    amount = 0.1;
-//                }
-//                else if (O->mean_Edge > 1)
-//                {
-//                    amount = 1;
-//                }
-//                else if (O->mean_Edge > 10)
-//                {
-//                    amount = 10;
-//                }
-//                else
-//                {
-//                    amount = 0.01;
-//                }
-//                Materials[O->surface].Displacement -= amount;
-//                printf("%f\n", Materials[O->surface].Displacement);
-//            }
-//            else
-//            {
-//                Materials[O->surface].Shininess --;
-//                printf("%f\n", Materials[O->surface].Shininess);
-//            }
-//            message = -1;
+            if (mod & KMOD_ALT)
+            {
+                float amount = 0;
+                if (O->mean_Edge > 0.1)
+                {
+                    amount = 0.1;
+                }
+                else if (O->mean_Edge > 1)
+                {
+                    amount = 1;
+                }
+                else if (O->mean_Edge > 10)
+                {
+                    amount = 10;
+                }
+                else
+                {
+                    amount = 0.01;
+                }
+                Materials[O->surface].Displacement -= amount;
+                printf("%f\n", Materials[O->surface].Displacement);
+            }
+            else
+            {
+                Materials[O->surface].Shininess --;
+                printf("%f\n", Materials[O->surface].Shininess);
+            }
+            message = -1;
         }
         else if (message == 19)
         {
@@ -23826,14 +23553,9 @@ int main(int argc, char * args[])
                     {
                         Edit_Properties = 0;
                         Edit_Color = 0;
-                        Edit_Locator = 0;
                         if (dialog_type == MATERIAL_DIALOG)
                         {
                             update_Materials_List(1, 0);
-                        }
-                        else if (dialog_type == HIER_DIALOG)
-                        {
-                            update_Hierarchys_List(1, 0);
                         }
                     }
                     else
@@ -24080,7 +23802,6 @@ int main(int argc, char * args[])
                     convert_Curves_To_Cp_Selection();
                     ordered_Cp_Selection();
                     set_Button_sels(3);
-                    assert_Element_Selection();
                 }
                 else if (currentCurve >= 0 && currentCurve < curvesIndex)
                 {
@@ -24144,8 +23865,8 @@ int main(int argc, char * args[])
             {
                 if (Object_Mode)
                 {
-//                    linear_pose = !linear_pose;
-//                    make_osd(O);
+                    linear_pose = !linear_pose;
+                    make_osd(O);
                 }
                 else
                 {

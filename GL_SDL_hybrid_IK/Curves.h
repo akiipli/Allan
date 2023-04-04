@@ -3299,10 +3299,6 @@ void convert_To_Cp_Selection(curve * C)
     {
         CP = C->cps[p];
         CP->selected = 1;
-        if (CP->vert != NULL)
-        {
-            CP->vert->selected = 1;
-        }
         if (selected_cps_count < CPS)
         {
             selected_cps[selected_cps_count ++] = CP->index;

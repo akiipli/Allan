@@ -30,7 +30,6 @@ from corner.
 #define PROPERTIES_IK 6
 #define PROPERTIES_BONE 7
 #define PROPERTIES_MORPH 8
-#define PROPERTIES_DEFORMER 9
 
 #define X_OFFSET 5
 #define Y_OFFSET 10
@@ -49,12 +48,6 @@ int Color_adjusted;
 int Drag_Color = 0;
 int Color_Component = 0;
 int Edit_Color = 0;
-
-float Float_Value;
-int Edit_Locator = 0;
-int Locator_v_index = 0;
-int Locator_h_index = 0;
-float Locator_Values[3][3];
 
 int Drag_Shine = 0;
 float Shine;
@@ -263,32 +256,14 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "%d", T->pin);
         draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
         idx ++;
-        sprintf(text, "Rotation");
+        sprintf(text, "Rotation\tX %1.2f\tY %1.2f\tZ %1.2f", T->rot[0], T->rot[1], T->rot[2]);
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
-        sprintf(text, "%1.2f", T->rot[0]);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
-        sprintf(text, "%1.2f", T->rot[1]);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
-        sprintf(text, "%1.2f", T->rot[2]);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 3);
         idx ++;
-        sprintf(text, "Position");
+        sprintf(text, "Position\tX %1.2f\tY %1.2f\tZ %1.2f", T->pos[0], T->pos[1], T->pos[2]);
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
-        sprintf(text, "%1.2f", T->pos[0]);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
-        sprintf(text, "%1.2f", T->pos[1]);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
-        sprintf(text, "%1.2f", T->pos[2]);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 3);
         idx ++;
-        sprintf(text, "Scaling");
+        sprintf(text, "Scaling\tX %1.2f\tY %1.2f\tZ %1.2f", T->scl[0], T->scl[1], T->scl[2]);
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
-        sprintf(text, "%1.2f", T->scl[0]);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
-        sprintf(text, "%1.2f", T->scl[1]);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
-        sprintf(text, "%1.2f", T->scl[2]);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 3);
         idx ++;
     }
     else if (subject != NULL && type == PROPERTIES_IK)
@@ -377,16 +352,6 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
                 Morphs[m_count ++] = OMorph->Amount;
             idx ++;
         }
-    }
-    else if (subject != NULL && type == PROPERTIES_DEFORMER)
-    {
-        deformer * D = (deformer *)subject;
-
-        sprintf(text, "linear pose");
-        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
-        sprintf(text, "%d", D->linear_pose);
-        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
-        idx ++;
     }
 
 	//glEnable(GL_TEXTURE_2D);
