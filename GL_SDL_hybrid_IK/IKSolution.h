@@ -1134,9 +1134,9 @@ void solve_IK_Chain(ikChain * I)
         adjust_Proportional = len / P.distance;
         Transition_Amount *= adjust_Proportional;
 
-        if (Transition_Amount < -10)
+        if (Transition_Amount < -20)
         {
-            Transition_Amount = -10;
+            Transition_Amount = -20;
         }
 
         I->positions_A[0].vec[0] = I->A->pos_bind[0];
