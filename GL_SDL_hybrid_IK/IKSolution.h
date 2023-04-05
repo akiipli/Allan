@@ -1476,14 +1476,22 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
 {
     int c;
     transformer * C;
+    ikChain * I;
 
     if (T->Bone != NULL && T->Bone->IK_member > 0)
     {
 
     }
-    else if (T->IK != NULL && (T->style == ik_goal || T->style == ik_start))
+    else if (T->IK != NULL && T->style == ik_start)
     {
 
+    }
+    else if (T->IK != NULL) /* T is goal or fixed */
+    {
+        I = T->IK;
+        T->pos[0] = I->Bones[I->bonescount - 1]->B->pos[0];
+        T->pos[1] = I->Bones[I->bonescount - 1]->B->pos[1];
+        T->pos[2] = I->Bones[I->bonescount - 1]->B->pos[2];
     }
     else if (T->parent->IK != NULL && T->parent->style == ik_goal)
     {

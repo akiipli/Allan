@@ -7168,7 +7168,9 @@ void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
     if (!BIND_POSE)
     {
         if (D->linear_pose)
+        {
             paste_Pose_position(D, P);
+        }
         else
         {
             paste_Pose_rotation(D, P);
