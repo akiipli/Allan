@@ -1960,4 +1960,11 @@ void load_Deformer_Original_Coordinates(deformer * D)
     }
 }
 
+void replace_Defr_Name(char * EditString, deformer * D)
+{
+    memcpy(D->Name, EditString, strlen(EditString));
+    D->Name[strlen(EditString)] = '\0';
+}
+
+
 #endif // DEFORMER_H_INCLUDED

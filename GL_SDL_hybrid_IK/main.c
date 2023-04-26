@@ -17,6 +17,7 @@ look for CUBECOMMENT
 
 /*CORRECT IT*/
 
+
 int ROTATION = 0;
 int MOVEMENT = 0;
 int SCALE = 0;
@@ -11354,6 +11355,22 @@ void update_Pose()
     }
 }
 
+void rename_Deformer()
+{
+    printf("rename Deformer\n");
+    if (dialog_lock)
+    {
+        if (!Edit_Lock && Deformers_c > 0)
+        {
+            sprintf(Name_Remember, "%s", Defr_Names[DefrIndex]);
+            sprintf(Defr_Names[DefrIndex], "%s", "");
+            Edit_Lock = 1;
+            init_Selection_Rectangle();
+            update_Deformers_List(0);
+        }
+    }
+}
+
 void rename_Pose()
 {
     set_Pose_H_Button(2);
@@ -11492,7 +11509,73 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-
+        int update = 1;
+        if (controlDown)
+        {
+            copy_and_paste(letter);
+        }
+        else
+        {
+            if (letter == '-')
+            {
+                if (mod & KMOD_SHIFT)
+                {
+                    letter = '_';
+                }
+            }
+            else if (isalnum(letter) && (mod & KMOD_SHIFT))
+            {
+                letter -= 32;
+            }
+            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+            {
+                if (EditCursor < STRLEN - 1)
+                {
+                    EditString[EditCursor] = letter;
+                    EditCursor ++;
+                    EditString[EditCursor] = '\0';
+                }
+            }
+            else if (letter == 13 || letter == 10) // return, enter
+            {
+                if (strlength(EditString) > 1)
+                {
+                    sprintf(Defr_Names[DefrIndex], "%s", EditString);
+                    if (currentDeformer_Node < deformerIndex)
+                    {
+                        D = deformers[currentDeformer_Node];
+                        replace_Defr_Name(EditString, D);
+                    }
+                    sprintf(Name_Remember, "%s", EditString);
+                }
+                else
+                {
+                    update = 0;
+                    sprintf(Defr_Names[DefrIndex], "%s", Name_Remember);
+                }
+                Edit_Lock = 0;
+                selection_rectangle = 0;
+                EditCursor = 0;
+                printf("Edit finishing!\n");
+                //set_Pose_H_Button(-1);
+                //update = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
+                EditString[EditCursor] = '\0';
+            }
+        }
+        if (update)
+        {
+            sprintf(Defr_Names[DefrIndex], "%s", EditString);
+            Pos_end = strlength(EditString) - 1;
+        }
+        update_Deformers_List(0);
+        //printf("%c%s", 13, EditString);
+        message = 0;
     }
     else
     {
@@ -12983,6 +13066,13 @@ void handle_dialog(char letter, SDLMod mod)
         if (current_defr_type == 0)
         {
             handle_Defr_Dialog(letter, mod);
+            if (!Edit_Lock && letter == '`')
+            {
+                if (Deformer_List[DefrIndex] < 0)
+                {
+                    rename_Deformer();
+                }
+            }
         }
         else if (current_defr_type == 1)
         {
@@ -23879,6 +23969,11 @@ int main(int argc, char * args[])
                             sprintf(Pose_Names[PoseIndex], "%s", Name_Remember);
                             set_Pose_H_Button(-1);
                             update_Poses_List(1, 0);
+                        }
+                        else if (dialog_type == DEFR_DIALOG)
+                        {
+                            sprintf(Defr_Names[DefrIndex], "%s", Name_Remember);
+                            update_Deformers_List(0);
                         }
                         else if (dialog_type == HIER_DIALOG)
                         {
