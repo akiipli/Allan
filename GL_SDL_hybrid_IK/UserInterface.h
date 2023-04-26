@@ -1368,8 +1368,9 @@ void draw_Button_pose_text(const char * text, int width, int height, int index, 
     draw_text(Text, origin_x, origin_y, font_height, 0);
 }
 
-void draw_Button_defr_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed)
+void draw_Button_defr_text(const char * text, int width, int height, int index, int colorchange, int frame_it, int x_offset, int x_collapsed, int italic, int frame_selection)
 {
+    int advance;
     int font_height = 11;
 
 	FT_Set_Pixel_Sizes(face[0], 0, font_height);
@@ -1377,7 +1378,25 @@ void draw_Button_defr_text(const char * text, int width, int height, int index, 
 	float origin_x = 5 * x_offset;
 	float origin_y = BUTTON_HEIGHT * index + 10;
 
-	if (frame_it)
+ 	if (frame_selection)
+    {
+        if (x_collapsed)
+        {
+            advance = Plus_Sign_Advance[italic];
+        }
+        else
+        {
+            advance = Vbar_Sign_Advance[italic];
+        }
+
+        make_character_map(text, origin_x + advance, origin_y, italic);
+
+        glDisable(GL_TEXTURE_2D);
+        glColor4fv(blueb);
+
+        draw_selection_Rectangle();
+    }
+	else if (frame_it)
     {
         glDisable(GL_TEXTURE_2D);
         glColor4fv(white);
@@ -2966,9 +2985,14 @@ void draw_Deformers_List(int s_height, int start, int clear_background, int curr
 	for (i = 0; i < s; i ++)
     {
         if (i == selected_deformer_node - start)
-            draw_Button_defr_text(deformers_list[i], d_width, d_height, i, 1, 1, defr_x_offset[i], defr_x_collapsed[i]);
+        {
+            if (selection_rectangle)
+                draw_Button_defr_text(deformers_list[i], d_width, d_height, i, 1, 1, defr_x_offset[i], defr_x_collapsed[i], 0, 1);
+            else
+                draw_Button_defr_text(deformers_list[i], d_width, d_height, i, 1, 1, defr_x_offset[i], defr_x_collapsed[i], 0, 0);
+        }
         else
-            draw_Button_defr_text(deformers_list[i], d_width, d_height, i, 1, 0, defr_x_offset[i], defr_x_collapsed[i]);
+            draw_Button_defr_text(deformers_list[i], d_width, d_height, i, 1, 0, defr_x_offset[i], defr_x_collapsed[i], 0, 0);
     }
 
 	for (i = 0; i < LISTLENGTH; i ++)

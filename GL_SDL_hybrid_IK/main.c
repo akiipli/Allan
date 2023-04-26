@@ -9136,6 +9136,10 @@ void handle_UP_Defr(int scrollbar)
         {
             currentLocator = Deformer_List[currentDeformer];
         }
+        else
+        {
+            selected_deformer_node = DefrIndex;
+        }
         update_Deformers_List(0);
     }
 }
@@ -9725,9 +9729,14 @@ void handle_DOWN_Defr(int scrollbar)
             DefrList[DefrIndex - defr_start].color = UI_BACKL;
 
         currentDeformer = DefrIndex;
+
         if (Deformer_List[currentDeformer] >= 0)
         {
             currentLocator = Deformer_List[currentDeformer];
+        }
+        else
+        {
+            selected_deformer_node = DefrIndex;
         }
         update_Deformers_List(0);
     }
@@ -14323,6 +14332,7 @@ void new_Deformer()
     assert_Deformers_Selected();
 
     create_Deformers_List(SelsIndex[3], O);
+    DefrIndex = selected_deformer_node;
     if (DefrIndex - defr_start >= 0)
         DefrList[DefrIndex - defr_start].color = UI_BLACK;
     if (dialog_lock)
