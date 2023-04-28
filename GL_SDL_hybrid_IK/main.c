@@ -16965,6 +16965,8 @@ void add_Morph_Map()
                             select_Morph_Map(DEFORMER_MORPH);
                             if (Morphs_c >= LISTLENGTH)
                                 morph_start ++;
+
+                            find_MorphIndex(DEFORMER_MORPH, 1);
                         }
                     }
                 }

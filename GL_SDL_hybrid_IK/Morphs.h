@@ -334,6 +334,90 @@ void list_Deformer_Morph_Maps(deformer * D)
     }
 }
 
+void find_Deformer_Morphs_c(deformer_morph_map * M, int find_Index)
+{
+    int m;
+
+    deformer_morph * Morph;
+
+    for (m = 0; m < M->Morphs_Count; m ++)
+    {
+        Morph = M->Morphs[m];
+
+        if (Morph->selected && find_Index == 2)
+        {
+            MorphIndex = Morphs_c;
+        }
+
+        Morphs_c ++;
+
+        if (Morphs_c >= MORPHS)
+        {
+            break;
+        }
+    }
+}
+
+void find_Deformer_Morph_Maps(deformer * D, int find_Index)
+{
+    int m;
+    deformer_morph_map * M;
+
+    for (m = 0; m < D->Morph_Maps_Count; m ++)
+    {
+        M = D->Morph_Maps[m];
+
+        if (M->selected && find_Index == 1)
+        {
+            MorphIndex = Morphs_c;
+        }
+
+        Morphs_c ++;
+
+        if (Morphs_c >= MORPHS)
+        {
+            break;
+        }
+
+        if (!M->collapsed)
+        {
+            find_Deformer_Morphs_c(M, find_Index);
+        }
+    }
+}
+
+void find_MorphIndex(int list_type, int find_Index)
+{
+    if (list_type == DEFORMER_MORPH)
+    {
+        int d;
+        deformer * D;
+        Morphs_c = 0;
+
+        for (d = 0; d < deformerIndex; d ++)
+        {
+            D = deformers[d];
+
+            if (D->selected && find_Index == 0)
+            {
+                MorphIndex = Morphs_c;
+            }
+
+            Morphs_c ++;
+
+            if (Morphs_c >= MORPHS)
+            {
+                break;
+            }
+
+            if (!D->collapsed)
+            {
+                find_Deformer_Morph_Maps(D, find_Index);
+            }
+        }
+    }
+}
+
 void create_Morphs_List(int list_type)
 {
     if (list_type == DEFORMER_MORPH)
