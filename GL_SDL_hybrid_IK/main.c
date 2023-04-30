@@ -12810,6 +12810,13 @@ void transfer_Transformer_Values(transformer * T)
     Locator_Values[2][2] = T->scl[2];
 }
 
+void set_Deformer_Rotation(deformer * D, transformer * T)
+{
+    rotate_T_(T);
+
+    memcpy(D->rotVec, T->rotVec, sizeof(D->rotVec));
+}
+
 void transfer_Locator_Values(transformer * T)
 {
     T->rot[0] = Locator_Values[0][0];
@@ -12892,6 +12899,11 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             {
                 D = T->Deformer;
                 transfer_Locator_Values(T);
+                if (T == D->Transformers[0])
+                {
+                    set_Deformer_Rotation(D, T);
+                    set_Deformer_Delta(D);
+                }
                 apply_Pose_rotation_keyframes(D, D->Delta);
                 update_Deformed_View(D, 0);
             }
