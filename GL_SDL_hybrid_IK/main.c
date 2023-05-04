@@ -17078,29 +17078,36 @@ void freeze_Object_Coordinates(object * O)
 {
     Draw_Bottom_Message("freeze Object Coordinates");
 
-    if (O->binding && D != NULL)
+    if (Modeling_Mode)
     {
-        remove_Object_From_Deformer(O, D);
-    }
-
-    if (!O->binding)
-    {
-        T = O->T;
-
         transfer_Transformed_Coordinates(O);
-
-        memcpy(T->pos, (float[3]){0, 0, 0}, sizeof(T->pos));
-        memcpy(T->rot, (float[3]){0, 0, 0}, sizeof(T->rot));
-        memcpy(T->scl, (float[3]){1, 1, 1}, sizeof(T->scl));
-
-        rotate(T);
-        rotate_verts(O, *T);
-
-        int l;
-
-        for (l = 0; l <= O->subdlevel; l ++)
+    }
+    else
+    {
+        if (O->binding && D != NULL)
         {
-            rotate_verts_(O, *T, l);
+            remove_Object_From_Deformer(O, D);
+        }
+
+        if (!O->binding)
+        {
+            T = O->T;
+
+            transfer_Transformed_Coordinates(O);
+
+            memcpy(T->pos, (float[3]){0, 0, 0}, sizeof(T->pos));
+            memcpy(T->rot, (float[3]){0, 0, 0}, sizeof(T->rot));
+            memcpy(T->scl, (float[3]){1, 1, 1}, sizeof(T->scl));
+
+            rotate(T);
+            rotate_verts(O, *T);
+
+            int l;
+
+            for (l = 0; l <= O->subdlevel; l ++)
+            {
+                rotate_verts_(O, *T, l);
+            }
         }
     }
 }

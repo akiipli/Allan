@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+8:57 AM 5/4/2023
+In modeling mode Ctrl+F is not deleting binding. It can be used to update original coordinates.
+
 9:27 PM 3/30/2023
 Locators Properties editing in Hierarchys List. I in Hierarchys List places a keyframe for current Locators Deformer.
 
