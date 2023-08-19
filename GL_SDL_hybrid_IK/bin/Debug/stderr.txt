@@ -1,1 +1,0 @@
-0(13) : error C7616: global variable gl_FragColor is removed after version 420

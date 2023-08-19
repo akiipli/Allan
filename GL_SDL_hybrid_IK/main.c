@@ -5191,12 +5191,12 @@ void select_Material()
     deselect_Objects();
     select_Objects_With_Surface(currentMaterial);
     assert_Object_Selection();
-    DRAW_UI = 0;
+    //DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     if (currentMaterial - materials_start >= 0)
         MatrList[currentMaterial - materials_start].color = UI_BACKL;
     draw_Dialog();
-    DRAW_UI = 1;
+    //DRAW_UI = 1;
     UPDATE_COLORS = 0;
 }
 
