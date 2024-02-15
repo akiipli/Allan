@@ -17,7 +17,6 @@ look for CUBECOMMENT
 
 /*CORRECT IT*/
 
-
 int ROTATION = 0;
 int MOVEMENT = 0;
 int SCALE = 0;
@@ -19795,9 +19794,9 @@ int main(int argc, char * args[])
                                 }
                                 else if (v_index >= 2 && v_index <= 4)
                                 {
-                                    Edit_Locator = 1;
                                     if (h_index >= 1 && h_index <= 3)
                                     {
+                                        Edit_Locator = 1;
                                         Locator_v_index = v_index - 2;
                                         Locator_h_index = h_index - 1;
                                         Float_Value = 0.0;
