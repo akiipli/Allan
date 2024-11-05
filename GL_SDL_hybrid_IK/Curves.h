@@ -816,7 +816,7 @@ void scan_for_Object_Patches(object * O, int level)
                 }
             }
 
-            if (V->patch >= P->edgecount / 2)
+            if (V->patch >= P->edgecount) // / 2)
             {
                 V->patch = 1;
             }
