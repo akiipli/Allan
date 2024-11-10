@@ -3395,7 +3395,8 @@ void set_Edge_Mode()
     Button_Mode[3].color = UI_GRAYB;
     Button_Mode[4].color = UI_GRAYB;
 
-    edgedraw = 1;
+    if (!Curve_Mode)
+        edgedraw = 1;
 
     if (add_selection_mode)
         SDL_SetCursor(Arrow_Plus);
@@ -24204,7 +24205,14 @@ int main(int argc, char * args[])
                 else if (mod & KMOD_CTRL)
                 {
                     C = curves[currentCurve];
-                    convert_Curves_To_Cp_Selection();
+                    if (Edge_Mode)
+                    {
+                        convert_Segments_To_Cp_Selection();
+                    }
+                    else
+                    {
+                        convert_Curves_To_Cp_Selection();
+                    }
                     ordered_Cp_Selection();
                     set_Button_sels(3);
                     assert_Element_Selection();

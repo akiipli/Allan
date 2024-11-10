@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+8:24 PM 11/10/2024
+Ctrl + C in Curve Mode and Edge Mode converts selected segments to control points, cps.
+
 5:42 PM 11/10/2024
 Disabled Curve weighting transition. Over 0.5 jumps to 1.0 and vice versa.
 

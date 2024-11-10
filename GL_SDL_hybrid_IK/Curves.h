@@ -3310,6 +3310,51 @@ void convert_To_Cp_Selection(curve * C)
     }
 }
 
+void convert_Segments_To_Cp_Selection()
+{
+    int s, idx;
+
+    object * O;
+    curve_segment * S;
+    edge * E;
+    vertex * V;
+    cp * CP;
+
+    selected_cps_count = 0;
+
+    for (s = 0; s < selected_segments_count; s ++)
+    {
+        S = segments[selected_segments[s]];
+        if (S->E != NULL)
+        {
+            E = S->E;
+            O = E->O;
+            idx = E->verts[0];
+            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            if (V->control_point != NULL)
+            {
+                CP = V->control_point;
+                CP->selected = 1;
+                if (selected_cps_count < CPS)
+                {
+                    selected_cps[selected_cps_count ++] = CP->index;
+                }
+            }
+            idx = E->verts[1];
+            V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            if (V->control_point != NULL)
+            {
+                CP = V->control_point;
+                CP->selected = 1;
+                if (selected_cps_count < CPS)
+                {
+                    selected_cps[selected_cps_count ++] = CP->index;
+                }
+            }
+        }
+    }
+}
+
 void convert_Curves_To_Cp_Selection()
 {
     int c;
