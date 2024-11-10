@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+5:42 PM 11/10/2024
+Disabled Curve weighting transition. Over 0.5 jumps to 1.0 and vice versa.
+
 8:57 AM 5/4/2023
 In modeling mode Ctrl+F is not deleting binding. It can be used to update original coordinates.
 

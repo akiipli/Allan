@@ -1260,6 +1260,9 @@ int tune_In_Subdivision_Shape_transformed_(object * O, int L)
                 else
                 {
                     a = E->S->weight;
+
+                    if (a > 0.5) a = 1.0; else a = 0.0; // could not establish smooth transition
+
                     b = 1 - a;
 
                     V0->Tx = (E->S->B[0] * a + V0->Tx * b);
