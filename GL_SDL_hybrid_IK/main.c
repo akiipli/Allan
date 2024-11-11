@@ -4080,9 +4080,6 @@ int convert_To_Border_Verts(object * O)
 
     for(e = 0; e < selected_edges_count; e ++) // find selected edges
     {
-
-        //idx = O->selected_edges[e];
-        //E = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
         E = selected_edges[e];
 
         if (E->O != O)
@@ -4130,9 +4127,9 @@ int convert_To_Border_Verts(object * O)
                         continue;
                     }
 
-                    for (e = 0; e < V->edgecount; e ++)
+                    for (e0 = 0; e0 < V->edgecount; e0 ++)
                     {
-                        idx = V->edges[e];
+                        idx = V->edges[e0];
                         E0 = &O->edges[idx / ARRAYSIZE][idx % ARRAYSIZE];
                         if (E0 != E && E0->selected)
                         {
@@ -4174,7 +4171,7 @@ int convert_To_Border_Verts(object * O)
                             selected_verts[selected_verts_count ++] = V;
                         }
 
-                        if (E0 == E1 || (selected_verts_count > O->selected_edges_count))
+                        if (E0 == E1)// || (selected_verts_count > O->selected_edges_count))
                         {
                             condition = 0;
                         }
