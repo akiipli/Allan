@@ -3298,14 +3298,17 @@ void convert_To_Cp_Selection(curve * C)
     for (p = 0; p < C->cps_count; p ++)
     {
         CP = C->cps[p];
-        CP->selected = 1;
-        if (CP->vert != NULL)
+        if(CP->selected == 0)
         {
-            CP->vert->selected = 1;
-        }
-        if (selected_cps_count < CPS)
-        {
-            selected_cps[selected_cps_count ++] = CP->index;
+            CP->selected = 1;
+            if (CP->vert != NULL)
+            {
+                CP->vert->selected = 1;
+            }
+            if (selected_cps_count < CPS)
+            {
+                selected_cps[selected_cps_count ++] = CP->index;
+            }
         }
     }
 }
@@ -3334,10 +3337,13 @@ void convert_Segments_To_Cp_Selection()
             if (V->control_point != NULL)
             {
                 CP = V->control_point;
-                CP->selected = 1;
-                if (selected_cps_count < CPS)
+                if(CP->selected == 0)
                 {
-                    selected_cps[selected_cps_count ++] = CP->index;
+                    CP->selected = 1;
+                    if (selected_cps_count < CPS)
+                    {
+                        selected_cps[selected_cps_count ++] = CP->index;
+                    }
                 }
             }
             idx = E->verts[1];
@@ -3345,10 +3351,13 @@ void convert_Segments_To_Cp_Selection()
             if (V->control_point != NULL)
             {
                 CP = V->control_point;
-                CP->selected = 1;
-                if (selected_cps_count < CPS)
+                if(CP->selected == 0)
                 {
-                    selected_cps[selected_cps_count ++] = CP->index;
+                    CP->selected = 1;
+                    if (selected_cps_count < CPS)
+                    {
+                        selected_cps[selected_cps_count ++] = CP->index;
+                    }
                 }
             }
         }
