@@ -4108,10 +4108,10 @@ int convert_To_Border_Verts(object * O)
             E1 = E; // remember it as first in row
             used_Edge[used_Edge_count ++] = E;
 
-            if (used_Edge_count >= selected_edges_count)
-            {
-                break;
-            }
+//            if (used_Edge_count >= selected_edges_count)
+//            {
+//                break;
+//            }
 
             while (condition) // walk forward while there is selected edges ahead
             {
