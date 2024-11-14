@@ -22996,7 +22996,7 @@ int main(int argc, char * args[])
             {
                 if (Curve_Mode)
                 {
-                    //toggle_Selected_Edges_Patch_Mode(O);
+                    toggle_Selected_Edges_Patch_Mode(O);
                 }
                 else
                 {
@@ -23266,7 +23266,7 @@ int main(int argc, char * args[])
                     }
                     else if (Polygon_Mode)
                     {
-                        //clear_Selected_Edges_Patch_Mode(O);
+                        clear_Selected_Edges_Patch_Mode(O);
                     }
                     else
                     {
