@@ -7892,7 +7892,7 @@ void deformer_Keyframe_Player()
     timeline * Tm;
     transformer * T;
 
-    int t, u, o, f, d;
+    int t, u, o, f, d, index;
 
 //    pose * P;
     object * O;
@@ -8198,21 +8198,63 @@ void deformer_Keyframe_Player()
                 O = Update_Objects[o];
                 if (O->deforms)
                 {
-                    tune_subdivide_post_transformed(O, subdLevel);
+                    index = O->index;
+                    //tune_subdivide_post_transformed(O, subdLevel);
+                    O_Arguments[index].index = index;
+                    O_Arguments[index].O = O;
+                    O_Arguments[index].Level = subdLevel;
+                    O_Arguments[index].O_func = &tune_subdivide_post_transformed;
+                    O_Arguments[index].progress = 1;
+                }
+            }
+
+            for (o = 0; o < Update_Objects_Count; o ++) // sync threads
+            {
+                O = Update_Objects[o];
+                if (O->deforms)
+                {
+                    index = O->index;
+                    while(O_Arguments[index].progress != 0)
+                    {
+
+                    }
                 }
             }
         }
 
-        for (o = 0; o < Transformer_Objects_Count; o++)
+        if (subdLevel > -1)
         {
-            O = Transformer_Objects[o];
-
-            rotate_verts(O, *O->T);
-            if (O->deforms)
+            for (o = 0; o < Transformer_Objects_Count; o++)
             {
-                tune_subdivide_post_transformed(O, subdLevel);
+                O = Transformer_Objects[o];
+
+                rotate_verts(O, *O->T);
+                if (O->deforms)
+                {
+                    index = O->index;
+                    //tune_subdivide_post_transformed(O, subdLevel);
+                    O_Arguments[index].index = index;
+                    O_Arguments[index].O = O;
+                    O_Arguments[index].Level = subdLevel;
+                    O_Arguments[index].O_func = &tune_subdivide_post_transformed;
+                    O_Arguments[index].progress = 1;
+                }
+            }
+
+            for (o = 0; o < Transformer_Objects_Count; o++) // sync threads
+            {
+                O = Transformer_Objects[o];
+                if (O->deforms)
+                {
+                    index = O->index;
+                    while(O_Arguments[index].progress != 0)
+                    {
+
+                    }
+                }
             }
         }
+
         if (TURNTABLE && Camera == &Camera_Persp)
         {
             Camera->T->rot[1] += 0.01;
@@ -15365,12 +15407,38 @@ void transform_Objects_And_Render()
                         update_object_Curves(O0, subdLevel);
                         update_object_Curves(O0, subdLevel);
                     }
-                    tune_subdivide_post_transformed(O0, subdLevel);
+                    //tune_subdivide_post_transformed(O0, subdLevel);
+                    O_Arguments[i].index = i;
+                    O_Arguments[i].O = O0;
+                    O_Arguments[i].Level = subdLevel;
+                    O_Arguments[i].O_func = &tune_subdivide_post_transformed;
+                    O_Arguments[i].progress = 1;
                 }
                 else
                 {
                     rotate_verts(O0, *O0->T);
-                    tune_subdivide_post_transformed(O0, subdLevel);
+                    //tune_subdivide_post_transformed(O0, subdLevel);
+                    O_Arguments[i].index = i;
+                    O_Arguments[i].O = O0;
+                    O_Arguments[i].Level = subdLevel;
+                    O_Arguments[i].O_func = &tune_subdivide_post_transformed;
+                    O_Arguments[i].progress = 1;
+                }
+            }
+        }
+        for (o = 0; o < Camera->object_count; o++) // sync threads
+        {
+            i = Camera->objects[o];
+            O0 = objects[i];
+            if (subdLevel < 0)
+            {
+
+            }
+            else
+            {
+                while(O_Arguments[i].progress != 0)
+                {
+
                 }
             }
         }
@@ -15537,6 +15605,7 @@ void delete_Object(int index, int render)
 {
     if (index > 0 && index < objectIndex && objectIndex > 1) /*CUBECOMMENT*/
     {
+        int result_code;
         int o, d;
 
         object * O = objects[index];
@@ -15593,6 +15662,11 @@ void delete_Object(int index, int render)
             assert_Object_Selection();
 
             delete_Object_From_Selections(index);
+
+            O_Arguments[objectIndex].cancel = 1;
+            pthread_cancel(O_thread[objectIndex]);
+            result_code = pthread_join(O_thread[objectIndex], NULL); // shift indexes, use thread id
+            assert(!result_code);
         }
     }
 
@@ -15612,6 +15686,7 @@ void clear_Objects()
     {
         printf("clear Objects_\n");
 
+        int result_code; // threading
         int o;
         object * O;
 
@@ -15622,6 +15697,11 @@ void clear_Objects()
             free_Transformer(O->T);
             free(O->T);
             free_object(O);
+
+            O_Arguments[o].cancel = 1;
+            pthread_cancel(O_thread[o]);
+            result_code = pthread_join(O_thread[o], NULL);
+            assert(!result_code);
         }
 
         objectIndex = 1;

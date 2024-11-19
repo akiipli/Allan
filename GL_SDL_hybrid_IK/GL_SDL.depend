@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1731599998 source:c:\gl_sdl_hybrid_ik\main.c
+1732028551 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -72,7 +72,7 @@
 
 1679641464 c:\gl_sdl_hybrid_ik\transformer.h
 
-1679833073 c:\gl_sdl_hybrid_ik\object.h
+1732018395 c:\gl_sdl_hybrid_ik\object.h
 
 1731310282 c:\gl_sdl_hybrid_ik\curves.h
 
@@ -122,7 +122,7 @@
 
 1636367110 c:\gl_sdl_hybrid_ik\generators.h
 
-1636367110 c:\gl_sdl_hybrid_ik\creators.h
+1732029284 c:\gl_sdl_hybrid_ik\creators.h
 	"ZData.h"
 	"ZPlane.h"
 	"CubeData.h"
