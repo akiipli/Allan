@@ -620,8 +620,6 @@ void print_object(object * O)
     printf(" boxt %s %f %f %f %f\n", O->Name, O->B.x, O->B.y, O->B.z, O->B.radius);
 }
 
-pthread_t O_thread[OBJECTS];
-
 object    * objects[OBJECTS];
 object    * deleted_objects[OBJECTS];
 polygon  ** polys[OBJECTS];

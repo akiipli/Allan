@@ -3,9 +3,6 @@
 Author here is:
 Allan Kiipli
 
-5:16 PM 11/19/2024
-For transformed subdivision, objects are threaded now. In manipulation and in keyframes Player.
-
 8:24 PM 11/10/2024
 Ctrl + C in Curve Mode and Edge Mode converts selected segments to control points, cps.
 

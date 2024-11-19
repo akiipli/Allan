@@ -9,39 +9,6 @@ Copyright <2018> <Allan Kiipli>
 #include "CubeData.h"
 //#include "wchar.h"
 
-typedef void (*O_func_ptr)(object * O, int level);
-
-typedef struct
-{
-    int index;
-    object * O;
-    int Level;
-    O_func_ptr O_func;
-    int progress;
-    int cancel;
-}
-O_arguments;
-
-O_arguments O_Arguments[OBJECTS];
-
-void * O_worker(void * arguments)
-{
-    O_arguments * Args = (O_arguments *)arguments;
-    int Index;
-    Index = Args->index;
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    while(!O_Arguments[Index].cancel)
-    {
-        if (O_Arguments[Index].progress && O_Arguments[Index].O_func != NULL)
-        {
-            O_Arguments[Index].O_func(O_Arguments[Index].O, O_Arguments[Index].Level); // for different type of function create next signature
-            O_Arguments[Index].progress = 0;
-        }
-    }
-
-    return NULL;
-}
-
 int init_object(int index,
     int textcount,
     int vertcount,
@@ -61,19 +28,6 @@ int init_object(int index,
     uvedcount,
     polycount,
     put_transformer);
-
-    int result_code;
-    if (result)
-    {
-        O_Arguments[index].index = index;
-        O_Arguments[index].O = objects[index];
-        O_Arguments[index].Level = -1;
-        O_Arguments[index].O_func = NULL;
-        O_Arguments[index].progress = 0;
-        O_Arguments[index].cancel = 0;
-        result_code = pthread_create(&O_thread[index], NULL, O_worker, &O_Arguments[index]);
-        assert(!result_code);
-    }
     return result;
 }
 
