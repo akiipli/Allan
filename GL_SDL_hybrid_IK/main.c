@@ -16575,7 +16575,7 @@ void save_load_Scene()
 
             update_camera(Camera, CamDist);
 
-            set_Camera_Pose(&Camera_Persp, CamDist);
+            //set_Camera_Pose(&Camera_Persp, CamDist);
 
             find_Camera_Objects();
 
@@ -16661,15 +16661,20 @@ void change_Object_Smooth()
     }
 }
 
-void change_Object_Subdiv_Max()
+void change_Object_Subdiv_Max(int change)
 {
     if (currentObject >= 0 && currentObject < objectIndex)
     {
         O = objects[currentObject];
-        O->subdlevel_Max ++;
+        O->subdlevel_Max += change;
         if (O->subdlevel_Max >= SUBD)
         {
-            O->subdlevel_Max = -1;
+            O->subdlevel_Max = - 1;
+        }
+
+        if (O->subdlevel_Max < -1)
+        {
+            O->subdlevel_Max = SUBD - 1;
         }
 
         int s;
@@ -18462,7 +18467,28 @@ int main(int argc, char * args[])
                 }
                 else if (event.button.button == SDL_BUTTON_RIGHT)
                 {
-                    if (curveWeights)
+                    if (dialog_lock)
+                    {
+                        /* Properties panel */
+                        if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && mouse_y > DIALOG_HEIGHT && mouse_y < screen_height - (BUTTON_HEIGHT * DRAW_TIMELINE))
+                        {
+                            int h_index, v_index;
+                            h_index = (mouse_x - SIDEBAR * 2) / TABULATOR;
+                            v_index = (mouse_y - DIALOG_HEIGHT) / BUTTON_HEIGHT;
+
+                            if (dialog_type == ITEM_DIALOG && PROPERTIES == PROPERTIES_OBJECT)
+                            {
+                                if (v_index == 5)
+                                {
+                                    if (h_index == 1)
+                                    {
+                                        change_Object_Subdiv_Max(-1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (curveWeights)
                     {
                         snap_back_Curve_Weights();
                         curveWeights = 0;
@@ -19815,7 +19841,7 @@ int main(int argc, char * args[])
                                 {
                                     if (h_index == 1)
                                     {
-                                        change_Object_Subdiv_Max();
+                                        change_Object_Subdiv_Max(1);
                                     }
                                 }
                             }
