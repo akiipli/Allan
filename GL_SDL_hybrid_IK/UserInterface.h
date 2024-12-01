@@ -870,7 +870,7 @@ int init_fonts()
     char dirfile[STRLEN];
     dirfile[0] = '\0';
     strcat(dirfile, resources_dir);
-    strcat(dirfile, "courbd.ttf ");
+    strcat(dirfile, "Guruz4.ttf");
 	if (FT_New_Face(ft, dirfile, 0, &face[0])) {
 		fprintf(stderr, "Could not open font\n");
 		return 0;
@@ -878,7 +878,7 @@ int init_fonts()
 
     dirfile[0] = '\0';
     strcat(dirfile, resources_dir);
-    strcat(dirfile, "courbi.ttf ");
+    strcat(dirfile, "Guruzar_final_fatman_3.otf");
 	if (FT_New_Face(ft, dirfile, 0, &face[1])) {
 		fprintf(stderr, "Could not open italic font\n");
 		return 0;
@@ -1008,6 +1008,8 @@ void draw_text(const char * text, int origin_x, int origin_y, int font_height, i
     }
     else
     {
+        glDisable(GL_LIGHTING);
+        glDisable(GL_DEPTH_TEST);
         render_text(text, origin_x, origin_y, font_height, italic);
     }
 }
@@ -1062,8 +1064,8 @@ void draw_Color_Button(int x, int y, int index, float color[4])
         width - 2, BUTTON_HEIGHT - 2,
         width - 2, 2}, QUADS);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 //	glPopMatrix();
 }
 
@@ -1094,8 +1096,8 @@ void draw_Corner_Drag_Button(int width, int height)
 
     glDisable(GL_POLYGON_STIPPLE);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -2642,8 +2644,8 @@ void draw_Morph_List(int s_height, int start, int clear_background, int current_
         free(mrph_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -2719,8 +2721,8 @@ void draw_Subcharacter_List(int s_height, int start, int clear_background, int c
         free(subch_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -2785,8 +2787,8 @@ void draw_IK_List(int s_height, int start, int clear_background, int current_ik,
         free(ikch_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -2852,8 +2854,8 @@ void draw_Bones_List(int s_height, int start, int clear_background, int current_
         free(bones_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -2926,8 +2928,8 @@ void draw_Poses_List(int s_height, int start, int clear_background, int current_
         free(poses_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3000,8 +3002,8 @@ void draw_Deformers_List(int s_height, int start, int clear_background, int curr
         free(deformers_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3074,8 +3076,8 @@ void draw_Hierarchys_List(int s_height, int start, int clear_background, int cur
         free(hierarchys_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3144,8 +3146,8 @@ void draw_Selections_List(int s_height, int start, char * type, int clear_backgr
         free(sels_names[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3208,8 +3210,8 @@ void draw_Textures_List(int s_height, int start, char * type, int clear_backgrou
         free(text_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3275,8 +3277,8 @@ void draw_Materials_List(int s_height, int start, int clear_background, int curr
         free(material_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3345,8 +3347,8 @@ void draw_Items_List(int s_height, int start, char * type, int clear_background,
         free(item_list[i]);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3406,8 +3408,8 @@ void draw_Files_Box(int s_height, int clear_background)
 
 	//glEnable(GL_TEXTURE_2D);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3485,8 +3487,8 @@ void draw_Files_List(char * path, int s_height, int start, char * ext, int clear
         }
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3509,8 +3511,8 @@ void draw_Textures_Bottom_Line(int width, int height)
     draw_Button_text_horizontal("Reload All", 1, 1);
     draw_Button_text_horizontal("Replace", 2, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3568,8 +3570,8 @@ void draw_Textures_Dialog(const char * text, int s_height, char * Text, char ** 
 
 	draw_Textures_List(s_height, texts_start, Text, clear_background);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
 	draw_Textures_Bottom_Line(d_width, s_height);
@@ -3597,8 +3599,8 @@ void draw_Materials_Bottom_Line(int width, int height)
     draw_Button_material_horizontal("Remove", 2, 1);
     draw_Button_material_horizontal("Assign", 3, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3650,8 +3652,8 @@ void draw_Materials_Dialog(const char * text, int s_height, int materials_start,
 
 	draw_Materials_List(s_height, materials_start, clear_background, currentMaterial, selection_rectangle);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
 	draw_Materials_Bottom_Line(d_width, s_height);
@@ -3675,8 +3677,8 @@ void draw_Items_Bottom_Line(int width, int height)
 
     draw_Button_item_horizontal("Rename", 0, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3735,8 +3737,8 @@ void draw_Items_Dialog(const char * text, int s_height, char * item_type, char *
 
 	draw_Items_List(s_height, item_start, item_type, clear_background, currentObject, selection_rectangle);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
 	draw_Items_Bottom_Line(d_width, s_height);
@@ -3766,8 +3768,8 @@ void draw_Morph_Bottom_Line(int width, int height)
     draw_Button_morph_horizontal("Rename", 4, 1);
     draw_Button_morph_horizontal("Update", 5, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3792,8 +3794,8 @@ void draw_Subcharacter_Bottom_Line(int width, int height)
     draw_Button_subcharacter_horizontal("Rem P.", 3, 1);
     draw_Button_subcharacter_horizontal("Rename", 4, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3819,8 +3821,8 @@ void draw_IK_Bottom_Line(int width, int height)
     draw_Button_ik_horizontal("Add Pole", 4, 1);
     draw_Button_ik_horizontal("Rem Pole", 5, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3842,8 +3844,8 @@ void draw_Bones_Bottom_Line(int width, int height)
     draw_Button_bone_horizontal("Remove", 0, 1);
     draw_Button_bone_horizontal("Rename", 1, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3864,8 +3866,8 @@ void draw_Scenes_Bottom_Line(char * Label, int width, int height)
 
     draw_Button_scene_horizontal(Label, width, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3890,8 +3892,8 @@ void draw_Poses_Bottom_Line(int width, int height)
     draw_Button_pose_horizontal("Update", 3, 1);
     draw_Button_pose_horizontal("Import", 4, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3917,8 +3919,8 @@ void draw_Deformers_Bottom_Line(int width, int height)
     draw_Button_defr_horizontal("New", 4, 1);
     draw_Button_defr_horizontal("Delete", 5, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3943,8 +3945,8 @@ void draw_Hierarchys_Bottom_Line(int width, int height)
     draw_Button_hier_horizontal("New", 3, 1);
     draw_Button_hier_horizontal("Delete", 4, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -3970,8 +3972,8 @@ void draw_Selections_Bottom_Line(int width, int height)
     draw_Button_sels_horizontal("Unass.", 4, 1);
     draw_Button_sels_horizontal("Select", 5, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -4042,8 +4044,8 @@ void draw_dialog_Box(int s_height, int clear_background, int frame)
         d_width / frame, d_height,
         d_width / frame, d_height - BUTTON_HEIGHT}, QUADS);
 
-	glEnable(GL_LIGHTING);
-	glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
+//	glEnable(GL_DEPTH_TEST);
 }
 
 void draw_Morphs_Dialog(const char * text, int s_height, char * morph_type, char ** morph_types, int morph_types_c,
@@ -4099,8 +4101,8 @@ void draw_Morphs_Dialog(const char * text, int s_height, char * morph_type, char
 
     draw_Morph_List(s_height, mrph_start, clear_background, current_mrph, selection_rectangle, Morph_type);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
     draw_Morph_Bottom_Line(d_width, s_height);
@@ -4155,8 +4157,8 @@ void draw_Subcharacters_Dialog(const char * text, int s_height,
 
     draw_Subcharacter_List(s_height, subch_start, clear_background, current_subch, selection_rectangle);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
     draw_Subcharacter_Bottom_Line(d_width, s_height);
@@ -4211,8 +4213,8 @@ void draw_IK_Dialog(const char * text, int s_height,
 
     draw_IK_List(s_height, iks_start, clear_background, current_ikch, selection_rectangle);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
     draw_IK_Bottom_Line(d_width, s_height);
@@ -4267,8 +4269,8 @@ void draw_Bones_Dialog(const char * text, int s_height,
 
     draw_Bones_List(s_height, bones_start, clear_background, current_bone, selection_rectangle);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
     draw_Bones_Bottom_Line(d_width, s_height);
@@ -4322,8 +4324,8 @@ void draw_Poses_Dialog(const char * text, int s_height,
 
     draw_Poses_List(s_height, poses_start, clear_background, current_pose, selection_rectangle);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
     draw_Poses_Bottom_Line(d_width, s_height);
@@ -4396,8 +4398,8 @@ void draw_Deformers_Dialog(const char * text, int s_height,
         else if (strcmp(defr_type, "selections") == 0)
             draw_Selections_List(s_height, selections_start, "vertex", clear_background, current_sel, selection_rectangle);
 
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_LIGHTING);
+//        glEnable(GL_DEPTH_TEST);
+//        glEnable(GL_LIGHTING);
         glPopMatrix();
 
         if (strcmp(defr_type, "deformers") == 0)
@@ -4459,8 +4461,8 @@ void draw_Hierarchys_Dialog(const char * text, int s_height, int transformers_st
 
 	draw_Hierarchys_List(s_height, transformers_start, clear_background, current_trans, selection_rectangle);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
 	draw_Hierarchys_Bottom_Line(d_width, s_height);
@@ -4523,8 +4525,8 @@ void draw_Selections_Dialog(const char * text, int s_height, char * sel_type, ch
 
 	draw_Selections_List(s_height, selections_start, sel_type, clear_background, current_sel, selection_rectangle);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
 	draw_Selections_Bottom_Line(d_width, s_height);
@@ -4632,8 +4634,8 @@ void draw_Loading_Dialog(char * path, const char * text, int s_height, char * ex
         }
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
 	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
@@ -4740,8 +4742,8 @@ void draw_Saves_Dialog(char * path, const char * text, int s_height, char * ext,
     }
 
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
 	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
@@ -4803,8 +4805,8 @@ void draw_Files_Dialog(char * path, const char * text, int s_height, char * ext,
 
 	draw_Files_List(path, s_height, files_start, ext, clear_background, update);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 
 	draw_Corner_Drag_Button(DRAG_CORNER_WIDTH, s_height);
@@ -4845,8 +4847,8 @@ void draw_Bottom_Line(int width, int height)
     draw_Button_horizontal("Bind mode", 6, 1);
     draw_Button_horizontal("Modeling", 7, 1);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -4994,8 +4996,8 @@ void draw_UI_elements(int width, int height)
         Func_Marker += 2;
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -5021,8 +5023,8 @@ void display_bottom_message(const char * text, int width, int height)
 
     draw_last_message(text, width - left);
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -5055,8 +5057,8 @@ void display_labels(int width, int height)
         draw_text(L->text, L->x, L->y, font_height, 0);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 
@@ -5098,8 +5100,8 @@ void display_osd_font(const char * text, int width, int height, int osd)
         draw_text(text, origin_x, origin_y, font_height, 0);
     }
 
-    glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+//    glEnable(GL_DEPTH_TEST);
+//	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
 #endif // USERINTERFACE_H_INCLUDED

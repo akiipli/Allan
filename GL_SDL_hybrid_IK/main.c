@@ -7952,35 +7952,32 @@ void deformer_Keyframe_Player()
         {
             T = D->Transformers[0];
 
-            if (T->Timeline != NULL)
-            {
-                init_Timeline_Segments(D, TimelineStart);
-                init_Morph_Timeline_Segments(D, TimelineStart);
+            init_Timeline_Segments(D, TimelineStart);
+            init_Morph_Timeline_Segments(D, TimelineStart);
 
-                for (o = 0; o < D->Objects_Count; o ++)
+            for (o = 0; o < D->Objects_Count; o ++)
+            {
+                O = D->Objects[o];
+                condition = 1;
+                for (u = 0; u < Update_Objects_Count; u ++)
                 {
-                    O = D->Objects[o];
-                    condition = 1;
-                    for (u = 0; u < Update_Objects_Count; u ++)
+                    if (Update_Objects[u] == O)
                     {
-                        if (Update_Objects[u] == O)
-                        {
-                            condition = 0;
-                            break;
-                        }
-                    }
-                    if (condition)
-                    {
-                        Update_Objects[Update_Objects_Count ++] = O;
+                        condition = 0;
+                        break;
                     }
                 }
-
-                for (t = 0; t < D->Transformers_Count; t ++)
+                if (condition)
                 {
-                    if (D->Transformers[t]->Object != NULL)
-                    {
-                        Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
-                    }
+                    Update_Objects[Update_Objects_Count ++] = O;
+                }
+            }
+
+            for (t = 0; t < D->Transformers_Count; t ++)
+            {
+                if (D->Transformers[t]->Object != NULL)
+                {
+                    Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
                 }
             }
         }
@@ -8180,12 +8177,12 @@ void deformer_Keyframe_Player()
                             create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
                         }
                     }
-                    apply_Pose_position_keyframes(D, D->P, D->Delta);
-
-                    update_Deformer_Objects_Curves_Coordinates(D);
-                    update_Deformer_object_Curves(D, subdLevel);
-                    update_Deformer_object_Curves(D, subdLevel);
                 }
+                apply_Pose_position_keyframes(D, D->P, D->Delta);
+
+                update_Deformer_Objects_Curves_Coordinates(D);
+                update_Deformer_object_Curves(D, subdLevel);
+                update_Deformer_object_Curves(D, subdLevel);
             }
         }
 
@@ -14599,22 +14596,51 @@ void start_Rotation()
 {
     if (Curve_Mode)
     {
-        find_connected_Curves();
-        find_connected_Objects();
-
         if (Vertex_Mode)
         {
-            cp_Manipulation = 1;
-            /* collect selected Cps and find center point */
-            find_Cps_action_Center();
-            transfer_pos_To_Cp_Pos();
+            if (Modeling_Mode)
+            {
+                clear_Selected_Objects_Verts_Selection();
+                create_Verts_Selection_From_Cps();
+                assert_Verts_Selection();
+
+                vertex_Manipulation = 1;
+                remember_Objects_Verts_Pos();
+                find_Verts_action_Center();
+                find_Curves_Connected_To_Verts();
+            }
+            else
+            {
+                find_connected_Curves();
+                find_connected_Objects();
+                cp_Manipulation = 1;
+                /* collect selected Cps and find center point */
+                find_Cps_action_Center();
+                transfer_pos_To_Cp_Pos();
+            }
         }
         else
         {
-            curve_Manipulation = 1;
-            /* collect selected Curves and find center point */
-            find_Curves_action_Center();
-            remember_Curves_Cp_pos();
+            if (Modeling_Mode)
+            {
+                clear_Selected_Objects_Verts_Selection();
+                create_Verts_Selection_From_Curves();
+                assert_Verts_Selection();
+
+                vertex_Manipulation = 1;
+                remember_Objects_Verts_Pos();
+                find_Verts_action_Center();
+                find_Curves_Connected_To_Verts();
+            }
+            else
+            {
+                find_connected_Curves();
+                find_connected_Objects();
+                curve_Manipulation = 1;
+                /* collect selected Curves and find center point */
+                find_Curves_action_Center();
+                remember_Curves_Cp_pos();
+            }
         }
         Action_Center->rot_Order = yxz;
         reset_Action_Center();
@@ -14723,19 +14749,46 @@ void start_Movement()
             //assert_Curve_Selection();
             //ordered_Cp_Selection();
 
-            find_connected_Curves();
-
             if (!CURVE_MODE)
             {
                 if (Vertex_Mode)
                 {
-                    cp_Manipulation = 1;
+                    if (Modeling_Mode)
+                    {
+                        clear_Selected_Objects_Verts_Selection();
+                        create_Verts_Selection_From_Cps();
+                        assert_Verts_Selection();
+
+                        vertex_Manipulation = 1;
+                        remember_Objects_Verts_Pos();
+                        find_Curves_Connected_To_Verts();
+                    }
+                    else
+                    {
+                        find_connected_Curves();
+                        cp_Manipulation = 1;
+                        find_connected_Objects();
+                    }
                 }
                 else
                 {
-                    curve_Manipulation = 1;
+                    if (Modeling_Mode)
+                    {
+                        clear_Selected_Objects_Verts_Selection();
+                        create_Verts_Selection_From_Curves();
+                        assert_Verts_Selection();
+
+                        vertex_Manipulation = 1;
+                        remember_Objects_Verts_Pos();
+                        find_Curves_Connected_To_Verts();
+                    }
+                    else
+                    {
+                        find_connected_Curves();
+                        curve_Manipulation = 1;
+                        find_connected_Objects();
+                    }
                 }
-                find_connected_Objects();
             }
         }
         else if (Modeling_Mode && !BONES_MODE)
@@ -15139,7 +15192,7 @@ void transform_Objects_And_Render()
 
 //            O->T->rot[1] -= pi60; // profiling
 
-    if (Curve_Mode && (ROTATION || SCALE))
+    if (Curve_Mode && (ROTATION || SCALE) && !Modeling_Mode)
     {
         memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
         rotate_T(Action_Center);
@@ -15175,7 +15228,7 @@ void transform_Objects_And_Render()
         update_selected_Objects_T_Coords();
         //*/
 
-        if (Vertex_Mode)
+        if (Vertex_Mode || Curve_Mode)
         {
             update_Selected_Verts_Positions();
         }

@@ -33,6 +33,112 @@ void transfer_Transformed_Coordinates(object * O)
     }
 }
 
+void convert_To_Cp_Vert_Selection(curve * C)
+{
+    int p;
+
+    cp * CP;
+
+    for (p = 0; p < C->cps_count; p ++)
+    {
+        CP = C->cps[p];
+
+        if (CP->vert != NULL)
+        {
+            CP->vert->selected = 1;
+        }
+    }
+}
+
+void convert_To_Cps_Vert_Selection(curve * C)
+{
+    int p;
+
+    cp * CP;
+
+    for (p = 0; p < C->cps_count; p ++)
+    {
+        CP = C->cps[p];
+
+        if (CP->vert != NULL && CP->selected)
+        {
+            CP->vert->selected = 1;
+        }
+    }
+}
+
+void create_Verts_Selection_From_Curves()
+{
+    int c;
+
+    curve * C;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+        if (C->selected)
+        {
+            convert_To_Cp_Vert_Selection(C);
+        }
+    }
+}
+
+void create_Verts_Selection_From_Cps()
+{
+    int c;
+
+    curve * C;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+        if (C->selected)
+        {
+            convert_To_Cps_Vert_Selection(C);
+        }
+    }
+}
+
+void assert_Verts_Selection()
+{
+    int v, o;
+
+    object * O;
+    vertex * V;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+
+        O->selected_verts_count = 0;
+        for (v = 0; v < O->vertcount; v ++)
+        {
+            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+            if (V->selected)
+                O->selected_verts[O->selected_verts_count ++] = v;
+        }
+    }
+}
+
+void clear_Selected_Objects_Verts_Selection()
+{
+    int o, v;
+
+    object * O;
+    vertex * V;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+
+        for (v = 0; v < O->vertcount; v ++)
+        {
+            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+            V->selected = 0;
+        }
+    }
+}
+
 void remember_Objects_Verts_Pos()
 {
     int o, v, idx;
