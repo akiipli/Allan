@@ -14627,6 +14627,8 @@ void start_Rotation()
                 create_Verts_Selection_From_Curves();
                 assert_Verts_Selection();
 
+                print_Selection_Info();
+
                 vertex_Manipulation = 1;
                 remember_Objects_Verts_Pos();
                 find_Verts_action_Center();
@@ -16951,7 +16953,7 @@ void select_current_Morph_Map(int Morph_type)
                             }
                         }
                     }
-                    assert_Element_Selection_(O);
+                    assert_Verts_Selection_(O);
                 }
                 set_Vertex_Mode();
             }

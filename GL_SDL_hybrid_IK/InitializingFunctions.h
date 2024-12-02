@@ -1000,7 +1000,7 @@ int initialize_object(int index,
     O->polygon_selections = 0;
     O->edge_selections = 0;
     O->vertex_selections = 0;
-    O->vertex_Positions = malloc(0 * sizeof(vertex_Pos));
+    O->vertex_Positions = malloc(O->vertcount * sizeof(vertex_Pos)); // remember Objects Verts Pos manipulating
 
     O->curves = malloc(OBJECT_CURVES * sizeof(curve*));
     O->curve_count = 0;

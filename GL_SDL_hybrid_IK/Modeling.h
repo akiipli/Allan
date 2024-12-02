@@ -99,6 +99,20 @@ void create_Verts_Selection_From_Cps()
     }
 }
 
+void assert_Verts_Selection_(object * O)
+{
+    int v;
+    vertex * V;
+
+    O->selected_verts_count = 0;
+    for (v = 0; v < O->vertcount; v ++)
+    {
+        V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+        if (V->selected)
+            O->selected_verts[O->selected_verts_count ++] = v;
+    }
+}
+
 void assert_Verts_Selection()
 {
     int v, o;
@@ -117,6 +131,19 @@ void assert_Verts_Selection()
             if (V->selected)
                 O->selected_verts[O->selected_verts_count ++] = v;
         }
+    }
+}
+
+void print_Selection_Info()
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+        printf("%s %d\n", O->Name, O->selected_verts_count);
     }
 }
 
@@ -145,17 +172,14 @@ void remember_Objects_Verts_Pos()
 
     object * O;
     vertex * V;
-    vertex_Pos * vertex_Positions;
 
     for (o = 0; o < selected_object_count; o ++)
     {
         O = objects[selected_objects[o]];
         O->Movement_Enabled = 0;
 
-        vertex_Positions = realloc(O->vertex_Positions, O->selected_verts_count * sizeof(vertex_Pos));
-        if (vertex_Positions != NULL && O->selected_verts_count > 0)
+        if (O->selected_verts_count > 0)
         {
-            O->vertex_Positions = vertex_Positions;
             O->Movement_Enabled = 1;
             for (v = 0; v < O->selected_verts_count; v ++)
             {
@@ -165,7 +189,7 @@ void remember_Objects_Verts_Pos()
                 O->vertex_Positions[v].y = V->Ty - O->T->pos[1];
                 O->vertex_Positions[v].z = V->Tz - O->T->pos[2];
             }
-            printf("%d verts for %s allocated\n", O->selected_verts_count, O->Name);
+            printf("%d verts for %s remember\n", O->selected_verts_count, O->Name);
         }
     }
 }
