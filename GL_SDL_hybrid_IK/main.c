@@ -7627,7 +7627,7 @@ void goto_Deformer_Frame_(deformer * D, int frame)
 
     D->P = init_Deformer_P(D);
 
-    fill_Start_Pose(D, D->P);
+    fill_Start_Pose(D, D->P, 1);
 
     if (D->Transformers_Count > 0)
     {
@@ -7773,7 +7773,7 @@ void goto_Deformer_Frame(deformer * D, int frame)
 
     D->P = init_Deformer_P(D);
 
-    fill_Start_Pose(D, D->P);
+    fill_Start_Pose(D, D->P, 1);
 
     if (D->Transformers_Count > 0)
     {
@@ -7946,7 +7946,7 @@ void deformer_Keyframe_Player()
 
         D->P = init_Deformer_P(D);
 
-        fill_Start_Pose(D, D->P);
+        fill_Start_Pose(D, D->P, 1);
 
         if (D->Transformers_Count > 0)
         {

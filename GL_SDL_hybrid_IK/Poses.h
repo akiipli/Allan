@@ -704,7 +704,7 @@ void paste_Pose_pos(deformer * D, pose * P)
     }
 }
 
-void fill_Start_Pose(deformer * D, pose * P)
+void fill_Start_Pose(deformer * D, pose * P, int relative_pos)
 {
     int t;
 
@@ -746,7 +746,17 @@ void fill_Start_Pose(deformer * D, pose * P)
                 memcpy(P->TP[t].rotVec_I, T->rotVec_I, sizeof(float[3][3]));
                 memcpy(P->TP[t].rotVec_B, T->rotVec_B, sizeof(float[3][3]));
 
-                memcpy(P->TP[t].pos, T->pos, sizeof(float[3]));
+                if (relative_pos)
+                {
+                    P->TP[t].pos[0] = D->Transformers[t]->pos[0] - D->Delta[0];
+                    P->TP[t].pos[1] = D->Transformers[t]->pos[1] - D->Delta[1];
+                    P->TP[t].pos[2] = D->Transformers[t]->pos[2] - D->Delta[2];
+                }
+                else
+                {
+                    memcpy(P->TP[t].pos, T->pos, sizeof(float[3]));
+                }
+
                 memcpy(P->TP[t].pos_, T->pos_, sizeof(float[3]));
             }
         }

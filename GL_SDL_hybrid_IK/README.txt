@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+12:19 PM 12/2/2024
+Now in Curves Mode and in Modeling Mode selected Morph is affected by curve manipulation. Morphs belong to Morph Maps.
+They consist of vertexes.
+
 8:24 PM 11/10/2024
 Ctrl + C in Curve Mode and Edge Mode converts selected segments to control points, cps.
 
