@@ -2281,7 +2281,7 @@ void move_(transformer * T, float Delta[3])
     }
     else
     {
-        move_Objects_To_Delta(Delta);
+        rotate_vertex_groups_D_Init();
         move_T(T, Delta);
         move_Children(T, Delta);
     }

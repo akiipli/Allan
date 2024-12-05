@@ -2032,13 +2032,6 @@ void transfer_Delta_To_Object_Cps(object * O, float Delta[3])
             CP->pos[0] = CP->Pos[0] + Delta[0];
             CP->pos[1] = CP->Pos[1] + Delta[1];
             CP->pos[2] = CP->Pos[2] + Delta[2];
-
-            if (CP->vert != NULL)
-            {
-                CP->vert->Tx = CP->pos[0];
-                CP->vert->Ty = CP->pos[1];
-                CP->vert->Tz = CP->pos[2];
-            }
         }
     }
 }
@@ -2187,6 +2180,13 @@ void snap_back_Object_Cps_To_Pos(object * O)
             CP->pos[0] = CP->Pos[0];
             CP->pos[1] = CP->Pos[1];
             CP->pos[2] = CP->Pos[2];
+
+            if (CP->vert != NULL)
+            {
+                CP->vert->Tx = CP->pos[0];
+                CP->vert->Ty = CP->pos[1];
+                CP->vert->Tz = CP->pos[2];
+            }
         }
     }
 }

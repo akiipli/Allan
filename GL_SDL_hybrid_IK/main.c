@@ -14829,6 +14829,7 @@ void start_Movement()
         else
         {
             T = O->T;
+
             if (O->curve_count > 0)
             {
                 remember_Object_Curves_pos(O);
@@ -15139,7 +15140,7 @@ void make_Movement()
                 }
             }
         }
-        else if (O->curve_count > 0 && Constraint_Pack.IK == NULL)
+        else if (!O->binding && O->curve_count > 0 && Constraint_Pack.IK == NULL)
         {
             transfer_Delta_To_Object_Cps(O, Delta);
             update_object_Curves(O, subdLevel);
@@ -18665,7 +18666,7 @@ int main(int argc, char * args[])
                                     T = objects[currentObject]->T;
                                     bake_pose_Children(T);
 
-                                    if (O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
+                                    if (!O->binding && O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
                                     {
                                         snap_back_Object_Cps_To_Pos(O);
                                         update_object_Curves(O, subdLevel);
@@ -23780,6 +23781,8 @@ int main(int argc, char * args[])
         }
         else if (message == 31)
         {
+            O = objects[currentObject];
+
             if (!edgeWeights)
             {
                 SDL_GetMouseState(&mouse_x, &mouse_y);

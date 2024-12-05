@@ -203,9 +203,9 @@ void move_Objects_To_Delta(float Delta[3])
         for (v = 0; v < O->vertcount; v ++)
         {
             V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-            V->Tx = V->x + Delta[0];
-            V->Ty = V->y + Delta[1];
-            V->Tz = V->z + Delta[2];
+            V->Rx = V->x + Delta[0];
+            V->Ry = V->y + Delta[1];
+            V->Rz = V->z + Delta[2];
         }
     }
 }
