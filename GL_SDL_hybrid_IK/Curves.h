@@ -3253,6 +3253,10 @@ void transfer_Curve_Cps_To_Vertex_TCoordinates(object * O)
                 CP->vert->Rz = CP->vert->z;
 
                 //*/
+
+                CP->vert->Tx = CP->vert->x;
+                CP->vert->Ty = CP->vert->y;
+                CP->vert->Tz = CP->vert->z;
             }
         }
     }
@@ -3267,7 +3271,7 @@ void update_connected_Objects()
     for (o = 0; o < connected_objects_count; o ++)
     {
         O = objects[connected_objects[o]];
-        if (!O->binding)
+        if (1)//(!O->binding)
         {
             if (O->T->rot[0] == 0 && O->T->rot[1] == 0 && O->T->rot[2] == 0)
             {

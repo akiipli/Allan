@@ -15147,21 +15147,37 @@ void make_Movement()
     }
 }
 
-void update_selected_Curve_Objects(int level)
+void tune_In_Connected_Objects(int level)
 {
-    int c;
-    curve * C;
+    int o;
 
-    for (c = 0; c < selected_curves_count; c ++)
+    object * O;
+
+    for (o = 0; o < connected_objects_count; o ++)
     {
-        C = curves[selected_curves[c]];
-
-        if (C->O != NULL && C->O->deforms)
+        O = objects[connected_objects[o]];
+        if (O->deforms)
         {
-            tune_subdivide_post_transformed(C->O, level);
+            tune_subdivide_post_transformed(O, level);
         }
     }
 }
+
+//void update_selected_Curve_Objects(int level)
+//{
+//    int c;
+//    curve * C;
+//
+//    for (c = 0; c < selected_curves_count; c ++)
+//    {
+//        C = curves[selected_curves[c]];
+//
+//        if (C->O != NULL && C->O->deforms)
+//        {
+//            tune_subdivide_post_transformed(C->O, level);
+//        }
+//    }
+//}
 
 void transform_Objects_And_Render()
 {
@@ -15216,7 +15232,7 @@ void transform_Objects_And_Render()
         update_connected_Curves(subdLevel);
         update_connected_Objects();
 
-        update_selected_Curve_Objects(subdLevel);
+        tune_In_Connected_Objects(subdLevel);
     }
     else if (Modeling_Mode && (ROTATION || SCALE))
     {
