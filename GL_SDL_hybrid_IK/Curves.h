@@ -2181,12 +2181,12 @@ void snap_back_Object_Cps_To_Pos(object * O)
             CP->pos[1] = CP->Pos[1];
             CP->pos[2] = CP->Pos[2];
 
-            if (CP->vert != NULL)
-            {
-                CP->vert->Tx = CP->pos[0];
-                CP->vert->Ty = CP->pos[1];
-                CP->vert->Tz = CP->pos[2];
-            }
+//            if (CP->vert != NULL)
+//            {
+//                CP->vert->Rx = CP->pos[0];
+//                CP->vert->Ry = CP->pos[1];
+//                CP->vert->Rz = CP->pos[2];
+//            }
         }
     }
 }

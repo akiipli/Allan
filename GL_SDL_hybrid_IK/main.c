@@ -15056,6 +15056,13 @@ void make_Movement()
     if (BIND_POSE)
     {
         move_T(T, Delta);
+
+        if (T->Object != NULL && O->curve_count > 0)
+        {
+            transfer_Delta_To_Object_Cps(O, Delta);
+            update_object_Curves(O, subdLevel);
+        }
+
         if (!BONES_MODE && T->Bone == NULL && altDown)
         {
             move_Children_T(T, Delta);
@@ -15357,6 +15364,7 @@ void transform_Objects_And_Render()
 
                     update_Object_Curves_Cps_Positions(O);
                     update_object_Curves(O, subdLevel);
+                    update_object_Curves(O, subdLevel);
                 }
             }
             else if (SCALE)
@@ -15375,6 +15383,7 @@ void transform_Objects_And_Render()
                     }
 
                     update_Object_Curves_Cps_Positions(O);
+                    update_object_Curves(O, subdLevel);
                     update_object_Curves(O, subdLevel);
                 }
             }
@@ -18618,7 +18627,7 @@ int main(int argc, char * args[])
                             {
                                 if (BIND_POSE)
                                 {
-                                    T = transformers[currentLocator];
+                                    //T = transformers[currentLocator];
                                     if (MOVEMENT)
                                     {
                                         bake_pose(T);
@@ -18632,6 +18641,15 @@ int main(int argc, char * args[])
                                                 synthesize_Bone_Alignement_childs(T);
                                             }
                                         }
+                                    }
+
+                                    T = objects[currentObject]->T;
+
+                                    if (T->Object == O && O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
+                                    {
+                                        snap_back_Object_Cps_To_Pos(O);
+                                        update_object_Curves(O, subdLevel);
+                                        update_object_Curves(O, subdLevel);
                                     }
                                 }
                                 else if (DRAW_LOCATORS)
@@ -22798,6 +22816,8 @@ int main(int argc, char * args[])
             SDL_GetMouseState(&mouse_x, &mouse_y);
             Camera = find_View(mouse_x, mouse_y, splitview);
 
+            O = objects[currentObject];
+
             if (mod & KMOD_CTRL)
             {
                 reset_View(Camera, CamDist, ortho_on);
@@ -22935,7 +22955,7 @@ int main(int argc, char * args[])
                         T->rot[2] = 0.0;
                     }
 
-                    if (D != NULL)
+                    if (D != NULL && !BIND_POSE)
                         update_Deformer(D);
 
                     if (O->curve_count > 0)
