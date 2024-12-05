@@ -190,6 +190,26 @@ void update_tangents(int L)
     }
 }
 
+void move_Objects_To_Delta(float Delta[3])
+{
+    int o, v;
+
+    object * O;
+    vertex * V;
+
+    for (o = 0; o < Update_Objects_Count; o ++)
+    {
+        O = Update_Objects[o];
+        for (v = 0; v < O->vertcount; v ++)
+        {
+            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+            V->Tx = V->x + Delta[0];
+            V->Ty = V->y + Delta[1];
+            V->Tz = V->z + Delta[2];
+        }
+    }
+}
+
 void update_rotate_bounding_box()
 {
     int o;

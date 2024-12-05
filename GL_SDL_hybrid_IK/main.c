@@ -15139,11 +15139,11 @@ void make_Movement()
                 }
             }
         }
-//        else if (O->curve_count > 0 && Constraint_Pack.IK == NULL)
-//        {
-//            transfer_Delta_To_Object_Cps(O, Delta);
-//            update_object_Curves(O, subdLevel);
-//        }
+        else if (O->curve_count > 0 && Constraint_Pack.IK == NULL)
+        {
+            transfer_Delta_To_Object_Cps(O, Delta);
+            update_object_Curves(O, subdLevel);
+        }
     }
 }
 

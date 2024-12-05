@@ -2271,6 +2271,8 @@ void move_Constraint(transformer * T, float Delta[3])
     update_rotate_bounding_box();
 }
 
+void move_Objects_To_Delta(float Delta[3]);
+
 void move_(transformer * T, float Delta[3])
 {
     if (T->Deformer != NULL)
@@ -2279,7 +2281,7 @@ void move_(transformer * T, float Delta[3])
     }
     else
     {
-        rotate_vertex_groups_D_Init();
+        move_Objects_To_Delta(Delta);
         move_T(T, Delta);
         move_Children(T, Delta);
     }
