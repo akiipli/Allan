@@ -15898,30 +15898,33 @@ void select_Morph_Map_Objects(deformer_morph_map * Map)
 
 void update_Deformer(deformer * D)
 {
-    Update_Objects_Count = 0;
-
-    rotate_collect(T);
-    rotate_vertex_groups_D_Init();
-
-    rotate_Deformer_verts(D);
-
-    update_Deformer_Objects_Curves_Coordinates(T->Deformer);
-    update_Deformer_object_Curves(T->Deformer, subdLevel);
-    update_Deformer_object_Curves(T->Deformer, subdLevel);
-
-    update_rotate_bounding_box();
-
-    if (subdLevel > -1)
+    if (D->Transformers_Count > 0)
     {
-        int o;
-        object * O0;
+        Update_Objects_Count = 0;
 
-        for (o = 0; o < Update_Objects_Count; o ++)
+        rotate_collect(D->Transformers[0]);
+        rotate_vertex_groups_D_Init();
+
+        rotate_Deformer_verts(D);
+
+        update_Deformer_Objects_Curves_Coordinates(D);
+        update_Deformer_object_Curves(D, subdLevel);
+        update_Deformer_object_Curves(D, subdLevel);
+
+        update_rotate_bounding_box();
+
+        if (subdLevel > -1)
         {
-            O0 = Update_Objects[o];
-            if (O0->deforms)
+            int o;
+            object * O0;
+
+            for (o = 0; o < Update_Objects_Count; o ++)
             {
-                tune_subdivide_post_transformed(O0, subdLevel);
+                O0 = Update_Objects[o];
+                if (O0->deforms)
+                {
+                    tune_subdivide_post_transformed(O0, subdLevel);
+                }
             }
         }
     }
@@ -22995,7 +22998,7 @@ int main(int argc, char * args[])
                 {
                     T = objects[currentObject]->T;
                 }
-                if (T->Bone == NULL && T->Deformer == NULL)
+                if (T->Bone == NULL && T->Deformer == NULL && T->Object != NULL)
                 {
                     O = T->Object;
 
