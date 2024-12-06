@@ -25,6 +25,15 @@ Copyright <2018> <2022> <Allan Kiipli>
 
 int VAO = 0;
 
+typedef struct
+{
+    float R;
+    float G;
+    float B;
+    float A;
+}
+RGBA;
+
 float light_vec[3] = {-1.0, -1.0, -1.0};
 
 Uint8 wire_r = 100;
@@ -683,7 +692,7 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
 
     Uint32 pix;
     Uint8 r, g, b, a;
-    unsigned int R, G, B;
+    unsigned int R, G, B, A;
     float a0, b0, mean;
 
     int idx, x, y;
@@ -728,12 +737,12 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
         R = r * a0 + Material.RGBA.R * b0;
         G = g * a0 + Material.RGBA.G * b0;
         B = b * a0 + Material.RGBA.B * b0;
-        //A = a + Material.RGBA.A;
+        A = a * a0 + Material.RGBA.A * b0;
 
         r = R / mean;
         g = G / mean;
         b = B / mean;
-        //a = A / 2;
+        a = A / mean;
     }
     else
     {
@@ -795,7 +804,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
 
     Uint32 pix;
     Uint8 r, g, b, a;
-    unsigned int R, G, B;
+    unsigned int R, G, B, A;
     float a0, b0, mean;
 
     int idx, c, x, y;
@@ -893,12 +902,12 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
             R = r * a0 + Material.RGBA.R * b0;
             G = g * a0 + Material.RGBA.G * b0;
             B = b * a0 + Material.RGBA.B * b0;
-            //A = a + Material.RGBA.A;
+            A = a * a0 + Material.RGBA.A * b0;
 
             r = R / mean;
             g = G / mean;
             b = B / mean;
-            //a = A / 2;
+            a = A / mean;
         }
         else
         {
@@ -958,7 +967,7 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
 
     Uint32 pix;
     Uint8 r, g, b, a;
-    unsigned int R, G, B;
+    unsigned int R, G, B, A;
     float a0, b0, mean;
 
     int idx, c, x, y;
@@ -1056,12 +1065,12 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
             R = r * a0 + Material.RGBA.R * b0;
             G = g * a0 + Material.RGBA.G * b0;
             B = b * a0 + Material.RGBA.B * b0;
-            //A = a + Material.RGBA.A;
+            A = a * a0 + Material.RGBA.A * b0;
 
             r = R / mean;
             g = G / mean;
             b = B / mean;
-            //a = A / 2;
+            a = A / mean;
         }
         else
         {
@@ -1113,7 +1122,7 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
     return Cancel;
 }
 
-/*inline*/ int come_With_Pixel_(pixel * P, camera * C, normal * D, int L, int gx, int gy)
+RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, int gx, int gy)
 {
     trianges_cancel Cancel;
 
@@ -1135,6 +1144,14 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
     P->G[volume_counter] = 100;
     P->B[volume_counter] = 100;
     P->A[volume_counter] = 100;
+
+    RGBA rgba;
+    float a, b;
+
+    rgba.R = 100;
+    rgba.G = 100;
+    rgba.B = 100;
+    rgba.A = 100;
 
     int d;
     float s;
@@ -1433,7 +1450,7 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
     }
     if (volume_counter == 0)
     {
-        return 0;
+        return rgba;
     }
 
     for (i = 0; i < volume_counter; i ++)
@@ -1442,9 +1459,9 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
         d_index[i] = P->D[i];
     }
 
-    for (i = 0; i < volume_counter - 1; i ++)
+    for (i = 1; i < volume_counter; i ++)
     {
-        for (k = 0; k < volume_counter - i - 1; k ++)
+        for (k = 0; k < volume_counter - i; k ++)
         {
             if (d_index[k] > d_index[k + 1]) // to reverse use other comparison
             {
@@ -1458,7 +1475,24 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
         }
     }
 
-    return volume_index[0];
+    //composite_Pixels(P, volume_counter);
+
+    for (k = volume_counter - 1; k >= 0; k --)
+    {
+        idx = volume_index[k];
+
+        a = P->A[idx] / 255.0;
+        b = 1 - a;
+
+        rgba.R = rgba.R * b + P->R[idx] * a;
+        rgba.G = rgba.G * b + P->G[idx] * a;
+        rgba.B = rgba.B * b + P->B[idx] * a;
+        rgba.A = 255;
+    }
+
+    //rgba.A /= volume_counter;
+
+    return rgba;
 }
 
 void project_Selected_Locators(camera * C, object * O, int * selected_transformers, int selected_transformer_count)
@@ -1645,7 +1679,7 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     }
 }
 
-/*inline*/ int come_With_Pixel(pixel * P, camera * C, normal * D, int gx, int gy)
+RGBA come_With_Pixel(pixel * P, camera * C, normal * D, int gx, int gy)
 {
     trianges_cancel Cancel;
     int i, idx, k, o;
@@ -1665,6 +1699,14 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     P->G[volume_counter] = 100;
     P->B[volume_counter] = 100;
     P->A[volume_counter] = 100;
+
+    RGBA rgba;
+    float a, b;
+
+    rgba.R = 100;
+    rgba.G = 100;
+    rgba.B = 100;
+    rgba.A = 100;
 
     int d;
     float s;
@@ -1735,7 +1777,7 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     }
     if (volume_counter == 0)
     {
-        return 0;
+        return rgba;
     }
 
     for (i = 0; i < volume_counter; i ++)
@@ -1744,9 +1786,9 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
         d_index[i] = P->D[i];
     }
 
-    for (i = 0; i < volume_counter - 1; i ++)
+    for (i = 1; i < volume_counter; i ++)
     {
-        for (k = 0; k < volume_counter - i - 1; k ++)
+        for (k = 0; k < volume_counter - i; k ++)
         {
             if (d_index[k] > d_index[k + 1]) // to reverse use other comparison
             {
@@ -1760,7 +1802,24 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
         }
     }
 
-    return volume_index[0];
+    //composite_Pixels(P, volume_counter);
+
+    for (k = volume_counter - 1; k >= 0; k --)
+    {
+        idx = volume_index[k];
+
+        a = P->A[idx] / 255.0;
+        b = 1 - a;
+
+        rgba.R = rgba.R * b + P->R[idx] * a;
+        rgba.G = rgba.G * b + P->G[idx] * a;
+        rgba.B = rgba.B * b + P->B[idx] * a;
+        rgba.A = 255;
+    }
+
+    //rgba.A /= volume_counter;
+
+    return rgba;
 }
 
 void all_objects_in_frame(camera * C)
@@ -9542,7 +9601,6 @@ void * perform_work(void * arguments)
 {
     //SDL_Event event;
 
-    int idx;
     render_arguments * Args = (render_arguments *)arguments;
 
     normalizeF((float *)&light_vec);
@@ -9550,6 +9608,8 @@ void * perform_work(void * arguments)
     int x, y, index, gx, gy;
     float R;
     pixel P;
+
+    RGBA rgba;
 
     union Dir D = {{0.0, 0.0, -1.0}};
     float DDy;
@@ -9598,19 +9658,17 @@ void * perform_work(void * arguments)
 
             if (Args->L == -1)
             {
-                idx = come_With_Pixel(&P, Args->C, &D.N, gx, gy); // normal is submitted from union
+                rgba = come_With_Pixel(&P, Args->C, &D.N, gx, gy); // normal is submitted from union
             }
             else
             {
-                idx = come_With_Pixel_(&P, Args->C, &D.N, Args->L, gx, gy);
+                rgba = come_With_Pixel_(&P, Args->C, &D.N, Args->L, gx, gy);
             }
 
-            /* raycasting to environment map, lightsources here */
-
-            Args->data[index] = (unsigned char)P.R[idx];
-            Args->data[index + 1] = (unsigned char)P.G[idx];
-            Args->data[index + 2] = (unsigned char)P.B[idx];
-            Args->data[index + 3] = (unsigned char)P.A[idx];
+            Args->data[index] =     (unsigned char)rgba.R;
+            Args->data[index + 1] = (unsigned char)rgba.G;
+            Args->data[index + 2] = (unsigned char)rgba.B;
+            Args->data[index + 3] = (unsigned char)rgba.A;
 
             H_Mark -= H_step;
             View_Span_H += H_step;
