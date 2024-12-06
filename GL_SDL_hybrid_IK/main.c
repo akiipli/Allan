@@ -2427,8 +2427,6 @@ void Draw_Timeline()
 	glVertex2f(w - TIMELINE_ENTRY, 0);
 	glEnd();
 
-	glBegin(GL_LINES);
-
 	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
 	int vline, vline0, vline1, vline2, f;
 
@@ -2561,8 +2559,6 @@ void Draw_Morph_Timeline()
 	glVertex2f(w - TIMELINE_ENTRY, h);
 	glVertex2f(w - TIMELINE_ENTRY, 0);
 	glEnd();
-
-	glBegin(GL_LINES);
 
 	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
 	int vline, f, o, Preak = 0;
@@ -14902,6 +14898,8 @@ void start_Movement()
 
             ObjDist *= dot;
 
+            glEnable(GL_DEPTH_TEST);
+
             glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
             drag_plane_Render(CamDist, Camera, ObjDist, 1);
 
@@ -18089,7 +18087,7 @@ int main(int argc, char * args[])
                 switch(event.key.keysym.sym)
                 {
                     case SDLK_LCTRL: controlDown = 0; handle_ControlDown();
-                    case SDLK_LALT: altDown = 0;
+                    case SDLK_LALT: altDown = 0; // printf("altDown %d\n", altDown);
                     default: break;
                 }
             }
