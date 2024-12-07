@@ -18644,13 +18644,15 @@ int main(int argc, char * args[])
                                         }
                                     }
 
-                                    T = objects[currentObject]->T;
-
-                                    if (T->Object == O && O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
+                                    if(!DRAW_LOCATORS)
                                     {
-                                        snap_back_Object_Cps_To_Pos(O);
-                                        update_object_Curves(O, subdLevel);
-                                        update_object_Curves(O, subdLevel);
+                                        T = objects[currentObject]->T;
+                                        if (T->Object == O && O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
+                                        {
+                                            snap_back_Object_Cps_To_Pos(O);
+                                            update_object_Curves(O, subdLevel);
+                                            update_object_Curves(O, subdLevel);
+                                        }
                                     }
                                 }
                                 else if (DRAW_LOCATORS)

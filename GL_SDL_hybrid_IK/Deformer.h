@@ -1273,6 +1273,8 @@ void order_IK_Chains(ikChain ** IKList, int l[1], ikChain * currentIK, transform
     }
 }
 
+ikChain * IKList[IKCHAINS];
+
 void order_deformers_IK_Chains(deformer * D)
 {
     int c;
@@ -1283,7 +1285,6 @@ void order_deformers_IK_Chains(deformer * D)
     int counter = 0;
     int i, d, condition;
 
-    ikChain * IKList[D->Bones_Count];
     if (IKList != NULL)
     {
         ikChain * currentIK = NULL;
