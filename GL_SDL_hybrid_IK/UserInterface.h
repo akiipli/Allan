@@ -1565,8 +1565,6 @@ void draw_thumbnail(int origin_x, int origin_y, int m_index);
 
 void draw_Button_material_text(const char * text, int width, int height, int index, int m_index, int colorchange, int frame_selection)
 {
-	glEnable(GL_TEXTURE_2D);
-
     int font_height = 11;
 
 	FT_Set_Pixel_Sizes(face[0], 0, font_height);
@@ -1583,6 +1581,8 @@ void draw_Button_material_text(const char * text, int width, int height, int ind
 
         draw_selection_Rectangle();
     }
+
+    glEnable(GL_TEXTURE_2D);
 
 	if (colorchange)
         glColor4fv(buttoncolors[MatrList[index].color].color);

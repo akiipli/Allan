@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1733565885 source:c:\gl_sdl_hybrid_ik\main.c
+1733589072 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -76,7 +76,7 @@
 
 1733422286 c:\gl_sdl_hybrid_ik\curves.h
 
-1733517994 c:\gl_sdl_hybrid_ik\userinterface.h
+1733637595 c:\gl_sdl_hybrid_ik\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
