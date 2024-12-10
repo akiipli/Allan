@@ -19467,6 +19467,11 @@ int main(int argc, char * args[])
                                                 currentItem = ItemIndex;
                                                 O = objects[currentObject];
                                                 O->selected = 1;
+
+                                                MatrList[currentMaterial - materials_start].color = UI_BLACK;
+                                                currentMaterial = O->surface;
+                                                MatrList[index].color = UI_BACKL;
+
 //                                                ItemList[index].color = UI_BACKL;
                                                 assert_Object_Selection();
                                                 update_Items_List(1, 0);
