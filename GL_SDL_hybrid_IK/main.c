@@ -1596,6 +1596,14 @@ int create_Object_OBJ(char * fileName, OBJ_In * OBJ_File)
 
         int m = init_Material(Materials_count);
         O->surface = m;
+
+        char Name[STRLEN];
+        Name[0] = '\0';
+        strcat(Name, O->Name);
+        if (strlen(Name) >= 4)
+            Name[strlen(Name) - 4] = '\0';
+        sprintf(Materials[m].Name, Name);
+
         Materials[m].use_texture = Materials[m - 1].use_texture;
         Materials_count ++;
 
