@@ -4945,7 +4945,7 @@ void open_IMG(char * fileName)
 
                 Textures_c ++;
 
-                assign_Texture(O);
+                //assign_Texture(O);
                 Draw_Bottom_Message("O surface\n");
             }
         }
@@ -4962,7 +4962,7 @@ void open_IMG(char * fileName)
             else
             {
                 place_text_Pack(M, fileName);
-                assign_Texture(O);
+                //assign_Texture(O);
             }
         }
     }
@@ -5134,7 +5134,7 @@ void open_Img()
 
                 Textures_c ++;
 
-                assign_Texture(O);
+                //assign_Texture(O);
                 Draw_Bottom_Message("O surface\n");
             }
         }
@@ -5151,7 +5151,7 @@ void open_Img()
             else
             {
                 place_text_Pack(M, fileName);
-                assign_Texture(O);
+                //assign_Texture(O);
             }
         }
     }
@@ -17338,12 +17338,24 @@ void assign_Surface_To_Selected_Objects()
     int m = currentMaterial;
     int o;
 
-    for (o = 0; o < selected_object_count; o ++)
+    if (Polygon_Mode)
     {
-        O = objects[selected_objects[o]];
-        O->surface = m;
-        assign_Surface_To_Geometry(O, m);
-        load_m_colors_object(O);
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O = objects[selected_objects[o]];
+            assign_Surface_To_Selected_Geometry(O, m);
+            load_m_colors_selected_polys(O);
+        }
+    }
+    else
+    {
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O = objects[selected_objects[o]];
+            O->surface = m;
+            assign_Surface_To_Geometry(O, m);
+            load_m_colors_object(O);
+        }
     }
 
     DRAW_UI = 0;
@@ -19520,7 +19532,10 @@ int main(int argc, char * args[])
                                     if (dialog_type == OBJ_DIALOG)
                                         open_OBJ(fileName);
                                     else if (dialog_type == IMG_DIALOG)
+                                    {
+                                        O = objects[currentObject];
                                         open_IMG(fileName);
+                                    }
                                 }
                             }
                         }
@@ -22788,27 +22803,27 @@ int main(int argc, char * args[])
         {
             if (mod & KMOD_SHIFT)
             {
-                int t = Materials[O->surface].Texture_idx;
+                int t = Materials[currentMaterial].Texture_idx;
                 t ++;
                 if (t >= Textures_c) t = 0;
-                Materials[O->surface].Texture_idx = t;
+                Materials[currentMaterial].Texture_idx = t;
 
-                t = Materials[O->surface].texture;
+                t = Materials[currentMaterial].texture;
                 t ++;
                 if (t >= Surf_Text_c) t = 0;
-                Materials[O->surface].texture = t;
+                Materials[currentMaterial].texture = t;
             }
             else if (mod & KMOD_CTRL)
             {
-                int t = Materials[O->surface].Texture_idx;
+                int t = Materials[currentMaterial].Texture_idx;
                 t --;
                 if (t < 0) t = Textures_c - 1;
-                Materials[O->surface].Texture_idx = t;
+                Materials[currentMaterial].Texture_idx = t;
 
-                t = Materials[O->surface].texture;
+                t = Materials[currentMaterial].texture;
                 t --;
                 if (t < 0) t = Surf_Text_c - 1;
-                Materials[O->surface].texture = t;
+                Materials[currentMaterial].texture = t;
             }
             else if (mod & KMOD_ALT)
             {
@@ -23687,6 +23702,7 @@ int main(int argc, char * args[])
                 }
                 else
                 {
+                    O = objects[currentObject];
                     open_Img();
                 }
             }

@@ -2075,8 +2075,6 @@ void assign_Quad_Color(object * O, quadrant * Q, id_color * I, int L)
     int v, e, q;
     if (O->vertex_arrays[L])
     {
-//        if (E)
-//        {
         for (v = 0; v < 4; v ++)
         {
             idx = Q->texts[v];
@@ -2086,9 +2084,6 @@ void assign_Quad_Color(object * O, quadrant * Q, id_color * I, int L)
             O->cols_array_[L][1][c_c1 ++] = I->B;
             O->cols_array_[L][1][c_c1 ++] = I->A;
         }
-//        }
-//        else
-//        {
         for (v = 0; v < 4; v ++)
         {
             O->cols_array_[L][0][c_c ++] = I->R;
@@ -2096,7 +2091,6 @@ void assign_Quad_Color(object * O, quadrant * Q, id_color * I, int L)
             O->cols_array_[L][0][c_c ++] = I->B;
             O->cols_array_[L][0][c_c ++] = I->A;
         }
-//        }
     }
 
     L++;
@@ -2113,7 +2107,9 @@ void assign_Quad_Color(object * O, quadrant * Q, id_color * I, int L)
 
 void assign_Surface_To_Geometry(object * O, int m)
 {
-    int p, l, q;
+    int p, l, q, t, idx;
+
+    triangle * T;
     polygon * P;
     quadrant * Q;
 
@@ -2121,6 +2117,13 @@ void assign_Surface_To_Geometry(object * O, int m)
     {
         P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
         P->surface = m;
+
+        for (t = 0; t < P->tripcount; t ++)
+        {
+            idx = P->trips[t];
+            T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            T->surface = m;
+        }
     }
 
     for (l = 0; l <= O->subdlevel; l ++)
@@ -2129,7 +2132,149 @@ void assign_Surface_To_Geometry(object * O, int m)
         {
             Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
             Q->surface = m;
+
+            for (t = 0; t < 2; t ++)
+            {
+                idx = Q->trips[t];
+                T = &O->trips_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                T->surface = m;
+            }
         }
+    }
+}
+
+void assign_Surface_To_Selected_Geometry(object * O, int m)
+{
+    int p, l, q, t, idx;
+
+    triangle * T;
+    polygon * P;
+    quadrant * Q;
+
+    for (p = 0; p < O->polycount; p ++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+        if (P->selected)
+        {
+            P->surface = m;
+
+            for (t = 0; t < P->tripcount; t ++)
+            {
+                idx = P->trips[t];
+                T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                T->surface = m;
+            }
+        }
+    }
+
+    for (l = 0; l <= O->subdlevel; l ++)
+    {
+        for (q = 0; q < O->quadcount_[l]; q ++)
+        {
+            Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
+            if (Q->selected)
+            {
+                Q->surface = m;
+                for (t = 0; t < 2; t ++)
+                {
+                    idx = Q->trips[t];
+                    T = &O->trips_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    T->surface = m;
+                }
+            }
+        }
+    }
+}
+
+void load_m_colors_polygon(object * O, polygon * P)
+{
+    int L = 0;
+
+    int c_c = 0;
+    int c_c1 = 0;
+
+    id_color * I;
+    id_color I0;
+
+    triangle * T;
+    quadrant * Q;
+
+    int idx, p, e, v, t, q;
+
+    I = &I0;
+
+    I0.R = Materials[P->surface].RGBA.R / 255;
+    I0.G = Materials[P->surface].RGBA.G / 255;
+    I0.B = Materials[P->surface].RGBA.B / 255;
+    I0.A = Materials[P->surface].RGBA.A / 255;
+
+    I = &I0;
+
+    if (O->vertex_array)
+    {
+        for (t = 0; t < P->tripcount; t ++)
+        {
+            idx = P->trips[t];
+            T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+            for (v = 0; v < 3; v ++)
+            {
+                idx = T->texts[v];
+                c_c1 = idx * 4;
+                O->cols_array[1][c_c1 ++] = I->R;
+                O->cols_array[1][c_c1 ++] = I->G;
+                O->cols_array[1][c_c1 ++] = I->B;
+                O->cols_array[1][c_c1 ++] = I->A;
+            }
+        }
+
+        polygon * P0;
+        for (p = 0; p < O->polycount; p++)
+        {
+            if (p > P->index)
+            {
+                break;
+            }
+            P0 = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+            for (e = 0; e < P0->edgecount; e ++)
+            {
+                if (p == P->index)
+                {
+                    O->cols_array[0][c_c ++] = I->R;
+                    O->cols_array[0][c_c ++] = I->G;
+                    O->cols_array[0][c_c ++] = I->B;
+                    O->cols_array[0][c_c ++] = I->A;
+                }
+                else
+                {
+                    c_c += 4;
+                }
+            }
+        }
+    }
+
+    if (O->vertex_arrays[L])
+    {
+        for(e = 0; e < P->edgecount; e ++)
+        {
+            q = P->quads[e];
+            Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
+            assign_Quad_Color(O, Q, I, L);
+        }
+    }
+}
+
+void load_m_colors_selected_polys(object * O)
+{
+    int p;
+    polygon * P;
+
+    for (p = 0; p < O->polycount; p ++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+        if (P->selected)
+            load_m_colors_polygon(O, P);
     }
 }
 

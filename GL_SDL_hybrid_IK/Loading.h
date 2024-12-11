@@ -1539,7 +1539,7 @@ int read_Surfaces_file(char * fileName, int obj_count)
                         if (O->address == object_address)
                         {
                             O->surface = c;
-                            assign_Texture(O);
+                            //assign_Texture(O);
                             break;
                         }
                     }
