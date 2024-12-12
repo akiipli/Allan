@@ -18100,6 +18100,7 @@ int main(int argc, char * args[])
 
     while(quit == 0)
     {
+        O = objects[currentObject];
         if (SDL_PollEvent(&event))
         {
             if (event.type == SDL_KEYUP)
@@ -24442,6 +24443,7 @@ int main(int argc, char * args[])
                 }
                 else
                 {
+                    O = objects[currentObject];
                     select_Loop();
                     assert_Element_Selection();
                     if (Edge_Mode)
