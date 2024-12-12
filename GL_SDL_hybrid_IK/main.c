@@ -3008,7 +3008,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
         Draw_Rectangle();
     }
 
-    if (!drag_rectangle && SHADERS && HINTS)
+    if (!drag_rectangle && SHADERS && HINTS && rendermode != ID_RENDER)
     {
         display_font(Hint, screen_width, screen_height, 0);
     }
@@ -20000,6 +20000,7 @@ int main(int argc, char * args[])
                         cull_Selection = 0;
                         handle_ControlDown();
                         rendermode = ID_RENDER;
+                        O = objects[currentObject];
 
                         ELEMENT_ARRAYS = 0;
                         init_Hint();
@@ -21678,6 +21679,7 @@ int main(int argc, char * args[])
                     else if (mouse_button_down && mouse_x > SIDEBAR && mouse_y < screen_height)
                     {
                         rendermode = ID_RENDER;
+                        O = objects[currentObject];
 
                         ELEMENT_ARRAYS = 0;
                         init_Hint();
