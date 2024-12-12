@@ -3008,7 +3008,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
         Draw_Rectangle();
     }
 
-    if (!drag_rectangle && SHADERS && HINTS && rendermode != ID_RENDER)
+    if (!drag_rectangle && SHADERS && HINTS)
     {
         display_font(Hint, screen_width, screen_height, 0);
     }
@@ -20000,6 +20000,7 @@ int main(int argc, char * args[])
                         cull_Selection = 0;
                         handle_ControlDown();
                         rendermode = ID_RENDER;
+                        HINTS = 0;
                         O = objects[currentObject];
 
                         ELEMENT_ARRAYS = 0;
@@ -20507,6 +20508,11 @@ int main(int argc, char * args[])
             else if (event.type == SDL_MOUSEBUTTONUP) // scroll up
             {
                 //printf("currentDeformer currentDeformer_Node %d, %d\n", currentDeformer, currentDeformer_Node);
+
+                if (!dialog_lock)
+                {
+                    HINTS = 1;
+                }
 
                 mouse_button_down = 0;
                 Drag_Dialog = 0;
@@ -21679,6 +21685,7 @@ int main(int argc, char * args[])
                     else if (mouse_button_down && mouse_x > SIDEBAR && mouse_y < screen_height)
                     {
                         rendermode = ID_RENDER;
+                        HINTS = 0;
                         O = objects[currentObject];
 
                         ELEMENT_ARRAYS = 0;
