@@ -12912,6 +12912,11 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
                 rotate_verts(T->Object, *T);
                 tune_subdivide_post_transformed(T->Object, subdLevel);
             }
+            else if (T != &World)
+            {
+                transfer_Locator_Values(T);
+                rotate_(T);
+            }
 
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
             draw_Dialog();
