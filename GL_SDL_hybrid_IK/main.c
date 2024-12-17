@@ -7500,6 +7500,45 @@ void update_Deformed_View(deformer * D, int update)
     }
 }
 
+void update_Object_View()
+{
+    int o, i;
+
+    object * O0;
+
+    for (o = 0; o < Camera->object_count; o++)
+    {
+        i = Camera->objects[o];
+        O0 = objects[i];
+
+        if (subdLevel < 0)
+        {
+            if (!O0->binding)
+                rotate_verts(O0, *O0->T);
+        }
+        else
+        {
+            if (O0->deforms)
+            {
+                if (!O0->binding)
+                    rotate_verts(O0, *O0->T);
+                if (O0->curve_count > 0)
+                {
+                    update_Objects_Curves_Coordinates(O0);
+                    update_object_Curves(O0, subdLevel);
+                    update_object_Curves(O0, subdLevel);
+                }
+                tune_subdivide_post_transformed(O0, subdLevel);
+            }
+            else
+            {
+                rotate_verts(O0, *O0->T);
+                tune_subdivide_post_transformed(O0, subdLevel);
+            }
+        }
+    }
+}
+
 void update_Deformed_View_(int update)
 {
     int d;
@@ -12908,14 +12947,18 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             else if (T->Object != NULL)
             {
                 transfer_Locator_Values(T);
+
                 rotate_(T);
-                rotate_verts(T->Object, *T);
-                tune_subdivide_post_transformed(T->Object, subdLevel);
+
+                update_Object_View();
             }
             else if (T != &World)
             {
                 transfer_Locator_Values(T);
+
                 rotate_(T);
+
+                update_Object_View();
             }
 
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
