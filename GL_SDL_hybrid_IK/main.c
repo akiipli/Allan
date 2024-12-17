@@ -8934,8 +8934,8 @@ void select_Deformer()
         D->selected = 0;
         currentDeformer_Node = T->Deformer->index;
         D = deformers[currentDeformer_Node];
-        if (D->selected == 0)
-            Draw_Bottom_Message(D->Name);
+//        if (D->selected == 0)
+//            Draw_Bottom_Message(D->Name);
         D->selected = 1;
     }
 }
