@@ -19541,6 +19541,8 @@ int main(int argc, char * args[])
                                                 currentMaterial = O->surface;
                                                 MatrList[index].color = UI_BACKL;
 
+                                                currentLocator = O->T->index;
+
 //                                                ItemList[index].color = UI_BACKL;
                                                 assert_Object_Selection();
                                                 update_Items_List(1, 0);
@@ -20270,6 +20272,7 @@ int main(int argc, char * args[])
                                         selected_objects[selected_object_count ++] = o;
                                     }
                                     currentMaterial = O->surface;
+                                    currentLocator = O->T->index;
                                 }
                                 else
                                 {
@@ -20529,7 +20532,7 @@ int main(int argc, char * args[])
 
                         if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
 
-                        DRAW_UI = 1;
+                        //DRAW_UI = 1;
                     }
                     else
                     {
@@ -20561,6 +20564,7 @@ int main(int argc, char * args[])
                 if (!dialog_lock)
                 {
                     HINTS = 1;
+                    DRAW_UI = 1;
                 }
 
                 mouse_button_down = 0;
@@ -21936,6 +21940,8 @@ int main(int argc, char * args[])
                                         O->selected = 1;
                                         selected_objects[selected_object_count ++] = o;
                                     }
+                                    currentMaterial = O->surface;
+                                    currentLocator = O->T->index;
                                 }
                                 else
                                 {
@@ -22180,7 +22186,7 @@ int main(int argc, char * args[])
                             load_id_colors_Fan_all(Camera, OBJECT_COLORS);
                         }
 
-                        DRAW_UI = 1;
+                        //DRAW_UI = 1;
 
                         SDL_GL_SwapBuffers();
 

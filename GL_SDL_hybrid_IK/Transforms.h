@@ -440,6 +440,24 @@ void rotate_collect_Deformers(deformer * D)
     }
 }
 
+void collect_Transformer_Objects(transformer * T)
+{
+    int c;
+
+    transformer * C;
+
+    if (T->Object != NULL)
+    {
+        Update_Objects[Update_Objects_Count ++] = T->Object;
+    }
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        collect_Transformer_Objects(C);
+    }
+}
+
 void rotate_vertex_groups_collect_Objects(transformer * T)
 {
     int o, s, condition;
