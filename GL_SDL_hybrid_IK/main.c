@@ -14738,6 +14738,8 @@ void init_Action_Begin_Pose(transformer * T)
 
 void start_Rotation()
 {
+    update_Curve_Objects = 0;
+
     if (Curve_Mode)
     {
         if (Vertex_Mode)
@@ -14805,38 +14807,6 @@ void start_Rotation()
     }
     else
     {
-        if (DRAW_LOCATORS)
-        {
-            if (T->Deformer != NULL)
-            {
-                remember_Deformer_Object_Curves_pos(T->Deformer);
-            }
-            else if (O->curve_count > 0)
-            {
-                remember_Object_Curves_pos(O);
-            }
-        }
-        else if (O->curve_count > 0)
-        {
-            /* since cp positions are not stored in original pose */
-            if (T->rot[0] == 0 && T->rot[1] == 0 && T->rot[2] == 0)
-            {
-                rotate_Curves_With_Object = 1;
-            }
-
-            remember_Object_Curves_pos(O);
-
-            Action_Center->rot_Order = T->rot_Order;
-            Action_Center->pos[0] = T->pos[0];
-            Action_Center->pos[1] = T->pos[1];
-            Action_Center->pos[2] = T->pos[2];
-            reset_Action_Center();
-
-            /* store T Inverse */
-
-            //invert_Rotation_1(Action_Center->rotVec_I, T->rotVec_);
-        }
-
         Update_Objects_Count = 0;
         if (Constraint_Pack.IK != NULL)
         {
@@ -14871,6 +14841,38 @@ void start_Rotation()
             {
                 collect_Transformer_Objects(T);
             }
+        }
+
+        if (DRAW_LOCATORS)
+        {
+            if (T->Deformer != NULL)
+            {
+                remember_Deformer_Object_Curves_pos(T->Deformer);
+            }
+            else
+            {
+                remember_Objects_With_Curves();
+            }
+        }
+        else
+        {
+            /* since cp positions are not stored in original pose */
+            if (T->rot[0] == 0 && T->rot[1] == 0 && T->rot[2] == 0)
+            {
+                rotate_Curves_With_Object = 1;
+            }
+
+            remember_Objects_With_Curves();
+
+            Action_Center->rot_Order = T->rot_Order;
+            Action_Center->pos[0] = T->pos[0];
+            Action_Center->pos[1] = T->pos[1];
+            Action_Center->pos[2] = T->pos[2];
+            reset_Action_Center();
+
+            /* store T Inverse */
+
+            //invert_Rotation_1(Action_Center->rotVec_I, T->rotVec_);
         }
     }
 }
@@ -14968,11 +14970,111 @@ void start_Movement()
     ObjDist = distance(O->T->pos, Camera->T->pos);
     T = Camera->T;
 
+    update_Curve_Objects = 0;
+
     if ((mod & KMOD_SHIFT) || BONES_MODE || CURVE_MODE)
     {
         object_hook = 1;
         MOVEMENT = 1;
         init_Hint();
+
+        if (DRAW_LOCATORS)
+        {
+            if (currentLocator == 0)
+                currentLocator = transformerIndex - 1;
+            T = transformers[currentLocator];
+
+            if (T->Object != NULL)
+            {
+                O = T->Object;
+                currentObject = O->index;
+            }
+        }
+        else
+        {
+            T = O->T;
+        }
+
+        if (Curve_Mode && cp_Manipulation)
+        {
+            transfer_pos_To_Cp_Pos();
+        }
+        else if (Curve_Mode && curve_Manipulation)
+        {
+            remember_Curves_Cp_pos();
+        }
+        else if (CURVE_MODE)
+        {
+            if (C != NULL && C->cps_count > 0)
+            {
+                C_Pos[0] = C->cps[C->cps_count - 1]->pos[0];
+                C_Pos[1] = C->cps[C->cps_count - 1]->pos[1];
+                C_Pos[2] = C->cps[C->cps_count - 1]->pos[2];
+            }
+        }
+        else
+        {
+            Constraint_Pack.IK = NULL;
+            Constraint_Pack.Deformer = NULL;
+            scan_For_Locator_Constraints(T);
+
+            if (Constraint_Pack.IK != NULL)
+                printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
+
+            Update_Objects_Count = 0;
+            if (Constraint_Pack.Deformer != NULL && Constraint_Pack.Deformer->Transformers_Count > 0)
+            {
+                rotate_collect(Constraint_Pack.Deformer->Transformers[0]);
+
+                remember_Deformer_Object_Curves_pos(Constraint_Pack.Deformer);
+            }
+            else if (T->Deformer != NULL && T->Deformer->Transformers_Count > 0)
+            {
+                rotate_collect(T->Deformer->Transformers[0]);
+            }
+            else
+            {
+                collect_Transformer_Objects(T);
+            }
+            printf("Update Objects Count %d\n", Update_Objects_Count);
+
+            child_collection_count = 0;
+
+            if (BIND_POSE)
+            {
+                collect_selected_T(&World);
+            }
+
+            collect_Children(T);
+
+            bake_position(T);
+            bake_position_Children(T);
+            bake(T);
+
+            init_Action_Begin_Pose(T);
+
+            if (!BIND_POSE)
+            {
+                if (Constraint_Pack.IK != NULL)
+                {
+                    if (Constraint_Pack.IK->C != NULL)
+                        continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+                    else if (Constraint_Pack.IK->Pole != NULL)
+                        continue_Action_Begin_Pose(Constraint_Pack.IK->Pole->IK_goal);
+                }
+            }
+
+            if (T->Deformer != NULL)
+            {
+                if (T->Deformer->Transformers_Count > 0)
+                {
+                    if (T == T->Deformer->Transformers[0])
+                    {
+                        fixed_goals = find_fixed_goals(T->Deformer);
+                    }
+                }
+            }
+        }
 
         if (Curve_Mode && !BONES_MODE)
         {
@@ -15033,35 +15135,18 @@ void start_Movement()
 
         if (DRAW_LOCATORS)
         {
-            if (currentLocator == 0)
-                currentLocator = transformerIndex - 1;
-            T = transformers[currentLocator];
-
             if (T->Deformer != NULL)
             {
                 remember_Deformer_Object_Curves_pos(T->Deformer);
             }
-            else if (T->Object != NULL)
+            else
             {
-                O = T->Object;
-                if (O->curve_count > 0)
-                {
-                    remember_Object_Curves_pos(O);
-                }
-            }
-            else if (O->curve_count > 0)
-            {
-                remember_Object_Curves_pos(O);
+                remember_Objects_With_Curves();
             }
         }
         else
         {
-            T = O->T;
-
-            if (O->curve_count > 0)
-            {
-                remember_Object_Curves_pos(O);
-            }
+            remember_Objects_With_Curves();
         }
 
         direction D1;
@@ -15177,87 +15262,6 @@ void start_Movement()
                 T_pos[2] = Camera->T->pos[2] + D1.z * (ObjDist / dot);
             }
         }
-
-        if (Curve_Mode && cp_Manipulation)
-        {
-            transfer_pos_To_Cp_Pos();
-        }
-        else if (Curve_Mode && curve_Manipulation)
-        {
-            remember_Curves_Cp_pos();
-        }
-        else if (CURVE_MODE)
-        {
-            if (C != NULL && C->cps_count > 0)
-            {
-                C_Pos[0] = C->cps[C->cps_count - 1]->pos[0];
-                C_Pos[1] = C->cps[C->cps_count - 1]->pos[1];
-                C_Pos[2] = C->cps[C->cps_count - 1]->pos[2];
-            }
-        }
-        else
-        {
-            Constraint_Pack.IK = NULL;
-            Constraint_Pack.Deformer = NULL;
-            scan_For_Locator_Constraints(T);
-
-            if (Constraint_Pack.IK != NULL)
-                printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
-
-            Update_Objects_Count = 0;
-            if (Constraint_Pack.Deformer != NULL && Constraint_Pack.Deformer->Transformers_Count > 0)
-            {
-                rotate_collect(Constraint_Pack.Deformer->Transformers[0]);
-
-                remember_Deformer_Object_Curves_pos(Constraint_Pack.Deformer);
-            }
-            else if (T->Deformer != NULL && T->Deformer->Transformers_Count > 0)
-            {
-                rotate_collect(T->Deformer->Transformers[0]);
-            }
-            else
-            {
-                collect_Transformer_Objects(T);
-            }
-            printf("Update Objects Count %d\n", Update_Objects_Count);
-
-            child_collection_count = 0;
-
-            if (BIND_POSE)
-            {
-                collect_selected_T(&World);
-            }
-
-            collect_Children(T);
-
-            bake_position(T);
-            bake_position_Children(T);
-            bake(T);
-
-            init_Action_Begin_Pose(T);
-
-            if (!BIND_POSE)
-            {
-                if (Constraint_Pack.IK != NULL)
-                {
-                    if (Constraint_Pack.IK->C != NULL)
-                        continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
-                    else if (Constraint_Pack.IK->Pole != NULL)
-                        continue_Action_Begin_Pose(Constraint_Pack.IK->Pole->IK_goal);
-                }
-            }
-
-            if (T->Deformer != NULL)
-            {
-                if (T->Deformer->Transformers_Count > 0)
-                {
-                    if (T == T->Deformer->Transformers[0])
-                    {
-                        fixed_goals = find_fixed_goals(T->Deformer);
-                    }
-                }
-            }
-        }
     }
     else if (mod & KMOD_CTRL)
     {
@@ -15289,6 +15293,7 @@ void make_Movement()
 
         if (T->Object != NULL && O->curve_count > 0)
         {
+            O = T->Object;
             transfer_Delta_To_Object_Cps(O, Delta);
             update_object_Curves(O, subdLevel);
         }
@@ -15377,10 +15382,9 @@ void make_Movement()
                 }
             }
         }
-        else if (!O->binding && O->curve_count > 0 && Constraint_Pack.IK == NULL)
+        else if (update_Curve_Objects) //(!O->binding && O->curve_count > 0 && Constraint_Pack.IK == NULL)
         {
-            transfer_Delta_To_Object_Cps(O, Delta);
-            update_object_Curves(O, subdLevel);
+            update_Objects_With_Curves(Delta, subdLevel);
         }
     }
 }
@@ -15528,16 +15532,22 @@ void transform_Objects_And_Render()
                         }
                         else
                         {
-
                             if (T->Deformer != NULL)
                             {
                                 rotate_Deformer(T);
                             }
                             else
                             {
-                                rotate_vertex_groups_D_Init();
+//                                rotate_vertex_groups_D_Init();
                                 rotate(T);
+
+                                memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
+                                rotate_T(Action_Center);
                             }
+                        }
+                        if (update_Curve_Objects)
+                        {
+                            update_ROT_Objects_With_Curves(subdLevel);
                         }
                         update_rotate_bounding_box();
                     }
@@ -15592,9 +15602,10 @@ void transform_Objects_And_Render()
                         rotate_T(Action_Center);
                     }
 
-                    update_Object_Curves_Cps_Positions(O);
-                    update_object_Curves(O, subdLevel);
-                    update_object_Curves(O, subdLevel);
+                    if (update_Curve_Objects)
+                    {
+                        update_ROT_Objects_With_Curves(subdLevel);
+                    }
                 }
             }
             else if (SCALE)
@@ -15637,12 +15648,6 @@ void transform_Objects_And_Render()
                 update_Deformer_Objects_Curves_Coordinates(Constraint_Pack.IK->Deformer);
                 update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
                 update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
-            }
-            else if (O->curve_count > 0)
-            {
-                update_Objects_Curves_Coordinates(O);
-                update_object_Curves(O, subdLevel);
-                update_object_Curves(O, subdLevel);
             }
         }
 
@@ -18876,6 +18881,13 @@ int main(int argc, char * args[])
                                     //T = transformers[currentLocator];
                                     if (MOVEMENT)
                                     {
+                                        if (T->Object == O)
+                                        {
+                                            snap_back_Object_Cps_To_Pos(O);
+                                            update_object_Curves(O, subdLevel);
+                                            update_object_Curves(O, subdLevel);
+                                        }
+
                                         bake_pose(T);
                                         bake_pose_Children(T);
 
@@ -18892,7 +18904,11 @@ int main(int argc, char * args[])
                                     if(!DRAW_LOCATORS)
                                     {
                                         T = objects[currentObject]->T;
-                                        if (T->Object == O && O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
+                                        if (update_Curve_Objects && (ROTATION || SCALE || MOVEMENT))
+                                        {
+                                            snap_back_Curve_Objects(subdLevel);
+                                        }
+                                        else if (T->Object == O && O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
                                         {
                                             snap_back_Object_Cps_To_Pos(O);
                                             update_object_Curves(O, subdLevel);
@@ -18905,7 +18921,11 @@ int main(int argc, char * args[])
                                     T = transformers[currentLocator];
                                     bake_pose_Children(T);
 
-                                    if (ROTATION || SCALE || MOVEMENT)
+                                    if (update_Curve_Objects && (ROTATION || SCALE || MOVEMENT))
+                                    {
+                                        snap_back_Curve_Objects(subdLevel);
+                                    }
+                                    else if (ROTATION || SCALE || MOVEMENT)
                                     {
                                         if (T->Deformer != NULL)
                                         {
@@ -18932,7 +18952,11 @@ int main(int argc, char * args[])
                                     T = objects[currentObject]->T;
                                     bake_pose_Children(T);
 
-                                    if (!O->binding && O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
+                                    if (update_Curve_Objects && (ROTATION || SCALE || MOVEMENT))
+                                    {
+                                        snap_back_Curve_Objects(subdLevel);
+                                    }
+                                    else if (!O->binding && O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
                                     {
                                         snap_back_Object_Cps_To_Pos(O);
                                         update_object_Curves(O, subdLevel);

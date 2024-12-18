@@ -627,4 +627,65 @@ void rotate_verts_(object * O, transformer T, int l)
     }
 }
 
+void remember_Objects_With_Curves()
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < Update_Objects_Count; o ++)
+    {
+        O = Update_Objects[o];
+        if (O->curve_count > 0)
+        {
+            update_Curve_Objects = 1;
+            remember_Object_Curves_pos(O);
+        }
+    }
+}
+
+void update_Objects_With_Curves(float Delta[3], int subdLevel)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < Update_Objects_Count; o ++)
+    {
+        O = Update_Objects[o];
+        transfer_Delta_To_Object_Cps(O, Delta);
+        update_object_Curves(O, subdLevel);
+
+    }
+}
+
+void update_ROT_Objects_With_Curves(int subdLevel)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < Update_Objects_Count; o ++)
+    {
+        O = Update_Objects[o];
+        update_Object_Curves_Cps_Positions(O);
+        update_object_Curves(O, subdLevel);
+    }
+}
+
+void snap_back_Curve_Objects(int subdLevel)
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < Update_Objects_Count; o ++)
+    {
+        O = Update_Objects[o];
+        snap_back_Object_Cps_To_Pos(O);
+        update_object_Curves(O, subdLevel);
+        update_object_Curves(O, subdLevel);
+    }
+}
+
 #endif // TRANSFORMS_H_INCLUDED

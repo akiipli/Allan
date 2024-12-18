@@ -79,6 +79,7 @@ edge * currentEdge;
 int cp_Manipulation = 0;
 int curve_Manipulation = 0;
 int rotate_Curves_With_Object = 0;
+int update_Curve_Objects = 0;
 
 float length(float V[3]);
 size_t float_3 = sizeof(float[3]);
