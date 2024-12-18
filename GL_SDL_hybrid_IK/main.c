@@ -7500,16 +7500,94 @@ void update_Deformed_View(deformer * D, int update)
     }
 }
 
+void make_MOV_Hierarchy()
+{
+    if (BIND_POSE)
+    {
+        move_T(T, Delta);
+
+        if (!BONES_MODE && T->Bone == NULL)// && altDown)
+        {
+            move_Children_T(T, Delta);
+        }
+        else if (BONES_MODE)
+        {
+            synthesize_Bone_Alignement(T->Bone);
+        }
+        else if (T->Bone != NULL)
+        {
+            synthesize_Bone_Alignement(T->Bone);
+            if (altDown)
+            {
+                move_Children_T(T, Delta);
+            }
+            else if (T->Bone->B == T)
+            {
+                move_T_childs(T, Delta);
+                synthesize_Bone_Alignement_childs(T);
+            }
+        }
+    }
+    else
+    {
+        if (Constraint_Pack.IK != NULL)
+        {
+            move_Constraint(T, Delta);
+        }
+        else
+        {
+            move_(T, Delta);
+        }
+    }
+}
+
+void make_ROT_Hierarchy()
+{
+    if (DRAW_LOCATORS)
+    {
+        if (T != &World && !BONES_MODE)
+        {
+            if (ROTATION || SCALE)
+            {
+                if (BIND_POSE)
+                {
+                    rotate_bind(T);
+                }
+                else
+                {
+                    if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
+                    {
+                        rotate_Deformer_Constraint(T);
+                    }
+                    else
+                    {
+
+                        if (T->Deformer != NULL)
+                        {
+                            rotate_Deformer(T);
+                        }
+                        else
+                        {
+                            rotate_vertex_groups_D_Init();
+                            rotate(T);
+                        }
+                    }
+                    update_rotate_bounding_box();
+                }
+            }
+        }
+    }
+}
+
 void update_Object_View()
 {
-    int o, i;
+    int o;
 
     object * O0;
 
-    for (o = 0; o < Camera->object_count; o++)
+    for (o = 0; o < Update_Objects_Count; o++)
     {
-        i = Camera->objects[o];
-        O0 = objects[i];
+        O0 = Update_Objects[o];
 
         if (subdLevel < 0)
         {
@@ -12897,6 +12975,10 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             Edit_Properties = 0;
             Edit_Locator = 0;
 
+            MOVEMENT = 0;
+            ROTATION = 0;
+            SCALE = 0;
+
             EditCursor = 0;
 
             update_Hierarchys_List(1, 1);
@@ -12946,9 +13028,19 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             }
             else if (T->Object != NULL)
             {
-                transfer_Locator_Values(T);
+                if (Locator_v_index != 1) // rotation or scale
+                {
+                    transfer_Locator_Values(T);
+                    make_ROT_Hierarchy();
+                }
+                else // movement
+                {
+                    Delta[0] = T->Pos_[0] - Locator_Values[1][0];
+                    Delta[1] = T->Pos_[1] - Locator_Values[1][1];
+                    Delta[2] = T->Pos_[2] - Locator_Values[1][2];
 
-                rotate_(T);
+                    make_MOV_Hierarchy();
+                }
 
                 update_Object_View();
             }
@@ -14775,8 +14867,92 @@ void start_Rotation()
                     rotate_collect(T);
                 }
             }
+            else
+            {
+                collect_Transformer_Objects(T);
+            }
         }
     }
+}
+
+void start_Movement_HIER()
+{
+    subdLevel_mem = subdLevel;
+
+    Camera = find_View(mouse_x, mouse_y, splitview);
+    Camera->origin_2d[0] = mouse_x;
+    Camera->origin_2d[1] = mouse_y;
+
+    find_Camera_Objects();
+
+    ObjDist = distance(O->T->pos, Camera->T->pos);
+
+    MOVEMENT = 1;
+
+    Constraint_Pack.IK = NULL;
+    Constraint_Pack.Deformer = NULL;
+    scan_For_Locator_Constraints(T);
+
+    if (Constraint_Pack.IK != NULL)
+        printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
+
+    Update_Objects_Count = 0;
+    if (Constraint_Pack.Deformer != NULL && Constraint_Pack.Deformer->Transformers_Count > 0)
+    {
+        rotate_collect(Constraint_Pack.Deformer->Transformers[0]);
+
+        remember_Deformer_Object_Curves_pos(Constraint_Pack.Deformer);
+    }
+    else if (T->Deformer != NULL && T->Deformer->Transformers_Count > 0)
+    {
+        rotate_collect(T->Deformer->Transformers[0]);
+    }
+    else
+    {
+        collect_Transformer_Objects(T);
+    }
+    printf("Update Objects Count %d\n", Update_Objects_Count);
+
+    child_collection_count = 0;
+
+    if (BIND_POSE)
+    {
+        collect_selected_T(&World);
+    }
+
+    collect_Children(T);
+
+    printf("child collection count %d\n", child_collection_count);
+
+    bake_position(T);
+    bake_position_Children(T);
+    bake(T);
+
+    init_Action_Begin_Pose(T);
+
+    if (!BIND_POSE)
+    {
+        if (Constraint_Pack.IK != NULL)
+        {
+            if (Constraint_Pack.IK->C != NULL)
+                continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+            else if (Constraint_Pack.IK->Pole != NULL)
+                continue_Action_Begin_Pose(Constraint_Pack.IK->Pole->IK_goal);
+        }
+    }
+
+    if (T->Deformer != NULL)
+    {
+        if (T->Deformer->Transformers_Count > 0)
+        {
+            if (T == T->Deformer->Transformers[0])
+            {
+                fixed_goals = find_fixed_goals(T->Deformer);
+            }
+        }
+    }
+
+    UPDATE_COLORS = 1;
 }
 
 void start_Movement()
@@ -15041,7 +15217,7 @@ void start_Movement()
             }
             else
             {
-                rotate_collect(T);
+                collect_Transformer_Objects(T);
             }
             printf("Update Objects Count %d\n", Update_Objects_Count);
 
@@ -19997,6 +20173,23 @@ int main(int argc, char * args[])
                                         Locator_h_index = h_index - 1;
                                         Float_Value = 0.0;
                                         transfer_Transformer_Values(transformers[currentLocator]);
+
+                                        if (Locator_v_index == 0) // rotation
+                                        {
+                                            ROTATION = 1;
+                                            bake(T);
+                                            start_Rotation();
+                                        }
+                                        else if (Locator_v_index == 2) // scale
+                                        {
+                                            SCALE = 1;
+                                            bake_scale(T);
+                                            start_Rotation();
+                                        }
+                                        else // movement
+                                        {
+                                            start_Movement_HIER();
+                                        }
                                     }
                                 }
                             }

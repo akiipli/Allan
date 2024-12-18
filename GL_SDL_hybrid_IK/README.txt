@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+12:10 PM 12/18/2024
+Updates for Objects Movement Rotation Scale. Objects with Curves use rotate_Curves_With_Object. The idea of it
+was to be able modify shape in Curve Mode and be able to once rotate object with this shape. This idea however
+breaks when objects are parented.
+
 12:19 PM 12/2/2024
 Now in Curves Mode and in Modeling Mode selected Morph is affected by curve manipulation. Morphs belong to Morph Maps.
 They consist of vertexes.
