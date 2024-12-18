@@ -24417,6 +24417,9 @@ int main(int argc, char * args[])
                             sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
                             set_Hier_H_Button(-1);
                             update_Hierarchys_List(1, 0);
+                            MOVEMENT = 0;
+                            ROTATION = 0;
+                            SCALE = 0;
                         }
                         else if (dialog_type == SELS_DIALOG)
                         {
@@ -24458,6 +24461,12 @@ int main(int argc, char * args[])
                         settle_Deformer_Poses();
                     }
 
+                    if (dialog_type == HIER_DIALOG)
+                    {
+                        MOVEMENT = 0;
+                        ROTATION = 0;
+                        SCALE = 0;
+                    }
 //                    set_Object_Mode();
                 }
 
