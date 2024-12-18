@@ -13035,9 +13035,9 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
                 }
                 else // movement
                 {
-                    Delta[0] = T->Pos_[0] - Locator_Values[1][0];
-                    Delta[1] = T->Pos_[1] - Locator_Values[1][1];
-                    Delta[2] = T->Pos_[2] - Locator_Values[1][2];
+                    Delta[0] = Locator_Values[1][0] - T->Pos_[0];
+                    Delta[1] = Locator_Values[1][1] - T->Pos_[1];
+                    Delta[2] = Locator_Values[1][2] - T->Pos_[2];
 
                     make_MOV_Hierarchy();
                 }
@@ -20172,7 +20172,10 @@ int main(int argc, char * args[])
                                         Locator_v_index = v_index - 2;
                                         Locator_h_index = h_index - 1;
                                         Float_Value = 0.0;
-                                        transfer_Transformer_Values(transformers[currentLocator]);
+
+                                        T = transformers[currentLocator];
+
+                                        transfer_Transformer_Values(T);
 
                                         if (Locator_v_index == 0) // rotation
                                         {
