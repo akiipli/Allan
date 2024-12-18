@@ -24420,9 +24420,6 @@ int main(int argc, char * args[])
                             sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
                             set_Hier_H_Button(-1);
                             update_Hierarchys_List(1, 0);
-                            MOVEMENT = 0;
-                            ROTATION = 0;
-                            SCALE = 0;
                         }
                         else if (dialog_type == SELS_DIALOG)
                         {
