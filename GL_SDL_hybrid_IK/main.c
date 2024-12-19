@@ -13028,12 +13028,12 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             }
             else if (T->Object != NULL)
             {
-                if (Locator_v_index != 1) // rotation or scale
+                if (Locator_v_index != 1 && (ROTATION || SCALE)) // rotation or scale
                 {
                     transfer_Locator_Values(T);
                     make_ROT_Hierarchy();
                 }
-                else // movement
+                else if (MOVEMENT) // movement
                 {
                     Delta[0] = Locator_Values[1][0] - T->Pos_[0];
                     Delta[1] = Locator_Values[1][1] - T->Pos_[1];
@@ -13044,7 +13044,7 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
 
                 update_Object_View();
             }
-            else if (T != &World)
+            else if (T != &World && (MOVEMENT || ROTATION || SCALE))
             {
                 transfer_Locator_Values(T);
 
@@ -14807,6 +14807,20 @@ void start_Rotation()
     }
     else
     {
+
+        if (T->Deformer == NULL) // cancel rotation or scale
+        {
+            Deformer_0 = NULL;
+
+            scan_For_Deformer_Down(T);
+
+            if (Deformer_0 != NULL)
+            {
+                ROTATION = 0;
+                SCALE = 0;
+            }
+        }
+
         Update_Objects_Count = 0;
         if (Constraint_Pack.IK != NULL)
         {
@@ -14891,65 +14905,80 @@ void start_Movement_HIER()
 
     MOVEMENT = 1;
 
-    Constraint_Pack.IK = NULL;
-    Constraint_Pack.Deformer = NULL;
-    scan_For_Locator_Constraints(T);
-
-    if (Constraint_Pack.IK != NULL)
-        printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
-
-    Update_Objects_Count = 0;
-    if (Constraint_Pack.Deformer != NULL && Constraint_Pack.Deformer->Transformers_Count > 0)
+    if (T->Deformer == NULL) // cancel movement
     {
-        rotate_collect(Constraint_Pack.Deformer->Transformers[0]);
+        Deformer_0 = NULL;
 
-        remember_Deformer_Object_Curves_pos(Constraint_Pack.Deformer);
-    }
-    else if (T->Deformer != NULL && T->Deformer->Transformers_Count > 0)
-    {
-        rotate_collect(T->Deformer->Transformers[0]);
-    }
-    else
-    {
-        collect_Transformer_Objects(T);
-    }
-    printf("Update Objects Count %d\n", Update_Objects_Count);
+        scan_For_Deformer_Down(T);
 
-    child_collection_count = 0;
-
-    if (BIND_POSE)
-    {
-        collect_selected_T(&World);
-    }
-
-    collect_Children(T);
-
-    printf("child collection count %d\n", child_collection_count);
-
-    bake_position(T);
-    bake_position_Children(T);
-    bake(T);
-
-    init_Action_Begin_Pose(T);
-
-    if (!BIND_POSE)
-    {
-        if (Constraint_Pack.IK != NULL)
+        if (Deformer_0 != NULL)
         {
-            if (Constraint_Pack.IK->C != NULL)
-                continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
-            else if (Constraint_Pack.IK->Pole != NULL)
-                continue_Action_Begin_Pose(Constraint_Pack.IK->Pole->IK_goal);
+            MOVEMENT = 0;
         }
     }
 
-    if (T->Deformer != NULL)
+    if (MOVEMENT)
     {
-        if (T->Deformer->Transformers_Count > 0)
+        Constraint_Pack.IK = NULL;
+        Constraint_Pack.Deformer = NULL;
+        scan_For_Locator_Constraints(T);
+
+        if (Constraint_Pack.IK != NULL)
+            printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
+
+        Update_Objects_Count = 0;
+        if (Constraint_Pack.Deformer != NULL && Constraint_Pack.Deformer->Transformers_Count > 0)
         {
-            if (T == T->Deformer->Transformers[0])
+            rotate_collect(Constraint_Pack.Deformer->Transformers[0]);
+
+            remember_Deformer_Object_Curves_pos(Constraint_Pack.Deformer);
+        }
+        else if (T->Deformer != NULL && T->Deformer->Transformers_Count > 0)
+        {
+            rotate_collect(T->Deformer->Transformers[0]);
+        }
+        else
+        {
+            collect_Transformer_Objects(T);
+        }
+        printf("Update Objects Count %d\n", Update_Objects_Count);
+
+        child_collection_count = 0;
+
+        if (BIND_POSE)
+        {
+            collect_selected_T(&World);
+        }
+
+        collect_Children(T);
+
+        printf("child collection count %d\n", child_collection_count);
+
+        bake_position(T);
+        bake_position_Children(T);
+        bake(T);
+
+        init_Action_Begin_Pose(T);
+
+        if (!BIND_POSE)
+        {
+            if (Constraint_Pack.IK != NULL)
             {
-                fixed_goals = find_fixed_goals(T->Deformer);
+                if (Constraint_Pack.IK->C != NULL)
+                    continue_Action_Begin_Pose(Constraint_Pack.IK->C->IK_goal);
+                else if (Constraint_Pack.IK->Pole != NULL)
+                    continue_Action_Begin_Pose(Constraint_Pack.IK->Pole->IK_goal);
+            }
+        }
+
+        if (T->Deformer != NULL)
+        {
+            if (T->Deformer->Transformers_Count > 0)
+            {
+                if (T == T->Deformer->Transformers[0])
+                {
+                    fixed_goals = find_fixed_goals(T->Deformer);
+                }
             }
         }
     }

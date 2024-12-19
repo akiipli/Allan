@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1734597273 source:c:\gl_sdl_hybrid_ik\main.c
+1734636748 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -88,7 +88,7 @@
 
 1680703366 c:\gl_sdl_hybrid_ik\iksolution.h
 
-1733566204 c:\gl_sdl_hybrid_ik\deformer.h
+1734635211 c:\gl_sdl_hybrid_ik\deformer.h
 
 1733133022 c:\gl_sdl_hybrid_ik\poses.h
 

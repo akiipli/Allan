@@ -1967,5 +1967,27 @@ void replace_Defr_Name(char * EditString, deformer * D)
     D->Name[strlen(EditString)] = '\0';
 }
 
+deformer * Deformer_0 = NULL;
+
+void scan_For_Deformer_Down(transformer * T)
+{
+    int c;
+
+    transformer * C;
+
+    if (T->Deformer != NULL)
+    {
+        Deformer_0 = T->Deformer;
+    }
+    else
+    {
+        for (c = 0; c < T->childcount; c ++)
+        {
+            C = T->childs[c];
+            scan_For_Deformer_Down(C);
+        }
+    }
+}
+
 
 #endif // DEFORMER_H_INCLUDED
