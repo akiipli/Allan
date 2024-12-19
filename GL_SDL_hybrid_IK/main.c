@@ -23210,7 +23210,7 @@ int main(int argc, char * args[])
                     }
                 }
 
-                message = -10;
+                message = -12;
 
                 transform_Objects_And_Render();
                 SCALE = 0;
@@ -23294,7 +23294,7 @@ int main(int argc, char * args[])
                     }
                 }
 
-                message = -10;
+                message = -12;
 
                 transform_Objects_And_Render();
                 ROTATION = 0;
@@ -23314,13 +23314,7 @@ int main(int argc, char * args[])
                 {
                     O = T->Object;
 
-                    if (DRAW_LOCATORS && O->curve_count > 0)
-                    {
-                        update_Objects_Curves_Coordinates(O);
-                        update_object_Curves(O, subdLevel);
-                        update_object_Curves(O, subdLevel);
-                    }
-                    else if (O != NULL && O->curve_count > 0)
+                    if (O->curve_count > 0)
                     {
                         remember_Object_Curves_pos(O);
 
