@@ -15024,6 +15024,63 @@ void start_Movement()
             T = O->T;
         }
 
+        if (Curve_Mode && !BONES_MODE)
+        {
+            //assert_Curve_Selection();
+            //ordered_Cp_Selection();
+
+            if (!CURVE_MODE)
+            {
+                if (Vertex_Mode)
+                {
+                    if (Modeling_Mode)
+                    {
+                        clear_Selected_Objects_Verts_Selection();
+                        create_Verts_Selection_From_Cps();
+                        assert_Verts_Selection();
+
+                        vertex_Manipulation = 1;
+                        remember_Objects_Verts_Pos();
+                        find_Curves_Connected_To_Verts();
+                    }
+                    else
+                    {
+                        find_connected_Curves();
+                        cp_Manipulation = 1;
+                        find_connected_Objects();
+                    }
+                }
+                else
+                {
+                    if (Modeling_Mode)
+                    {
+                        clear_Selected_Objects_Verts_Selection();
+                        create_Verts_Selection_From_Curves();
+                        assert_Verts_Selection();
+
+                        vertex_Manipulation = 1;
+                        remember_Objects_Verts_Pos();
+                        find_Curves_Connected_To_Verts();
+                    }
+                    else
+                    {
+                        find_connected_Curves();
+                        curve_Manipulation = 1;
+                        find_connected_Objects();
+                    }
+                }
+            }
+        }
+        else if (Modeling_Mode && !BONES_MODE)
+        {
+            if (Vertex_Mode)
+            {
+                vertex_Manipulation = 1;
+                remember_Objects_Verts_Pos();
+                find_Curves_Connected_To_Verts();
+            }
+        }
+
         if (Curve_Mode && cp_Manipulation)
         {
             transfer_pos_To_Cp_Pos();
@@ -15102,63 +15159,6 @@ void start_Movement()
                         fixed_goals = find_fixed_goals(T->Deformer);
                     }
                 }
-            }
-        }
-
-        if (Curve_Mode && !BONES_MODE)
-        {
-            //assert_Curve_Selection();
-            //ordered_Cp_Selection();
-
-            if (!CURVE_MODE)
-            {
-                if (Vertex_Mode)
-                {
-                    if (Modeling_Mode)
-                    {
-                        clear_Selected_Objects_Verts_Selection();
-                        create_Verts_Selection_From_Cps();
-                        assert_Verts_Selection();
-
-                        vertex_Manipulation = 1;
-                        remember_Objects_Verts_Pos();
-                        find_Curves_Connected_To_Verts();
-                    }
-                    else
-                    {
-                        find_connected_Curves();
-                        cp_Manipulation = 1;
-                        find_connected_Objects();
-                    }
-                }
-                else
-                {
-                    if (Modeling_Mode)
-                    {
-                        clear_Selected_Objects_Verts_Selection();
-                        create_Verts_Selection_From_Curves();
-                        assert_Verts_Selection();
-
-                        vertex_Manipulation = 1;
-                        remember_Objects_Verts_Pos();
-                        find_Curves_Connected_To_Verts();
-                    }
-                    else
-                    {
-                        find_connected_Curves();
-                        curve_Manipulation = 1;
-                        find_connected_Objects();
-                    }
-                }
-            }
-        }
-        else if (Modeling_Mode && !BONES_MODE)
-        {
-            if (Vertex_Mode)
-            {
-                vertex_Manipulation = 1;
-                remember_Objects_Verts_Pos();
-                find_Curves_Connected_To_Verts();
             }
         }
 
@@ -15487,8 +15487,10 @@ void transform_Objects_And_Render()
         rotate_T(Action_Center);
 
         ///* rotate current objects verts to update transformed coordinates
-        if (!O->binding)
-            rotate_verts(O, *O->T);
+
+//        if (!O->binding)
+//            rotate_verts(O, *O->T);
+
         //*/
 
         if (Vertex_Mode)
@@ -15501,7 +15503,7 @@ void transform_Objects_And_Render()
         }
         update_selected_Curves(subdLevel);
         update_connected_Curves(subdLevel);
-        update_connected_Objects();
+        update_connected_Objects_ROT();
 
         tune_In_Connected_Objects(subdLevel);
     }
@@ -18894,6 +18896,7 @@ int main(int argc, char * args[])
                             snap_back_Verts_To_Pos();
                             update_selected_Objects_T_Coords();
                             update_Vertex_Control_Point();
+                            update_connected_Curves(subdLevel);
                             update_connected_Curves(subdLevel);
                             vertex_Manipulation = 0;
                         }

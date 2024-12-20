@@ -3289,6 +3289,25 @@ void update_connected_Objects()
     }
 }
 
+void update_connected_Objects_ROT()
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < connected_objects_count; o ++)
+    {
+        O = objects[connected_objects[o]];
+        if (1)//(!O->binding)
+        {
+            if (O->T->rot[0] == 0 && O->T->rot[1] == 0 && O->T->rot[2] == 0)
+            {
+                transfer_Curve_Cps_To_Vertex_Coordinates(O);
+            }
+        }
+    }
+}
+
 void delete_Object_Curves(object * O)
 {
     int c;
