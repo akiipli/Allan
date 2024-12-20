@@ -3233,6 +3233,50 @@ void transfer_Curve_Cps_To_Vertex_Coordinates(object * O)
     }
 }
 
+void transfer_Curve_Cps_To_Vertex_Coordinates_ROT(object * O)
+{
+    int c, p;
+    curve * C;
+    cp * CP;
+
+    direction D;
+
+    float x, y, z;
+
+    for (c = 0; c < O->curve_count; c ++)
+    {
+        C = O->curves[c];
+
+        for (p = 0; p < C->cps_count; p ++)
+        {
+            CP = C->cps[p];
+
+            if (CP->vert != NULL)
+            {
+                x = CP->pos[0] - O->T->pos[0];
+                y = CP->pos[1] - O->T->pos[1];
+                z = CP->pos[2] - O->T->pos[2];
+
+                rotate_Vector_I(O->T, x, y, z, &D);
+
+                CP->vert->x = D.x;
+                CP->vert->y = D.y;
+                CP->vert->z = D.z;
+
+                CP->vert->Rx = CP->vert->x;
+                CP->vert->Ry = CP->vert->y;
+                CP->vert->Rz = CP->vert->z;
+
+                //*/
+
+                CP->vert->Tx = CP->pos[0];
+                CP->vert->Ty = CP->pos[1];
+                CP->vert->Tz = CP->pos[2];
+            }
+        }
+    }
+}
+
 void transfer_Curve_Cps_To_Vertex_TCoordinates(object * O)
 {
     int c, p;
@@ -3298,13 +3342,8 @@ void update_connected_Objects_ROT()
     for (o = 0; o < connected_objects_count; o ++)
     {
         O = objects[connected_objects[o]];
-        if (1)//(!O->binding)
-        {
-            if (O->T->rot[0] == 0 && O->T->rot[1] == 0 && O->T->rot[2] == 0)
-            {
-                transfer_Curve_Cps_To_Vertex_Coordinates(O);
-            }
-        }
+
+        transfer_Curve_Cps_To_Vertex_Coordinates_ROT(O);
     }
 }
 
