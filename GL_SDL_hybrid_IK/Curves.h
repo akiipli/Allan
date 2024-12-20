@@ -3242,6 +3242,9 @@ void transfer_Curve_Cps_To_Vertex_Coordinates_ROT(object * O)
     direction D;
 
     float x, y, z;
+    float RotVec_T[3][3];
+
+    invert_Rotation_scale(O->T, RotVec_T);
 
     for (c = 0; c < O->curve_count; c ++)
     {
@@ -3257,7 +3260,7 @@ void transfer_Curve_Cps_To_Vertex_Coordinates_ROT(object * O)
                 y = CP->pos[1] - O->T->pos[1];
                 z = CP->pos[2] - O->T->pos[2];
 
-                rotate_Vector_I(O->T, x, y, z, &D);
+                rotate_Vertex_I(RotVec_T, x, y, z, &D);
 
                 CP->vert->x = D.x;
                 CP->vert->y = D.y;
@@ -3272,62 +3275,6 @@ void transfer_Curve_Cps_To_Vertex_Coordinates_ROT(object * O)
                 CP->vert->Tx = CP->pos[0];
                 CP->vert->Ty = CP->pos[1];
                 CP->vert->Tz = CP->pos[2];
-            }
-        }
-    }
-}
-
-void transfer_Curve_Cps_To_Vertex_TCoordinates(object * O)
-{
-    int c, p;
-    curve * C;
-    cp * CP;
-
-    for (c = 0; c < O->curve_count; c ++)
-    {
-        C = O->curves[c];
-
-        for (p = 0; p < C->cps_count; p ++)
-        {
-            CP = C->cps[p];
-
-
-            if (CP->vert != NULL)
-            {
-                CP->vert->x = CP->pos[0] - O->T->pos[0];
-                CP->vert->y = CP->pos[1] - O->T->pos[1];
-                CP->vert->z = CP->pos[2] - O->T->pos[2];
-
-                ///* Morph coordinates
-
-                CP->vert->Rx = CP->vert->x;
-                CP->vert->Ry = CP->vert->y;
-                CP->vert->Rz = CP->vert->z;
-
-                //*/
-
-                CP->vert->Tx = CP->vert->x;
-                CP->vert->Ty = CP->vert->y;
-                CP->vert->Tz = CP->vert->z;
-            }
-        }
-    }
-}
-
-void update_connected_Objects()
-{
-    int o;
-
-    object * O;
-
-    for (o = 0; o < connected_objects_count; o ++)
-    {
-        O = objects[connected_objects[o]];
-        if (1)//(!O->binding)
-        {
-            if (O->T->rot[0] == 0 && O->T->rot[1] == 0 && O->T->rot[2] == 0)
-            {
-                transfer_Curve_Cps_To_Vertex_TCoordinates(O);
             }
         }
     }

@@ -15355,7 +15355,7 @@ void make_Movement()
         update_selected_Curves(subdLevel);
 
         update_connected_Curves(subdLevel);
-        update_connected_Objects();
+        update_connected_Objects_ROT();
 
         /* update also connected curves */
     }
@@ -15365,7 +15365,7 @@ void make_Movement()
         update_selected_Curves(subdLevel);
 
         update_connected_Curves(subdLevel);
-        update_connected_Objects();
+        update_connected_Objects_ROT();
     }
     else if (CURVE_MODE)
     {
@@ -18879,7 +18879,7 @@ int main(int argc, char * args[])
                             update_selected_Curves(subdLevel);
                             update_selected_Curves(subdLevel);
                             update_connected_Curves(subdLevel);
-                            update_connected_Objects();
+                            update_connected_Objects_ROT();
                         }
                         else if (Curve_Mode && cp_Manipulation)
                         {
@@ -18889,7 +18889,7 @@ int main(int argc, char * args[])
                             update_selected_Curves(subdLevel);
                             update_selected_Curves(subdLevel);
                             update_connected_Curves(subdLevel);
-                            update_connected_Objects();
+                            update_connected_Objects_ROT();
                         }
                         else if (Modeling_Mode && vertex_Manipulation)
                         {
