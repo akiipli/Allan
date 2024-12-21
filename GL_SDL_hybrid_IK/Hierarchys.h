@@ -69,7 +69,7 @@ void list_transformers(transformer * T, int depth, int currentLocator)
     Hier_Italic[Hierarchys_c] = T->selected;
     T->index = transformerIndex;
 
-    if (T->index == currentLocator)
+    if (T->index == currentLocator) // (T == transformers[currentLocator])
         HierIndex = Hierarchys_c;
 
     transformers[transformerIndex ++] = T;
