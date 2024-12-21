@@ -821,6 +821,22 @@ void cleanup()
 
 void draw_Dialog();
 
+void set_O_T_as_current_Locator(transformer * T)
+{
+    int h;
+
+    transformer * HList;
+
+    for (h = 0; h < transformerIndex; h ++)
+    {
+        HList = transformers[h];
+        if (HList == T)
+        {
+            currentLocator = T->index;
+        }
+    }
+}
+
 void assert_Object_Selection()
 {
     int o;
@@ -4761,7 +4777,7 @@ void black_out_HierarchyList()
     {
         HierList[h].color = UI_BLACK;
     }
-    if (HierIndex - hier_start >= 0)
+    if (HierIndex && HierIndex - hier_start >= 0)
         HierList[HierIndex - hier_start].color = UI_BACKL;
 }
 
@@ -4785,8 +4801,7 @@ void set_Button_defr(int idx)
     }
     else if (current_defr_type == 1)
     {
-        create_Hierarchys_List();
-        HierIndex = currentLocator;
+        create_Hierarchys_List(currentLocator);
 
         if (currentLocator < Hierarchys_c && (HierIndex - hier_start < 0 || HierIndex >= hier_start + LISTLENGTH))
         {
@@ -6047,7 +6062,7 @@ void open_Hierarchys_List()
 
     PROPERTIES = PROPERTIES_LOCATOR;
 
-    create_Hierarchys_List();
+    create_Hierarchys_List(currentLocator);
 
     if (Bottom_Message)
     {
@@ -6056,8 +6071,6 @@ void open_Hierarchys_List()
     Bottom_Message = 0;
 
     //printf("Transformers num %d\n", Hierarchys_c);
-
-    HierIndex = currentLocator;
 
     if (currentLocator < Hierarchys_c && (HierIndex - hier_start < 0 || HierIndex >= hier_start + LISTLENGTH))
     {
@@ -9100,8 +9113,7 @@ void update_Hierarchys_List(int update, int blit)
 {
     Type = transformers[currentLocator];
 
-    if (HierIndex - hier_start >= 0)
-        HierList[HierIndex - hier_start].color = UI_BACKL;
+    black_out_HierarchyList();
 
     if (blit)
     {
@@ -9124,9 +9136,6 @@ void update_Hierarchys_List(int update, int blit)
         draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES_LOCATOR, Type);
     }
 
-    if (HierIndex - hier_start >= 0)
-        HierList[HierIndex - hier_start].color = UI_BLACK;
-
     if (Edit_Properties && Edit_Locator)
     {
         draw_Properties_Edit(EditString, screen_height, Locator_v_index + 2, Locator_h_index + 1, 0);
@@ -9146,22 +9155,14 @@ void handle_UP_Hier(int scrollbar)
 {
     if (scrollbar)
     {
-        if (HierIndex - hier_start >= 0)
-            HierList[HierIndex - hier_start].color = UI_BLACK;
         hier_start --;
         if (hier_start < 0) hier_start = 0;
-        if (HierIndex - hier_start >= 0)
-            HierList[HierIndex - hier_start].color = UI_BACKL;
         update_Hierarchys_List(0, 0);
     }
     else
     {
-        if (HierIndex - hier_start >= 0)
-            HierList[HierIndex - hier_start].color = UI_BLACK;
         HierIndex --;
         if (HierIndex < 0) HierIndex ++;
-        if (HierIndex - hier_start >= 0)
-            HierList[HierIndex - hier_start].color = UI_BACKL;
         select_Transformer();
     }
 }
@@ -9743,23 +9744,15 @@ void handle_DOWN_Hier(int scrollbar)
 {
     if (scrollbar)
     {
-        if (HierIndex - hier_start >= 0)
-            HierList[HierIndex - hier_start].color = UI_BLACK;
         hier_start ++;
         if (hier_start > Hierarchys_c - LISTLENGTH) hier_start --;
-        if (HierIndex - hier_start >= 0)
-            HierList[HierIndex - hier_start].color = UI_BACKL;
         update_Hierarchys_List(0, 0);
     }
     else
     {
-        if (HierIndex - hier_start >= 0)
-            HierList[HierIndex - hier_start].color = UI_BLACK;
         HierIndex ++;
         if (HierIndex > Hierarchys_c - 1)
             HierIndex --;
-        if (HierIndex - hier_start >= 0)
-            HierList[HierIndex - hier_start].color = UI_BACKL;
         select_Transformer();
     }
 }
@@ -10074,7 +10067,7 @@ void init_Deformer_Objects_Binding(deformer * D)
     delete_Zero_Selections_From_Objects(D);
 
     /* smooth binding */
-    create_Hierarchys_List();
+    create_Hierarchys_List(currentLocator);
 
     draw_Dialog();
 }
@@ -12894,12 +12887,12 @@ void clean_Unused_Transformers()
         }
     }
 
-    create_Hierarchys_List();
-
     if (currentLocator >= transformerIndex - 1)
         currentLocator = transformerIndex - 1;
     if (currentLocator < 0)
         currentLocator = 0;
+
+    create_Hierarchys_List(currentLocator);
 
     T = transformers[currentLocator];
 
@@ -13718,7 +13711,7 @@ void new_Locator()
         T->selected = 1;
     }
 
-    create_Hierarchys_List();
+    create_Hierarchys_List(currentLocator);
 
     if (dialog_lock)
     {
@@ -14399,7 +14392,7 @@ void set_Bind_Mode()
 
         reset_Bones_Rotation();
 
-        create_Hierarchys_List(); // because of collapsed locators
+        create_Hierarchys_List(currentLocator); // because of collapsed locators
 
         Button_Mode[6].color = UI_GRAYD;
 
@@ -14448,7 +14441,7 @@ void set_Bind_Mode()
 
         move_Deformers_To_Delta_Position();
 
-        create_Hierarchys_List(); // because of collapsed locators
+        create_Hierarchys_List(currentLocator); // because of collapsed locators
 
         paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
 
@@ -16583,7 +16576,7 @@ void exit_Bind_Mode()
 
     move_Deformers_To_Delta_Position();
 
-    create_Hierarchys_List(); // because of collapsed locators
+    create_Hierarchys_List(currentLocator); // because of collapsed locators
 
     paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
 
@@ -16954,7 +16947,7 @@ void save_load_Scene()
         }
     }
 
-    create_Hierarchys_List();
+    create_Hierarchys_List(currentLocator);
 
     Button_h_scen[0].color = UI_GRAYB;
 }
@@ -19591,23 +19584,25 @@ int main(int argc, char * args[])
                                         {
                                             transformers[index + hier_start]->selected = !transformers[index + hier_start]->selected;
                                             assert_Locators_Selection();
-                                            create_Hierarchys_List();
+                                            create_Hierarchys_List(currentLocator);
                                         }
                                         else
                                         {
-                                            if (HierIndex - hier_start >= 0)
-                                                HierList[HierIndex - hier_start].color = UI_BLACK;
-                                            HierIndex = index + hier_start;
-                                            if (HierIndex - hier_start >= 0)
-                                                HierList[HierIndex - hier_start].color = UI_BACKL;
-                                            currentLocator = HierIndex;
-
                                             int X_Expand = Hier_X_Offset[index + hier_start] * 5;
-
                                             if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
                                             {
                                                 transformers[index + hier_start]->collapsed = !transformers[index + hier_start]->collapsed;
-                                                create_Hierarchys_List();
+                                                create_Hierarchys_List(currentLocator);
+                                                black_out_HierarchyList();
+                                            }
+                                            else
+                                            {
+                                                if (HierIndex && HierIndex - hier_start >= 0)
+                                                    HierList[HierIndex - hier_start].color = UI_BLACK;
+                                                HierIndex = index + hier_start;
+                                                if (HierIndex && HierIndex - hier_start >= 0)
+                                                    HierList[HierIndex - hier_start].color = UI_BACKL;
+                                                currentLocator = HierIndex;
                                             }
                                         }
                                         select_Transformer();
@@ -19640,23 +19635,25 @@ int main(int argc, char * args[])
                                     {
                                         transformers[index + hier_start]->selected = !transformers[index + hier_start]->selected;
                                         assert_Locators_Selection();
-                                        create_Hierarchys_List();
+                                        create_Hierarchys_List(currentLocator);
                                     }
                                     else
                                     {
-                                        if (HierIndex - hier_start >= 0)
-                                            HierList[HierIndex - hier_start].color = UI_BLACK;
-                                        HierIndex = index + hier_start;
-                                        if (HierIndex - hier_start >= 0)
-                                            HierList[HierIndex - hier_start].color = UI_BACKL;
-                                        currentLocator = HierIndex;
-
                                         int X_Expand = Hier_X_Offset[index + hier_start] * 5;
-
                                         if (mouse_x > SIDEBAR * 2 + X_Expand - 10 && mouse_x < SIDEBAR * 2 + X_Expand + 10)
                                         {
                                             transformers[index + hier_start]->collapsed = !transformers[index + hier_start]->collapsed;
-                                            create_Hierarchys_List();
+                                            create_Hierarchys_List(currentLocator);
+                                            black_out_HierarchyList();
+                                        }
+                                        else
+                                        {
+                                            if (HierIndex && HierIndex - hier_start >= 0)
+                                                HierList[HierIndex - hier_start].color = UI_BLACK;
+                                            HierIndex = index + hier_start;
+                                            if (HierIndex && HierIndex - hier_start >= 0)
+                                                HierList[HierIndex - hier_start].color = UI_BACKL;
+                                            currentLocator = HierIndex;
                                         }
                                     }
                                     select_Transformer();
@@ -19773,7 +19770,7 @@ int main(int argc, char * args[])
                                                 currentMaterial = O->surface;
                                                 MatrList[index].color = UI_BACKL;
 
-                                                currentLocator = O->T->index;
+                                                set_O_T_as_current_Locator(O->T);
 
 //                                                ItemList[index].color = UI_BACKL;
                                                 assert_Object_Selection();
@@ -20524,7 +20521,7 @@ int main(int argc, char * args[])
                                         selected_objects[selected_object_count ++] = o;
                                     }
                                     currentMaterial = O->surface;
-                                    currentLocator = O->T->index;
+                                    set_O_T_as_current_Locator(O->T);
                                 }
                                 else
                                 {
@@ -22193,7 +22190,6 @@ int main(int argc, char * args[])
                                         selected_objects[selected_object_count ++] = o;
                                     }
                                     currentMaterial = O->surface;
-                                    currentLocator = O->T->index;
                                 }
                                 else
                                 {

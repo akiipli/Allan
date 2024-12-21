@@ -56,7 +56,7 @@ void replace_Hierarchy_Name(char * Name_Remember, char * EditString)
     }
 }
 
-void list_transformers(transformer * T, int depth)
+void list_transformers(transformer * T, int depth, int currentLocator)
 {
     int c;
     transformer * C;
@@ -68,6 +68,10 @@ void list_transformers(transformer * T, int depth)
     Hier_X_Collapsed[Hierarchys_c] = T->collapsed;
     Hier_Italic[Hierarchys_c] = T->selected;
     T->index = transformerIndex;
+
+    if (T->index == currentLocator)
+        HierIndex = Hierarchys_c;
+
     transformers[transformerIndex ++] = T;
 
     Hierarchys_c ++;
@@ -82,14 +86,14 @@ void list_transformers(transformer * T, int depth)
                 C = T->childs[c];
                 if (C->parent == T && transformerIndex < TRANSFORMERS)
                 {
-                    list_transformers(C, depth);
+                    list_transformers(C, depth, currentLocator);
                 }
             }
         }
     }
 }
 
-void create_Hierarchys_List()
+void create_Hierarchys_List(int currentLocator)
 {
     transformer * T;
 
@@ -97,8 +101,9 @@ void create_Hierarchys_List()
     transformerIndex = 0;
 
     Hierarchys_c = 0;
+    HierIndex = 0;
 
-    list_transformers(T, 1);
+    list_transformers(T, 1, currentLocator);
 }
 
 void list_transformers_list(transformer * T)
