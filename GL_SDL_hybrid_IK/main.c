@@ -6079,10 +6079,6 @@ void open_Hierarchys_List()
         {
             hier_start = HierIndex - LISTLENGTH / 2;
         }
-        else
-        {
-            hier_start = 0;
-        }
     }
 
     black_out_HierarchyList();
@@ -14450,7 +14446,7 @@ void set_Bind_Mode()
 
         //set_Object_Mode();
 
-        hier_start = 0;
+        //hier_start = 0;
     }
 
     poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
@@ -16052,8 +16048,6 @@ void clear_All()
         locatorIndex = 0;
 
         HierIndex = 0;
-        hier_start = 0;
-
 
     /*
     This is cheap clean;
