@@ -15369,9 +15369,25 @@ void make_Movement()
     }
     else if (Modeling_Mode && vertex_Manipulation)
     {
-        update_selected_Objects_T_Coords();
+        //update_selected_Objects_T_Coords();
 
-        move_Verts_To_Delta(Delta);
+        //move_Verts_To_Delta(Delta);
+
+        if (Vertex_Mode || Curve_Mode)
+        {
+            T = transformers[currentLocator];
+            update_Selected_Verts_Positions_Move(T, Delta);
+
+            if (T->Deformer != NULL)
+            {
+                rotate_vertex_groups_Def_Init(T->Deformer);
+                rotate_Deformer_verts(T->Deformer);
+            }
+            else
+            {
+                update_selected_Objects_T_Coords();
+            }
+        }
 
         update_connected_Curves(subdLevel);
         update_selected_Objects(subdLevel);
