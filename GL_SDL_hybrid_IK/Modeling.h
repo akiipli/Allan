@@ -452,13 +452,14 @@ void update_selected_Objects(int level)
     }
 }
 
-void update_Selected_Verts_Positions()
+void update_Selected_Verts_Positions(transformer * T)
 {
     int o, v, idx;
 
     object * O;
     vertex * V;
 
+    float rotVec_I[3][3];
     float rotVec[3][3];
     float result[3];
     float pos[3];
@@ -468,20 +469,40 @@ void update_Selected_Verts_Positions()
         O = objects[selected_objects[o]];
         if (O->Movement_Enabled)
         {
-            invert_Rotation_scale(O->T, rotVec);
+            if (T == O->T)
+            {
+                invert_Rotation_scale(O->T, rotVec);
+            }
+            else
+            {
+                invert_Rotation_1(rotVec_I, T->rotVec_B);
+                invert_Rotation_1(rotVec, T->rotVec_);
+                rotate_matrix_I(rotVec, rotVec_I, rotVec);
+            }
 
             for (v = 0; v < O->selected_verts_count; v ++)
             {
                 idx = O->selected_verts[v];
                 V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                rotate_vector(rotVec, O->vertex_Positions[v].Pos, result);
+                if (T == O->T)
+                {
+                    rotate_vector(rotVec, O->vertex_Positions[v].Pos, result);
+                    rotate_center(result, Action_Center->rotVec, Action_Center->pos, pos);
 
-                rotate_center(result, Action_Center->rotVec, Action_Center->pos, pos);
+                    V->Rx = pos[0];
+                    V->Ry = pos[1];
+                    V->Rz = pos[2];
+                }
+                else
+                {
+                    rotate_center(O->vertex_Positions[v].Pos, rotVec, T->pos, result);
+                    rotate_center(result, Action_Center->rotVec, Action_Center->pos, pos);
 
-                V->Rx = pos[0];
-                V->Ry = pos[1];
-                V->Rz = pos[2];
+                    V->Rx = pos[0] - T->pos[0];
+                    V->Ry = pos[1] - T->pos[1];
+                    V->Rz = pos[2] - T->pos[2];
+                }
             }
         }
     }

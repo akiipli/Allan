@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+1:10 PM 12/22/2024
+Vertex Manipulation, also for Morph Maps in Modeling Mode and in Curve Mode uses selected transformer as 
+deformation reference. When object has no deformer, it uses different code.
+
 12:10 PM 12/18/2024
 Updates for Objects Movement Rotation Scale. Objects with Curves use rotate_Curves_With_Object. The idea of it
 was to be able modify shape in Curve Mode and be able to once rotate object with this shape. This idea however

@@ -366,6 +366,34 @@ void move_verts_(object * O, float x, float y, float z, int l)
     }
 }
 
+void rotate_vertex_groups_Def_Init(deformer * D)
+{
+    int o, v;
+    object * O;
+    vertex * V;
+
+    for (o = 0; o < D->Objects_Count; o ++)
+    {
+        O = D->Objects[o];
+
+        if (O->deforms)
+        {
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+
+                V->Tx = 0;
+                V->Ty = 0;
+                V->Tz = 0;
+
+//                V->N.Tx = 0;
+//                V->N.Ty = 0;
+//                V->N.Tz = 0;
+            }
+        }
+    }
+}
+
 void rotate_vertex_groups_D_Init()
 {
     int o, v;

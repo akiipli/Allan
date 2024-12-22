@@ -15505,12 +15505,23 @@ void transform_Objects_And_Render()
 //        if (!O->binding)
 //            rotate_verts(O, *O->T);
 
-        update_selected_Objects_T_Coords();
+        //update_selected_Objects_T_Coords();
         //*/
 
         if (Vertex_Mode || Curve_Mode)
         {
-            update_Selected_Verts_Positions();
+            T = transformers[currentLocator];
+            update_Selected_Verts_Positions(T);
+
+            if (T->Deformer != NULL)
+            {
+                rotate_vertex_groups_Def_Init(T->Deformer);
+                rotate_Deformer_verts(T->Deformer);
+            }
+            else
+            {
+                update_selected_Objects_T_Coords();
+            }
         }
 
         update_connected_Curves(subdLevel);
