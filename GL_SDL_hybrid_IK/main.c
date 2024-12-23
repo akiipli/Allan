@@ -14321,28 +14321,27 @@ void set_Modeling_Mode()
     {
         Modeling_Mode = 1;
 
-        Object_Mode = 0;
         Bone_Mode = 0;
 
         DRAW_LOCATORS = 0;
 
         load_Deformers_Original_Coordinates();
 
+
         if (Polygon_Mode)
             set_Polygon_Mode();
         else if (Edge_Mode)
             set_Edge_Mode();
-        else
+        else if (Vertex_Mode)
             set_Vertex_Mode();
+        else
+            set_Object_Mode();
 
-        Button_Mode[0].color = UI_GRAYB;
         Button_Mode[4].color = UI_GRAYB;
-
         Button_Mode[7].color = UI_GRAYD;
     }
     else
     {
-
         load_Deformers_Original_Coordinates();
         update_Deformed_View_(0);
         Modeling_Mode = 0;
