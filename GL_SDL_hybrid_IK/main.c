@@ -14779,6 +14779,7 @@ void start_Rotation()
                 remember_Curves_Cp_pos();
             }
         }
+
         Action_Center->rot_Order = yxz;
         reset_Action_Center();
     }
@@ -14791,6 +14792,7 @@ void start_Rotation()
             find_Verts_action_Center();
             find_Curves_Connected_To_Verts();
         }
+
         Action_Center->rot_Order = yxz;
         reset_Action_Center();
     }

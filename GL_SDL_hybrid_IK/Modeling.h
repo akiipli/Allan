@@ -479,10 +479,9 @@ void update_Selected_Verts_Positions(transformer * T)
                 invert_Rotation_1(rotVec_I, T->rotVec_B);
 
                 if (T->IK != NULL)
-                    invert_Rotation_1(rotVec, T->rotVec_); // not good with IK
-                else
-                    invert_Rotation_scale(T, rotVec);
+                    generate_scl_vec(T);
 
+                invert_Rotation_scale(T, rotVec);
                 rotate_matrix_I(rotVec, rotVec_I, rotVec);
             }
 
@@ -549,10 +548,9 @@ void update_Selected_Verts_Positions_Move(transformer * T, float Delta[3])
                 invert_Rotation_1(rotVec_I, T->rotVec_B);
 
                 if (T->IK != NULL)
-                    invert_Rotation_1(rotVec, T->rotVec_); // not good with IK
-                else
-                    invert_Rotation_scale(T, rotVec);
+                    generate_scl_vec(T);
 
+                invert_Rotation_scale(T, rotVec);
                 rotate_matrix_I(rotVec, rotVec_I, rotVec);
             }
 

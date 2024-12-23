@@ -466,6 +466,17 @@ void scale_rotVec(float rotVec_R[3][3], float rotVec_T[3][3], float scl_vec[3])
     rotVec_R[2][2] = rotVec_T[2][2] * scl_vec[2];
 }
 
+void generate_scl_vec(transformer * T)
+{
+    float len[3];
+    len[0] = length1(T->rotVec[0]);
+    len[1] = length1(T->rotVec[1]);
+    len[2] = length1(T->rotVec[2]);
+    T->scl_vec[0] = len[0];
+    T->scl_vec[1] = len[1];
+    T->scl_vec[2] = len[2];
+}
+
 void invert_Rotation_scale(transformer * T, float RotVec_T[3][3])
 {
     if (T->scl_vec[0] == 0) T->scl_vec[0] = MIN_SCALE;
