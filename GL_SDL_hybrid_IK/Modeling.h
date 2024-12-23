@@ -465,11 +465,18 @@ void update_Selected_Verts_Positions(transformer * T)
     float pos[3];
     float Pos[3];
 
+    transformer * backup_T = T;
+
     for (o = 0; o < selected_object_count; o ++)
     {
         O = objects[selected_objects[o]];
         if (O->Movement_Enabled)
         {
+            if (!O->binding)
+            {
+                T = O->T;
+            }
+
             if (T == O->T)
             {
                 invert_Rotation_scale(O->T, rotVec);
@@ -517,6 +524,8 @@ void update_Selected_Verts_Positions(transformer * T)
             }
         }
     }
+
+    T = backup_T;
 }
 
 void update_Selected_Verts_Positions_Move(transformer * T, float Delta[3])
@@ -534,11 +543,18 @@ void update_Selected_Verts_Positions_Move(transformer * T, float Delta[3])
 
     float Delta_result[3];
 
+    transformer * backup_T = T;
+
     for (o = 0; o < selected_object_count; o ++)
     {
         O = objects[selected_objects[o]];
         if (O->Movement_Enabled)
         {
+            if (!O->binding)
+            {
+                T = O->T;
+            }
+
             if (T == O->T)
             {
                 invert_Rotation_scale(O->T, rotVec);
@@ -585,6 +601,8 @@ void update_Selected_Verts_Positions_Move(transformer * T, float Delta[3])
             }
         }
     }
+
+    T = backup_T;
 }
 
 #endif // MODELING_H_INCLUDED
