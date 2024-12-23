@@ -571,15 +571,15 @@ void update_Selected_Verts_Positions_Move(transformer * T, float Delta[3])
                 }
                 else
                 {
-                    Pos[0] = O->vertex_Positions[v].Pos[0] - T->pos[0] + Delta_result[0];
-                    Pos[1] = O->vertex_Positions[v].Pos[1] - T->pos[1] + Delta_result[1];
-                    Pos[2] = O->vertex_Positions[v].Pos[2] - T->pos[2] + Delta_result[2];
+                    Pos[0] = O->vertex_Positions[v].Pos[0] - T->pos[0];
+                    Pos[1] = O->vertex_Positions[v].Pos[1] - T->pos[1];
+                    Pos[2] = O->vertex_Positions[v].Pos[2] - T->pos[2];
 
                     rotate_vector(rotVec, Pos, pos);
 
-                    V->Rx = pos[0] + T->pos_bind[0];
-                    V->Ry = pos[1] + T->pos_bind[1];
-                    V->Rz = pos[2] + T->pos_bind[2];
+                    V->Rx = pos[0] + T->pos_bind[0] + Delta_result[0];
+                    V->Ry = pos[1] + T->pos_bind[1] + Delta_result[1];
+                    V->Rz = pos[2] + T->pos_bind[2] + Delta_result[2];
 
                 }
             }
