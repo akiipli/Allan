@@ -20981,7 +20981,7 @@ int main(int argc, char * args[])
                     {
                         assert_Locators_Selection();
                     }
-                    assert_Element_Selection_(O);
+                    assert_Element_Selection();
 
                     message = -11;
                 }

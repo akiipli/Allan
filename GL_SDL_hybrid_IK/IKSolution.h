@@ -1317,9 +1317,16 @@ void solve_IK_Chain(ikChain * I)
 
         memcpy(I->Bones[b]->A->rotVec, I->Bones[b]->A->rotVec_, sizeof(float[3][3]));
 
-//        T->scl_vec[0] = I->A->scl_vec[0];
-//        T->scl_vec[1] = I->A->scl_vec[1];
-//        T->scl_vec[2] = I->A->scl_vec[2];
+/*      // normalize x and y axis
+
+        normalizeF(I->Bones[b]->A->rotVec_[0]);
+        normalizeF(I->Bones[b]->A->rotVec_[1]);
+
+        T->scl_vec[0] = I->A->scl_vec[0];
+        T->scl_vec[1] = I->A->scl_vec[1];
+        T->scl_vec[2] = I->A->scl_vec[2];
+*/
+
 //
 //        if (T->scl_vec[0] != 1.0)
 //            scale_x(T);
