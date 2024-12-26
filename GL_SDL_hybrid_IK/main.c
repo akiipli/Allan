@@ -20447,9 +20447,18 @@ int main(int argc, char * args[])
                         }
                         else if (Polygon_Mode)
                         {
-                            POLYS_ID_RENDER = 1;
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                            POLYS_ID_RENDER = 0;
+                            if (Curve_Mode)
+                            {
+                                CURVE_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                CURVE_ID_RENDER = 0;
+                            }
+                            else
+                            {
+                                POLYS_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                POLYS_ID_RENDER = 0;
+                            }
                         }
                         else if (Bone_Mode)
                         {
@@ -20555,28 +20564,50 @@ int main(int argc, char * args[])
                                 }
                                 break;
                             }
-                            else if (Polygon_Mode && o < objects[currentObject]->polycount && o >= 0)
+                            else if (Polygon_Mode)
                             {
-                                polygon * P = &O->polys[o / ARRAYSIZE][o % ARRAYSIZE];
-                                printf("poly id %d\n", o);
-                                if (add_selection_mode)
+                                if (Curve_Mode)
                                 {
-                                    if (P->selected == 0)
+                                    if (o > -1 && o < curvesIndex)
                                     {
-                                        assignSelectionToQuads(O, P, 1);
-                                        O->last_selected_polys[0] = O->last_selected_polys[1];
-                                        O->last_selected_polys[1] = P->index;
+                                        C = curves[o];
+
+                                        if (add_selection_mode)
+                                        {
+                                            C->selected = 1;
+                                            if (selected_curves_count < CURVES)
+                                                selected_curves[selected_curves_count ++] = o;
+                                        }
+                                        else
+                                        {
+                                            C->selected = 0;
+                                        }
+                                        break;
                                     }
                                 }
-                                else
+                                else if (o < objects[currentObject]->polycount && o >= 0)
                                 {
-                                    if (P->selected == 1)
+                                    polygon * P = &O->polys[o / ARRAYSIZE][o % ARRAYSIZE];
+                                    printf("poly id %d\n", o);
+                                    if (add_selection_mode)
                                     {
-                                        assignSelectionToQuads(O, P, 0);
+                                        if (P->selected == 0)
+                                        {
+                                            assignSelectionToQuads(O, P, 1);
+                                            O->last_selected_polys[0] = O->last_selected_polys[1];
+                                            O->last_selected_polys[1] = P->index;
+                                        }
                                     }
+                                    else
+                                    {
+                                        if (P->selected == 1)
+                                        {
+                                            assignSelectionToQuads(O, P, 0);
+                                        }
+                                    }
+                                    load_id_colors_polygon(O, P, OBJECT_COLORS);
+                                    break;
                                 }
-                                load_id_colors_polygon(O, P, OBJECT_COLORS);
-                                break;
                             }
                             else if (Edge_Mode)
                             {
@@ -22134,9 +22165,18 @@ int main(int argc, char * args[])
                         }
                         else if (Polygon_Mode)
                         {
-                            POLYS_ID_RENDER = 1;
-                            poly_Render(0, 0, splitview, CamDist, 0, level);
-                            POLYS_ID_RENDER = 0;
+                            if (Curve_Mode)
+                            {
+                                CURVE_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                CURVE_ID_RENDER = 0;
+                            }
+                            else
+                            {
+                                POLYS_ID_RENDER = 1;
+                                poly_Render(0, 0, splitview, CamDist, 0, level);
+                                POLYS_ID_RENDER = 0;
+                            }
                         }
                         else if (Bone_Mode)
                         {
@@ -22224,27 +22264,46 @@ int main(int argc, char * args[])
                                 break;
                                 //printf("%s\n", objects[currentObject].Name);
                             }
-                            else if (Polygon_Mode && o < objects[currentObject]->polycount && o >= 0)
+                            else if (Polygon_Mode)
                             {
-                                polygon * P = &O->polys[o / ARRAYSIZE][o % ARRAYSIZE];
-                                if (add_selection_mode)
+                                if (Curve_Mode && o > -1 && o < curvesIndex)
                                 {
-                                    if (P->selected == 0)
+                                    C = curves[o];
+
+                                    if (add_selection_mode)
                                     {
-                                        assignSelectionToQuads(O, P, 1);
-                                        O->last_selected_polys[0] = O->last_selected_polys[1];
-                                        O->last_selected_polys[1] = P->index;
+                                        C->selected = 1;
+                                        if (selected_curves_count < CURVES)
+                                            selected_curves[selected_curves_count ++] = o;
                                     }
+                                    else
+                                    {
+                                        C->selected = 0;
+                                    }
+                                    break;
                                 }
-                                else
+                                else if (o < objects[currentObject]->polycount && o >= 0)
                                 {
-                                    if (P->selected == 1)
+                                    polygon * P = &O->polys[o / ARRAYSIZE][o % ARRAYSIZE];
+                                    if (add_selection_mode)
                                     {
-                                        assignSelectionToQuads(O, P, 0);
+                                        if (P->selected == 0)
+                                        {
+                                            assignSelectionToQuads(O, P, 1);
+                                            O->last_selected_polys[0] = O->last_selected_polys[1];
+                                            O->last_selected_polys[1] = P->index;
+                                        }
                                     }
+                                    else
+                                    {
+                                        if (P->selected == 1)
+                                        {
+                                            assignSelectionToQuads(O, P, 0);
+                                        }
+                                    }
+                                    load_id_colors_polygon(O, P, OBJECT_COLORS);
+                                    break;
                                 }
-                                load_id_colors_polygon(O, P, OBJECT_COLORS);
-                                break;
                             }
                             else if (Edge_Mode)
                             {
