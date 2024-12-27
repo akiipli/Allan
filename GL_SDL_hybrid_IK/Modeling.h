@@ -449,6 +449,19 @@ void rotate_T_Transformers()
     }
 }
 
+void rotate_Hierarchys(transformer * T)
+{
+    int c;
+
+    transformer * C;
+
+    for (c = 0; c < T->childcount; c ++)
+    {
+        C = T->childs[c];
+        rotate_(C);
+    }
+}
+
 void rotate_Objects()
 {
     int o;

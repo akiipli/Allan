@@ -14376,11 +14376,13 @@ void set_Bind_Mode()
 
         // set_Deformers_Delta(); // to move Deformers To Delta Position
 
+        rotate_Cameras(CamDist);
+
         set_Bind_Pose_For_Transformers(0);
 
         goto_Bind_Pose_For_Transformers();
 
-        rotate_T_Transformers();
+//        rotate_T_Transformers();
 
         rotate_Objects();
 
@@ -14438,7 +14440,7 @@ void set_Bind_Mode()
 
         transfer_Bones_rotVec_();
 
-        reset_Scale();
+        //reset_Scale();
 
         update_Default_Pose();
 
