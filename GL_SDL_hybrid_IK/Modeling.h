@@ -436,6 +436,24 @@ void find_Verts_action_Center()
 
 void tune_subdivide_post_transformed(object * O, int L);
 
+void rotate_Objects()
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < objectIndex; o ++)
+    {
+        O = objects[o];
+
+        if (!O->binding)
+        {
+            rotate_T(O->T);
+            rotate_verts(O, *O->T);
+        }
+    }
+}
+
 void update_selected_Objects(int level)
 {
     int o;

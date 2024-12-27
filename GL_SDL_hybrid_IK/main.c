@@ -14380,6 +14380,8 @@ void set_Bind_Mode()
 
         goto_Bind_Pose_For_Transformers();
 
+        rotate_Objects();
+
 //        bake(&World);
 //        rotate(&World);
 
@@ -14443,6 +14445,8 @@ void set_Bind_Mode()
         create_Hierarchys_List(currentLocator); // because of collapsed locators
 
         paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
+
+        rotate_Objects();
 
         Button_Mode[6].color = UI_GRAYB;
         //Button_Mode[selection_Mode].color = UI_GRAYD;
@@ -15601,6 +15605,7 @@ void transform_Objects_And_Render()
                         }
                         if (update_Curve_Objects)
                         {
+                            rotate_update_Objects();
                             update_ROT_Objects_With_Curves(subdLevel);
                         }
                         update_rotate_bounding_box();

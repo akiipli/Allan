@@ -687,6 +687,19 @@ void update_Objects_With_Curves(float Delta[3], int subdLevel)
     }
 }
 
+void rotate_update_Objects()
+{
+    int o;
+
+    object * O;
+
+    for (o = 0; o < Update_Objects_Count; o ++)
+    {
+        O = Update_Objects[o];
+        rotate_verts(O, *O->T);
+    }
+}
+
 void update_ROT_Objects_With_Curves(int subdLevel)
 {
     int o;
