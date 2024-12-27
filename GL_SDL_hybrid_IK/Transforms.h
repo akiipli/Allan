@@ -26,6 +26,19 @@ void rotate_Camera(camera * C, float CamDist)
 //    gluLookAt(C->T.pos[0], C->T.pos[1], C->T.pos[2], 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
+void rotate_Cameras(float dist)
+{
+    int c;
+
+    camera * C;
+
+    for (c = 0; c < 4; c ++)
+    {
+        C = cameras[c];
+        rotate_Camera(C, dist);
+    }
+}
+
 union Dir
 {
    direction D;

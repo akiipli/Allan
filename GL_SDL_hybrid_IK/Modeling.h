@@ -436,6 +436,19 @@ void find_Verts_action_Center()
 
 void tune_subdivide_post_transformed(object * O, int L);
 
+void rotate_T_Transformers()
+{
+    int t;
+
+    transformer * T;
+
+    for (t = 0; t < locatorIndex; t ++)
+    {
+        T = Locators[t];
+        rotate_T(T);
+    }
+}
+
 void rotate_Objects()
 {
     int o;

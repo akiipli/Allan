@@ -14380,6 +14380,8 @@ void set_Bind_Mode()
 
         goto_Bind_Pose_For_Transformers();
 
+        rotate_T_Transformers();
+
         rotate_Objects();
 
 //        bake(&World);
@@ -14446,7 +14448,11 @@ void set_Bind_Mode()
 
         paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
 
+        rotate_T_Transformers();
+
         rotate_Objects();
+
+        rotate_Cameras(CamDist);
 
         Button_Mode[6].color = UI_GRAYB;
         //Button_Mode[selection_Mode].color = UI_GRAYD;
