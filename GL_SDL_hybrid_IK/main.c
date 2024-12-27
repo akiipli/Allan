@@ -15585,6 +15585,11 @@ void transform_Objects_And_Render()
                         {
                             rotate_bind(T);
                         }
+                        if (update_Curve_Objects)
+                        {
+                            rotate_update_Objects();
+                            update_ROT_Objects_With_Curves(subdLevel);
+                        }
                     }
                     else
                     {
@@ -15668,11 +15673,12 @@ void transform_Objects_And_Render()
                         memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
                         rotate_T(Action_Center);
                     }
+                }
 
-                    if (update_Curve_Objects)
-                    {
-                        update_ROT_Objects_With_Curves(subdLevel);
-                    }
+                if (update_Curve_Objects)
+                {
+                    rotate_update_Objects();
+                    update_ROT_Objects_With_Curves(subdLevel);
                 }
             }
             else if (SCALE)
@@ -23140,6 +23146,11 @@ int main(int argc, char * args[])
 
                 rotate_verts_(O0, *O0->T, subdLevel);
                 update_tangents_Object(O0, subdLevel);
+
+                if (O0->curve_count > 0)
+                {
+                    update_Objects_Curves_Coordinates(O0);
+                }
             }
 
             printf("level quads %d %d\n", subdLevel, O->quadcount_[subdLevel]);

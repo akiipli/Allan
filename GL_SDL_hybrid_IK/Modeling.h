@@ -476,6 +476,10 @@ void rotate_Objects()
         {
             rotate_T(O->T);
             rotate_verts(O, *O->T);
+            if (O->curve_count > 0)
+            {
+                update_Objects_Curves_Coordinates(O);
+            }
         }
     }
 }
