@@ -14306,6 +14306,8 @@ void move_Deformers_To_Delta_Position()
 
             move_Deformer_verts(D);
         }
+
+        update_Deformer_Objects_Curves_Coordinates(D);
     }
 
     update_rotate_bounding_box();
@@ -14348,6 +14350,8 @@ void set_Modeling_Mode()
         Button_Mode[7].color = UI_GRAYB;
     }
 }
+
+void transform_Objects_And_Render();
 
 void set_Bind_Mode()
 {
@@ -14448,9 +14452,11 @@ void set_Bind_Mode()
         //hier_start = 0;
     }
 
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+    //poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
 
     message = -12; // because object curves
+
+    transform_Objects_And_Render();
 }
 
 void new_Deformer()
