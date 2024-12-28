@@ -442,9 +442,9 @@ void rotate_T_Transformers()
 
     transformer * T;
 
-    for (t = 0; t < locatorIndex; t ++)
+    for (t = 0; t < child_collection_count; t ++)
     {
-        T = Locators[t];
+        T = child_collection[t];
         rotate_T(T);
     }
 }
@@ -474,7 +474,6 @@ void rotate_Objects()
 
         if (!O->binding)
         {
-            rotate_T(O->T);
             rotate_verts(O, *O->T);
             if (O->curve_count > 0)
             {
