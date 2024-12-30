@@ -3,6 +3,12 @@
 Author here is:
 Allan Kiipli
 
+11:07 AM 12/30/2024
+Now when modeling with vertex Manipulation, transformer selection indicates deformer selection.
+No need to select specific bone T. This means, that morphs modeling over deformed mesh is possible, giving
+prompt results of final deformation. Only drawback is that this is not working exactly with IK chains
+deformation when stretched. Rotation works, scaling works, movement works.
+
 1:10 PM 12/22/2024
 Vertex Manipulation, also for Morph Maps in Modeling Mode and in Curve Mode uses selected transformer as 
 deformation reference. When object has no deformer, it uses different code.

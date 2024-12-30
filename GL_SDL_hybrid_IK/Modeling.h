@@ -501,10 +501,12 @@ void update_selected_Objects(int level)
 
 void update_Selected_Verts_Positions(transformer * T)
 {
-    int o, v, idx;
+    int t, o, v, idx;
 
     object * O;
     vertex * V;
+
+    deformer * D;
 
     float rotVec_I[3][3];
     float rotVec[3][3];
@@ -513,60 +515,93 @@ void update_Selected_Verts_Positions(transformer * T)
     float Pos[3];
 
     transformer * backup_T = T;
+    transformer * T0;
 
-    for (o = 0; o < selected_object_count; o ++)
+    if (T->Deformer != NULL)
     {
-        O = objects[selected_objects[o]];
-        if (O->Movement_Enabled)
+        D = T->Deformer;
+
+        for (o = 0; o < selected_object_count; o ++)
         {
-            if (!O->binding)
+            O = objects[selected_objects[o]];
+            if (O->Movement_Enabled)
             {
-                T = O->T;
+                if (O->binding)
+                {
+                    for (v = 0; v < O->selected_verts_count; v ++)
+                    {
+                        idx = O->selected_verts[v];
+                        V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        V->Rx = 0;
+                        V->Ry = 0;
+                        V->Rz = 0;
+                    }
+                }
             }
+        }
 
-            if (T == O->T)
+        for (t = 0; t < D->Transformers_Count; t ++)
+        {
+            T0 = D->Transformers[t];
+            rotate_vertex_groups_I_selective(T0);
+        }
+    }
+    else
+    {
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O = objects[selected_objects[o]];
+            if (O->Movement_Enabled)
             {
-                invert_Rotation_scale(O->T, rotVec);
-            }
-            else
-            {
-                invert_Rotation_1(rotVec_I, T->rotVec_B);
-
-//                if (T->IK != NULL)
-//                    generate_scl_vec(T);
-
-                invert_Rotation_scale(T, rotVec);
-                rotate_matrix_I(rotVec, rotVec_I, rotVec);
-            }
-
-            for (v = 0; v < O->selected_verts_count; v ++)
-            {
-                idx = O->selected_verts[v];
-                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                if (!O->binding)
+                {
+                    T = O->T;
+                }
 
                 if (T == O->T)
                 {
-                    rotate_vector(rotVec, O->vertex_Positions[v].Pos, result);
-                    rotate_center(result, Action_Center->rotVec, Action_Center->pos, pos);
-
-                    V->Rx = pos[0];
-                    V->Ry = pos[1];
-                    V->Rz = pos[2];
+                    invert_Rotation_scale(O->T, rotVec);
                 }
                 else
                 {
-                    rotate_center(O->vertex_Positions[v].Pos, Action_Center->rotVec, Action_Center->pos, result);
+                    invert_Rotation_1(rotVec_I, T->rotVec_B);
 
-                    Pos[0] = result[0] - T->pos[0];
-                    Pos[1] = result[1] - T->pos[1];
-                    Pos[2] = result[2] - T->pos[2];
+    //                if (T->IK != NULL)
+    //                    generate_scl_vec(T);
 
-                    rotate_vector(rotVec, Pos, pos);
+                    invert_Rotation_scale(T, rotVec);
+                    rotate_matrix_I(rotVec, rotVec_I, rotVec);
+                }
 
-                    V->Rx = pos[0] + T->pos_bind[0];
-                    V->Ry = pos[1] + T->pos_bind[1];
-                    V->Rz = pos[2] + T->pos_bind[2];
+                for (v = 0; v < O->selected_verts_count; v ++)
+                {
+                    idx = O->selected_verts[v];
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
+                    if (T == O->T)
+                    {
+                        rotate_vector(rotVec, O->vertex_Positions[v].Pos, result);
+                        rotate_center(result, Action_Center->rotVec, Action_Center->pos, pos);
+
+                        V->Rx = pos[0];
+                        V->Ry = pos[1];
+                        V->Rz = pos[2];
+                    }
+                    else
+                    {
+                        rotate_center(O->vertex_Positions[v].Pos, Action_Center->rotVec, Action_Center->pos, result);
+
+                        Pos[0] = result[0] - T->pos[0];
+                        Pos[1] = result[1] - T->pos[1];
+                        Pos[2] = result[2] - T->pos[2];
+
+                        rotate_vector(rotVec, Pos, pos);
+
+                        V->Rx = pos[0] + T->pos_bind[0];
+                        V->Ry = pos[1] + T->pos_bind[1];
+                        V->Rz = pos[2] + T->pos_bind[2];
+
+                    }
                 }
             }
         }
@@ -577,10 +612,12 @@ void update_Selected_Verts_Positions(transformer * T)
 
 void update_Selected_Verts_Positions_Move(transformer * T, float Delta[3])
 {
-    int o, v, idx;
+    int t, o, v, idx;
 
     object * O;
     vertex * V;
+
+    deformer * D;
 
     float rotVec_I[3][3];
     float rotVec[3][3];
@@ -591,59 +628,92 @@ void update_Selected_Verts_Positions_Move(transformer * T, float Delta[3])
     float Delta_result[3];
 
     transformer * backup_T = T;
+    transformer * T0;
 
-    for (o = 0; o < selected_object_count; o ++)
+    if (T->Deformer != NULL)
     {
-        O = objects[selected_objects[o]];
-        if (O->Movement_Enabled)
+        D = T->Deformer;
+
+        for (o = 0; o < selected_object_count; o ++)
         {
-            if (!O->binding)
+            O = objects[selected_objects[o]];
+            if (O->Movement_Enabled)
             {
-                T = O->T;
+                if (O->binding)
+                {
+                    for (v = 0; v < O->selected_verts_count; v ++)
+                    {
+                        idx = O->selected_verts[v];
+                        V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        V->Rx = 0;
+                        V->Ry = 0;
+                        V->Rz = 0;
+                    }
+                }
             }
+        }
 
-            if (T == O->T)
+        for (t = 0; t < D->Transformers_Count; t ++)
+        {
+            T0 = D->Transformers[t];
+            rotate_vertex_groups_I_selective_Move(T0, Delta);
+        }
+    }
+    else
+    {
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O = objects[selected_objects[o]];
+            if (O->Movement_Enabled)
             {
-                invert_Rotation_scale(O->T, rotVec);
-            }
-            else
-            {
-                invert_Rotation_1(rotVec_I, T->rotVec_B);
-
-//                if (T->IK != NULL)
-//                    generate_scl_vec(T);
-
-                invert_Rotation_scale(T, rotVec);
-                rotate_matrix_I(rotVec, rotVec_I, rotVec);
-            }
-
-            rotate_vector(rotVec, Delta, Delta_result);
-
-            for (v = 0; v < O->selected_verts_count; v ++)
-            {
-                idx = O->selected_verts[v];
-                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                if (!O->binding)
+                {
+                    T = O->T;
+                }
 
                 if (T == O->T)
                 {
-                    rotate_vector(rotVec, O->vertex_Positions[v].Pos, result);
-
-                    V->Rx = result[0] + Delta_result[0];
-                    V->Ry = result[1] + Delta_result[1];
-                    V->Rz = result[2] + Delta_result[2];
+                    invert_Rotation_scale(O->T, rotVec);
                 }
                 else
                 {
-                    Pos[0] = O->vertex_Positions[v].Pos[0] - T->pos[0];
-                    Pos[1] = O->vertex_Positions[v].Pos[1] - T->pos[1];
-                    Pos[2] = O->vertex_Positions[v].Pos[2] - T->pos[2];
+                    invert_Rotation_1(rotVec_I, T->rotVec_B);
 
-                    rotate_vector(rotVec, Pos, pos);
+    //                if (T->IK != NULL)
+    //                    generate_scl_vec(T);
 
-                    V->Rx = pos[0] + T->pos_bind[0] + Delta_result[0];
-                    V->Ry = pos[1] + T->pos_bind[1] + Delta_result[1];
-                    V->Rz = pos[2] + T->pos_bind[2] + Delta_result[2];
+                    invert_Rotation_scale(T, rotVec);
+                    rotate_matrix_I(rotVec, rotVec_I, rotVec);
+                }
 
+                rotate_vector(rotVec, Delta, Delta_result);
+
+                for (v = 0; v < O->selected_verts_count; v ++)
+                {
+                    idx = O->selected_verts[v];
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (T == O->T)
+                    {
+                        rotate_vector(rotVec, O->vertex_Positions[v].Pos, result);
+
+                        V->Rx = result[0] + Delta_result[0];
+                        V->Ry = result[1] + Delta_result[1];
+                        V->Rz = result[2] + Delta_result[2];
+                    }
+                    else
+                    {
+                        Pos[0] = O->vertex_Positions[v].Pos[0] - T->pos[0];
+                        Pos[1] = O->vertex_Positions[v].Pos[1] - T->pos[1];
+                        Pos[2] = O->vertex_Positions[v].Pos[2] - T->pos[2];
+
+                        rotate_vector(rotVec, Pos, pos);
+
+                        V->Rx = pos[0] + T->pos_bind[0] + Delta_result[0];
+                        V->Ry = pos[1] + T->pos_bind[1] + Delta_result[1];
+                        V->Rz = pos[2] + T->pos_bind[2] + Delta_result[2];
+
+                    }
                 }
             }
         }

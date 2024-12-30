@@ -541,6 +541,155 @@ void rotate_vertex_groups_collect_Objects(transformer * T)
     }
 }
 
+void rotate_vertex_groups_I_selective_Move(transformer * T, float Delta[3])
+{
+    int v, v_idx, idx, idx0, i, s, condition;
+    object * O;
+    vert_selection * S;
+    vertex * V;
+
+    float rotVec_I[3][3];
+    float rotVec[3][3];
+    float pos[3];
+    float Pos[3];
+
+    float Delta_result[3];
+
+    invert_Rotation_1(rotVec_I, T->rotVec_B);
+
+//                if (T->IK != NULL)
+//                    generate_scl_vec(T);
+
+    invert_Rotation_scale(T, rotVec);
+    rotate_matrix_I(rotVec, rotVec_I, rotVec);
+
+    rotate_vector(rotVec, Delta, Delta_result);
+
+    for (s = 0; s < T->Selections_Count; s ++)
+    {
+        S = T->Selections[s];
+
+        //if (S->Name == NULL) continue;
+
+        O = S->Object;
+
+        //printf("SELECTION %s OBJECT %s\n", S->Name, O->Name);
+
+        if (O->deforms)
+        {
+            for (i = 0; i < S->indices_count; i ++)
+            {
+                idx = S->indices[i];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (V->selected)
+                {
+                    condition = 0;
+
+                    for (v = 0; v < O->selected_verts_count; v ++)
+                    {
+                        idx0 = O->selected_verts[v];
+
+                        if(idx == idx0)
+                        {
+                            condition = 1;
+                            v_idx = v;
+                            break;
+                        }
+                    }
+
+                    if (condition)
+                    {
+                        Pos[0] = O->vertex_Positions[v_idx].Pos[0] - T->pos[0];
+                        Pos[1] = O->vertex_Positions[v_idx].Pos[1] - T->pos[1];
+                        Pos[2] = O->vertex_Positions[v_idx].Pos[2] - T->pos[2];
+
+                        rotate_vector(rotVec, Pos, pos);
+
+                        V->Rx += (pos[0] + T->pos_bind[0] + Delta_result[0]) * S->weights[i];
+                        V->Ry += (pos[1] + T->pos_bind[1] + Delta_result[1]) * S->weights[i];
+                        V->Rz += (pos[2] + T->pos_bind[2] + Delta_result[2]) * S->weights[i];
+                    }
+                }
+            }
+        }
+    }
+}
+
+void rotate_vertex_groups_I_selective(transformer * T)
+{
+    int v, v_idx, idx, idx0, i, s, condition;
+    object * O;
+    vert_selection * S;
+    vertex * V;
+
+    float rotVec_I[3][3];
+    float rotVec[3][3];
+    float result[3];
+    float pos[3];
+    float Pos[3];
+
+    invert_Rotation_1(rotVec_I, T->rotVec_B);
+
+//                if (T->IK != NULL)
+//                    generate_scl_vec(T);
+
+    invert_Rotation_scale(T, rotVec);
+    rotate_matrix_I(rotVec, rotVec_I, rotVec);
+
+    for (s = 0; s < T->Selections_Count; s ++)
+    {
+        S = T->Selections[s];
+
+        //if (S->Name == NULL) continue;
+
+        O = S->Object;
+
+        //printf("SELECTION %s OBJECT %s\n", S->Name, O->Name);
+
+        if (O->deforms)
+        {
+            for (i = 0; i < S->indices_count; i ++)
+            {
+                idx = S->indices[i];
+                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                if (V->selected)
+                {
+                    condition = 0;
+
+                    for (v = 0; v < O->selected_verts_count; v ++)
+                    {
+                        idx0 = O->selected_verts[v];
+
+                        if(idx == idx0)
+                        {
+                            condition = 1;
+                            v_idx = v;
+                            break;
+                        }
+                    }
+
+                    if (condition)
+                    {
+                        rotate_center(O->vertex_Positions[v_idx].Pos, Action_Center->rotVec, Action_Center->pos, result);
+
+                        Pos[0] = result[0] - T->pos[0];
+                        Pos[1] = result[1] - T->pos[1];
+                        Pos[2] = result[2] - T->pos[2];
+
+                        rotate_vector(rotVec, Pos, pos);
+
+                        V->Rx += (pos[0] + T->pos_bind[0]) * S->weights[i];
+                        V->Ry += (pos[1] + T->pos_bind[1]) * S->weights[i];
+                        V->Rz += (pos[2] + T->pos_bind[2]) * S->weights[i];
+                    }
+                }
+            }
+        }
+    }
+}
+
 void rotate_vertex_groups(transformer * T)
 {
     int idx, i, s;
