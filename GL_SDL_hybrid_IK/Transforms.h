@@ -575,7 +575,7 @@ void rotate_vertex_groups_I_selective_Move(transformer * T, float Delta[3])
 
         //printf("SELECTION %s OBJECT %s\n", S->Name, O->Name);
 
-        if (O->deforms)
+        if (O->deforms && O->selected)
         {
             for (i = 0; i < S->indices_count; i ++)
             {
@@ -647,7 +647,7 @@ void rotate_vertex_groups_I_selective(transformer * T)
 
         //printf("SELECTION %s OBJECT %s\n", S->Name, O->Name);
 
-        if (O->deforms)
+        if (O->deforms && O->selected)
         {
             for (i = 0; i < S->indices_count; i ++)
             {
