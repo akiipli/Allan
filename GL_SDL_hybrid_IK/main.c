@@ -298,6 +298,7 @@ int BONES_MODE = 0;
 int CURVE_MODE = 0;
 
 float Zero[3] = {0.0, 0.0, 0.0};
+int ret_bound;
 
 int strlength(char * text)
 {
@@ -7476,16 +7477,16 @@ void update_Deformed_View(deformer * D, int update)
 
         update_rotate_bounding_box();
 
-        if (subdLevel > -1)
-        {
-            int o;
+        int o;
 
-            for (o = 0; o < Update_Objects_Count; o ++)
+        for (o = 0; o < Update_Objects_Count; o ++)
+        {
+            O = Update_Objects[o];
+            if (O->deforms)
             {
-                O = Update_Objects[o];
-                if (O->deforms)
+                update_Object_Curves_Cps_Positions(O);
+                if (subdLevel > -1)
                 {
-                    update_Object_Curves_Cps_Positions(O);
                     update_object_Curves(O, subdLevel);
                     update_object_Curves(O, subdLevel);
                     tune_subdivide_post_transformed(O, subdLevel);
@@ -7640,38 +7641,8 @@ void update_Deformed_View_(int update)
 
 void update_Selected_Morph_View(deformer * D)
 {
-    Update_Objects_Count = 0;
-    Transformer_Objects_Count = 0;
-
-    int o, u, t, condition;
-
     D->P = init_Deformer_P(D);
 
-    for (o = 0; o < D->Objects_Count; o ++)
-    {
-        O = D->Objects[o];
-        condition = 1;
-        for (u = 0; u < Update_Objects_Count; u ++)
-        {
-            if (Update_Objects[u] == O)
-            {
-                condition = 0;
-                break;
-            }
-        }
-        if (condition)
-        {
-            Update_Objects[Update_Objects_Count ++] = O;
-        }
-    }
-
-    for (t = 0; t < D->Transformers_Count; t ++)
-    {
-        if (D->Transformers[t]->Object != NULL)
-        {
-            Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
-        }
-    }
     update_Deformed_View(D, 1);
 }
 
@@ -14758,6 +14729,12 @@ void start_Rotation()
         {
             if (Modeling_Mode)
             {
+                if (selected_object_count == 0)
+                {
+                    init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
+                    display_font(Hint, screen_width, screen_height, 0);
+                }
+
                 clear_Selected_Objects_Verts_Selection();
                 create_Verts_Selection_From_Cps();
                 assert_Verts_Selection();
@@ -14770,7 +14747,12 @@ void start_Rotation()
             else
             {
                 find_connected_Curves();
-                find_connected_Objects();
+                ret_bound = find_connected_Objects();
+                if (ret_bound)
+                {
+                    init_Hint_Alert("SOME OBJECTS ARE BOUND\n START WITH NEUTRAL POSE\n");
+                    display_font(Hint, screen_width, screen_height, 0);
+                }
                 cp_Manipulation = 1;
                 /* collect selected Cps and find center point */
                 find_Cps_action_Center();
@@ -14781,6 +14763,12 @@ void start_Rotation()
         {
             if (Modeling_Mode)
             {
+                if (selected_object_count == 0)
+                {
+                    init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
+                    display_font(Hint, screen_width, screen_height, 0);
+                }
+
                 clear_Selected_Objects_Verts_Selection();
                 create_Verts_Selection_From_Curves();
                 assert_Verts_Selection();
@@ -14795,7 +14783,12 @@ void start_Rotation()
             else
             {
                 find_connected_Curves();
-                find_connected_Objects();
+                ret_bound = find_connected_Objects();
+                if (ret_bound)
+                {
+                    init_Hint_Alert("SOME OBJECTS ARE BOUND\n START WITH NEUTRAL POSE\n");
+                    display_font(Hint, screen_width, screen_height, 0);
+                }
                 curve_Manipulation = 1;
                 /* collect selected Curves and find center point */
                 find_Curves_action_Center();
@@ -15049,6 +15042,12 @@ void start_Movement()
                 {
                     if (Modeling_Mode)
                     {
+                        if (selected_object_count == 0)
+                        {
+                            init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
+                            display_font(Hint, screen_width, screen_height, 0);
+                        }
+
                         clear_Selected_Objects_Verts_Selection();
                         create_Verts_Selection_From_Cps();
                         assert_Verts_Selection();
@@ -15061,13 +15060,24 @@ void start_Movement()
                     {
                         find_connected_Curves();
                         cp_Manipulation = 1;
-                        find_connected_Objects();
+                        ret_bound = find_connected_Objects();
+                        if (ret_bound)
+                        {
+                            init_Hint_Alert("SOME OBJECTS ARE BOUND\n START WITH NEUTRAL POSE\n");
+                            display_font(Hint, screen_width, screen_height, 0);
+                        }
                     }
                 }
                 else
                 {
                     if (Modeling_Mode)
                     {
+                        if (selected_object_count == 0)
+                        {
+                            init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
+                            display_font(Hint, screen_width, screen_height, 0);
+                        }
+
                         clear_Selected_Objects_Verts_Selection();
                         create_Verts_Selection_From_Curves();
                         assert_Verts_Selection();
@@ -15080,7 +15090,12 @@ void start_Movement()
                     {
                         find_connected_Curves();
                         curve_Manipulation = 1;
-                        find_connected_Objects();
+                        ret_bound = find_connected_Objects();
+                        if (ret_bound)
+                        {
+                            init_Hint_Alert("SOME OBJECTS ARE BOUND\n START WITH NEUTRAL POSE\n");
+                            display_font(Hint, screen_width, screen_height, 0);
+                        }
                     }
                 }
             }

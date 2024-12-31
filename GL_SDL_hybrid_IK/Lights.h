@@ -24,6 +24,11 @@ void init_Hint()
             currentTheme, NIGHT, SHADOWS, ELEMENT_ARRAYS);
 }
 
+void init_Hint_Alert(const char * Alert)
+{
+    sprintf(Hint, Alert);
+}
+
 GLuint lightHandle, fogHandle, materialSHandle3;
 
 typedef struct

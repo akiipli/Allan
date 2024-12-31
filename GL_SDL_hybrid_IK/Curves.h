@@ -1697,7 +1697,7 @@ void find_connected_Curves()
     }
 }
 
-void find_connected_Objects()
+int find_connected_Objects()
 {
     int o, c, condition;
 
@@ -1705,6 +1705,8 @@ void find_connected_Objects()
     object * O;
 
     connected_objects_count = 0;
+
+    int bound_objects = 0;
 
     for (c = 0; c < selected_curves_count; c ++)
     {
@@ -1724,9 +1726,16 @@ void find_connected_Objects()
                 }
             }
             if (condition)
+            {
                 connected_objects[connected_objects_count ++] = C->O->index;
+                if (C->O->binding)
+                {
+                    bound_objects ++;
+                }
+            }
         }
     }
+    return bound_objects;
 }
 
 void update_connected_Curves(int level)
