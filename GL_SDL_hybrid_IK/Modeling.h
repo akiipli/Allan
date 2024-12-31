@@ -166,6 +166,27 @@ void clear_Selected_Objects_Verts_Selection()
     }
 }
 
+void remember_Connected_Objects()
+{
+    int o, v;
+
+    object * O;
+    vertex * V;
+
+    for (o = 0; o < connected_objects_count; o ++)
+    {
+        O = objects[connected_objects[o]];
+
+        for (v = 0; v < O->vertcount; v ++)
+        {
+            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+            O->vertex_Positions[v].x = V->x;
+            O->vertex_Positions[v].y = V->y;
+            O->vertex_Positions[v].z = V->z;
+        }
+    }
+}
+
 void remember_Objects_Verts_Pos()
 {
     int o, v, idx;

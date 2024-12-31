@@ -3289,6 +3289,31 @@ void transfer_Curve_Cps_To_Vertex_Coordinates_ROT(object * O)
     }
 }
 
+void snap_back_Connected_Objects()
+{
+    int o, v;
+
+    object * O;
+    vertex * V;
+
+    for (o = 0; o < connected_objects_count; o ++)
+    {
+        O = objects[connected_objects[o]];
+
+        for (v = 0; v < O->vertcount; v ++)
+        {
+            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+            V->x = O->vertex_Positions[v].x;
+            V->y = O->vertex_Positions[v].y;
+            V->z = O->vertex_Positions[v].z;
+
+            V->Rx = V->x;
+            V->Ry = V->y;
+            V->Rz = V->z;
+        }
+    }
+}
+
 void update_connected_Objects_ROT()
 {
     int o;

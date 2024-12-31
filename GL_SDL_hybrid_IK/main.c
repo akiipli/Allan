@@ -14750,9 +14750,10 @@ void start_Rotation()
                 ret_bound = find_connected_Objects();
                 if (ret_bound)
                 {
-                    init_Hint_Alert("SOME OBJECTS ARE BOUND\n START WITH NEUTRAL POSE\n");
+                    init_Hint_Alert("SOME OBJECTS ARE BOUND\n");
                     display_font(Hint, screen_width, screen_height, 0);
                 }
+                remember_Connected_Objects(); // for snap back
                 cp_Manipulation = 1;
                 /* collect selected Cps and find center point */
                 find_Cps_action_Center();
@@ -14786,9 +14787,10 @@ void start_Rotation()
                 ret_bound = find_connected_Objects();
                 if (ret_bound)
                 {
-                    init_Hint_Alert("SOME OBJECTS ARE BOUND\n START WITH NEUTRAL POSE\n");
+                    init_Hint_Alert("SOME OBJECTS ARE BOUND\n");
                     display_font(Hint, screen_width, screen_height, 0);
                 }
+                remember_Connected_Objects(); // for snap back
                 curve_Manipulation = 1;
                 /* collect selected Curves and find center point */
                 find_Curves_action_Center();
@@ -15063,9 +15065,10 @@ void start_Movement()
                         ret_bound = find_connected_Objects();
                         if (ret_bound)
                         {
-                            init_Hint_Alert("SOME OBJECTS ARE BOUND\n START WITH NEUTRAL POSE\n");
+                            init_Hint_Alert("SOME OBJECTS ARE BOUND\n");
                             display_font(Hint, screen_width, screen_height, 0);
                         }
+                        remember_Connected_Objects(); // for snap back
                     }
                 }
                 else
@@ -15093,9 +15096,10 @@ void start_Movement()
                         ret_bound = find_connected_Objects();
                         if (ret_bound)
                         {
-                            init_Hint_Alert("SOME OBJECTS ARE BOUND\n START WITH NEUTRAL POSE\n");
+                            init_Hint_Alert("SOME OBJECTS ARE BOUND\n");
                             display_font(Hint, screen_width, screen_height, 0);
                         }
+                        remember_Connected_Objects(); // for snap back
                     }
                 }
             }
@@ -18940,7 +18944,9 @@ int main(int argc, char * args[])
                             update_selected_Curves(subdLevel);
                             update_selected_Curves(subdLevel);
                             update_connected_Curves(subdLevel);
+
                             update_connected_Objects_ROT();
+                            snap_back_Connected_Objects();
                         }
                         else if (Curve_Mode && cp_Manipulation)
                         {
@@ -18950,7 +18956,9 @@ int main(int argc, char * args[])
                             update_selected_Curves(subdLevel);
                             update_selected_Curves(subdLevel);
                             update_connected_Curves(subdLevel);
+
                             update_connected_Objects_ROT();
+                            snap_back_Connected_Objects();
                         }
                         else if (Modeling_Mode && vertex_Manipulation)
                         {
