@@ -298,7 +298,7 @@ int BONES_MODE = 0;
 int CURVE_MODE = 0;
 
 float Zero[3] = {0.0, 0.0, 0.0};
-int ret_bound;
+int ret_bound = 0;
 
 int strlength(char * text)
 {
@@ -14723,6 +14723,19 @@ void start_Rotation()
 {
     update_Curve_Objects = 0;
 
+    if (DRAW_LOCATORS)
+    {
+        if (currentLocator == 0)
+            currentLocator = transformerIndex - 1;
+        T = transformers[currentLocator];
+
+        if (T->Object != NULL)
+        {
+            O = T->Object;
+            currentObject = O->index;
+        }
+    }
+
     if (Curve_Mode)
     {
         if (Vertex_Mode)
@@ -18946,7 +18959,11 @@ int main(int argc, char * args[])
                             update_connected_Curves(subdLevel);
 
                             update_connected_Objects_ROT();
-                            snap_back_Connected_Objects();
+                            if (ret_bound)
+                            {
+                                snap_back_Connected_Objects();
+                                ret_bound = 0;
+                            }
                         }
                         else if (Curve_Mode && cp_Manipulation)
                         {
@@ -18958,7 +18975,11 @@ int main(int argc, char * args[])
                             update_connected_Curves(subdLevel);
 
                             update_connected_Objects_ROT();
-                            snap_back_Connected_Objects();
+                            if (ret_bound)
+                            {
+                                snap_back_Connected_Objects();
+                                ret_bound = 0;
+                            }
                         }
                         else if (Modeling_Mode && vertex_Manipulation)
                         {
