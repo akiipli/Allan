@@ -11697,6 +11697,23 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
                 if (D != NULL)
                 {
                     remove_Object_From_Deformer(O, D);
+
+                    if (!BIND_POSE)
+                    {
+                        if (!O->binding)
+                        {
+                            rotate_T(O->T);
+                            rotate_verts(O, *O->T);
+                            if (O->curve_count > 0)
+                            {
+                                update_Objects_Curves_Coordinates(O);
+                                update_object_Curves(O, subdLevel);
+                                update_object_Curves(O, subdLevel);
+                            }
+                            tune_subdivide_post_transformed(O, subdLevel);
+                            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                        }
+                    }
                     draw_Dialog();
                 }
             }
@@ -24295,6 +24312,21 @@ int main(int argc, char * args[])
             else
             {
                 O->deforms = !O->deforms;
+                if (!O->deforms)
+                {
+                    rotate_T(O->T);
+                    rotate_verts(O, *O->T);
+                    if (O->curve_count > 0)
+                    {
+                        update_Objects_Curves_Coordinates(O);
+                        update_object_Curves(O, subdLevel);
+                        update_object_Curves(O, subdLevel);
+                    }
+                }
+                else if (O->binding)
+                {
+                    update_Deformer(D);
+                }
             }
             message = -10;
         }

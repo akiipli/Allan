@@ -198,6 +198,9 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "%d", O->subdlevel_Max);
         draw_Properties_Text(text, d_width, p_height, idx, 2, 1); /* index 2 indicates combo value */
         idx ++;
+        sprintf(text, "deforms %d", O->deforms);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        idx ++;
     }
     else if (type == PROPERTIES_MATERIAL)
     {
@@ -381,12 +384,20 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
     else if (subject != NULL && type == PROPERTIES_DEFORMER)
     {
         deformer * D = (deformer *)subject;
+        object * O;
 
         sprintf(text, "linear pose");
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         sprintf(text, "%d", D->linear_pose);
         draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
         idx ++;
+        for (i = 0; i < D->Objects_Count; i ++)
+        {
+            O = D->Objects[i];
+            sprintf(text, O->Name);
+            draw_Properties_Text(text, d_width, p_height, idx, 0, 1);
+            idx ++;
+        }
     }
 
 	//glEnable(GL_TEXTURE_2D);
