@@ -7337,7 +7337,6 @@ void apply_Pose(deformer * D, pose * P, int dialog)
 
                 update_Deformer_Objects_Curves_Coordinates(D);
                 update_Deformer_object_Curves(D, subdLevel);
-                update_Deformer_object_Curves(D, subdLevel);
 
                 update_rotate_bounding_box();
 
@@ -7425,7 +7424,6 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
 
         update_Deformer_Objects_Curves_Coordinates(D);
         update_Deformer_object_Curves(D, subdLevel);
-        update_Deformer_object_Curves(D, subdLevel);
 
         update_rotate_bounding_box();
 
@@ -7487,7 +7485,6 @@ void update_Deformed_View(deformer * D, int update)
                 update_Object_Curves_Cps_Positions(O);
                 if (subdLevel > -1)
                 {
-                    update_object_Curves(O, subdLevel);
                     update_object_Curves(O, subdLevel);
                     tune_subdivide_post_transformed(O, subdLevel);
                 }
@@ -7613,7 +7610,6 @@ void update_Object_View()
                 if (O0->curve_count > 0)
                 {
                     update_Objects_Curves_Coordinates(O0);
-                    update_object_Curves(O0, subdLevel);
                     update_object_Curves(O0, subdLevel);
                 }
                 tune_subdivide_post_transformed(O0, subdLevel);
@@ -7801,7 +7797,6 @@ void goto_Deformer_Frame_(deformer * D, int frame)
 
             update_Deformer_Objects_Curves_Coordinates(D);
             update_Deformer_object_Curves(D, subdLevel);
-            update_Deformer_object_Curves(D, subdLevel);
         }
     }
 
@@ -7946,7 +7941,6 @@ void goto_Deformer_Frame(deformer * D, int frame)
             apply_Pose_position_(D, D->P, D->Delta);
 
             update_Deformer_Objects_Curves_Coordinates(D);
-            update_Deformer_object_Curves(D, subdLevel);
             update_Deformer_object_Curves(D, subdLevel);
         }
     }
@@ -8282,7 +8276,6 @@ void deformer_Keyframe_Player()
                 apply_Pose_position_keyframes(D, D->P, D->Delta);
 
                 update_Deformer_Objects_Curves_Coordinates(D);
-                update_Deformer_object_Curves(D, subdLevel);
                 update_Deformer_object_Curves(D, subdLevel);
             }
         }
@@ -8639,7 +8632,6 @@ void deformer_Player()
                     //apply_Pose_rotation_Play(D, P, f % frames, Delta);
 
                     update_Deformer_Objects_Curves_Coordinates(D);
-                    update_Deformer_object_Curves(D, subdLevel);
                     update_Deformer_object_Curves(D, subdLevel);
                 }
             }
@@ -11527,7 +11519,6 @@ void apply_Pose_rotation()
 
                 update_Deformer_Objects_Curves_Coordinates(D);
                 update_Deformer_object_Curves(D, subdLevel);
-                update_Deformer_object_Curves(D, subdLevel);
 
                 update_rotate_bounding_box();
 
@@ -11707,7 +11698,6 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
                             if (O->curve_count > 0)
                             {
                                 update_Objects_Curves_Coordinates(O);
-                                update_object_Curves(O, subdLevel);
                                 update_object_Curves(O, subdLevel);
                             }
                             tune_subdivide_post_transformed(O, subdLevel);
@@ -14765,6 +14755,12 @@ void start_Rotation()
                     display_font(Hint, screen_width, screen_height, 0);
                 }
 
+                if (O->binding && O->deforms && T->Deformer == NULL)
+                {
+                    init_Hint_Alert("SELECTED TRANSFORMER REQUIRED\n");
+                    display_font(Hint, screen_width, screen_height, 0);
+                }
+
                 clear_Selected_Objects_Verts_Selection();
                 create_Verts_Selection_From_Cps();
                 assert_Verts_Selection();
@@ -14797,6 +14793,12 @@ void start_Rotation()
                 if (selected_object_count == 0)
                 {
                     init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
+                    display_font(Hint, screen_width, screen_height, 0);
+                }
+
+                if (O->binding && O->deforms && T->Deformer == NULL)
+                {
+                    init_Hint_Alert("SELECTED TRANSFORMER REQUIRED\n");
                     display_font(Hint, screen_width, screen_height, 0);
                 }
 
@@ -15058,7 +15060,7 @@ void start_Movement()
                 currentObject = O->index;
             }
         }
-        else
+        else if (!O->binding)
         {
             T = O->T;
         }
@@ -15077,6 +15079,12 @@ void start_Movement()
                         if (selected_object_count == 0)
                         {
                             init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
+                            display_font(Hint, screen_width, screen_height, 0);
+                        }
+
+                        if (O->binding && O->deforms && T->Deformer == NULL)
+                        {
+                            init_Hint_Alert("SELECTED TRANSFORMER REQUIRED\n");
                             display_font(Hint, screen_width, screen_height, 0);
                         }
 
@@ -15108,6 +15116,12 @@ void start_Movement()
                         if (selected_object_count == 0)
                         {
                             init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
+                            display_font(Hint, screen_width, screen_height, 0);
+                        }
+
+                        if (O->binding && O->deforms && T->Deformer == NULL)
+                        {
+                            init_Hint_Alert("SELECTED TRANSFORMER REQUIRED\n");
                             display_font(Hint, screen_width, screen_height, 0);
                         }
 
@@ -15753,7 +15767,6 @@ void transform_Objects_And_Render()
 
                     update_Object_Curves_Cps_Positions(O);
                     update_object_Curves(O, subdLevel);
-                    update_object_Curves(O, subdLevel);
                 }
             }
         }
@@ -15769,12 +15782,10 @@ void transform_Objects_And_Render()
             {
                 update_Deformer_Objects_Curves_Coordinates(T->Deformer);
                 update_Deformer_object_Curves(T->Deformer, subdLevel);
-                update_Deformer_object_Curves(T->Deformer, subdLevel);
             }
             else if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
             {
                 update_Deformer_Objects_Curves_Coordinates(Constraint_Pack.IK->Deformer);
-                update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
                 update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
             }
         }
@@ -15806,7 +15817,6 @@ void transform_Objects_And_Render()
                     if (message == -12 && O0->curve_count > 0)
                     {
                         update_Objects_Curves_Coordinates(O0);
-                        update_object_Curves(O0, subdLevel);
                         update_object_Curves(O0, subdLevel);
                     }
                     tune_subdivide_post_transformed(O0, subdLevel);
@@ -16269,7 +16279,6 @@ void update_Deformer(deformer * D)
         rotate_Deformer_verts(D);
 
         update_Deformer_Objects_Curves_Coordinates(D);
-        update_Deformer_object_Curves(D, subdLevel);
         update_Deformer_object_Curves(D, subdLevel);
 
         update_rotate_bounding_box();
@@ -18972,7 +18981,6 @@ int main(int argc, char * args[])
                             curve_Manipulation = 0;
 
                             update_selected_Curves(subdLevel);
-                            update_selected_Curves(subdLevel);
                             update_connected_Curves(subdLevel);
 
                             update_connected_Objects_ROT();
@@ -18988,7 +18996,6 @@ int main(int argc, char * args[])
                             cp_Manipulation = 0;
 
                             update_selected_Curves(subdLevel);
-                            update_selected_Curves(subdLevel);
                             update_connected_Curves(subdLevel);
 
                             update_connected_Objects_ROT();
@@ -19003,7 +19010,6 @@ int main(int argc, char * args[])
                             snap_back_Verts_To_Pos();
                             update_selected_Objects_T_Coords();
                             update_Vertex_Control_Point();
-                            update_connected_Curves(subdLevel);
                             update_connected_Curves(subdLevel);
                             vertex_Manipulation = 0;
                         }
@@ -19023,7 +19029,6 @@ int main(int argc, char * args[])
                                         if (T->Object == O)
                                         {
                                             snap_back_Object_Cps_To_Pos(O);
-                                            update_object_Curves(O, subdLevel);
                                             update_object_Curves(O, subdLevel);
                                         }
 
@@ -19051,7 +19056,6 @@ int main(int argc, char * args[])
                                         {
                                             snap_back_Object_Cps_To_Pos(O);
                                             update_object_Curves(O, subdLevel);
-                                            update_object_Curves(O, subdLevel);
                                         }
                                     }
                                 }
@@ -19070,18 +19074,15 @@ int main(int argc, char * args[])
                                         {
                                             snap_back_Deformer_Object_Cps_To_Pos(T->Deformer);
                                             update_Deformer_object_Curves(T->Deformer, subdLevel);
-                                            update_Deformer_object_Curves(T->Deformer, subdLevel);
                                         }
                                         else if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
                                         {
                                             snap_back_Deformer_Object_Cps_To_Pos(Constraint_Pack.IK->Deformer);
                                             update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
-                                            update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
                                         }
                                         else if (O->curve_count > 0)
                                         {
                                             snap_back_Object_Cps_To_Pos(O);
-                                            update_object_Curves(O, subdLevel);
                                             update_object_Curves(O, subdLevel);
                                         }
                                     }
@@ -19098,7 +19099,6 @@ int main(int argc, char * args[])
                                     else if (!O->binding && O->curve_count > 0 && (ROTATION || SCALE || MOVEMENT))
                                     {
                                         snap_back_Object_Cps_To_Pos(O);
-                                        update_object_Curves(O, subdLevel);
                                         update_object_Curves(O, subdLevel);
                                     }
                                 }
@@ -23225,7 +23225,6 @@ int main(int argc, char * args[])
             //
             subdivide_Curves(subdLevel);
             update_Curves(subdLevel);
-            update_Curves(subdLevel);
 
             scan_for_Objects_Patches(subdLevel);
 
@@ -23531,7 +23530,6 @@ int main(int argc, char * args[])
                         Delta[2] = -T->pos[2];
 
                         transfer_Delta_To_Object_Cps(O, Delta);
-                        update_object_Curves(O, subdLevel);
                         update_object_Curves(O, subdLevel);
                     }
 
@@ -24320,7 +24318,6 @@ int main(int argc, char * args[])
                     {
                         update_Objects_Curves_Coordinates(O);
                         update_object_Curves(O, subdLevel);
-                        update_object_Curves(O, subdLevel);
                     }
                 }
                 else if (O->binding)
@@ -24492,7 +24489,7 @@ int main(int argc, char * args[])
                                 currentLocator = transformerIndex - 1;
                             T = transformers[currentLocator];
                         }
-                        else
+                        else if (!O->binding)
                         {
                             T = O->T;
                         }

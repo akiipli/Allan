@@ -1623,6 +1623,12 @@ void update_Curve(curve * C, int level)
     calculate_Curve_Segments(C);
 
     //fill_Curve_Segments_Tips_With_Cp_Coordinates(C);
+
+    /*
+    This fill is executed twice
+    */
+
+    fill_Curve_Segments_With_Coordinates(C, level);
     fill_Curve_Segments_With_Coordinates(C, level);
 }
 
