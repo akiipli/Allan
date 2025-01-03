@@ -887,6 +887,7 @@ void snap_back_Curve_Objects(int subdLevel)
         O = Update_Objects[o];
         snap_back_Object_Cps_To_Pos(O);
         update_object_Curves(O, subdLevel);
+        update_object_Curves(O, subdLevel);
     }
 }
 
