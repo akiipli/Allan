@@ -23351,7 +23351,7 @@ int main(int argc, char * args[])
                 reset_View(Camera, CamDist, ortho_on);
                 message = -10;
             }
-            else if (Curve_Mode)
+            else if (Curve_Mode || Modeling_Mode)
             {
 
             }
