@@ -16672,7 +16672,7 @@ void exit_Bind_Mode()
 
     transfer_Bones_rotVec_();
 
-    reset_Scale();
+    //reset_Scale();
 
     update_Default_Pose();
 
@@ -16681,6 +16681,13 @@ void exit_Bind_Mode()
     create_Hierarchys_List(currentLocator); // because of collapsed locators
 
     paste_rotVec_(); // because of synthesize_Bone_Axis // axis alignement during animation
+
+    child_collection_count = 0;
+    collect_Children(&World);
+
+    rotate_T_Transformers();
+
+    rotate_Objects();
 
     Button_Mode[6].color = UI_GRAYB;
     Button_Mode[selection_Mode].color = UI_GRAYD;
