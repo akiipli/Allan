@@ -449,15 +449,15 @@ void make_osd(object * O)
     /* when uv tuning is not necessary, in quad render */
     /* disable uv transform array and make texture array */
     /* static */
-    int i, p, s;
+    int p; //i, p, s;
     p = 0;
     p = sprintf(&osd_font[p], "%s\n", Camera->Name);
     p += sprintf(&osd_font[p], "ortho: %d\n", ortho_on);
     if (!O->deforms)
-        p += sprintf(&osd_font[p], "%s\ndeforms:a\t%d\tF1-F4\n", O->Name, O->deforms);
+        p += sprintf(&osd_font[p], "deforms:a\t%d\tF1-F4\n", O->deforms);
     else
-        p += sprintf(&osd_font[p], "%s\ndeforms:a\t%d\n", O->Name, O->deforms);
-
+        p += sprintf(&osd_font[p], "deforms:a\t%d\n", O->deforms);
+/*
     if (subdLevel >= 0)
     {
         p += sprintf(&osd_font[p], "u uv:Shift-u\n");
@@ -476,8 +476,8 @@ void make_osd(object * O)
     {
         p += sprintf(&osd_font[p], "%d\t%d\n", O->tune[i], O->tune_in_uvtex[i]);
     }
-
-    T = transformers[currentLocator];
+*/
+//    T = transformers[currentLocator];
 
     if (DRAW_LOCATORS && T != NULL)
     {
@@ -506,11 +506,20 @@ void make_osd(object * O)
         p += sprintf(&osd_font[p], "polys\t%d\n", O->polycount);
 
 //    p += sprintf(&osd_font[p], "linear\t%d\n", linear_pose);
-    p += sprintf(&osd_font[p], "patch\t%d\n", Patch_Mode);
-    p += sprintf(&osd_font[p], "locators\t%d\n", DRAW_LOCATORS);
-    p += sprintf(&osd_font[p], "curves\t%d\n", curve_Draw);
-    p += sprintf(&osd_font[p], "edges\t%d\n", edgedraw);
+//    p += sprintf(&osd_font[p], "patch\t%d\n", Patch_Mode);
+//    p += sprintf(&osd_font[p], "locators\t%d\n", DRAW_LOCATORS);
+//    p += sprintf(&osd_font[p], "curves\t%d\n", curve_Draw);
+//    p += sprintf(&osd_font[p], "edges\t%d\n", edgedraw);
     p += sprintf(&osd_font[p], "frame\t%d\n", currentFrame);
+    if (O != NULL)
+        p += sprintf(&osd_font[p], "OBJECT\tO\t%s\n", O->Name);
+    if (T != NULL)
+        p += sprintf(&osd_font[p], "LOCATOR\tT\t%s\n", T->Name);
+    if (D != NULL)
+        p += sprintf(&osd_font[p], "DEFORMER\tD\t%s\n", D->Name);
+    p += sprintf(&osd_font[p], "MOVEMENT\tROTATION\tSCALE\n");
+    p += sprintf(&osd_font[p], "G %d\tS %d\tS %d\n", MOVEMENT, ROTATION, SCALE);
+    p += sprintf(&osd_font[p], "Camera screen lock\t%d\n", Camera_screen_lock);
 
 }
 
@@ -836,6 +845,8 @@ void set_O_T_as_current_Locator(transformer * T)
             currentLocator = T->index;
         }
     }
+
+    printf("set O T as current_Locator\n");
 }
 
 void assert_Object_Selection()
@@ -2456,6 +2467,7 @@ void Draw_Timeline()
 	int vline, vline0, vline1, vline2, f;
 
 	timeline * Tm;
+	transformer * T;
 
 	if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
     {
@@ -2590,6 +2602,7 @@ void Draw_Morph_Timeline()
 	int vline0, vline1, vline2;
 
 	morph_timeline * Tmm;
+	object * O;
 
 	if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
     {
@@ -14313,7 +14326,7 @@ void set_Modeling_Mode()
 
         Bone_Mode = 0;
 
-        DRAW_LOCATORS = 0;
+        //DRAW_LOCATORS = 0;
 
         //load_Deformers_Original_Coordinates();
 
@@ -14740,6 +14753,8 @@ void start_Rotation()
 {
     update_Curve_Objects = 0;
 
+    T = transformers[currentLocator];
+
     if (DRAW_LOCATORS)
     {
         if (currentLocator == 0)
@@ -15030,13 +15045,17 @@ void start_Movement()
     subdLevel_mem = subdLevel;
 
     Camera = find_View(mouse_x, mouse_y, splitview);
+
+    //printf("start Movement %s\n", Camera->Name);
+
     Camera->origin_2d[0] = mouse_x;
     Camera->origin_2d[1] = mouse_y;
 
     find_Camera_Objects();
 
-    ObjDist = distance(O->T->pos, Camera->T->pos);
     T = Camera->T;
+
+    ObjDist = distance(O->T->pos, Camera->T->pos);
 
     update_Curve_Objects = 0;
 
@@ -15045,6 +15064,8 @@ void start_Movement()
         object_hook = 1;
         MOVEMENT = 1;
         init_Hint();
+
+        T = transformers[currentLocator];
 
         if (DRAW_LOCATORS)
         {
@@ -18460,6 +18481,8 @@ int main(int argc, char * args[])
 //    dialog_type = LOADING_DIALOG;
 //    save_load_Scene();
 
+    T = transformers[0];
+
     while(quit == 0)
     {
         O = objects[currentObject];
@@ -19024,7 +19047,7 @@ int main(int argc, char * args[])
                             {
                                 if (BIND_POSE)
                                 {
-                                    //T = transformers[currentLocator];
+                                    T = transformers[currentLocator];
                                     if (MOVEMENT)
                                     {
                                         if (T->Object == O)
@@ -19891,7 +19914,7 @@ int main(int argc, char * args[])
                                                 currentMaterial = O->surface;
                                                 MatrList[index].color = UI_BACKL;
 
-                                                set_O_T_as_current_Locator(O->T);
+                                                //set_O_T_as_current_Locator(O->T);
 
 //                                                ItemList[index].color = UI_BACKL;
                                                 assert_Object_Selection();
@@ -21027,11 +21050,7 @@ int main(int argc, char * args[])
                     put_In_Rectangle_Selection(Camera, O, selected_objects, selected_object_count, add_selection_mode, selection_Mode,
                                                &Drag_Rectangle, splitview, CamDist, draw_uv_view, cull_Selection, DRAW_LOCATORS, subdLevel, ELEMENT_ARRAYS);
 
-                    if (DRAW_LOCATORS)
-                    {
-                        assert_Locators_Selection();
-                    }
-                    else if (Curve_Mode)
+                    if (Curve_Mode)
                     {
                         if (selection_Mode == CURVE)
                             ordered_Curve_Selection();
@@ -21066,6 +21085,11 @@ int main(int argc, char * args[])
                         }
                         assert_Element_Selection();
 
+                    }
+
+                    if (DRAW_LOCATORS)
+                    {
+                        assert_Locators_Selection();
                     }
 
                     drag_rectangle = 0;
@@ -24499,10 +24523,11 @@ int main(int argc, char * args[])
                                 currentLocator = transformerIndex - 1;
                             T = transformers[currentLocator];
                         }
-                        else if (!O->binding)
-                        {
-                            T = O->T;
-                        }
+//                        else if (!O->binding)
+//                        {
+//                            T = O->T;
+//                        }
+
                         if (T->IK != NULL && T->style == ik_fixed)
                         {
                             Camera_screen_lock = 0;
@@ -24725,6 +24750,7 @@ int main(int argc, char * args[])
                     T = transformers[t];
                     T->selected = 0;
                 }
+                T = transformers[currentLocator];
             }
             else if (Curve_Mode)
             {
@@ -24771,13 +24797,13 @@ int main(int argc, char * args[])
                 ELEMENT_ARRAYS = 1;
                 init_Hint();
 
-                object * O;
+                object * O0;
                 for (o = 0; o < selected_object_count; o ++)
                 {
-                    O = objects[selected_objects[o]];
-                    assign_Selection(O, 0);
-                    assert_Element_Selection(O);
+                    O0 = objects[selected_objects[o]];
+                    assign_Selection(O0, 0);
                 }
+                assert_Element_Selection();
 
                 for (l = 0; l < SUBD; l++)
                     load_id_colors(selected_objects, selected_object_count, l, OBJECT_COLORS);
@@ -24786,25 +24812,25 @@ int main(int argc, char * args[])
             else if (Edge_Mode)
             {
                 int o;
-                object * O;
+                object * O0;
                 for (o = 0; o < selected_object_count; o ++)
                 {
-                    O = objects[selected_objects[o]];
-                    clear_Edge_Selection(O);
-                    assert_Element_Selection(O);
+                    O0 = objects[selected_objects[o]];
+                    clear_Edge_Selection(O0);
                 }
+                assert_Element_Selection();
                 selected_edges_count = 0;
             }
             else if (Vertex_Mode)
             {
                 int o;
-                object * O;
+                object * O0;
                 for (o = 0; o < selected_object_count; o ++)
                 {
-                    O = objects[selected_objects[o]];
-                    clear_Verts_Selection(O);
-                    assert_Element_Selection(O);
+                    O0 = objects[selected_objects[o]];
+                    clear_Verts_Selection(O0);
                 }
+                assert_Element_Selection();
                 selected_verts_count = 0;
             }
             else if (Bone_Mode)
