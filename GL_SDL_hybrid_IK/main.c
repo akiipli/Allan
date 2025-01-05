@@ -14332,7 +14332,7 @@ void set_Modeling_Mode()
     }
     else
     {
-        load_Deformers_Original_Coordinates();
+        //load_Deformers_Original_Coordinates();
         update_Deformed_View_(0);
         Modeling_Mode = 0;
         Button_Mode[7].color = UI_GRAYB;
