@@ -14315,7 +14315,7 @@ void set_Modeling_Mode()
 
         DRAW_LOCATORS = 0;
 
-        load_Deformers_Original_Coordinates();
+        //load_Deformers_Original_Coordinates();
 
 
         if (Polygon_Mode)
@@ -15058,7 +15058,7 @@ void start_Movement()
                 currentObject = O->index;
             }
         }
-        else
+        else if (!O->binding)
         {
             T = O->T;
         }
@@ -24499,7 +24499,7 @@ int main(int argc, char * args[])
                                 currentLocator = transformerIndex - 1;
                             T = transformers[currentLocator];
                         }
-                        else
+                        else if (!O->binding)
                         {
                             T = O->T;
                         }
