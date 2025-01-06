@@ -1989,5 +1989,24 @@ void scan_For_Deformer_Down(transformer * T)
     }
 }
 
+int assumption_about_Deformer_T(transformer * T)
+{
+    int a_msg = 0;
+    int o;
+
+    object * O;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O = objects[selected_objects[o]];
+
+        if (O->binding && T->Deformer == NULL)
+        {
+            a_msg = 1;
+        }
+    }
+    return a_msg;
+}
+
 
 #endif // DEFORMER_H_INCLUDED

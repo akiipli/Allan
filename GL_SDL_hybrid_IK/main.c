@@ -299,6 +299,7 @@ int CURVE_MODE = 0;
 
 float Zero[3] = {0.0, 0.0, 0.0};
 int ret_bound = 0;
+int assumtion = 0;
 
 int strlength(char * text)
 {
@@ -14783,6 +14784,15 @@ void start_Rotation()
                     init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
                     display_font(Hint, screen_width, screen_height, 0);
                 }
+                else
+                {
+                    assumtion = assumption_about_Deformer_T(T);
+                    if (assumtion)
+                    {
+                        init_Hint_Alert("TRANSFORMER NOT FROM DEFORMER\n");
+                        display_font(Hint, screen_width, screen_height, 0);
+                    }
+                }
 
                 clear_Selected_Objects_Verts_Selection();
                 create_Verts_Selection_From_Cps();
@@ -14817,6 +14827,15 @@ void start_Rotation()
                 {
                     init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
                     display_font(Hint, screen_width, screen_height, 0);
+                }
+                else
+                {
+                    assumtion = assumption_about_Deformer_T(T);
+                    if (assumtion)
+                    {
+                        init_Hint_Alert("TRANSFORMER NOT FROM DEFORMER\n");
+                        display_font(Hint, screen_width, screen_height, 0);
+                    }
                 }
 
                 clear_Selected_Objects_Verts_Selection();
@@ -15104,6 +15123,15 @@ void start_Movement()
                             init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
                             display_font(Hint, screen_width, screen_height, 0);
                         }
+                        else
+                        {
+                            assumtion = assumption_about_Deformer_T(T);
+                            if (assumtion)
+                            {
+                                init_Hint_Alert("TRANSFORMER NOT FROM DEFORMER\n");
+                                display_font(Hint, screen_width, screen_height, 0);
+                            }
+                        }
 
                         clear_Selected_Objects_Verts_Selection();
                         create_Verts_Selection_From_Cps();
@@ -15134,6 +15162,15 @@ void start_Movement()
                         {
                             init_Hint_Alert("SELECTED OBJECTS REQUIRED\n");
                             display_font(Hint, screen_width, screen_height, 0);
+                        }
+                        else
+                        {
+                            assumtion = assumption_about_Deformer_T(T);
+                            if (assumtion)
+                            {
+                                init_Hint_Alert("TRANSFORMER NOT FROM DEFORMER\n");
+                                display_font(Hint, screen_width, screen_height, 0);
+                            }
                         }
 
                         clear_Selected_Objects_Verts_Selection();
