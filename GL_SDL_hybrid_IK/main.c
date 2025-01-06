@@ -220,11 +220,11 @@ float object_Rot[3];
 float object_Scl[3];
 float T_pos[3];
 
-object * O;
-transformer * T;
-deformer * D;
-curve * C;
-cp * CP;
+object * O = NULL;
+transformer * T = NULL;
+deformer * D = NULL;
+curve * C = NULL;
+cp * CP = NULL;
 
 int rendermode = POLY_RENDER;
 int POLYS_ID_RENDER = 0;
@@ -6647,6 +6647,10 @@ void assert_Deformers_Selected()
     if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
     {
         D = deformers[currentDeformer_Node];
+    }
+    else
+    {
+        D = NULL;
     }
 }
 
@@ -16204,6 +16208,7 @@ void clear_All()
         O = objects[currentObject];
         O->selected = 1;
         T = transformers[currentLocator];
+        D = NULL;
         O->T->Bone = NULL;
         O->T->childcount = 0;
 
