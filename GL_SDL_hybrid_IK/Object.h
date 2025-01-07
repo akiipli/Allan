@@ -137,7 +137,7 @@ struct vertex
 {
     int index;
     int visible;
-    int selected;
+    int selected; // used also to capture selection index + 1
     float weight;
     float weight_init;
 //    int color;
@@ -165,7 +165,7 @@ struct vertex
     object * O;
     int patch;
     float vec[3];
-    float aim_vec[3];
+    float aim_vec[3]; // used in render and vertex move
 };
 
 void print_vertex(vertex * V)

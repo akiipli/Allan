@@ -15512,6 +15512,7 @@ void make_Movement()
         if (Vertex_Mode || Curve_Mode)
         {
             T = transformers[currentLocator];
+
             update_Selected_Verts_Positions_Move(T, Delta);
 
             if (T->Deformer != NULL)
@@ -15663,7 +15664,7 @@ void transform_Objects_And_Render()
         if (Vertex_Mode || Curve_Mode)
         {
             T = transformers[currentLocator];
-            update_Selected_Verts_Positions(T);
+            update_Selected_Verts_Positions(T, altDown);
 
             if (T->Deformer != NULL)
             {
@@ -18124,7 +18125,7 @@ void make_Scale(float delta)
 {
     if (Curve_Mode || Modeling_Mode)
     {
-        if (Axis_lock)
+        if (Axis_lock || altDown)
         {
             Action_Center->scl_vec[0] = 1;
             Action_Center->scl_vec[1] = 1;
@@ -18198,7 +18199,7 @@ void make_Scale_Persp(float delta_1, float delta_2)
 {
     if (Curve_Mode || Modeling_Mode)
     {
-        if (Axis_lock)
+        if (Axis_lock || altDown)
         {
             Action_Center->scl_vec[0] = 1;
             Action_Center->scl_vec[1] = 1;
@@ -18535,7 +18536,7 @@ int main(int argc, char * args[])
                 switch(event.key.keysym.sym)
                 {
                     case SDLK_LCTRL: controlDown = 0; handle_ControlDown();
-                    case SDLK_LALT: altDown = 0; // printf("altDown %d\n", altDown);
+                    case SDLK_LALT: altDown = 0; printf("altDown %d\n", altDown);
                     default: break;
                 }
             }
@@ -18546,7 +18547,7 @@ int main(int argc, char * args[])
                 switch(event.key.keysym.sym)
                 {
                     case SDLK_LCTRL: controlDown = 1; handle_ControlDown(); printf("l Ctrl\n"); break;
-                    case SDLK_LALT: altDown = 1; break;
+                    case SDLK_LALT: altDown = 1; printf("altDown %d\n", altDown); break;
                     case SDLK_UP: message = 1; printf("up\n"); break;
                     case SDLK_DOWN: message = 2; printf("down\n"); break;
                     case SDLK_LEFT: message = 3; printf("left\n"); break;

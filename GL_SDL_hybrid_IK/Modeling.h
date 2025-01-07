@@ -211,6 +211,10 @@ void remember_Objects_Verts_Pos()
 
                 V->selected = v + 1; // avoid zero
 
+                V->aim_vec[0] = V->N.Tx; // normal mode with L Alt
+                V->aim_vec[1] = V->N.Ty;
+                V->aim_vec[2] = V->N.Tz;
+
                 O->vertex_Positions[v].x = V->Tx;
                 O->vertex_Positions[v].y = V->Ty;
                 O->vertex_Positions[v].z = V->Tz;
@@ -520,7 +524,7 @@ void update_selected_Objects(int level)
     }
 }
 
-void update_Selected_Verts_Positions(transformer * T)
+void update_Selected_Verts_Positions(transformer * T, int Alt_down)
 {
     int t, o, v, idx;
 
@@ -535,8 +539,16 @@ void update_Selected_Verts_Positions(transformer * T)
     float pos[3];
     float Pos[3];
 
+    float Delta_length = 0.0;
+    float Aim_vec[3];
+
     transformer * backup_T = T;
     transformer * T0;
+
+    if (Alt_down)
+    {
+        Delta_length = Action_Center->scl_vec[0] - 1;
+    }
 
     if (T->Deformer != NULL)
     {
@@ -564,7 +576,7 @@ void update_Selected_Verts_Positions(transformer * T)
         for (t = 0; t < D->Transformers_Count; t ++)
         {
             T0 = D->Transformers[t];
-            rotate_vertex_groups_I_selective(T0);
+            rotate_vertex_groups_I_selective(T0, Alt_down);
         }
     }
     else
@@ -601,17 +613,34 @@ void update_Selected_Verts_Positions(transformer * T)
 
                     if (T == O->T)
                     {
-                        rotate_center(O->vertex_Positions[v].Pos, Action_Center->rotVec, Action_Center->pos, result);
+                        if (Alt_down)
+                        {
+                            Pos[0] = O->vertex_Positions[v].Pos[0] - T->pos[0];
+                            Pos[1] = O->vertex_Positions[v].Pos[1] - T->pos[1];
+                            Pos[2] = O->vertex_Positions[v].Pos[2] - T->pos[2];
 
-                        Pos[0] = result[0] - T->pos[0];
-                        Pos[1] = result[1] - T->pos[1];
-                        Pos[2] = result[2] - T->pos[2];
+                            rotate_vector(rotVec, Pos, pos);
 
-                        rotate_vector(rotVec, Pos, pos);
+                            rotate_vector(rotVec, V->aim_vec, Aim_vec);
 
-                        V->Rx = pos[0];
-                        V->Ry = pos[1];
-                        V->Rz = pos[2];
+                            V->Rx = pos[0] + (Delta_length * Aim_vec[0]);
+                            V->Ry = pos[1] + (Delta_length * Aim_vec[1]);
+                            V->Rz = pos[2] + (Delta_length * Aim_vec[2]);
+                        }
+                        else
+                        {
+                            rotate_center(O->vertex_Positions[v].Pos, Action_Center->rotVec, Action_Center->pos, result);
+
+                            Pos[0] = result[0] - T->pos[0];
+                            Pos[1] = result[1] - T->pos[1];
+                            Pos[2] = result[2] - T->pos[2];
+
+                            rotate_vector(rotVec, Pos, pos);
+
+                            V->Rx = pos[0];
+                            V->Ry = pos[1];
+                            V->Rz = pos[2];
+                        }
                     }
                     else
                     {

@@ -600,7 +600,7 @@ void rotate_vertex_groups_I_selective_Move(transformer * T, float Delta[3])
     }
 }
 
-void rotate_vertex_groups_I_selective(transformer * T)
+void rotate_vertex_groups_I_selective(transformer * T, int Alt_down)
 {
     int v_idx, idx, i, s;
     object * O;
@@ -612,6 +612,8 @@ void rotate_vertex_groups_I_selective(transformer * T)
     float result[3];
     float pos[3];
     float Pos[3];
+    float Delta_length = 0.0;
+    float Aim_vec[3];
 
     invert_Rotation_1(rotVec_I, T->rotVec_B);
 
@@ -620,6 +622,11 @@ void rotate_vertex_groups_I_selective(transformer * T)
 
     invert_Rotation_scale(T, rotVec);
     rotate_matrix_I(rotVec, rotVec_I, rotVec);
+
+    if (Alt_down)
+    {
+        Delta_length = Action_Center->scl_vec[0] - 1;
+    }
 
     for (s = 0; s < T->Selections_Count; s ++)
     {
@@ -640,17 +647,34 @@ void rotate_vertex_groups_I_selective(transformer * T)
 
                     if (v_idx < O->selected_verts_count)
                     {
-                        rotate_center(O->vertex_Positions[v_idx].Pos, Action_Center->rotVec, Action_Center->pos, result);
+                        if (Alt_down)
+                        {
+                            Pos[0] = O->vertex_Positions[v_idx].Pos[0] - T->pos[0];
+                            Pos[1] = O->vertex_Positions[v_idx].Pos[1] - T->pos[1];
+                            Pos[2] = O->vertex_Positions[v_idx].Pos[2] - T->pos[2];
 
-                        Pos[0] = result[0] - T->pos[0];
-                        Pos[1] = result[1] - T->pos[1];
-                        Pos[2] = result[2] - T->pos[2];
+                            rotate_vector(rotVec, Pos, pos);
 
-                        rotate_vector(rotVec, Pos, pos);
+                            rotate_vector(rotVec, V->aim_vec, Aim_vec);
 
-                        V->Rx += (pos[0] + T->pos_bind[0]) * S->weights[i];
-                        V->Ry += (pos[1] + T->pos_bind[1]) * S->weights[i];
-                        V->Rz += (pos[2] + T->pos_bind[2]) * S->weights[i];
+                            V->Rx += (pos[0] + T->pos_bind[0] + (Delta_length * Aim_vec[0])) * S->weights[i];
+                            V->Ry += (pos[1] + T->pos_bind[1] + (Delta_length * Aim_vec[1])) * S->weights[i];
+                            V->Rz += (pos[2] + T->pos_bind[2] + (Delta_length * Aim_vec[2])) * S->weights[i];
+                        }
+                        else
+                        {
+                            rotate_center(O->vertex_Positions[v_idx].Pos, Action_Center->rotVec, Action_Center->pos, result);
+
+                            Pos[0] = result[0] - T->pos[0];
+                            Pos[1] = result[1] - T->pos[1];
+                            Pos[2] = result[2] - T->pos[2];
+
+                            rotate_vector(rotVec, Pos, pos);
+
+                            V->Rx += (pos[0] + T->pos_bind[0]) * S->weights[i];
+                            V->Ry += (pos[1] + T->pos_bind[1]) * S->weights[i];
+                            V->Rz += (pos[2] + T->pos_bind[2]) * S->weights[i];
+                        }
                     }
                 }
             }

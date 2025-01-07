@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+2:25 PM 1/7/2025
+With Vertex Manipulation in Modeling mode, now scaling (S) enables push/pull effect when 1 tap and left Alt hold. 
+
 11:07 AM 12/30/2024
 Now when modeling with vertex Manipulation, transformer selection indicates deformer selection.
 No need to select specific bone T. This means, that morphs modeling over deformed mesh is possible, giving
