@@ -617,17 +617,23 @@ void generate_Split_Groups_In_Deformer(deformer * D)
     object * O;
     vertex * V;
     vert_selection * S;
+    split_selection * SP0, * SP1;
 
-    float dist_To_A, dist_To_B, lenght_sum, lenght_sum_2;
+    float dist_To_A, dist_To_B;
 
     for (b = 0; b < D->Bones_Count; b ++)
     {
         B = D->Bones[b];
+
         for (s = 0; s < B->A->Selections_Count; s ++)
         {
             S = B->A->Selections[s];
             init_split_Selections(S);
             O = S->Object;
+
+            SP0 = &S->split[0];
+            SP1 = &S->split[1];
+
             for (i = 0; i < S->indices_count; i ++)
             {
                 idx = S->indices[i];
@@ -636,33 +642,37 @@ void generate_Split_Groups_In_Deformer(deformer * D)
                 dist_To_A = dist_Vert_To_Pos(V, B->A->pos);
                 dist_To_B = dist_Vert_To_Pos(V, B->B->pos);
 
-                lenght_sum = (dist_To_A + dist_To_B);
-                lenght_sum_2 = lenght_sum / 2;
-
-                if (dist_To_A < dist_To_B)
-                {
-                    S->split[0].indices[S->split[0].indices_count] = idx;
-                    if (lenght_sum > 0)
-                        S->split[0].weights[S->split[0].indices_count] = (lenght_sum_2 - dist_To_A) / lenght_sum;
-                    else
-                        S->split[0].weights[S->split[0].indices_count] = 0;
-                    S->split[0].indices_count ++;
-                }
+                SP0->indices[SP0->indices_count] = idx;
+                if (B->len > 0)
+                    SP0->weights[SP0->indices_count] = 1 - (dist_To_A / B->len);
                 else
-                {
-                    S->split[1].indices[S->split[1].indices_count] = idx;
-                    if (lenght_sum > 0)
-                        S->split[1].weights[S->split[1].indices_count] = (lenght_sum_2 - dist_To_B) / lenght_sum;
-                    else
-                        S->split[1].weights[S->split[1].indices_count] = 0;
-                    S->split[1].indices_count ++;
-                }
-            }
-            S->split[0].indices = realloc(S->split[0].indices, S->split[0].indices_count * sizeof(int));
-            S->split[0].weights = realloc(S->split[0].weights, S->split[0].indices_count * sizeof(float));
+                    SP0->weights[SP0->indices_count] = 0;
 
-            S->split[1].indices = realloc(S->split[1].indices, S->split[1].indices_count * sizeof(int));
-            S->split[1].weights = realloc(S->split[1].weights, S->split[1].indices_count * sizeof(float));
+                if (SP0->weights[SP0->indices_count] < 0)
+                    SP0->weights[SP0->indices_count] = 0;
+                else if (SP0->weights[SP0->indices_count] > 1)
+                    SP0->weights[SP0->indices_count] = 1;
+
+                SP0->indices_count ++;
+
+                SP1->indices[SP1->indices_count] = idx;
+                if (B->len > 0)
+                    SP1->weights[SP1->indices_count] = 1 - (dist_To_B / B->len);
+                else
+                    SP1->weights[SP1->indices_count] = 0;
+
+                if (SP1->weights[SP1->indices_count] < 0)
+                    SP1->weights[SP1->indices_count] = 0;
+                else if (SP1->weights[SP1->indices_count] > 1)
+                    SP1->weights[SP1->indices_count] = 1;
+
+                SP1->indices_count ++;
+            }
+            SP0->indices = realloc(SP0->indices, SP0->indices_count * sizeof(int));
+            SP0->weights = realloc(SP0->weights, SP0->indices_count * sizeof(float));
+
+            SP1->indices = realloc(SP1->indices, SP1->indices_count * sizeof(int));
+            SP1->weights = realloc(SP1->weights, SP1->indices_count * sizeof(float));
         }
     }
 }

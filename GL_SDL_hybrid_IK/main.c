@@ -6031,8 +6031,8 @@ void open_Deformers_List()
 
     set_Button_defr(current_defr_type);
 
-    DRAW_LOCATORS = 1;
-    LOCAT_ID_RENDER = 1;
+//    DRAW_LOCATORS = 1;
+//    LOCAT_ID_RENDER = 1;
 
     SDL_SetCursor(Arrow);
     dialog_lock = 1;
@@ -7465,7 +7465,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
         if (dialog_lock)
         {
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-            draw_dialog_Box(screen_height, 0, f);
+//            draw_dialog_Box(screen_height, 0, f);
             SDL_GL_SwapBuffers();
         }
         else
@@ -7474,8 +7474,8 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
         }
     }
 
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    apply_Pose(D, P1, 0);
+    //poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    //apply_Pose(D, P1, 0);
 
     DRAW_UI = 1;
 }
@@ -10028,6 +10028,12 @@ void handle_DOWN(int scrollbar)
 void generate_Smooth_Binding(deformer * D)
 {
     Draw_Bottom_Message("generate Smooth Binding\n");
+
+    if (BIND_POSE)
+    {
+        set_Bone_len();
+    }
+
     Bottom_Message = 0;
     generate_Split_Groups_In_Deformer(D);
     generate_Extended_Groups_In_Deformer(D);
@@ -19747,7 +19753,8 @@ int main(int argc, char * args[])
                                                 currentLocator = Deformer_List[currentDeformer];
                                                 HierIndex = currentLocator;
                                                 select_Locator_Selections(currentLocator);
-                                                frame_object(Camera, 1);
+                                                if (!BIND_POSE)
+                                                    frame_object(Camera, 1);
                                             }
                                             else
                                             {
@@ -19756,7 +19763,8 @@ int main(int argc, char * args[])
                                                 select_Deformer_Objects();
                                                 set_Object_Mode();
                                                 DRAW_LOCATORS = 0;
-                                                frame_object(Camera, 1);
+                                                if (!BIND_POSE)
+                                                    frame_object(Camera, 1);
                                             }
                                             create_Deformers_List(SelsIndex[3], O);
                                         }
@@ -22811,99 +22819,99 @@ int main(int argc, char * args[])
             else
             {
                 if (dialog_lock)
+                {
+                    UPDATE_BACKGROUND = 1;
+                    if (dialog_type == TEXT_DIALOG)
+                    {
+                        if (strcmp(text, TEXT_TYPE_TEXT) == 0)
+                        {
+                            TextIndex = Materials[O->surface].Texture_idx;
+                            TextIndex --;
+                            if (TextIndex < 0) TextIndex = 0;
+                            if (TextIndex < Textures_c && TextIndex >= 0)
                             {
-                                UPDATE_BACKGROUND = 1;
-                                if (dialog_type == TEXT_DIALOG)
-                                {
-                                    if (strcmp(text, TEXT_TYPE_TEXT) == 0)
-                                    {
-                                        TextIndex = Materials[O->surface].Texture_idx;
-                                        TextIndex --;
-                                        if (TextIndex < 0) TextIndex = 0;
-                                        if (TextIndex < Textures_c && TextIndex >= 0)
-                                        {
-                                            Materials[O->surface].Texture_idx = TextIndex;
-                                            Materials[O->surface].texture = TextIndex;
-                                            DRAW_UI = 0;
-                                            open_Textures_List();
-                                            DRAW_UI = 1;
-                                        }
-                                    }
-                                    else if (strcmp(text, TEXT_TYPE_NORM) == 0)
-                                    {
-                                        TextIndex = Materials[O->surface].Normal_idx;
-                                        TextIndex --;
-                                        if (TextIndex < 0) TextIndex = 0;
-                                        if (TextIndex < Normals_c && TextIndex >= 0)
-                                        {
-                                            Materials[O->surface].Normal_idx = TextIndex;
-                                            Materials[O->surface].normal = TextIndex;
-                                            DRAW_UI = 0;
-                                            open_Textures_List();
-                                            DRAW_UI = 1;
-                                        }
-                                    }
-                                    else if (strcmp(text, TEXT_TYPE_BUMP) == 0)
-                                    {
-                                        TextIndex = Materials[O->surface].Bump_idx;
-                                        TextIndex --;
-                                        if (TextIndex < 0) TextIndex = 0;
-                                        if (TextIndex < Bumps_c && TextIndex >= 0)
-                                        {
-                                            Materials[O->surface].Bump_idx = TextIndex;
-                                            Materials[O->surface].bump = TextIndex;
-                                            DRAW_UI = 0;
-                                            open_Textures_List();
-                                            DRAW_UI = 1;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    handle_UP(0);
-                                }
+                                Materials[O->surface].Texture_idx = TextIndex;
+                                Materials[O->surface].texture = TextIndex;
+                                DRAW_UI = 0;
+                                open_Textures_List();
+                                DRAW_UI = 1;
                             }
-                            else if (DRAW_LOCATORS)
+                        }
+                        else if (strcmp(text, TEXT_TYPE_NORM) == 0)
+                        {
+                            TextIndex = Materials[O->surface].Normal_idx;
+                            TextIndex --;
+                            if (TextIndex < 0) TextIndex = 0;
+                            if (TextIndex < Normals_c && TextIndex >= 0)
                             {
-                                if (!Camera_screen_lock)
-                                    select_Parent_Locator();
+                                Materials[O->surface].Normal_idx = TextIndex;
+                                Materials[O->surface].normal = TextIndex;
+                                DRAW_UI = 0;
+                                open_Textures_List();
+                                DRAW_UI = 1;
                             }
-                            else if (Vertex_Mode)
+                        }
+                        else if (strcmp(text, TEXT_TYPE_BUMP) == 0)
+                        {
+                            TextIndex = Materials[O->surface].Bump_idx;
+                            TextIndex --;
+                            if (TextIndex < 0) TextIndex = 0;
+                            if (TextIndex < Bumps_c && TextIndex >= 0)
                             {
-                                if (selected_verts_count > 1)
-                                {
-                                    int r = add_Next_Vertex_To_Selected(O);
-                                    if (r)
-                                    {
-                                        ordered_Verts_Selection(O);
-                                        assert_Element_Selection_(O);
-                                    }
-                                }
+                                Materials[O->surface].Bump_idx = TextIndex;
+                                Materials[O->surface].bump = TextIndex;
+                                DRAW_UI = 0;
+                                open_Textures_List();
+                                DRAW_UI = 1;
                             }
-                            else if (Edge_Mode)
-                            {
-                                if (selected_edges_count > 1)
-                                {
-                                    int r = add_Next_Edge_To_Selected(O);
-                                    if (r)
-                                    {
-                                        ordered_Edges_Selection(O);
-                                        assert_Element_Selection_(O);
-                                    }
-                                }
-                            }
-                            else if (mod & KMOD_CTRL)
-                            {
-                                Camera->T->rot[0] += pi30;
-                            }
-                            else if (mod & KMOD_SHIFT)
-                            {
-                                O->T->pos[1] += 0.5;
-                            }
-                            else
-                            {
-                                O->T->rot[0] -= pi30;
-                            }
+                        }
+                    }
+                    else
+                    {
+                        handle_UP(0);
+                    }
+                }
+                else if (DRAW_LOCATORS)
+                {
+                    if (!Camera_screen_lock)
+                        select_Parent_Locator();
+                }
+                else if (Vertex_Mode)
+                {
+                    if (selected_verts_count > 1)
+                    {
+                        int r = add_Next_Vertex_To_Selected(O);
+                        if (r)
+                        {
+                            ordered_Verts_Selection(O);
+                            assert_Element_Selection_(O);
+                        }
+                    }
+                }
+                else if (Edge_Mode)
+                {
+                    if (selected_edges_count > 1)
+                    {
+                        int r = add_Next_Edge_To_Selected(O);
+                        if (r)
+                        {
+                            ordered_Edges_Selection(O);
+                            assert_Element_Selection_(O);
+                        }
+                    }
+                }
+                else if (mod & KMOD_CTRL)
+                {
+                    Camera->T->rot[0] += pi30;
+                }
+                else if (mod & KMOD_SHIFT)
+                {
+                    O->T->pos[1] += 0.5;
+                }
+                else
+                {
+                    O->T->rot[0] -= pi30;
+                }
             }
             message = -1;
         }
