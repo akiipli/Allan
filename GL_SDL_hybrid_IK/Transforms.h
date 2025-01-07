@@ -543,7 +543,7 @@ void rotate_vertex_groups_collect_Objects(transformer * T)
 
 void rotate_vertex_groups_I_selective_Move(transformer * T, float Delta[3])
 {
-    int v, v_idx, idx, idx0, i, s, condition;
+    int v_idx, idx, i, s;
     object * O;
     vert_selection * S;
     vertex * V;
@@ -569,13 +569,9 @@ void rotate_vertex_groups_I_selective_Move(transformer * T, float Delta[3])
     {
         S = T->Selections[s];
 
-        //if (S->Name == NULL) continue;
-
         O = S->Object;
 
-        //printf("SELECTION %s OBJECT %s\n", S->Name, O->Name);
-
-        if (O->deforms && O->selected)
+        if (O->deforms && O->selected && O->Movement_Enabled)
         {
             for (i = 0; i < S->indices_count; i ++)
             {
@@ -584,21 +580,9 @@ void rotate_vertex_groups_I_selective_Move(transformer * T, float Delta[3])
 
                 if (V->selected)
                 {
-                    condition = 0;
+                    v_idx = V->selected - 1; // avoid zero
 
-                    for (v = 0; v < O->selected_verts_count; v ++)
-                    {
-                        idx0 = O->selected_verts[v];
-
-                        if(idx == idx0)
-                        {
-                            condition = 1;
-                            v_idx = v;
-                            break;
-                        }
-                    }
-
-                    if (condition)
+                    if (v_idx < O->selected_verts_count)
                     {
                         Pos[0] = O->vertex_Positions[v_idx].Pos[0] - T->pos[0];
                         Pos[1] = O->vertex_Positions[v_idx].Pos[1] - T->pos[1];
@@ -618,7 +602,7 @@ void rotate_vertex_groups_I_selective_Move(transformer * T, float Delta[3])
 
 void rotate_vertex_groups_I_selective(transformer * T)
 {
-    int v, v_idx, idx, idx0, i, s, condition;
+    int v_idx, idx, i, s;
     object * O;
     vert_selection * S;
     vertex * V;
@@ -641,13 +625,9 @@ void rotate_vertex_groups_I_selective(transformer * T)
     {
         S = T->Selections[s];
 
-        //if (S->Name == NULL) continue;
-
         O = S->Object;
 
-        //printf("SELECTION %s OBJECT %s\n", S->Name, O->Name);
-
-        if (O->deforms && O->selected)
+        if (O->deforms && O->selected && O->Movement_Enabled)
         {
             for (i = 0; i < S->indices_count; i ++)
             {
@@ -656,21 +636,9 @@ void rotate_vertex_groups_I_selective(transformer * T)
 
                 if (V->selected)
                 {
-                    condition = 0;
+                    v_idx = V->selected - 1; // avoid zero
 
-                    for (v = 0; v < O->selected_verts_count; v ++)
-                    {
-                        idx0 = O->selected_verts[v];
-
-                        if(idx == idx0)
-                        {
-                            condition = 1;
-                            v_idx = v;
-                            break;
-                        }
-                    }
-
-                    if (condition)
+                    if (v_idx < O->selected_verts_count)
                     {
                         rotate_center(O->vertex_Positions[v_idx].Pos, Action_Center->rotVec, Action_Center->pos, result);
 

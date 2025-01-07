@@ -129,7 +129,9 @@ void assert_Verts_Selection()
         {
             V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
             if (V->selected)
+            {
                 O->selected_verts[O->selected_verts_count ++] = v;
+            }
         }
     }
 }
@@ -206,6 +208,9 @@ void remember_Objects_Verts_Pos()
             {
                 idx = O->selected_verts[v];
                 V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                V->selected = v + 1; // avoid zero
+
                 O->vertex_Positions[v].x = V->Tx;
                 O->vertex_Positions[v].y = V->Ty;
                 O->vertex_Positions[v].z = V->Tz;
