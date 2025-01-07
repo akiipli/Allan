@@ -3441,34 +3441,43 @@ void set_Edge_Mode()
 
 void set_Vertex_Mode()
 {
-    if (Curve_Mode)
+    Vertex_Mode = !Vertex_Mode;
+
+    if (Vertex_Mode)
     {
-        printf("Curve Vertex Mode\n");
-        selection_Mode = 6;
+        if (Curve_Mode)
+        {
+            printf("Curve Vertex Mode\n");
+            selection_Mode = 6;
+        }
+        else
+        {
+            printf("Vertex Mode\n");
+            selection_Mode = 3;
+            vertdraw = 1;
+        }
+
+        Object_Mode = 0;
+        Polygon_Mode = 0;
+        Edge_Mode = 0;
+
+        Bone_Mode = 0;
+
+        Button_Mode[0].color = UI_GRAYB;
+        Button_Mode[1].color = UI_GRAYB;
+        Button_Mode[2].color = UI_GRAYB;
+        Button_Mode[3].color = UI_GRAYD;
+        Button_Mode[4].color = UI_GRAYB;
+
+        if (add_selection_mode)
+            SDL_SetCursor(Arrow_Plus);
+        else
+            SDL_SetCursor(Arrow_Minus);
     }
     else
     {
-        printf("Vertex Mode\n");
-        selection_Mode = 3;
-        vertdraw = 1;
+        set_Object_Mode();
     }
-
-    Object_Mode = 0;
-    Polygon_Mode = 0;
-    Edge_Mode = 0;
-    Vertex_Mode = 1;
-    Bone_Mode = 0;
-
-    Button_Mode[0].color = UI_GRAYB;
-    Button_Mode[1].color = UI_GRAYB;
-    Button_Mode[2].color = UI_GRAYB;
-    Button_Mode[3].color = UI_GRAYD;
-    Button_Mode[4].color = UI_GRAYB;
-
-    if (add_selection_mode)
-        SDL_SetCursor(Arrow_Plus);
-    else
-        SDL_SetCursor(Arrow_Minus);
 }
 
 void set_Bone_Mode()
