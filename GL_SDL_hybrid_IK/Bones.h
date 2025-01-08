@@ -607,7 +607,7 @@ void generate_Extended_Groups_In_Deformer(deformer * D)
     }
 }
 
-void generate_Split_Groups_In_Deformer(deformer * D)
+void generate_Split_Groups_In_Deformer(deformer * D, int big_groups)
 {
     printf ("generate Split Groups In Deformer\n");
 
@@ -642,31 +642,67 @@ void generate_Split_Groups_In_Deformer(deformer * D)
                 dist_To_A = dist_Vert_To_Pos(V, B->A->pos);
                 dist_To_B = dist_Vert_To_Pos(V, B->B->pos);
 
-                SP0->indices[SP0->indices_count] = idx;
-                if (B->len > 0)
-                    SP0->weights[SP0->indices_count] = 1 - (dist_To_A / B->len);
+                if (big_groups)
+                {
+                    SP0->indices[SP0->indices_count] = idx;
+                    if (B->len > 0)
+                        SP0->weights[SP0->indices_count] = 1 - (dist_To_A / B->len);
+                    else
+                        SP0->weights[SP0->indices_count] = 0;
+
+                    if (SP0->weights[SP0->indices_count] < 0)
+                        SP0->weights[SP0->indices_count] = 0;
+                    else if (SP0->weights[SP0->indices_count] > 1)
+                        SP0->weights[SP0->indices_count] = 1;
+
+                    SP0->indices_count ++;
+
+                    SP1->indices[SP1->indices_count] = idx;
+                    if (B->len > 0)
+                        SP1->weights[SP1->indices_count] = 1 - (dist_To_B / B->len);
+                    else
+                        SP1->weights[SP1->indices_count] = 0;
+
+                    if (SP1->weights[SP1->indices_count] < 0)
+                        SP1->weights[SP1->indices_count] = 0;
+                    else if (SP1->weights[SP1->indices_count] > 1)
+                        SP1->weights[SP1->indices_count] = 1;
+
+                    SP1->indices_count ++;
+                }
                 else
-                    SP0->weights[SP0->indices_count] = 0;
+                {
+                    if (dist_To_A < dist_To_B)
+                    {
+                        SP0->indices[SP0->indices_count] = idx;
+                        if (B->len > 0)
+                            SP0->weights[SP0->indices_count] = 1 - (dist_To_A / (B->len / 2));
+                        else
+                            SP0->weights[SP0->indices_count] = 0;
 
-                if (SP0->weights[SP0->indices_count] < 0)
-                    SP0->weights[SP0->indices_count] = 0;
-                else if (SP0->weights[SP0->indices_count] > 1)
-                    SP0->weights[SP0->indices_count] = 1;
+                        if (SP0->weights[SP0->indices_count] < 0)
+                            SP0->weights[SP0->indices_count] = 0;
+                        else if (SP0->weights[SP0->indices_count] > 1)
+                            SP0->weights[SP0->indices_count] = 1;
 
-                SP0->indices_count ++;
+                        SP0->indices_count ++;
+                    }
+                    else
+                    {
+                        SP1->indices[SP1->indices_count] = idx;
+                        if (B->len > 0)
+                            SP1->weights[SP1->indices_count] = 1 - (dist_To_B / (B->len / 2));
+                        else
+                            SP1->weights[SP1->indices_count] = 0;
 
-                SP1->indices[SP1->indices_count] = idx;
-                if (B->len > 0)
-                    SP1->weights[SP1->indices_count] = 1 - (dist_To_B / B->len);
-                else
-                    SP1->weights[SP1->indices_count] = 0;
+                        if (SP1->weights[SP1->indices_count] < 0)
+                            SP1->weights[SP1->indices_count] = 0;
+                        else if (SP1->weights[SP1->indices_count] > 1)
+                            SP1->weights[SP1->indices_count] = 1;
 
-                if (SP1->weights[SP1->indices_count] < 0)
-                    SP1->weights[SP1->indices_count] = 0;
-                else if (SP1->weights[SP1->indices_count] > 1)
-                    SP1->weights[SP1->indices_count] = 1;
-
-                SP1->indices_count ++;
+                        SP1->indices_count ++;
+                    }
+                }
             }
             SP0->indices = realloc(SP0->indices, SP0->indices_count * sizeof(int));
             SP0->weights = realloc(SP0->weights, SP0->indices_count * sizeof(float));

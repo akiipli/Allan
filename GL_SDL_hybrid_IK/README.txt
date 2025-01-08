@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+9:29 AM 1/8/2025
+In Deformer list. After binding (b).
+s generates bigger, smooth binding. Shift-s generates smooth binding with smaller vertgroups.
+
 2:25 PM 1/7/2025
 With Vertex Manipulation in Modeling mode, now scaling (S) enables push/pull effect when 1 tap and left Alt hold. 
 

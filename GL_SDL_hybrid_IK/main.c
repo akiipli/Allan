@@ -10025,7 +10025,7 @@ void handle_DOWN(int scrollbar)
     }
 }
 
-void generate_Smooth_Binding(deformer * D)
+void generate_Smooth_Binding(deformer * D, int big_groups)
 {
     Draw_Bottom_Message("generate Smooth Binding\n");
 
@@ -10035,7 +10035,7 @@ void generate_Smooth_Binding(deformer * D)
     }
 
     Bottom_Message = 0;
-    generate_Split_Groups_In_Deformer(D);
+    generate_Split_Groups_In_Deformer(D, big_groups);
     generate_Extended_Groups_In_Deformer(D);
     normalize_Weights_In_Deformer(D);
 
@@ -11528,14 +11528,9 @@ void apply_Pose_rotation()
 
             paste_Pose_rotation(D, P);
 
-            // deformations
-//            Update_Objects_Count = 0;
-//
-//            rotate_collect(transformers[currentLocator]);
-//            rotate_vertex_groups_D_Init();
-//
-//            rotate_Deformer_(D);
-            //
+            apply_Pose_position_Play(D);
+            solve_IK_Chains(D);
+
             if (D->Transformers_Count > 0)
             {
                 Update_Objects_Count = 0;
@@ -11611,6 +11606,158 @@ void add_Branch()
             draw_Dialog();
         }
     }
+}
+
+void select_Locator_Selections(int currentLocator)
+{
+    T = transformers[currentLocator];
+    object * O0;
+    vertex * V;
+    triangle * T0;
+    polygon * P;
+    quadrant * Q;
+    vert_selection * S = NULL;
+
+    int idx, e, t, p, i, v, s;
+    float w;
+    id_color I;
+    id_color I0;
+    int c_c;
+
+    for (s = 0; s < T->Selections_Count; s ++)
+    {
+        S = T->Selections[s];
+        O0 = S->Object;
+        if (O0 == O)
+        {
+            c_c = 0;
+
+            for (v = 0; v < O0->vertcount; v ++)
+            {
+                V = &O0->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                V->selected = 0;
+            }
+            for (v = 0; v < O0->vertcount; v ++)
+            {
+                V = &O0->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                for (i = 0; i < S->indices_count; i ++)
+                {
+                    if (S->indices[i] == v)
+                    {
+                        V->selected = 1;
+                    }
+                }
+            }
+            for (p = 0; p < O0->polycount; p ++)
+            {
+                P = &O0->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+                if (P->selected == 1)
+                {
+                    I0.R = 0;
+                    I0.G = 0;
+                    I0.B = 1;
+                    I0.A = 1;
+                }
+                else
+                {
+                    I0.R = Materials[P->surface].RGBA.R / 255;
+                    I0.G = Materials[P->surface].RGBA.G / 255;
+                    I0.B = Materials[P->surface].RGBA.B / 255;
+                    I0.A = Materials[P->surface].RGBA.A / 255;
+                }
+
+                if (ELEMENT_ARRAYS)
+                {
+                    for (t = 0; t < P->tripcount; t ++)
+                    {
+                        idx = P->trips[t];
+                        T0 = &O0->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        for (v = 0; v < 3; v ++)
+                        {
+                            idx = T0->verts[v];
+                            V = &O0->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                            if (V->selected)
+                            {
+                                for (i = 0; i < S->indices_count; i ++)
+                                {
+                                    if (S->indices[i] == V->index)
+                                    {
+                                        w = S->weights[i];
+                                        I.R = 1;
+                                        I.G = 1 - w;
+                                        I.B = 1 - w;
+                                        I.A = 1;
+                                        break;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                I.R = I0.R;
+                                I.G = I0.G;
+                                I.B = I0.B;
+                                I.A = I0.A;
+                            }
+                            idx = T0->texts[v];
+                            c_c = idx * 4;
+                            O0->cols_array[1][c_c++] = I.R;
+                            O0->cols_array[1][c_c++] = I.G;
+                            O0->cols_array[1][c_c++] = I.B;
+                            O0->cols_array[1][c_c++] = I.A;
+
+                        }
+                    }
+                }
+                else
+                {
+                    for (e = 0; e < P->edgecount; e ++)
+                    {
+                        idx = P->verts[e];
+                        V = &O0->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        if (V->selected)
+                        {
+                            for (i = 0; i < S->indices_count; i ++)
+                            {
+                                if (S->indices[i] == V->index)
+                                {
+                                    w = S->weights[i];
+                                    I.R = 1;
+                                    I.G = 1 - w;
+                                    I.B = 1 - w;
+                                    I.A = 1;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            I.R = I0.R;
+                            I.G = I0.G;
+                            I.B = I0.B;
+                            I.A = I0.A;
+                        }
+
+                        O0->cols_array[0][c_c++] = I.R;
+                        O0->cols_array[0][c_c++] = I.G;
+                        O0->cols_array[0][c_c++] = I.B;
+                        O0->cols_array[0][c_c++] = I.A;
+                    }
+                }
+
+                if (subdLevel > -1 && O0->subdlevel > -1)
+                {
+                    for (e = 0; e < P->edgecount; e ++)
+                    {
+                        idx = P->quads[e];
+                        Q = &O0->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                        assign_Quad_Color(O0, Q, &I, 0);
+                    }
+                }
+            }
+        }
+    }
+    if (S != NULL)
+        set_Vert_Selection(S);
 }
 
 void handle_Defr_Dialog(char letter, SDLMod mod)
@@ -11710,7 +11857,19 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
             {
                 D = deformers[currentDeformer_Node];
                 if (D != NULL)
-                    generate_Smooth_Binding(D);
+                {
+                    if (mod & KMOD_SHIFT)
+                    {
+                        generate_Smooth_Binding(D, 0);
+                    }
+                    else
+                    {
+                        generate_Smooth_Binding(D, 1);
+                    }
+                    select_Locator_Selections(currentLocator);
+                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                    draw_Dialog();
+                }
             }
         }
         else if (letter == 'd')
@@ -14566,158 +14725,6 @@ void delete_Deformer()
         draw_Deformers_Bottom_Line(DIALOG_WIDTH, screen_height);
         SDL_GL_SwapBuffers();
     }
-}
-
-void select_Locator_Selections(int currentLocator)
-{
-    T = transformers[currentLocator];
-    object * O0;
-    vertex * V;
-    triangle * T0;
-    polygon * P;
-    quadrant * Q;
-    vert_selection * S = NULL;
-
-    int idx, e, t, p, i, v, s;
-    float w;
-    id_color I;
-    id_color I0;
-    int c_c;
-
-    for (s = 0; s < T->Selections_Count; s ++)
-    {
-        S = T->Selections[s];
-        O0 = S->Object;
-        if (O0 == O)
-        {
-            c_c = 0;
-
-            for (v = 0; v < O0->vertcount; v ++)
-            {
-                V = &O0->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-                V->selected = 0;
-            }
-            for (v = 0; v < O0->vertcount; v ++)
-            {
-                V = &O0->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-                for (i = 0; i < S->indices_count; i ++)
-                {
-                    if (S->indices[i] == v)
-                    {
-                        V->selected = 1;
-                    }
-                }
-            }
-            for (p = 0; p < O0->polycount; p ++)
-            {
-                P = &O0->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-                if (P->selected == 1)
-                {
-                    I0.R = 0;
-                    I0.G = 0;
-                    I0.B = 1;
-                    I0.A = 1;
-                }
-                else
-                {
-                    I0.R = Materials[P->surface].RGBA.R / 255;
-                    I0.G = Materials[P->surface].RGBA.G / 255;
-                    I0.B = Materials[P->surface].RGBA.B / 255;
-                    I0.A = Materials[P->surface].RGBA.A / 255;
-                }
-
-                if (ELEMENT_ARRAYS)
-                {
-                    for (t = 0; t < P->tripcount; t ++)
-                    {
-                        idx = P->trips[t];
-                        T0 = &O0->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                        for (v = 0; v < 3; v ++)
-                        {
-                            idx = T0->verts[v];
-                            V = &O0->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                            if (V->selected)
-                            {
-                                for (i = 0; i < S->indices_count; i ++)
-                                {
-                                    if (S->indices[i] == V->index)
-                                    {
-                                        w = S->weights[i];
-                                        I.R = 1;
-                                        I.G = 1 - w;
-                                        I.B = 1 - w;
-                                        I.A = 1;
-                                        break;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                I.R = I0.R;
-                                I.G = I0.G;
-                                I.B = I0.B;
-                                I.A = I0.A;
-                            }
-                            idx = T0->texts[v];
-                            c_c = idx * 4;
-                            O0->cols_array[1][c_c++] = I.R;
-                            O0->cols_array[1][c_c++] = I.G;
-                            O0->cols_array[1][c_c++] = I.B;
-                            O0->cols_array[1][c_c++] = I.A;
-
-                        }
-                    }
-                }
-                else
-                {
-                    for (e = 0; e < P->edgecount; e ++)
-                    {
-                        idx = P->verts[e];
-                        V = &O0->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-                        if (V->selected)
-                        {
-                            for (i = 0; i < S->indices_count; i ++)
-                            {
-                                if (S->indices[i] == V->index)
-                                {
-                                    w = S->weights[i];
-                                    I.R = 1;
-                                    I.G = 1 - w;
-                                    I.B = 1 - w;
-                                    I.A = 1;
-                                    break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            I.R = I0.R;
-                            I.G = I0.G;
-                            I.B = I0.B;
-                            I.A = I0.A;
-                        }
-
-                        O0->cols_array[0][c_c++] = I.R;
-                        O0->cols_array[0][c_c++] = I.G;
-                        O0->cols_array[0][c_c++] = I.B;
-                        O0->cols_array[0][c_c++] = I.A;
-                    }
-                }
-
-                if (subdLevel > -1 && O0->subdlevel > -1)
-                {
-                    for (e = 0; e < P->edgecount; e ++)
-                    {
-                        idx = P->quads[e];
-                        Q = &O0->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
-                        assign_Quad_Color(O0, Q, &I, 0);
-                    }
-                }
-            }
-        }
-    }
-    if (S != NULL)
-        set_Vert_Selection(S);
 }
 
 void continue_Action_Begin_Pose(transformer * T)
