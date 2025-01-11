@@ -10027,7 +10027,7 @@ void handle_DOWN(int scrollbar)
 
 void generate_Smooth_Binding(deformer * D, int big_groups)
 {
-    Draw_Bottom_Message("generate Smooth Binding\n");
+    Draw_Bottom_Message("generate Smooth Binding, select bones!\n");
 
     if (BIND_POSE)
     {

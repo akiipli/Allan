@@ -565,6 +565,9 @@ void generate_Extended_Groups_In_Deformer(deformer * D)
             for (b = 0; b < D->Bones_Count; b ++)
             {
                 B = D->Bones[b];
+
+                if (!B->selected) continue;
+
                 B0 = B->A->parent->Bone;
                 for (s = 0; s < B->A->Selections_Count; s ++)
                 {
@@ -624,6 +627,8 @@ void generate_Split_Groups_In_Deformer(deformer * D, int big_groups)
     for (b = 0; b < D->Bones_Count; b ++)
     {
         B = D->Bones[b];
+
+        if (!B->selected) continue;
 
         for (s = 0; s < B->A->Selections_Count; s ++)
         {

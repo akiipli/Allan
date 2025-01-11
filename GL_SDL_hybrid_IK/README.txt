@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+5:54 PM 1/11/2025
+Now smooth binding (s) in Deformer List, depends on selected bones. Two consecutive selected bones create
+minimum circumstances.
+
 9:29 AM 1/8/2025
 In Deformer list. After binding (b).
 s generates bigger, smooth binding. Shift-s generates smooth binding with smaller vertgroups.
