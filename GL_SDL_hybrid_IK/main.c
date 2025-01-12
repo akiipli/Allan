@@ -15737,6 +15737,9 @@ void transform_Objects_And_Render()
                             if (T->Deformer != NULL)
                             {
                                 rotate_Deformer(T);
+
+                                if (T == T->Deformer->Transformers[0])
+                                    transfer_Deformers_rotVec(T);
                             }
                             else
                             {
