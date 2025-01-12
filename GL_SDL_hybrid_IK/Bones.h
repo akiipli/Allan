@@ -458,17 +458,39 @@ float dist_To_Pos(float Pos[3], float pos[3])
 
 void join_vertex_groups(vert_selection * S, split_selection S0)
 {
-    int i;
+    int i, b, condition, i_counter;
     int c = S->indices_count;
     S->indices_count += S0.indices_count;
     S->indices = realloc(S->indices, S->indices_count * sizeof(int));
     S->weights = realloc(S->weights, S->indices_count * sizeof(float));
 
+    i_counter = c;
+
     for (i = 0; i < S0.indices_count; i ++)
     {
-        S->indices[i + c] = S0.indices[i];
-        S->weights[i + c] = S0.weights[i];
+        condition = 1;
+        for (b = 0; b < c; b ++)
+        {
+            if (S->indices[b] == S0.indices[i])
+            {
+                condition = 0;
+                S->weights[b] += S0.weights[i];
+                //printf("double index Sb S0i %d\n", b);
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            S->indices[i_counter] = S0.indices[i];
+            S->weights[i_counter] = S0.weights[i];
+            i_counter ++;
+        }
     }
+
+    S->indices_count = i_counter;
+    S->indices = realloc(S->indices, S->indices_count * sizeof(int));
+    S->weights = realloc(S->weights, S->indices_count * sizeof(float));
 }
 
 void normalize_Weights_In_Deformer(deformer * D)
