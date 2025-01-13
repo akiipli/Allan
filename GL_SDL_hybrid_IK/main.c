@@ -1379,6 +1379,24 @@ void assignSurfToQuads(object * O, polygon * P, int surf)
     }
 }
 
+void assign_Texture_offset(object * O, int offset)
+{
+    int t, p;
+    triangle * T;
+    polygon * P;
+
+    for (t = 0; t < O->tripcount; t ++)
+    {
+        T = &O->trips[t / ARRAYSIZE][t % ARRAYSIZE];
+        T->surface += offset;
+    }
+    for (p = 0; p < O->polycount; p ++)
+    {
+        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+        P->surface += offset;
+    }
+}
+
 void assign_Texture(object * O)
 {
     int t, p, q, l;
@@ -17145,10 +17163,10 @@ void change_Material_Smooth()
 {
     Materials[currentMaterial].smooth = !Materials[currentMaterial].smooth;
 
-    DRAW_UI = 0;
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-    DRAW_UI = 1;
-
+//    DRAW_UI = 0;
+//    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+//    DRAW_UI = 1;
+//
     draw_Dialog();
 
     SDL_GL_SwapBuffers();

@@ -155,6 +155,7 @@ typedef struct
 }
 Object_In;
 
+void assign_Texture_offset(object * O, int initial_M_count);
 void assign_Texture(object * O);
 
 void scale_xyz(transformer_pose * T)
@@ -1355,6 +1356,8 @@ int read_Surfaces_file(char * fileName, int obj_count)
     surface_Material * M;
     object * O;
 
+    int initial_M_count = Materials_count - 4;
+
     if (fgets(buff, BUF_SIZE, fp))
     {
         if (strcmp("Materials\n", buff) == 0)
@@ -1539,6 +1542,7 @@ int read_Surfaces_file(char * fileName, int obj_count)
                         if (O->address == object_address)
                         {
                             O->surface = c;
+                            assign_Texture_offset(O, initial_M_count);
                             //assign_Texture(O);
                             break;
                         }
