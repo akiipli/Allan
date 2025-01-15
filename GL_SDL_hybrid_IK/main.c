@@ -3673,7 +3673,6 @@ void select_Selection()
     {
         set_Polygon_Mode();
         int o, i, idx, p, i_c;
-        int condition;
         polygon * P;
 
         printf("Polygon selection type\n");
@@ -3681,18 +3680,22 @@ void select_Selection()
 
         for (o = 0; o < selected_object_count; o ++)
         {
-            condition = 1;
+            O = objects[selected_objects[o]];
+            for (p = 0; p < O->polycount; p ++)
+            {
+                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+                P->selected = 0;
+            }
+        }
+
+        for (o = 0; o < selected_object_count; o ++)
+        {
             O = objects[selected_objects[o]];
             for (i = 0; i < O->polygon_selections; i ++)
             {
                 if (strcmp(O->polygon_selection[i]->Name, Sels_Names[current_sel_type][SelsIndex[current_sel_type]]) == 0)
                 {
                     printf("Selection exists! Selecting.\n");
-                    for (p = 0; p < O->polycount; p ++)
-                    {
-                        P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-                        P->selected = 0;
-                    }
                     for (i_c = 0; i_c < O->polygon_selection[i]->indices_count; i_c ++)
                     {
                         idx = O->polygon_selection[i]->indices[i_c];
@@ -3700,18 +3703,7 @@ void select_Selection()
                         P->selected = 1;
                     }
                     printf("selected elements count %d\n", O->polygon_selection[i]->indices_count);
-
-                    condition = 0;
                     break;
-                }
-            }
-
-            if (condition)
-            {
-                for (p = 0; p < O->polycount; p ++)
-                {
-                    P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-                    P->selected = 0;
                 }
             }
         }
@@ -3731,11 +3723,20 @@ void select_Selection()
     {
         set_Edge_Mode();
         int o, i, idx, e, i_c;
-        int condition = 1;
         edge * E;
 
         printf("Edge selection type\n");
         object * O;
+
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O = objects[selected_objects[o]];
+            for (e = 0; e < O->edgecount; e ++)
+            {
+                E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
+                E->selected = 0;
+            }
+        }
 
         for (o = 0; o < selected_object_count; o ++)
         {
@@ -3745,11 +3746,6 @@ void select_Selection()
                 if (strcmp(O->edge_selection[i]->Name, Sels_Names[current_sel_type][SelsIndex[current_sel_type]]) == 0)
                 {
                     printf("Selection exists! Selecting.\n");
-                    for (e = 0; e < O->edgecount; e ++)
-                    {
-                        E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-                        E->selected = 0;
-                    }
                     for (i_c = 0; i_c < O->edge_selection[i]->indices_count; i_c ++)
                     {
                         idx = O->edge_selection[i]->indices[i_c];
@@ -3757,18 +3753,7 @@ void select_Selection()
                         E->selected = 1;
                     }
                     printf("selected elements count %d\n", O->edge_selection[i]->indices_count);
-
-                    condition = 0;
                     break;
-                }
-            }
-
-            if (condition)
-            {
-                for (e = 0; e < O->edgecount; e ++)
-                {
-                    E = &O->edges[e / ARRAYSIZE][e % ARRAYSIZE];
-                    E->selected = 0;
                 }
             }
         }
@@ -3777,11 +3762,20 @@ void select_Selection()
     {
         set_Vertex_Mode();
         int o, i, idx, v, i_c;
-        int condition = 1;
         vertex * V;
 
         printf("Vertex selection type\n");
         object * O;
+
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O = objects[selected_objects[o]];
+            for (v = 0; v < O->vertcount; v ++)
+            {
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                V->selected = 0;
+            }
+        }
 
         for (o = 0; o < selected_object_count; o ++)
         {
@@ -3791,11 +3785,6 @@ void select_Selection()
                 if (strcmp(O->vertex_selection[i]->Name, Sels_Names[current_sel_type][SelsIndex[current_sel_type]]) == 0)
                 {
                     printf("Selection exists! Selecting.\n");
-                    for (v = 0; v < O->vertcount; v ++)
-                    {
-                        V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-                        V->selected = 0;
-                    }
                     for (i_c = 0; i_c < O->vertex_selection[i]->indices_count; i_c ++)
                     {
                         idx = O->vertex_selection[i]->indices[i_c];
@@ -3803,18 +3792,7 @@ void select_Selection()
                         V->selected = 1;
                     }
                     printf("selected elements count %d\n", O->vertex_selection[i]->indices_count);
-
-                    condition = 0;
                     break;
-                }
-            }
-
-            if (condition)
-            {
-                for (v = 0; v < O->vertcount; v ++)
-                {
-                    V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-                    V->selected = 0;
                 }
             }
         }
