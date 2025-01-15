@@ -19768,7 +19768,7 @@ int main(int argc, char * args[])
                                                 assert_Deformers_Selected();
                                                 select_Deformer_Objects();
                                                 set_Object_Mode();
-                                                DRAW_LOCATORS = 0;
+                                                //DRAW_LOCATORS = 0;
                                                 if (!BIND_POSE)
                                                     frame_object(Camera, 1);
                                             }
@@ -20709,7 +20709,8 @@ int main(int argc, char * args[])
                                     //LocatorSize = T->LocatorSize;
                                     select_Transformer_Bone(T);
                                     select_Transformer_IK(T);
-                                    select_Deformer();
+                                    if (!BIND_POSE)
+                                        select_Deformer();
                                 }
                                 else
                                 {
@@ -22411,7 +22412,8 @@ int main(int argc, char * args[])
                                     //LocatorSize = T->LocatorSize;
                                     select_Transformer_Bone(T);
                                     select_Transformer_IK(T);
-                                    select_Deformer();
+                                    if (!BIND_POSE)
+                                        select_Deformer();
                                 }
                                 else
                                 {
@@ -24299,9 +24301,9 @@ int main(int argc, char * args[])
                     int r = 0;
                     int c;
 
-                    if (deformerIndex > 0 && currentDeformer < deformerIndex)
+                    if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
                     {
-                        D = deformers[currentDeformer];
+                        D = deformers[currentDeformer_Node];
                     }
                     else
                     {
