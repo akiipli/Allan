@@ -4805,7 +4805,7 @@ void set_Button_defr(int idx)
 
     if (current_defr_type == 0)
     {
-        create_Transformers_List();
+        //create_Transformers_List();
         create_Deformers_List(SelsIndex[3], O);
         if (!BIND_POSE)
             set_Button_sels(3);
