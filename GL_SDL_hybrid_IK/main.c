@@ -11604,7 +11604,7 @@ void add_Branch()
     }
 }
 
-void select_Locator_Selections(int currentLocator)
+void select_Locator_Selections(int currentLocator, int highlight)
 {
     T = transformers[currentLocator];
     object * O0;
@@ -11614,11 +11614,22 @@ void select_Locator_Selections(int currentLocator)
     quadrant * Q;
     vert_selection * S = NULL;
 
-    int idx, e, t, p, i, v, s;
+    int o, idx, e, t, p, i, v, s;
     float w;
     id_color I;
     id_color I0;
     int c_c;
+
+    for (o = 0; o < selected_object_count; o ++)
+    {
+        O0 = objects[selected_objects[o]];
+
+        for (v = 0; v < O0->vertcount; v ++)
+        {
+            V = &O0->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+            V->selected = 0;
+        }
+    }
 
     for (s = 0; s < T->Selections_Count; s ++)
     {
@@ -11628,22 +11639,13 @@ void select_Locator_Selections(int currentLocator)
         {
             c_c = 0;
 
-            for (v = 0; v < O0->vertcount; v ++)
+            for (i = 0; i < S->indices_count; i ++)
             {
-                V = &O0->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-                V->selected = 0;
+                idx = S->indices[i];
+                V = &O0->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                V->selected = 1;
             }
-            for (v = 0; v < O0->vertcount; v ++)
-            {
-                V = &O0->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-                for (i = 0; i < S->indices_count; i ++)
-                {
-                    if (S->indices[i] == v)
-                    {
-                        V->selected = 1;
-                    }
-                }
-            }
+
             for (p = 0; p < O0->polycount; p ++)
             {
                 P = &O0->polys[p / ARRAYSIZE][p % ARRAYSIZE];
@@ -11750,8 +11752,24 @@ void select_Locator_Selections(int currentLocator)
                     }
                 }
             }
+            break;
         }
     }
+
+    if (highlight)
+    {
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O0 = objects[selected_objects[o]];
+
+            for (v = 0; v < O0->vertcount; v ++)
+            {
+                V = &O0->verts[v / ARRAYSIZE][v % ARRAYSIZE];
+                V->selected = 0;
+            }
+        }
+    }
+
     if (S != NULL)
         set_Vert_Selection(S);
 }
@@ -11862,7 +11880,7 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
                     {
                         generate_Smooth_Binding(D, 1);
                     }
-                    select_Locator_Selections(currentLocator);
+                    select_Locator_Selections(currentLocator, 0);
                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                     draw_Dialog();
                 }
@@ -11917,6 +11935,15 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
                     deformer_morph_map_Index = Deformer_Morph_Maps_c;
                     deformer_morph_Index = Deformer_Morphs_c;
             }
+        }
+        else if (letter == 13 || letter == 10) // return, enter
+        {
+            select_Locator_Selections(currentLocator, 0);
+            assert_Element_Selection();
+            DRAW_UI = 0;
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            DRAW_UI = 1;
+            draw_Dialog();
         }
     }
 }
@@ -16304,7 +16331,7 @@ void select_Deformer_Objects()
         }
 
         assert_Object_Selection();
-        assert_Current_Object();
+        //assert_Current_Object();
     }
 }
 
@@ -19758,7 +19785,8 @@ int main(int argc, char * args[])
                                             {
                                                 currentLocator = Deformer_List[currentDeformer];
                                                 HierIndex = currentLocator;
-                                                select_Locator_Selections(currentLocator);
+                                                select_Locator_Selections(currentLocator, 1);
+                                                assert_Element_Selection();
                                                 if (!BIND_POSE)
                                                     frame_object(Camera, 1);
                                             }
@@ -20278,8 +20306,13 @@ int main(int argc, char * args[])
                                     if (h_index < H_SELS_NUM)
                                     {
                                         (*Button_h_sels[h_index].func)();
-                                        UPDATE_BACKGROUND = 0;
-                                        update_Selections_List(0, 1);
+                                        UPDATE_BACKGROUND = 1;
+                                        select_Locator_Selections(currentLocator, 1);
+                                        assert_Element_Selection();
+                                        DRAW_UI = 0;
+                                        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                        DRAW_UI = 1;
+                                        draw_Dialog();
                                     }
                                 }
                             }
@@ -20300,7 +20333,12 @@ int main(int argc, char * args[])
                                 {
                                     (*Button_h_sels[h_index].func)();
                                     UPDATE_BACKGROUND = 1;
-                                    update_Selections_List(0, 1);
+                                    select_Locator_Selections(currentLocator, 1);
+                                    assert_Element_Selection();
+                                    DRAW_UI = 0;
+                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                    DRAW_UI = 1;
+                                    draw_Dialog();
                                     message = -1;
                                 }
                             }
