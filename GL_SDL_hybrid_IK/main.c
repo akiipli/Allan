@@ -20333,7 +20333,8 @@ int main(int argc, char * args[])
                                 {
                                     (*Button_h_sels[h_index].func)();
                                     UPDATE_BACKGROUND = 1;
-                                    select_Locator_Selections(currentLocator, 1);
+                                    if (h_index == 3)
+                                        select_Locator_Selections(currentLocator, 1);
                                     assert_Element_Selection();
                                     DRAW_UI = 0;
                                     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
