@@ -539,6 +539,9 @@ void assign_Selection_L()
         {
             condition = 1;
             O = objects[selected_objects[o]];
+
+            if (!O->selected_polys_count) continue;
+
             for (i = 0; i < O->polygon_selections; i ++)
             {
                 if (strcmp(O->polygon_selection[i]->Name, Sels_Names[1][SelsIndex[1]]) == 0)
@@ -610,6 +613,9 @@ void assign_Selection_L()
         {
             condition = 1;
             O = objects[selected_objects[o]];
+
+            if (!O->selected_edges_count) continue;
+
             for (i = 0; i < O->edge_selections; i ++)
             {
                 if (strcmp(O->edge_selection[i]->Name, Sels_Names[2][SelsIndex[2]]) == 0)
@@ -681,6 +687,9 @@ void assign_Selection_L()
         {
             condition = 1;
             O = objects[selected_objects[o]];
+
+            if (!O->selected_verts_count) continue;
+
             for (i = 0; i < O->vertex_selections; i ++)
             {
                 if (strcmp(O->vertex_selection[i]->Name, Sels_Names[3][SelsIndex[3]]) == 0)
