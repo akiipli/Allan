@@ -19843,7 +19843,7 @@ int main(int argc, char * args[])
                                         if (SelsIndex[current_sel_type] - sels_start[current_sel_type] >= 0)
                                             SelsList[SelsIndex[current_sel_type] - sels_start[current_sel_type]].color = UI_BACKL;
 
-                                        select_Selection();
+                                        //select_Selection();
 
                                         UPDATE_BACKGROUND = 0;
                                         update_Selections_List(0, 1);
