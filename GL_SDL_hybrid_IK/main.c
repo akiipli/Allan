@@ -11768,6 +11768,18 @@ void select_Locator_Selections(int currentLocator, int highlight)
                 V->selected = 0;
             }
         }
+
+        for (o = 0; o < selected_object_count; o ++)
+        {
+            O0 = objects[selected_objects[o]];
+
+            for (v = 0; v < O0->selected_verts_count; v ++)
+            {
+                idx = O0->selected_verts[v];
+                V = &O0->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                V->selected = 1;
+            }
+        }
     }
 
     if (S != NULL)
