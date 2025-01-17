@@ -347,6 +347,85 @@ void copy_and_paste(char letter)
     }
 }
 
+void text_Editor(SDLMod mod, char letter, char * Item_Name)
+{
+    if (controlDown)
+    {
+        copy_and_paste(letter);
+    }
+    else
+    {
+        if (letter == '-')
+        {
+            if (mod & KMOD_SHIFT)
+            {
+                letter = '_';
+            }
+        }
+        else if (isalnum(letter) && (mod & KMOD_SHIFT))
+        {
+            letter -= 32;
+        }
+        if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
+        {
+            memcpy(EditString_Tail, &EditString[EditCursor], strlen(EditString) - EditCursor);
+            EditString_Tail[strlen(EditString) - EditCursor] = '\0';
+
+            if (EditCursor < STRLEN - 1)
+            {
+                EditString[EditCursor] = letter;
+                EditCursor ++;
+                EditString[EditCursor] = '\0';
+            }
+
+            strcat(EditString, EditString_Tail);
+        }
+        else if (letter == 8) // backspace
+        {
+            if (Pos_end - Pos_start > 0)
+            {
+                //printf("... EditString %d\n", strlen(EditString));
+                if (strlen(EditString) - Pos_end > 1)
+                {
+                    memcpy(EditString_Tail, &EditString[Pos_end], strlen(EditString) - Pos_end);
+                    EditString_Tail[strlen(EditString) - Pos_end] = '\0';
+                }
+                else
+                {
+                    EditString_Tail[0] = '\0';
+                }
+
+                EditCursor = Pos_start;
+                EditString[EditCursor] = '\0';
+            }
+            else
+            {
+                if (strlen(EditString) - EditCursor > 0)
+                {
+                    memcpy(EditString_Tail, &EditString[EditCursor], strlen(EditString) - EditCursor);
+                    EditString_Tail[strlen(EditString) - EditCursor] = '\0';
+                }
+                else
+                {
+                    EditString_Tail[0] = '\0';
+                }
+
+                EditCursor --;
+                if (EditCursor < 0)
+                    EditCursor = 0;
+                EditString[EditCursor] = '\0';
+
+                Pos_start = EditCursor;
+            }
+
+            strcat(EditString, EditString_Tail);
+        }
+    }
+
+    sprintf(Item_Name, "%s", EditString);
+    Pos_end = EditCursor - 1;
+}
+
 GLubyte pattern[] = {
 51, 51, 51, 51,
 51, 51, 51, 51,
@@ -11076,6 +11155,8 @@ void rename_Morph()
             sprintf(Name_Remember, "%s", Morph_Names[MorphIndex]);
             sprintf(Morph_Names[MorphIndex], "%s", "");
             Edit_Lock = 1;
+            EditCursor = 0;
+            EditString[EditCursor] = '\0';
             init_Selection_Rectangle();
             update_Morphs_List(0, 0);
         }
@@ -11093,6 +11174,8 @@ void rename_Subcharacter()
             sprintf(Name_Remember, "%s", Subcharacter_Names[SubcharacterIndex]);
             sprintf(Subcharacter_Names[SubcharacterIndex], "%s", "");
             Edit_Lock = 1;
+            EditCursor = 0;
+            EditString[EditCursor] = '\0';
             init_Selection_Rectangle();
             update_Subcharacters_List(0, 0);
         }
@@ -11110,6 +11193,8 @@ void rename_Item()
             sprintf(Name_Remember, "%s", Item_Names[ItemIndex]);
             sprintf(Item_Names[ItemIndex], "%s", "");
             Edit_Lock = 1;
+            EditCursor = 0;
+            EditString[EditCursor] = '\0';
             init_Selection_Rectangle();
             update_Items_List(1, 0);
         }
@@ -11127,6 +11212,8 @@ void rename_IK()
             sprintf(Name_Remember, "%s", IK_Names[IKIndex]);
             sprintf(IK_Names[IKIndex], "%s", "");
             Edit_Lock = 1;
+            EditCursor = 0;
+            EditString[EditCursor] = '\0';
             init_Selection_Rectangle();
             update_IK_List(1, 0);
         }
@@ -11377,6 +11464,8 @@ void rename_Material()
                 sprintf(Name_Remember, "%s", Materials[currentMaterial].Name);
                 sprintf(Materials[currentMaterial].Name, "%s", "");
                 Edit_Lock = 1;
+                EditCursor = 0;
+                EditString[EditCursor] = '\0';
                 init_Selection_Rectangle();
                 update_Materials_List(0, 0);
             }
@@ -11395,6 +11484,11 @@ void rename_Bone()
             sprintf(Name_Remember, "%s", Bone_Names[BoneIndex]);
             sprintf(Bone_Names[BoneIndex], "%s", "");
             Edit_Lock = 1;
+            EditCursor = 0;
+            //EditCursor = strlen(Bone_Names[BoneIndex]);
+            //memcpy(EditString, &Bone_Names[BoneIndex], strlen(Bone_Names[BoneIndex]));
+            EditString[EditCursor] = '\0';
+            //init_Selection_Rectangle1(strlen(Bone_Names[BoneIndex]));
             init_Selection_Rectangle();
             update_Bones_List(0, 0);
         }
@@ -11469,6 +11563,8 @@ void rename_Deformer()
             sprintf(Name_Remember, "%s", Defr_Names[DefrIndex]);
             sprintf(Defr_Names[DefrIndex], "%s", "");
             Edit_Lock = 1;
+            EditCursor = 0;
+            EditString[EditCursor] = '\0';
             init_Selection_Rectangle();
             update_Deformers_List(0);
         }
@@ -11486,6 +11582,8 @@ void rename_Pose()
             sprintf(Name_Remember, "%s", Pose_Names[PoseIndex]);
             sprintf(Pose_Names[PoseIndex], "%s", "");
             Edit_Lock = 1;
+            EditCursor = 0;
+            EditString[EditCursor] = '\0';
             init_Selection_Rectangle();
             update_Poses_List(0, 0);
         }
@@ -11790,70 +11888,34 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        int update = 1;
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Defr_Names[DefrIndex], "%s", EditString);
+                if (currentDeformer_Node < deformerIndex)
+                {
+                    D = deformers[currentDeformer_Node];
+                    replace_Defr_Name(EditString, D);
+                }
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(Defr_Names[DefrIndex], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            //set_Pose_H_Button(-1);
+            //update = 1;
         }
         else
         {
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(Defr_Names[DefrIndex], "%s", EditString);
-                    if (currentDeformer_Node < deformerIndex)
-                    {
-                        D = deformers[currentDeformer_Node];
-                        replace_Defr_Name(EditString, D);
-                    }
-                    sprintf(Name_Remember, "%s", EditString);
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(Defr_Names[DefrIndex], "%s", Name_Remember);
-                }
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                //set_Pose_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
+            text_Editor(mod, letter, Defr_Names[DefrIndex]);
         }
-        if (update)
-        {
-            sprintf(Defr_Names[DefrIndex], "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
-        }
+
         update_Deformers_List(0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -12171,65 +12233,28 @@ void handle_Material_Dialog(char letter, SDLMod mod)
     }
     else if (Edit_Lock)
     {
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Materials[currentMaterial].Name, "%s", EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(Materials[currentMaterial].Name, "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_Material_H_Button(-1);
         }
         else
         {
-            //int update = 0;
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(Materials[currentMaterial].Name, "%s", EditString);
-                    sprintf(Name_Remember, "%s", EditString);
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(Materials[currentMaterial].Name, "%s", Name_Remember);
-                }
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                set_Material_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
+            text_Editor(mod, letter, Materials[currentMaterial].Name);
         }
-        if (update)
-        {
-            sprintf(Materials[currentMaterial].Name, "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
-        }
+
         update_Materials_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -12240,73 +12265,36 @@ void handle_Item_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        int update = 1;
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Item_Names[ItemIndex], "%s", EditString);
+                replace_Item_Name(EditString);
+                sprintf(Name_Remember, "%s", EditString);
+
+                item * I = items[currentItem];
+                if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
+                {
+                    O = (object *)I->pointer;
+                    transfer_Item_Name_To_Object(I, O);
+                }
+            }
+            else
+            {
+                sprintf(Item_Names[ItemIndex], "%s", Name_Remember);
+            }
+
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_Item_H_Button(-1);
+            //update = 1;
         }
         else
         {
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(Item_Names[ItemIndex], "%s", EditString);
-                    replace_Item_Name(EditString);
-                    sprintf(Name_Remember, "%s", EditString);
-
-                    item * I = items[currentItem];
-                    if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
-                    {
-                        O = (object *)I->pointer;
-                        transfer_Item_Name_To_Object(I, O);
-                    }
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(Item_Names[ItemIndex], "%s", Name_Remember);
-                }
-
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                set_Item_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
-        }
-        if (update)
-        {
-            sprintf(Item_Names[ItemIndex], "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
+            text_Editor(mod, letter, Item_Names[ItemIndex]);
         }
 
         update_Items_List(1, 0);
@@ -12387,66 +12375,30 @@ void handle_IK_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        int update = 1;
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(IK_Names[IKIndex], "%s", EditString);
+                replace_IK_Name(EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(IK_Names[IKIndex], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_IK_H_Button(-1);
+            //update = 1;
         }
         else
         {
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(IK_Names[IKIndex], "%s", EditString);
-                    replace_IK_Name(EditString);
-                    sprintf(Name_Remember, "%s", EditString);
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(IK_Names[IKIndex], "%s", Name_Remember);
-                }
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                set_IK_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
+            text_Editor(mod, letter, IK_Names[IKIndex]);
         }
-        if (update)
-        {
-            sprintf(IK_Names[IKIndex], "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
-        }
+
         update_IK_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -12457,67 +12409,30 @@ void handle_Morph_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        int update = 1;
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Morph_Names[MorphIndex], "%s", EditString);
+                replace_Morph_Name(EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(Morph_Names[MorphIndex], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_Mrph_H_Button(-1);
+            //update = 1;
         }
         else
         {
-            //int update = 0;
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(Morph_Names[MorphIndex], "%s", EditString);
-                    replace_Morph_Name(EditString);
-                    sprintf(Name_Remember, "%s", EditString);
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(Morph_Names[MorphIndex], "%s", Name_Remember);
-                }
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                set_Mrph_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
+            text_Editor(mod, letter, Morph_Names[MorphIndex]);
         }
-        if (update)
-        {
-            sprintf(Morph_Names[MorphIndex], "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
-        }
+
         update_Morphs_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -12574,67 +12489,30 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        int update = 1;
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Subcharacter_Names[SubcharacterIndex], "%s", EditString);
+                replace_Subcharacter_Name(EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(Subcharacter_Names[SubcharacterIndex], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_Subc_H_Button(-1);
+            //update = 1;
         }
         else
         {
-            //int update = 0;
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(Subcharacter_Names[SubcharacterIndex], "%s", EditString);
-                    replace_Subcharacter_Name(EditString);
-                    sprintf(Name_Remember, "%s", EditString);
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(Subcharacter_Names[SubcharacterIndex], "%s", Name_Remember);
-                }
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                set_Subc_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
+            text_Editor(mod, letter, Subcharacter_Names[SubcharacterIndex]);
         }
-        if (update)
-        {
-            sprintf(Subcharacter_Names[SubcharacterIndex], "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
-        }
+
         update_Subcharacters_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -12689,67 +12567,29 @@ void handle_Bone_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        int update = 1;
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Bone_Names[BoneIndex], "%s", EditString);
+                replace_Bone_Name(EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(Bone_Names[BoneIndex], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_Bone_H_Button(-1);
         }
         else
         {
-            //int update = 0;
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(Bone_Names[BoneIndex], "%s", EditString);
-                    replace_Bone_Name(EditString);
-                    sprintf(Name_Remember, "%s", EditString);
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(Bone_Names[BoneIndex], "%s", Name_Remember);
-                }
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                set_Bone_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
+            text_Editor(mod, letter, Bone_Names[BoneIndex]);
         }
-        if (update)
-        {
-            sprintf(Bone_Names[BoneIndex], "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
-        }
+
         update_Bones_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -12760,66 +12600,30 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        int update = 1;
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Pose_Names[PoseIndex], "%s", EditString);
+                replace_Pose_Name(EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(Pose_Names[PoseIndex], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            //set_Pose_H_Button(-1);
+            //update = 1;
         }
         else
         {
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(Pose_Names[PoseIndex], "%s", EditString);
-                    replace_Pose_Name(EditString);
-                    sprintf(Name_Remember, "%s", EditString);
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(Pose_Names[PoseIndex], "%s", Name_Remember);
-                }
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                //set_Pose_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
+            text_Editor(mod, letter, Pose_Names[PoseIndex]);
         }
-        if (update)
-        {
-            sprintf(Pose_Names[PoseIndex], "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
-        }
+
         update_Poses_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -12868,71 +12672,35 @@ void handle_Sels_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
     {
-        int update = 1;
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
+                // Rename individual selections in current type for selected objects
+                // Find names with Remembered name and replace it with EditString
+                replace_Selections_Name(selected_objects, selected_object_count, current_sel_type, Name_Remember, EditString);
+                sprintf(Name_Remember, "%s", EditString);
+
+                if (letter == 10)
+                    assign_Selection_L();
+            }
+            else
+            {
+                sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_Sels_H_Button(-1);
+            //update = 1;
         }
         else
         {
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
-                    // Rename individual selections in current type for selected objects
-                    // Find names with Remembered name and replace it with EditString
-                    replace_Selections_Name(selected_objects, selected_object_count, current_sel_type, Name_Remember, EditString);
-                    sprintf(Name_Remember, "%s", EditString);
+            text_Editor(mod, letter, Sels_Names[current_sel_type][SelsIndex[current_sel_type]]);
+        }
 
-                    if (letter == 10)
-                        assign_Selection_L();
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", Name_Remember);
-                }
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                set_Sels_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
-        }
-        if (update)
-        {
-            sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
-        }
         update_Selections_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -13255,66 +13023,30 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
     }
     else if (Edit_Lock)
     {
-        int update = 1;
-        if (controlDown)
+        if (letter == 13 || letter == 10) // return, enter
         {
-            copy_and_paste(letter);
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Hier_Names[HierIndex], "%s", EditString);
+                replace_Hierarchy_Name(Name_Remember, EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_Hier_H_Button(-1);
+            //update = 1;
         }
         else
         {
-            if (letter == '-')
-            {
-                if (mod & KMOD_SHIFT)
-                {
-                    letter = '_';
-                }
-            }
-            else if (isalnum(letter) && (mod & KMOD_SHIFT))
-            {
-                letter -= 32;
-            }
-            if (isalnum(letter) || letter == ' ' || letter == '_' || letter == '-')
-            {
-                if (EditCursor < STRLEN - 1)
-                {
-                    EditString[EditCursor] = letter;
-                    EditCursor ++;
-                    EditString[EditCursor] = '\0';
-                }
-            }
-            else if (letter == 13 || letter == 10) // return, enter
-            {
-                if (strlength(EditString) > 1)
-                {
-                    sprintf(Hier_Names[HierIndex], "%s", EditString);
-                    replace_Hierarchy_Name(Name_Remember, EditString);
-                    sprintf(Name_Remember, "%s", EditString);
-                }
-                else
-                {
-                    update = 0;
-                    sprintf(Hier_Names[HierIndex], "%s", Name_Remember);
-                }
-                Edit_Lock = 0;
-                selection_rectangle = 0;
-                EditCursor = 0;
-                printf("Edit finishing!\n");
-                set_Hier_H_Button(-1);
-                //update = 1;
-            }
-            else if (letter == 8) // backspace
-            {
-                EditCursor --;
-                if (EditCursor < 0)
-                    EditCursor = 0;
-                EditString[EditCursor] = '\0';
-            }
+            text_Editor(mod, letter, Hier_Names[HierIndex]);
         }
-        if (update)
-        {
-            sprintf(Hier_Names[HierIndex], "%s", EditString);
-            Pos_end = strlength(EditString) - 1;
-        }
+
         update_Hierarchys_List(0, 0);
         //printf("%c%s", 13, EditString);
         message = 0;
@@ -17746,6 +17478,10 @@ void update_Lists()
     {
         update_Materials_List(0, 0);
     }
+    else if (dialog_type == MRPH_DIALOG)
+    {
+        update_Morphs_List(0, 0);
+    }
     else
     {
         if (dialog_type == OBJ_DIALOG)
@@ -17775,6 +17511,8 @@ void handle_LEFT(SDLMod mod)
         Pos_end = Pos_start;
     }
 
+    EditCursor = Pos_start;
+
     printf("handle LEFT %d\n", Pos_start);
 
     if(dialog_lock)
@@ -17793,12 +17531,13 @@ void handle_RIGHT(SDLMod mod)
     }
     else
     {
+        Pos_end ++;
+        if (Pos_end > Pos_coords_c - 1)
+            Pos_end --;
         Pos_start = Pos_end;
-        Pos_start ++;
-        if (Pos_start >= Pos_coords_c - 1)
-            Pos_start --;
-        Pos_end = Pos_start;
     }
+
+    EditCursor = Pos_end;
 
     printf("handle RIGHT %d\n", Pos_end);
 
@@ -24367,7 +24106,8 @@ int main(int argc, char * args[])
                         for (c = 0; c < T->childcount; c ++)
                         {
                             T = T->childs[c];
-                            r = add_ikChain(D, T, transformers[currentLocator]);
+                            if (T->Deformer != NULL && T->Deformer == D)
+                                r = add_ikChain(D, T, transformers[currentLocator]);
                             if (r)
                             {
                                 break;
@@ -24379,7 +24119,8 @@ int main(int argc, char * args[])
                         for (c = 0; c < selected_transformer_count; c ++)
                         {
                             T = transformers[selected_transformers[c]];
-                            r = add_ikChain(D, T, transformers[currentLocator]);
+                            if (T->Deformer != NULL && T->Deformer == D)
+                                r = add_ikChain(D, T, transformers[currentLocator]);
                             if (r)
                             {
                                 break;
@@ -24388,7 +24129,8 @@ int main(int argc, char * args[])
                     }
                     if (!r)
                     {
-                        r = add_ikChain(D, T, transformers[currentLocator]);
+                        if (T->Deformer != NULL && T->Deformer == D)
+                            r = add_ikChain(D, T, transformers[currentLocator]);
                     }
 
                     printf("Adding IK chain result %d\n", r);

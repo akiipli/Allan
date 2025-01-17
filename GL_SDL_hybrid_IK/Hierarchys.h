@@ -34,6 +34,8 @@ void edit_Hierarchy()
         sprintf(Hier_Names[HierIndex], "%s", "");
         printf("Editing now!\n");
         Edit_Lock = 1;
+        EditCursor = 0;
+        EditString[EditCursor] = '\0';
         init_Selection_Rectangle();
         set_Hier_H_Button(0);
     }

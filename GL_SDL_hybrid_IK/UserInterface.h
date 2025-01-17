@@ -96,6 +96,7 @@ int selection_rectangle = 0;
 int cursor_width = 3;
 
 char EditString[STRLEN];
+char EditString_Tail[STRLEN];
 char Name_Remember[STRLEN];
 int EditCursor = 0;
 int Edit_Lock = 0;
@@ -107,12 +108,19 @@ void init_EditString()
 {
     EditCursor = 0;
     EditString[EditCursor] = '\0';
+    EditString_Tail[0] = '\0';
+}
+
+void init_Selection_Rectangle1(int str_len)
+{
+    selection_rectangle = 1;
+    Pos_start = 0;
+    Pos_end = str_len - 1;
 }
 
 void init_Selection_Rectangle()
 {
     selection_rectangle = 1;
-    Pos_coords_c = 0;
     Pos_start = 0;
     Pos_end = 0;
 }
@@ -5104,4 +5112,5 @@ void display_osd_font(const char * text, int width, int height, int osd)
 //	glEnable(GL_LIGHTING);
 	glPopMatrix();
 }
+
 #endif // USERINTERFACE_H_INCLUDED

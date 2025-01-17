@@ -265,6 +265,8 @@ void edit_Selection()
         sprintf(Sels_Names[current_sel_type][SelsIndex[current_sel_type]], "%s", "");
         printf("Editing now!\n");
         Edit_Lock = 1;
+        EditCursor = 0;
+        EditString[EditCursor] = '\0';
         init_Selection_Rectangle();
         set_Sels_H_Button(1);
     }
