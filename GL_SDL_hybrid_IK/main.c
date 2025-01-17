@@ -24091,23 +24091,13 @@ int main(int argc, char * args[])
                     int r = 0;
                     int c;
 
-                    if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
-                    {
-                        D = deformers[currentDeformer_Node];
-                    }
-                    else
-                    {
-                        D = NULL;
-                    }
-
                     T = transformers[selected_transformers[0]];
                     if (T->Bone != NULL && T == T->Bone->B)
                     {
                         for (c = 0; c < T->childcount; c ++)
                         {
                             T = T->childs[c];
-                            if ((T->Deformer != NULL && T->Deformer == D) || T->Deformer == NULL)
-                                r = add_ikChain(D, T, transformers[currentLocator]);
+                            r = add_ikChain(T->Deformer, T, transformers[currentLocator]);
                             if (r)
                             {
                                 break;
@@ -24119,8 +24109,7 @@ int main(int argc, char * args[])
                         for (c = 0; c < selected_transformer_count; c ++)
                         {
                             T = transformers[selected_transformers[c]];
-                            if ((T->Deformer != NULL && T->Deformer == D) || T->Deformer == NULL)
-                                r = add_ikChain(D, T, transformers[currentLocator]);
+                            r = add_ikChain(T->Deformer, T, transformers[currentLocator]);
                             if (r)
                             {
                                 break;
@@ -24129,8 +24118,7 @@ int main(int argc, char * args[])
                     }
                     if (!r)
                     {
-                        if ((T->Deformer != NULL && T->Deformer == D) || T->Deformer == NULL)
-                            r = add_ikChain(D, T, transformers[currentLocator]);
+                        r = add_ikChain(T->Deformer, T, transformers[currentLocator]);
                     }
 
                     printf("Adding IK chain result %d\n", r);
