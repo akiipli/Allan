@@ -4884,10 +4884,10 @@ void set_Button_defr(int idx)
 
     if (current_defr_type == 0)
     {
-        //create_Transformers_List();
+        create_Transformers_List();
         create_Deformers_List(SelsIndex[3], O);
-        if (!BIND_POSE)
-            set_Button_sels(3);
+//        if (!BIND_POSE)
+//            set_Button_sels(3);
     }
     else if (current_defr_type == 1)
     {
@@ -6100,11 +6100,11 @@ void open_Deformers_List()
     }
     Bottom_Message = 0;
 
-    //DefrIndex = selected_deformer_node;
+    set_Button_defr(current_defr_type);
+
+    DefrIndex = selected_deformer_node;
 
     black_out_DefrList();
-
-    set_Button_defr(current_defr_type);
 
 //    DRAW_LOCATORS = 1;
 //    LOCAT_ID_RENDER = 1;
@@ -12017,7 +12017,7 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
             DRAW_UI = 0;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
             DRAW_UI = 1;
-            draw_Dialog();
+            update_Deformers_List(0);
         }
     }
 }
@@ -19536,20 +19536,20 @@ int main(int argc, char * args[])
                                             {
                                                 currentLocator = Deformer_List[currentDeformer];
                                                 HierIndex = currentLocator;
-                                                select_Locator_Selections(currentLocator, 1);
+                                                select_Locator_Selections(currentLocator, 0);
                                                 assert_Element_Selection();
-                                                if (!BIND_POSE)
-                                                    frame_object(Camera, 1);
+//                                                if (!BIND_POSE)
+//                                                    frame_object(Camera, 1);
                                             }
                                             else
                                             {
                                                 currentDeformer_Node = -(Deformer_List[index + defr_start] + 1);
                                                 assert_Deformers_Selected();
                                                 select_Deformer_Objects();
-                                                set_Object_Mode();
+                                                //set_Object_Mode();
                                                 //DRAW_LOCATORS = 0;
-                                                if (!BIND_POSE)
-                                                    frame_object(Camera, 1);
+//                                                if (!BIND_POSE)
+//                                                    frame_object(Camera, 1);
                                             }
                                             create_Deformers_List(SelsIndex[3], O);
                                         }
