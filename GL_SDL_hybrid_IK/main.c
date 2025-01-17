@@ -24106,7 +24106,7 @@ int main(int argc, char * args[])
                         for (c = 0; c < T->childcount; c ++)
                         {
                             T = T->childs[c];
-                            if (T->Deformer != NULL && T->Deformer == D)
+                            if ((T->Deformer != NULL && T->Deformer == D) || T->Deformer == NULL)
                                 r = add_ikChain(D, T, transformers[currentLocator]);
                             if (r)
                             {
@@ -24119,7 +24119,7 @@ int main(int argc, char * args[])
                         for (c = 0; c < selected_transformer_count; c ++)
                         {
                             T = transformers[selected_transformers[c]];
-                            if (T->Deformer != NULL && T->Deformer == D)
+                            if ((T->Deformer != NULL && T->Deformer == D) || T->Deformer == NULL)
                                 r = add_ikChain(D, T, transformers[currentLocator]);
                             if (r)
                             {
@@ -24129,7 +24129,7 @@ int main(int argc, char * args[])
                     }
                     if (!r)
                     {
-                        if (T->Deformer != NULL && T->Deformer == D)
+                        if ((T->Deformer != NULL && T->Deformer == D) || T->Deformer == NULL)
                             r = add_ikChain(D, T, transformers[currentLocator]);
                     }
 
