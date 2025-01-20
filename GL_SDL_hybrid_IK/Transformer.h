@@ -986,7 +986,10 @@ void rotate_axis(float angle, float axis1[3], float axis2[3], float result1[3], 
         angle = fmod(angle, pi2);
     }
     float a = fmod(angle, pi_2);
-    float D = a / pi_2;
+    float D;
+    //float D = a / pi_2;
+
+    D = (sin(a) / sin(pi - (a + (pi4)))) / sqrt(2);
 
     if (angle == 0 || angle == pi2)
     {

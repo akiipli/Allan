@@ -13067,7 +13067,7 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
 
             D = deformers[currentDeformer_Node];
             insert_Deformer_keyframe(D, frame);
-
+            draw_Dialog();
             Draw_Timeline();
             Draw_Morph_Timeline();
             SDL_GL_SwapBuffers();
