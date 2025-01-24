@@ -174,8 +174,8 @@ void apply_Subcharacter_Pose(subcharacter * S, pose * P)
         for (t = 0; t < P->transformers_count; t ++)
         {
             S->Transformers[t]->rot_Order = P->TP[t].rot_Order;
-            //memcpy(S->Transformers[t]->scl, P->TP[t].scl, sizeof(float[3]));
-            //memcpy(S->Transformers[t]->scl_vec, P->TP[t].scl_vec, sizeof(float[3]));
+            memcpy(S->Transformers[t]->scl, P->TP[t].scl, sizeof(float[3]));
+            memcpy(S->Transformers[t]->scl_vec, P->TP[t].scl_vec, sizeof(float[3]));
             memcpy(S->Transformers[t]->rot, P->TP[t].rot, sizeof(float[3]));
 
             //memcpy(S->Transformers[t]->rotVec, P->TP[t].rotVec, sizeof(float[3][3]));
