@@ -54,6 +54,22 @@ implanted into solution.
 #define IK_START 1
 #define IK_END 2
 
+int relative = 1;
+/*
+When Deformer is created and when leaving Bind Pose
+Default Pose for Deformer is created. Question is
+what should pos variable in Transformer represent.
+Should it be relative to Deformers center, or should
+it be derotated in its parent space.
+This variable is experimental and enables poses that
+have translation in non linear Deformer mode.
+It breaks however linear mode, since in linear mode
+pos represents relative position to Deformer center.
+When relative is 0, pos is independent and is
+derotated in its parent space. rotate_R uses this
+variable also. In Poses.h it is relative_pos
+*/
+
 int ALIGN_IS_ON = 1;
 
 int ikChains_c = 0;
@@ -1510,9 +1526,18 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
     {
         float X, Y, Z;
 
-        X = T->pos_bind[0] - pos_bind[0];
-        Y = T->pos_bind[1] - pos_bind[1];
-        Z = T->pos_bind[2] - pos_bind[2];
+        if (relative)
+        {
+            X = T->pos_bind[0] - pos_bind[0];
+            Y = T->pos_bind[1] - pos_bind[1];
+            Z = T->pos_bind[2] - pos_bind[2];
+        }
+        else
+        {
+            X = T->pos[0];
+            Y = T->pos[1];
+            Z = T->pos[2];
+        }
 
         T->pos[0] = rotVec[0][0] * X + rotVec[1][0] * Y + rotVec[2][0] * Z + pos[0];
         T->pos[1] = rotVec[0][1] * X + rotVec[1][1] * Y + rotVec[2][1] * Z + pos[1];
@@ -1522,7 +1547,11 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
     rotate_T(T);
 
     float rotVec_[3][3];
-    rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
+
+    if (relative)
+        rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
+    else
+        memcpy(rotVec_, T->rotVec, sizeof(rotVec_));
 
     for (c = 0; c < T->childcount; c ++)
     {
@@ -1539,7 +1568,11 @@ void rotate_rotVec_pose(transformer * T)
     rotate_T(T);
 
     float rotVec_[3][3];
-    rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
+
+    if (relative)
+        rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
+    else
+        memcpy(rotVec_, T->rotVec, sizeof(rotVec_));
 
     for (c = 0; c < T->childcount; c ++)
     {

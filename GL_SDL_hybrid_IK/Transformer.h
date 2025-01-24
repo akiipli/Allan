@@ -777,7 +777,7 @@ int insert_keyframe(transformer * T, int frame, int relative, float Delta[3])
     timeline * Tm;
     int result, f, index, condition;
 
-//    float rotVec_I[3][3];
+    float rotVec_I[3][3];
 
     if (T->Timeline == NULL)
     {
@@ -817,9 +817,11 @@ int insert_keyframe(transformer * T, int frame, int relative, float Delta[3])
                     Tm->Values[0].pos[1] = T->pos[1] - Delta[1];
                     Tm->Values[0].pos[2] = T->pos[2] - Delta[2];
                 }
-                else
+                else if (T->parent != NULL)
                 {
-                    memcpy(Tm->Values[0].pos, T->pos, sizeof(float[3]));
+                    invert_Rotation_scale(T->parent, rotVec_I);
+                    rotate_center_(T->pos, rotVec_I, T->parent->pos, Tm->Values[0].pos);
+                    //memcpy(Tm->Values[0].pos, T->pos, sizeof(float[3]));
                 }
 
                 memcpy(Tm->Values[0].scl_vec, T->scl_vec, sizeof(float[3]));
@@ -908,9 +910,11 @@ int insert_keyframe(transformer * T, int frame, int relative, float Delta[3])
                     Tm->Values[index].pos[1] = T->pos[1] - Delta[1];
                     Tm->Values[index].pos[2] = T->pos[2] - Delta[2];
                 }
-                else
+                else if (T->parent != NULL)
                 {
-                    memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
+                    invert_Rotation_scale(T->parent, rotVec_I);
+                    rotate_center_(T->pos, rotVec_I, T->parent->pos, Tm->Values[index].pos);
+                    //memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
                 }
                 memcpy(Tm->Values[index].scl_vec, T->scl_vec, sizeof(float[3]));
                 memcpy(Tm->Values[index].rotVec_, T->rotVec_, sizeof(float[3][3]));
@@ -942,9 +946,11 @@ int insert_keyframe(transformer * T, int frame, int relative, float Delta[3])
                 Tm->Values[index].pos[1] = T->pos[1] - Delta[1];
                 Tm->Values[index].pos[2] = T->pos[2] - Delta[2];
             }
-            else
+            else if (T->parent != NULL)
             {
-                memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
+                invert_Rotation_scale(T->parent, rotVec_I);
+                rotate_center_(T->pos, rotVec_I, T->parent->pos, Tm->Values[index].pos);
+                //memcpy(Tm->Values[index].pos, T->pos, sizeof(float[3]));
             }
             memcpy(Tm->Values[index].scl_vec, T->scl_vec, sizeof(float[3]));
             memcpy(Tm->Values[index].rotVec_, T->rotVec_, sizeof(float[3][3]));

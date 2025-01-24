@@ -614,6 +614,22 @@ void paste_Pose_position(deformer * D, pose * P)
     }
 }
 
+void print_Transformer_Status(transformer * T)
+{
+    printf("--- %s\n", T->Name);
+    printf("ord\t%d\n", T->rot_Order);
+    printf("scl\t%f %f %f\n", T->scl[0], T->scl[1], T->scl[2]);
+    printf("vec\t%f %f %f\n", T->scl_vec[0], T->scl_vec[1], T->scl_vec[2]);
+    printf("rot\t%f %f %f\n", T->rot[0], T->rot[1], T->rot[2]);
+    printf("pos\t%f %f %f\n", T->pos[0], T->pos[1], T->pos[2]);
+    printf("rotVec0\t%f %f %f\n", T->rotVec[0][0], T->rotVec[0][1], T->rotVec[0][2]);
+    printf("rotVec1\t%f %f %f\n", T->rotVec[1][0], T->rotVec[1][1], T->rotVec[1][2]);
+    printf("rotVec2\t%f %f %f\n", T->rotVec[2][0], T->rotVec[2][1], T->rotVec[2][2]);
+    printf("rotVec_0\t%f %f %f\n", T->rotVec_[0][0], T->rotVec_[0][1], T->rotVec_[0][2]);
+    printf("rotVec_1\t%f %f %f\n", T->rotVec_[1][0], T->rotVec_[1][1], T->rotVec_[1][2]);
+    printf("rotVec_2\t%f %f %f\n", T->rotVec_[2][0], T->rotVec_[2][1], T->rotVec_[2][2]);
+}
+
 void paste_Pose_rotation(deformer * D, pose * P)
 {
     int t;
@@ -644,6 +660,8 @@ void update_Deformer_Pose(deformer * D, pose * P, int relative_pos)
 
     transformer * T;
 
+    float rotVec_I[3][3];
+
     for (t = 0; t < P->transformers_count; t ++)
     {
         if (t >= D->Transformers_Count)
@@ -664,10 +682,13 @@ void update_Deformer_Pose(deformer * D, pose * P, int relative_pos)
             P->TP[t].pos[1] = T->pos[1] - D->Delta[1];
             P->TP[t].pos[2] = T->pos[2] - D->Delta[2];
         }
-        else
+        else if (T->parent != NULL)
         {
-            memcpy(P->TP[t].pos, T->pos, sizeof(float[3]));
-            memcpy(P->TP[t].pos_, T->pos_, sizeof(float[3]));
+            invert_Rotation_scale(T->parent, rotVec_I);
+            rotate_center_(T->pos, rotVec_I, T->parent->pos, P->TP[t].pos);
+
+//            memcpy(P->TP[t].pos, T->pos, sizeof(float[3]));
+//            memcpy(P->TP[t].pos_, T->pos_, sizeof(float[3]));
         }
 
         P->TP[t].style = T->style;
@@ -711,6 +732,8 @@ void fill_Start_Pose(deformer * D, pose * P, int relative_pos)
     transformer * T;
     timeline * Tm;
 
+    float rotVec_I[3][3];
+
     if (D->Transformers_Count > 0)
     {
         for (t = 0; t < P->transformers_count; t ++)
@@ -748,13 +771,15 @@ void fill_Start_Pose(deformer * D, pose * P, int relative_pos)
 
                 if (relative_pos)
                 {
-                    P->TP[t].pos[0] = D->Transformers[t]->pos[0] - D->Delta[0];
-                    P->TP[t].pos[1] = D->Transformers[t]->pos[1] - D->Delta[1];
-                    P->TP[t].pos[2] = D->Transformers[t]->pos[2] - D->Delta[2];
+                    P->TP[t].pos[0] = T->pos[0] - D->Delta[0];
+                    P->TP[t].pos[1] = T->pos[1] - D->Delta[1];
+                    P->TP[t].pos[2] = T->pos[2] - D->Delta[2];
                 }
-                else
+                else if (T->parent != NULL)
                 {
-                    memcpy(P->TP[t].pos, T->pos, sizeof(float[3]));
+                    invert_Rotation_scale(T->parent, rotVec_I);
+                    rotate_center_(T->pos, rotVec_I, T->parent->pos, P->TP[t].pos);
+                    //memcpy(P->TP[t].pos, T->pos, sizeof(float[3]));
                 }
 
                 memcpy(P->TP[t].pos_, T->pos_, sizeof(float[3]));
@@ -1085,29 +1110,37 @@ void add_Pose_To_Deformer(deformer * D, int relative_pos)
     P->D = D;
 
     int t;
+    transformer * T;
+
+    float rotVec_I[3][3];
 
     for (t = 0; t < D->Transformers_Count; t ++)
     {
-        P->TP[t].rot_Order = D->Transformers[t]->rot_Order;
-        memcpy(P->TP[t].scl, D->Transformers[t]->scl, sizeof(float[3]));
-        memcpy(P->TP[t].scl_vec, D->Transformers[t]->scl_vec, sizeof(float[3]));
-        memcpy(P->TP[t].rot, D->Transformers[t]->rot, sizeof(float[3]));
-        memcpy(P->TP[t].rotVec, D->Transformers[t]->rotVec, sizeof(float[3][3]));
-        memcpy(P->TP[t].rotVec_, D->Transformers[t]->rotVec_, sizeof(float[3][3]));
-        memcpy(P->TP[t].rotVec_I, D->Transformers[t]->rotVec_I, sizeof(float[3][3]));
-        memcpy(P->TP[t].rotVec_B, D->Transformers[t]->rotVec_B, sizeof(float[3][3]));
+        T = D->Transformers[t];
+
+        P->TP[t].rot_Order = T->rot_Order;
+        memcpy(P->TP[t].scl, T->scl, sizeof(float[3]));
+        memcpy(P->TP[t].scl_vec, T->scl_vec, sizeof(float[3]));
+        memcpy(P->TP[t].rot, T->rot, sizeof(float[3]));
+        memcpy(P->TP[t].rotVec, T->rotVec, sizeof(float[3][3]));
+        memcpy(P->TP[t].rotVec_, T->rotVec_, sizeof(float[3][3]));
+        memcpy(P->TP[t].rotVec_I, T->rotVec_I, sizeof(float[3][3]));
+        memcpy(P->TP[t].rotVec_B, T->rotVec_B, sizeof(float[3][3]));
         if (relative_pos)
         {
-            P->TP[t].pos[0] = D->Transformers[t]->pos[0] - D->Delta[0];
-            P->TP[t].pos[1] = D->Transformers[t]->pos[1] - D->Delta[1];
-            P->TP[t].pos[2] = D->Transformers[t]->pos[2] - D->Delta[2];
+            P->TP[t].pos[0] = T->pos[0] - D->Delta[0];
+            P->TP[t].pos[1] = T->pos[1] - D->Delta[1];
+            P->TP[t].pos[2] = T->pos[2] - D->Delta[2];
         }
-        else
+        else if (T->parent != NULL)
         {
-            memcpy(P->TP[t].pos, D->Transformers[t]->pos, sizeof(float[3]));
-            memcpy(P->TP[t].pos_, D->Transformers[t]->pos_, sizeof(float[3]));
+            invert_Rotation_scale(T->parent, rotVec_I);
+            rotate_center_(T->pos, rotVec_I, T->parent->pos, P->TP[t].pos);
+
+//            memcpy(P->TP[t].pos, D->Transformers[t]->pos, sizeof(float[3]));
+//            memcpy(P->TP[t].pos_, D->Transformers[t]->pos_, sizeof(float[3]));
         }
-        P->TP[t].style = D->Transformers[t]->style;
+        P->TP[t].style = T->style;
     }
 
     D->Poses_Count ++;

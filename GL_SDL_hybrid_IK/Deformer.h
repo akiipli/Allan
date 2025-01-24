@@ -88,8 +88,6 @@ void insert_Deformer_keyframe(deformer * D, int frame)
     transformer * T;
     int t;
 
-    int relative = 1;
-
     for (t = 0; t < D->Transformers_Count; t ++)
     {
         T = D->Transformers[t];
