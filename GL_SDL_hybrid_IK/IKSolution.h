@@ -54,7 +54,7 @@ implanted into solution.
 #define IK_START 1
 #define IK_END 2
 
-int relative = 1;
+//int relative = 0;
 /*
 When Deformer is created and when leaving Bind Pose
 Default Pose for Deformer is created. Question is
@@ -67,7 +67,11 @@ It breaks however linear mode, since in linear mode
 pos represents relative position to Deformer center.
 When relative is 0, pos is independent and is
 derotated in its parent space. rotate_R uses this
-variable also. In Poses.h it is relative_pos
+variable also. In Poses.h it is relative_pos.
+Next Bind Pose must be examined. Default Pose is
+set and updated there for Deformers. In Poses List
+it is also used. Since the idea of Default Pose
+is to capture positions as they are.
 */
 
 int ALIGN_IS_ON = 1;
@@ -1495,11 +1499,11 @@ void unfix_ik_goals()
     }
 }
 
-void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[3])
+void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[3], int linear_pose)
 {
     int c;
     transformer * C;
-    ikChain * I;
+//    ikChain * I;
 
     if (T->Bone != NULL && T->Bone->IK_member > 0)
     {
@@ -1511,10 +1515,11 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
     }
     else if (T->IK != NULL) /* T is goal or fixed */
     {
-        I = T->IK;
-        T->pos[0] = I->Bones[I->bonescount - 1]->B->pos[0];
-        T->pos[1] = I->Bones[I->bonescount - 1]->B->pos[1];
-        T->pos[2] = I->Bones[I->bonescount - 1]->B->pos[2];
+        //printf("rotate_R %s\n", T->Name);
+//        I = T->IK;
+//        T->pos[0] = I->Bones[I->bonescount - 1]->B->pos[0];
+//        T->pos[1] = I->Bones[I->bonescount - 1]->B->pos[1];
+//        T->pos[2] = I->Bones[I->bonescount - 1]->B->pos[2];
     }
     else if (T->parent->IK != NULL && T->parent->style == ik_goal)
     {
@@ -1526,7 +1531,7 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
     {
         float X, Y, Z;
 
-        if (relative)
+        if (linear_pose)
         {
             X = T->pos_bind[0] - pos_bind[0];
             Y = T->pos_bind[1] - pos_bind[1];
@@ -1548,7 +1553,7 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
 
     float rotVec_[3][3];
 
-    if (relative)
+    if (linear_pose)
         rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
     else
         memcpy(rotVec_, T->rotVec, sizeof(rotVec_));
@@ -1556,11 +1561,11 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
     for (c = 0; c < T->childcount; c ++)
     {
         C = T->childs[c];
-        rotate_R(C, rotVec_, T->pos, T->pos_bind);
+        rotate_R(C, rotVec_, T->pos, T->pos_bind, linear_pose);
     }
 }
 
-void rotate_rotVec_pose(transformer * T)
+void rotate_rotVec_pose(transformer * T, int linear_pose)
 {
     int c;
     transformer * C;
@@ -1569,7 +1574,7 @@ void rotate_rotVec_pose(transformer * T)
 
     float rotVec_[3][3];
 
-    if (relative)
+    if (linear_pose)
         rotate_matrix_I(rotVec_, T->rotVec, T->rotVec_B);
     else
         memcpy(rotVec_, T->rotVec, sizeof(rotVec_));
@@ -1577,7 +1582,7 @@ void rotate_rotVec_pose(transformer * T)
     for (c = 0; c < T->childcount; c ++)
     {
         C = T->childs[c];
-        rotate_R(C, rotVec_, T->pos, T->pos_bind);
+        rotate_R(C, rotVec_, T->pos, T->pos_bind, linear_pose);
     }
 }
 
@@ -1599,9 +1604,16 @@ void move_R(transformer * T, float Delta[3])
         Delta1[2] = T->parent->pos[2] - T->pos[2];
     }
 
-    T->pos[0] += Delta1[0];
-    T->pos[1] += Delta1[1];
-    T->pos[2] += Delta1[2];
+    if (T->IK != NULL && T == T->IK->B)
+    {
+        //printf("move_R %s\n", T->Name);
+    }
+    else
+    {
+        T->pos[0] += Delta1[0];
+        T->pos[1] += Delta1[1];
+        T->pos[2] += Delta1[2];
+    }
 
     for (c = 0; c < T->childcount; c ++)
     {

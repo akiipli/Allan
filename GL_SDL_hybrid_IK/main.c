@@ -7213,13 +7213,11 @@ void apply_Pose_position_Play(deformer * D)
 {
     if (!BIND_POSE)
     {
-        //paste_Pose_pos(D, D->Poses[0]); // default pose
-
         if (D->Transformers_Count > 0)
         {
             transformer * T = D->Transformers[0];
 
-            rotate_rotVec_pose(T);
+            rotate_rotVec_pose(T, D->linear_pose);
 
             move_IKs_To_Parent(T);
         }
@@ -7283,13 +7281,15 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
     if (!BIND_POSE)
     {
         if (D->linear_pose)
+        {
             paste_Pose_position(D, P);
+        }
         else
         {
             paste_Pose_rotation(D, P);
             apply_Pose_position_Play(D);
+            solve_IK_Chains(D);
         }
-        solve_IK_Chains(D);
 
         if (D->Transformers_Count > 0)
         {
@@ -7316,35 +7316,20 @@ void apply_Pose(deformer * D, pose * P, int dialog)
     {
         if (currentPose >= 0 && currentPose < posesIndex)
         {
-            /*
-            Poses need to be rig based.
-            New rig system needs to be made.
-            Rig has only positional poses.
-            */
-//            pose * P = poses[currentPose];
-//            deformer * D = P->D;
+            if (P == D->Poses[0])
+            {
+                paste_Pose_(D, P);
+            }
+            else
+            {
+                paste_Pose_rotation(D, P);
+                apply_Pose_position_Play(D);
+                solve_IK_Chains(D);
+            }
 
-            paste_Pose_(D, P);
-
-//            unfix_pose_ik_goals(D, P);
-
-            // deformations
-//            Update_Objects_Count = 0;
-//
-//            rotate_collect(transformers[currentLocator]);
-//            rotate_vertex_groups_D_Init();
-//
-//            rotate_Deformer_(D);
-            //
             if (D->Transformers_Count > 0)
             {
                 transformer * T = D->Transformers[0];
-
-//                float Delta_[3];
-//
-//                Delta_[0] = D->Delta[0] + P->TP[0].pos[0] - D->Poses[0]->TP[0].pos[0];
-//                Delta_[1] = D->Delta[1] + P->TP[0].pos[1] - D->Poses[0]->TP[0].pos[1];
-//                Delta_[2] = D->Delta[2] + P->TP[0].pos[2] - D->Poses[0]->TP[0].pos[2];
 
                 move_Pose_T(T, D->Delta);
 
@@ -7441,7 +7426,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
     {
         w1 = (float)f / frames_count;
         w0 = 1 - w1;
-        create_Inbetween_Pose_(D, D->P, P0, P1, w0, w1, D->linear_pose);
+        create_Inbetween_Pose_(D, D->P, P0, P1, w0, w1);
 
         rotate_vertex_groups_D_Init();
 
@@ -7752,7 +7737,7 @@ void goto_Deformer_Frame_(deformer * D, int frame)
 
     D->P = init_Deformer_P(D);
 
-    fill_Start_Pose(D, D->P, relative);
+    fill_Start_Pose(D, D->P, D->linear_pose);
 
     if (D->Transformers_Count > 0)
     {
@@ -7898,7 +7883,7 @@ void goto_Deformer_Frame(deformer * D, int frame)
 
     D->P = init_Deformer_P(D);
 
-    fill_Start_Pose(D, D->P, relative);
+    fill_Start_Pose(D, D->P, D->linear_pose);
 
     if (D->Transformers_Count > 0)
     {
@@ -8071,7 +8056,7 @@ void deformer_Keyframe_Player()
 
         D->P = init_Deformer_P(D);
 
-        fill_Start_Pose(D, D->P, relative);
+        fill_Start_Pose(D, D->P, D->linear_pose);
 
         if (D->Transformers_Count > 0)
         {
@@ -8365,351 +8350,6 @@ void deformer_Keyframe_Player()
     }
 
     init_Hint();
-    DRAW_UI = 1;
-}
-
-void deformer_Player()
-{
-    int t, p, u, o, f, d;
-    float w0, w1;
-
-//    pose * P;
-    object * O;
-    deformer * D;
-    deformer * D0;
-//    transformer * T;
-
-    ROTATED_POSE = 1;
-
-    int deformerSelector = currentDeformer_Node;
-    D0 = deformers[deformerSelector];
-
-    float rotation = 0.03;
-    float movement = 0.02;
-
-    float rot[3];
-    float delta[3];
-    memcpy(rot, (float[3]){0, 0, 0}, sizeof(float[3]));
-    memcpy(delta, (float[3]){0, 0, 0}, sizeof(float[3]));
-
-    int frames = 10;
-
-    Update_Objects_Count = 0;
-    Transformer_Objects_Count = 0;
-
-    int condition;
-
-    DRAW_UI = 1;
-
-    //ELEMENT_ARRAYS = 1;
-    init_Hint();
-
-    if (subdLevel > -1)
-    {
-        load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
-    }
-    else
-    {
-        load_id_colors_Fan_all(Camera, OBJECT_COLORS);
-    }
-
-    UPDATE_COLORS = 1;
-
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
-
-    UPDATE_COLORS = 0;
-
-    DRAW_UI = 0;
-
-    for (d = 0; d < deformerIndex; d ++)
-    {
-        D = deformers[d];
-
-        D->P = init_Deformer_P(D);
-
-//        D->play = -1; /* to start with current pose */
-
-//        if (D->Transformers_Count > 0)
-//        {
-//            T = D->Transformers[0];
-//            D->Delta[0] = T->pos[0] - D->Poses[D->current_pose]->TP[0].pos[0];
-//            D->Delta[1] = T->pos[1] - D->Poses[D->current_pose]->TP[0].pos[1];
-//            D->Delta[2] = T->pos[2] - D->Poses[D->current_pose]->TP[0].pos[2];
-//        }
-        for (o = 0; o < D->Objects_Count; o ++)
-        {
-            O = D->Objects[o];
-            condition = 1;
-            for (u = 0; u < Update_Objects_Count; u ++)
-            {
-                if (Update_Objects[u] == O)
-                {
-                    condition = 0;
-                    break;
-                }
-            }
-            if (condition)
-            {
-                Update_Objects[Update_Objects_Count ++] = O;
-            }
-        }
-
-        for (t = 0; t < D->Transformers_Count; t ++)
-        {
-            if (D->Transformers[t]->Object != NULL)
-            {
-                Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
-            }
-        }
-    }
-
-    int Preak = 0;
-    int theme = 0;
-    int p1;
-
-    for (p = 0; p >= 0; p ++)
-    {
-        if (Preak)
-        {
-            ROTATED_POSE = 0;
-
-            for (d = 0; d < deformerIndex; d ++)
-            {
-                D = deformers[d];
-
-                if (D->Transformers_Count > 0)
-                {
-                    if (D->play < 0)
-                        D->current_pose = (p + D->current_pose) % D->Poses_Count;
-                    //reset_Deformer_rotation(D);
-
-                    apply_Pose(D, D->Poses[D->current_pose], 0);
-                }
-//                solve_IK_Chains(D);
-//                normalize_IK_Spines(D);
-//                transformer_pin_Preparation(D);
-                update_Deformed_View(D, 0);
-            }
-            break;
-        }
-
-        for (f = 0; f < frames; f ++)
-        {
-            if (SDL_PollEvent(&event))
-            {
-                if (event.type == SDL_VIDEORESIZE)
-                {
-                    DRAW_UI = 1;
-                    update_Resize_Event();
-                    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
-                    DRAW_UI = 0;
-                }
-                else if (event.type == SDL_KEYUP)
-                {
-                    if (event.key.keysym.sym == SDLK_ESCAPE)
-                    {
-                        Preak = 1;
-                    }
-                }
-                else if (event.type == SDL_KEYDOWN)
-                {
-                    mod = event.key.keysym.mod;
-                    if (event.key.keysym.sym == SDLK_e)
-                    {
-                        export_OBJ_Format();
-                    }
-                    else if (event.key.keysym.sym == SDLK_f)
-                    {
-                        TURNTABLE = !TURNTABLE;
-                    }
-                    else if (event.key.keysym.sym == SDLK_SPACE)
-                    {
-                        p1 = p;
-                        if (f > frames / 2)
-                        {
-                            p1 ++;
-                        }
-                        if (D0->play < 0)
-                        {
-                            D0->play = p1;
-                            D0->current_pose = (p1 + D0->current_pose) % D0->Poses_Count;
-                        }
-                        else
-                        {
-                            D0->current_pose = ((D0->current_pose - D0->play) - (p1 - D0->play)) % D0->Poses_Count;
-                            D0->play = -1;
-                        }
-                    }
-                    else if (event.key.keysym.sym == SDLK_l)
-                    {
-                        if (mod & KMOD_SHIFT)
-                        {
-//                            linear_pose = !linear_pose;
-//                            make_osd(O);
-                        }
-                        else
-                        {
-                            LIGHTSHOW = !LIGHTSHOW;
-                        }
-                    }
-                    else if (event.key.keysym.sym == SDLK_TAB)
-                    {
-                        if (mod & KMOD_SHIFT)
-                        {
-                            deformerSelector --;
-                        }
-                        else
-                        {
-                            deformerSelector ++;
-                        }
-                        deformerSelector = abs(deformerSelector % deformerIndex);
-                        D0 = deformers[deformerSelector];
-                    }
-                    else if (event.key.keysym.sym == SDLK_UP)
-                    {
-                        if (mod & KMOD_SHIFT)
-                        {
-                            if (delta[2] < 0)
-                                delta[2] = 0;
-                            else
-                                delta[2] = -movement;
-                        }
-                        else
-                        {
-                            if (rot[0] > 0)
-                                rot[0] = 0;
-                            else
-                                rot[0] = rotation;
-                        }
-                    }
-                    else if (event.key.keysym.sym == SDLK_DOWN)
-                    {
-                        if (mod & KMOD_SHIFT)
-                        {
-                            if (delta[2] > 0)
-                                delta[2] = 0;
-                            else
-                                delta[2] = movement;
-                        }
-                        else
-                        {
-                            if (rot[0] < 0)
-                                rot[0] = 0;
-                            else
-                                rot[0] = -rotation;
-                        }
-                    }
-                    else if (event.key.keysym.sym == SDLK_LEFT)
-                    {
-                        if (mod & KMOD_SHIFT)
-                        {
-                            if (delta[0] < 0)
-                                delta[0] = 0;
-                            else
-                                delta[0] = -movement;
-                        }
-                        else
-                        {
-                            if (rot[1] > 0)
-                                rot[1] = 0;
-                            else
-                                rot[1] = rotation;
-                        }
-                    }
-                    else if (event.key.keysym.sym == SDLK_RIGHT)
-                    {
-                        if (mod & KMOD_SHIFT)
-                        {
-                            if (delta[0] > 0)
-                                delta[0] = 0;
-                            else
-                                delta[0] = movement;
-                        }
-                        else
-                        {
-                            if (rot[1] < 0)
-                                rot[1] = 0;
-                            else
-                                rot[1] = -rotation;
-                        }
-                    }
-                }
-            }
-
-            D0->Delta[0] += delta[0];
-            D0->Delta[2] += delta[2];
-
-            D0->rot[0] = rot[0]; /* since we are not submitting rotVec_ matrix */
-            D0->rot[1] = rot[1]; /* else it should increment */
-
-            w1 = (float)f / frames;
-            w0 = 1 - w1;
-            rotate_vertex_groups_D_Init();
-            for (d = 0; d < deformerIndex; d ++)
-            {
-                D = deformers[d];
-
-                if (D->rot[0] != 0)
-                    rotate_axis(D->rot[0], D->rotVec[1], D->rotVec[2], D->rotVec[1], D->rotVec[2]);
-                if (D->rot[1] != 0)
-                    rotate_axis(D->rot[1], D->rotVec[2], D->rotVec[0], D->rotVec[2], D->rotVec[0]);
-
-                if (D->Transformers_Count > 0)
-                {
-                    if (D->play < 0)
-                    {
-                        create_Inbetween_Pose_(D, D->P, D->Poses[(p + D->current_pose) % D->Poses_Count], D->Poses[(p + D->current_pose + 1) % D->Poses_Count], w0, w1, D->linear_pose);
-                    }
-
-                    apply_Pose_position_keyframes(D, D->P, D->Delta);
-
-                    update_Deformer_Objects_Curves_Coordinates(D);
-                    update_Deformer_object_Curves(D, subdLevel);
-                    update_Deformer_object_Curves(D, subdLevel);
-                }
-            }
-
-            update_rotate_bounding_box();
-
-            if (subdLevel > -1)
-            {
-                for (o = 0; o < Update_Objects_Count; o ++)
-                {
-                    O = Update_Objects[o];
-                    if (O->deforms)
-                    {
-                        tune_subdivide_post_transformed(O, subdLevel);
-                    }
-                }
-            }
-
-            for (o = 0; o < Transformer_Objects_Count; o++)
-            {
-                O = Transformer_Objects[o];
-
-                rotate_verts(O, *O->T);
-                if (O->deforms)
-                {
-                    tune_subdivide_post_transformed(O, subdLevel);
-                }
-            }
-            if (TURNTABLE && Camera == &Camera_Persp)
-            {
-                Camera->T->rot[1] += 0.01;
-                rotate_Camera(Camera, CamDist);
-                update_camera(Camera, CamDist);
-            }
-            poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
-        }
-
-        if (SHADERS && LIGHTSHOW)
-        {
-            update_Light(Light_Themes[theme % Themes]);
-            theme ++;
-            init_lights();
-        }
-    }
-
     DRAW_UI = 1;
 }
 
@@ -9087,7 +8727,14 @@ void handle_UP_Pose(int scrollbar)
                     {
                         deformer * D = P1->D;
                         set_Deformer_current_pose(P1);
-                        transition_into_Pose(D, P0, P1);
+                        if (P0 == D->Poses[0] || P1 == D->Poses[0])
+                        {
+
+                        }
+                        else
+                        {
+                            transition_into_Pose(D, P0, P1);
+                        }
                     }
                 }
             }
@@ -9718,7 +9365,14 @@ void handle_DOWN_Pose(int scrollbar)
                     {
                         deformer * D = P1->D;
                         set_Deformer_current_pose(P1);
-                        transition_into_Pose(D, P0, P1);
+                        if (P0 == D->Poses[0] || P1 == D->Poses[0])
+                        {
+
+                        }
+                        else
+                        {
+                            transition_into_Pose(D, P0, P1);
+                        }
                     }
                 }
             }
@@ -10104,7 +9758,7 @@ void add_Pose()
 //                relative = 1;
 //            }
             //paste_Deformer_rotVec(D);
-            add_Pose_To_Deformer(D, relative);
+            add_Pose_To_Deformer(D, D->linear_pose);
             D->current_pose = D->Poses_Count - 1;
 //            PoseIndex ++;
 //            if (Pose_List[PoseIndex] >= 0)
@@ -11477,7 +11131,7 @@ void update_Pose()
 
         if (D->Transformers_Count > 0 && P != D->Poses[0])
         {
-            update_Deformer_Pose(D, P, relative);
+            update_Deformer_Pose(D, P, D->linear_pose);
             update_Poses_List(0, 0);
         }
     }
@@ -23727,7 +23381,7 @@ int main(int argc, char * args[])
                 if (!BIND_POSE && deformerIndex > 0)
                 {
                     //unfix_ik_goals();
-                    deformer_Player();
+                    //deformer_Player();
                 }
             }
             else if (mod & KMOD_SHIFT)

@@ -91,7 +91,7 @@ void insert_Deformer_keyframe(deformer * D, int frame)
     for (t = 0; t < D->Transformers_Count; t ++)
     {
         T = D->Transformers[t];
-        insert_keyframe(T, frame, relative, D->Delta);
+        insert_keyframe(T, frame, D->linear_pose, D->Delta);
     }
 }
 
@@ -292,7 +292,7 @@ void add_Deformer()
     deformerIndex ++;
     D->Morph_Maps = malloc(0 * sizeof(deformer_morph_map*));
     D->Morph_Maps_Count = 0;
-    D->linear_pose = 1;
+    D->linear_pose = 0;
 }
 
 void list_Deformer_Nodes(deformer * D, int SelsIndex, object * O)
