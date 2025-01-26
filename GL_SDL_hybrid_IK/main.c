@@ -7256,9 +7256,10 @@ void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
         else
         {
             paste_Pose_rotation(D, P);
-            apply_Pose_position_Play(D);
-            solve_IK_Chains(D);
         }
+
+        apply_Pose_position_Play(D);
+        solve_IK_Chains(D);
 
         if (D->Transformers_Count > 0)
         {
@@ -7287,9 +7288,10 @@ void apply_Pose_position_(deformer * D, pose * P, float Delta[3])
         else
         {
             paste_Pose_rotation(D, P);
-            apply_Pose_position_Play(D);
-            solve_IK_Chains(D);
         }
+
+        apply_Pose_position_Play(D);
+        solve_IK_Chains(D);
 
         if (D->Transformers_Count > 0)
         {
