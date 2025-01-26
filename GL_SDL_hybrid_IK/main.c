@@ -7224,11 +7224,26 @@ void apply_Pose_position_Play(deformer * D)
     }
 }
 
+void apply_Pose_position_Play_linear(deformer * D)
+{
+    if (!BIND_POSE)
+    {
+        if (D->Transformers_Count > 0)
+        {
+            transformer * T = D->Transformers[0];
+
+            rotate_rotVec_pose(T, 1);
+
+            move_IKs_To_Parent(T);
+        }
+    }
+}
+
 void apply_Pose_rotation_keyframes(deformer * D, float Delta[3])
 {
     if (!BIND_POSE)
     {
-        apply_Pose_position_Play(D);
+        apply_Pose_position_Play_linear(D);
         solve_IK_Chains(D);
 
         if (D->Transformers_Count > 0)
