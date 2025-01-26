@@ -1523,9 +1523,9 @@ void rotate_R(transformer * T, float rotVec[3][3], float pos[3], float pos_bind[
     }
     else if (T->parent->IK != NULL && T->parent->style == ik_goal)
     {
-        T->pos[0] = T->parent->pos[0];
-        T->pos[1] = T->parent->pos[1];
-        T->pos[2] = T->parent->pos[2];
+//        T->pos[0] = T->parent->pos[0];
+//        T->pos[1] = T->parent->pos[1];
+//        T->pos[2] = T->parent->pos[2];
     }
     else
     {
@@ -1597,7 +1597,7 @@ void move_R(transformer * T, float Delta[3])
     Delta1[1] = Delta[1];
     Delta1[2] = Delta[2];
 
-    if (T->IK != NULL && T->style == ik_start)
+    if ((T->IK != NULL && T->style == ik_start) || T->parent->IK != NULL)
     {
         Delta1[0] = T->parent->pos[0] - T->pos[0];
         Delta1[1] = T->parent->pos[1] - T->pos[1];
