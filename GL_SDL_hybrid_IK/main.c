@@ -16551,14 +16551,15 @@ void change_IK_Update()
         ikChain * I = ikChains[currentIK];
         I->update = !I->update;
 
-        if (I->Deformer != NULL && !BIND_POSE)
-        {
-            deformer * D = I->Deformer;
-            solve_IK_Chain(I);
-            normalize_IK_Spine(I);
-            update_Deformed_View(D, 1);
-        }
-        else
+//        if (I->Deformer != NULL && !BIND_POSE)
+//        {
+//            deformer * D = I->Deformer;
+//            solve_IK_Chain(I);
+//            normalize_IK_Spine(I);
+//            update_Deformed_View(D, 1);
+//        }
+
+        if (dialog_lock)
         {
             if (Type != NULL)
                 draw_Properties(I->Name, screen_height, 1, PROPERTIES_IK, Type);
@@ -23470,9 +23471,13 @@ int main(int argc, char * args[])
             else if (DRAW_LOCATORS)
             {
                 if (BIND_POSE)
+                {
                     unparent_Locator();
+                }
                 else
+                {
                     change_IK_Update();
+                }
             }
             else
             {
