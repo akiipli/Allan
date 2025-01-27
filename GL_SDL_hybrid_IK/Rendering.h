@@ -6873,7 +6873,7 @@ void render_IK_Labels(int width, int height)
 
                 if (T->pin)
                 {
-                    L->text[label_cursor] = (char)T->pin + 119; // 48
+                    L->text[label_cursor] = (char)(T->pin + 119); // 48
                     label_cursor ++;
                 }
 

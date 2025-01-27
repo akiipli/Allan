@@ -8140,6 +8140,7 @@ void deformer_Keyframe_Player()
 //                    rotate_M(D->Transformers[0]);  /* update rotVec_ */
 //                }
 //            }
+            sprintf(bottom_message, "Play stop frame %d", frame);
             break;
         }
 
