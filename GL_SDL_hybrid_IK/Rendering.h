@@ -6826,6 +6826,7 @@ void render_IK_Labels(int width, int height)
     label * L;
 
     label_count = 0;
+    int label_cursor;
 
     GLdouble point[3];
     GLdouble coords[3];
@@ -6842,6 +6843,8 @@ void render_IK_Labels(int width, int height)
         if (T->collapsed)
             continue;
 
+        label_cursor = 0;
+
         if (T->style == ik_fixed)
         {
             point[0] = T->pos[0];
@@ -6853,10 +6856,28 @@ void render_IK_Labels(int width, int height)
             if (result && label_count < LABELS)
             {
                 L = labels[label_count ++];
-                L->text[0] = 'F';
-                L->text[1] = '\0';
                 L->x = coords[0] - 120;
                 L->y = height - (coords[1] + 10);
+
+                if (T->style == ik_fixed)
+                {
+                    L->text[label_cursor] = 'F';
+                    label_cursor ++;
+                }
+
+                if (T->IK != NULL && T->IK->update)
+                {
+                    L->text[label_cursor] = 'U';
+                    label_cursor ++;
+                }
+
+                if (T->pin)
+                {
+                    L->text[label_cursor] = (char)T->pin + 119; // 48
+                    label_cursor ++;
+                }
+
+                L->text[label_cursor] = '\0';
             }
         }
     }

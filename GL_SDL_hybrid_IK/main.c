@@ -14999,8 +14999,8 @@ void transform_Objects_And_Render()
                             {
                                 rotate_Deformer(T);
 
-                                if (T == T->Deformer->Transformers[0])
-                                    transfer_Deformers_rotVec(T);
+//                                if (T == T->Deformer->Transformers[0])
+//                                    transfer_Deformers_rotVec(T);
                             }
                             else
                             {
@@ -22956,6 +22956,7 @@ int main(int argc, char * args[])
             else if (mod & KMOD_SHIFT)
             {
                 transfer_Deformers_rotVec(T);
+                sprintf(bottom_message, "%s rotVec transfer done!", D->Name);
             }
             else if (mod & KMOD_CTRL)
             {
@@ -23470,6 +23471,8 @@ int main(int argc, char * args[])
             {
                 if (BIND_POSE)
                     unparent_Locator();
+                else
+                    change_IK_Update();
             }
             else
             {
@@ -24282,6 +24285,10 @@ int main(int argc, char * args[])
                 }
                 assert_Element_Selection();
             }
+        }
+        else if (message == 38)
+        {
+            HINTS = !HINTS;
         }
         else if (message == 41)
         {

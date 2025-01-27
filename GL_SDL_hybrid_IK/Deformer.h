@@ -1359,7 +1359,7 @@ void populate_IK_Updates()
 
 void normalize_IK_Spine(ikChain * I)
 {
-    normalize_rotation_parent_IK(I->A);
+    //normalize_rotation_parent_IK(I->A);
 }
 
 void normalize_IK_Spines(deformer * D)

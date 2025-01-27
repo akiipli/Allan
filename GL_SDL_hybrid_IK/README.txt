@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+8:46 AM 1/27/2025
+(u) in view changes selected IK transformer update. (h) toggles HINTS. Shift + P transfers Deformer rotation
+and scale matrix into D rotVec. This way Deformer can be already animated but scaled, rotated. Reset rotation
+or scale to undo it.
+
 5:54 PM 1/11/2025
 Now smooth binding (s) in Deformer List, depends on selected bones. Two consecutive selected bones create
 minimum circumstances.
@@ -270,7 +275,7 @@ large vertex groups and smooth binding.
 
 In Poses window:
 Ctrl + up/down rearranges selected pose in deformer.
-In window: Ctrl+d plays all poses for all deformers.
+//In window: Ctrl+d plays all poses for all deformers.
 
 Latest update: Now saving and loading works.
 Textures are loaded from image files, not saved.
