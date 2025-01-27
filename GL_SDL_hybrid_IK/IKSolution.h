@@ -491,7 +491,7 @@ int init_ikChain(deformer * Deformer)
         add_Transformer_To_Deformer(I->B, I->Deformer);
     }
 
-    I->update = 1;
+    I->update = 0;
     I->stretch = 1;
     I->C = NULL;
     I->Pole = NULL;
