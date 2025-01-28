@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+10:07 AM 1/28/2025
+Shif + U with Locators visible unfixes IK goals. Ctrl + D - play Poses.
+
 8:46 AM 1/27/2025
 (u) in view changes selected IK transformer update. (h) toggles HINTS. Shift + P transfers Deformer rotation
 and scale matrix into D rotVec. This way Deformer can be already animated but scaled, rotated. Reset rotation
