@@ -97,6 +97,8 @@ int RESET = 0;
 
 #include "Modeling.h"
 
+#include "Trajectories.h"
+
 #include <windows.h> // console
 #include <io.h>
 #include <fcntl.h>
@@ -905,6 +907,8 @@ void cleanup()
     free_Curves();
     free_Segments();
     free_Cps();
+
+    free_Trajectories(); // Experimental
 
     quit_app(0);
 }
@@ -7364,7 +7368,6 @@ void apply_Pose(deformer * D, pose * P, int dialog)
 
                 update_Deformer_Objects_Curves_Coordinates(D);
                 update_Deformer_object_Curves(D, subdLevel);
-                update_Deformer_object_Curves(D, subdLevel);
 
                 update_rotate_bounding_box();
 
@@ -7451,7 +7454,6 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
 
         update_Deformer_Objects_Curves_Coordinates(D);
         update_Deformer_object_Curves(D, subdLevel);
-        update_Deformer_object_Curves(D, subdLevel);
 
         update_rotate_bounding_box();
 
@@ -7513,7 +7515,6 @@ void update_Deformed_View(deformer * D, int update)
                 update_Object_Curves_Cps_Positions(O);
                 if (subdLevel > -1)
                 {
-                    update_object_Curves(O, subdLevel);
                     update_object_Curves(O, subdLevel);
                     tune_subdivide_post_transformed(O, subdLevel);
                 }
@@ -7827,7 +7828,6 @@ void goto_Deformer_Frame_(deformer * D, int frame)
 
             update_Deformer_Objects_Curves_Coordinates(D);
             update_Deformer_object_Curves(D, subdLevel);
-            update_Deformer_object_Curves(D, subdLevel);
         }
     }
 
@@ -7972,7 +7972,6 @@ void goto_Deformer_Frame(deformer * D, int frame)
             apply_Pose_position_(D, D->P, D->Delta);
 
             update_Deformer_Objects_Curves_Coordinates(D);
-            update_Deformer_object_Curves(D, subdLevel);
             update_Deformer_object_Curves(D, subdLevel);
         }
     }
@@ -8317,7 +8316,6 @@ void deformer_Keyframe_Player()
                 apply_Pose_position_keyframes(D, D->P, D->Delta);
 
                 update_Deformer_Objects_Curves_Coordinates(D);
-                update_Deformer_object_Curves(D, subdLevel);
                 update_Deformer_object_Curves(D, subdLevel);
             }
         }
@@ -8679,7 +8677,6 @@ void deformer_Player()
 
                     update_Deformer_Objects_Curves_Coordinates(D);
                     update_Deformer_object_Curves(D, subdLevel);
-                    update_Deformer_object_Curves(D, subdLevel);
                 }
             }
 
@@ -8724,6 +8721,100 @@ void deformer_Player()
         }
     }
 
+    DRAW_UI = 1;
+}
+
+void run_Experimental_Curve_Travel(trajectory * Trj, transformer * T)
+{
+    printf("Experimental Curve Travel\n");
+
+    struct timeval TimeValue;
+    struct timeval NextFrame;
+
+    float framerate_in_msec = 1000.0 / 60.0;
+
+    int f;
+
+    DRAW_UI = 1;
+
+    empty_Hint();
+
+    UPDATE_COLORS = 1;
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+
+    UPDATE_COLORS = 0;
+
+    DRAW_UI = 0;
+
+    int Preak = 0;
+
+    int frame = 0;
+    int Time_frames = TimelineEnd - TimelineStart; // keyframe may not exceed it
+
+    float Proportion = 0;
+
+    printf("Playing\n");
+
+    gettimeofday(&TimeValue, 0);
+
+    Trj->Curve->len = calculate_Curve_Length_(Trj->Curve, subdLevel);
+
+    for (f = 0; f >= 0; f ++)
+    {
+        if (f >= Time_frames)
+        {
+            f = 0;
+        }
+
+        frame = TimelineStart + f;
+
+        printf("\r%d    ", frame);
+
+        if (Preak)
+        {
+            sprintf(bottom_message, "Play stop frame %d", frame);
+            break;
+        }
+
+        if (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_VIDEORESIZE)
+            {
+                DRAW_UI = 1;
+                update_Resize_Event();
+                poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+                DRAW_UI = 0;
+            }
+            else if (event.type == SDL_KEYUP)
+            {
+                if (event.key.keysym.sym == SDLK_ESCAPE)
+                {
+                    Preak = 1;
+                }
+            }
+        }
+
+        gettimeofday(&NextFrame, 0);
+
+        while (time_difference_in_msec(TimeValue, NextFrame) < framerate_in_msec)
+        {
+            // printf("excess of time\n");
+            gettimeofday(&NextFrame, 0);
+        }
+
+        gettimeofday(&TimeValue, 0);
+
+        Proportion += 0.001;
+
+        travel_By_Trajectory(T, Trj, Proportion, subdLevel);
+
+        make_currentFrame_osd(frame);
+
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
+    }
+
+    init_Hint();
     DRAW_UI = 1;
 }
 
@@ -11859,7 +11950,6 @@ void handle_Defr_Dialog(char letter, SDLMod mod)
                             if (O->curve_count > 0)
                             {
                                 update_Objects_Curves_Coordinates(O);
-                                update_object_Curves(O, subdLevel);
                                 update_object_Curves(O, subdLevel);
                             }
                             tune_subdivide_post_transformed(O, subdLevel);
@@ -15450,7 +15540,6 @@ void transform_Objects_And_Render()
 
                     update_Object_Curves_Cps_Positions(O);
                     update_object_Curves(O, subdLevel);
-                    update_object_Curves(O, subdLevel);
                 }
             }
         }
@@ -15466,12 +15555,10 @@ void transform_Objects_And_Render()
             {
                 update_Deformer_Objects_Curves_Coordinates(T->Deformer);
                 update_Deformer_object_Curves(T->Deformer, subdLevel);
-                update_Deformer_object_Curves(T->Deformer, subdLevel);
             }
             else if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
             {
                 update_Deformer_Objects_Curves_Coordinates(Constraint_Pack.IK->Deformer);
-                update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
                 update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
             }
         }
@@ -15503,7 +15590,6 @@ void transform_Objects_And_Render()
                     if (message == -12 && O0->curve_count > 0)
                     {
                         update_Objects_Curves_Coordinates(O0);
-                        update_object_Curves(O0, subdLevel);
                         update_object_Curves(O0, subdLevel);
                     }
                     tune_subdivide_post_transformed(O0, subdLevel);
@@ -15824,6 +15910,8 @@ void clear_All()
         free_poses();
         free_subcharacter_poses();
 
+        free_Trajectories(); // Experimental
+
     /*
     This is cheap clean;
 
@@ -15967,7 +16055,6 @@ void update_Deformer(deformer * D)
         rotate_Deformer_verts(D);
 
         update_Deformer_Objects_Curves_Coordinates(D);
-        update_Deformer_object_Curves(D, subdLevel);
         update_Deformer_object_Curves(D, subdLevel);
 
         update_rotate_bounding_box();
@@ -18785,12 +18872,10 @@ int main(int argc, char * args[])
                                         {
                                             snap_back_Deformer_Object_Cps_To_Pos(T->Deformer);
                                             update_Deformer_object_Curves(T->Deformer, subdLevel);
-                                            update_Deformer_object_Curves(T->Deformer, subdLevel);
                                         }
                                         else if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
                                         {
                                             snap_back_Deformer_Object_Cps_To_Pos(Constraint_Pack.IK->Deformer);
-                                            update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
                                             update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
                                         }
                                         else if (O->curve_count > 0)
@@ -22957,7 +23042,6 @@ int main(int argc, char * args[])
             //
             subdivide_Curves(subdLevel);
             update_Curves(subdLevel);
-            update_Curves(subdLevel);
 
             scan_for_Objects_Patches(subdLevel);
 
@@ -23265,7 +23349,6 @@ int main(int argc, char * args[])
                         Delta[2] = -T->pos[2];
 
                         transfer_Delta_To_Object_Cps(O, Delta);
-                        update_object_Curves(O, subdLevel);
                         update_object_Curves(O, subdLevel);
                     }
 
@@ -23993,7 +24076,14 @@ int main(int argc, char * args[])
                     }
                     else
                     {
-                        r = add_New_Curve(Zero, 1);
+                        if (T != NULL)
+                        {
+                            r = add_New_Curve(T->pos, 1);
+                        }
+                        else
+                        {
+                            r = add_New_Curve(Zero, 1);
+                        }
                         if (r)
                         {
                             currentCurve = curvesIndex - 1;
@@ -24007,7 +24097,14 @@ int main(int argc, char * args[])
                 }
                 else
                 {
-                    r = add_New_Curve(Zero, 1);
+                    if (T != NULL)
+                    {
+                        r = add_New_Curve(T->pos, 1);
+                    }
+                    else
+                    {
+                        r = add_New_Curve(Zero, 1);
+                    }
                     if (r)
                     {
                         currentCurve = curvesIndex - 1;
@@ -24041,7 +24138,6 @@ int main(int argc, char * args[])
                     if (O->curve_count > 0)
                     {
                         update_Objects_Curves_Coordinates(O);
-                        update_object_Curves(O, subdLevel);
                         update_object_Curves(O, subdLevel);
                     }
                 }
@@ -24578,7 +24674,20 @@ int main(int argc, char * args[])
             {
                 if (mod & KMOD_SHIFT)
                 {
-                    curve_Draw = !curve_Draw;
+                    if (Trajectories_c <= 0)
+                    {
+                        if (currentCurve >= 0 && currentCurve < curvesIndex)
+                        {
+                            C = curves[currentCurve];
+                        }
+                        create_Experimental_Trajectory(C);
+                    }
+
+                    Trj = Trajectories[Trajectories_c - 1];
+
+                    T = transformers[currentLocator];
+                    run_Experimental_Curve_Travel(Trj, T);
+                    //curve_Draw = !curve_Draw;
                 }
                 else if (mod & KMOD_CTRL)
                 {

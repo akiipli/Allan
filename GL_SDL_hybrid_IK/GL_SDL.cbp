@@ -63,6 +63,7 @@
 		<Unit filename="Subcharacters.h" />
 		<Unit filename="Subdivision.h" />
 		<Unit filename="Timeline.h" />
+		<Unit filename="Trajectories.h" />
 		<Unit filename="Transformer.h" />
 		<Unit filename="Transforms.h" />
 		<Unit filename="UserInterface.h" />
@@ -74,6 +75,9 @@
 		</Unit>
 		<Extensions>
 			<lib_finder disable_auto="1" />
+			<code_completion />
+			<envvars />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

@@ -837,7 +837,6 @@ void update_Objects_With_Curves(float Delta[3], int subdLevel)
         O = Update_Objects[o];
         transfer_Delta_To_Object_Cps(O, Delta);
         update_object_Curves(O, subdLevel);
-
     }
 }
 
@@ -864,6 +863,7 @@ void update_ROT_Objects_With_Curves(int subdLevel)
     {
         O = Update_Objects[o];
         update_Object_Curves_Cps_Positions(O);
+        update_object_Curves(O, subdLevel);
         update_object_Curves(O, subdLevel);
     }
 }
