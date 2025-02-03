@@ -7516,6 +7516,7 @@ void update_Deformed_View(deformer * D, int update)
                 if (subdLevel > -1)
                 {
                     update_object_Curves(O, subdLevel);
+                    update_object_Curves(O, subdLevel);
                     tune_subdivide_post_transformed(O, subdLevel);
                 }
             }
