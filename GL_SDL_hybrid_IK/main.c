@@ -15275,7 +15275,7 @@ void make_Movement()
                 }
             }
         }
-        else if (update_Curve_Objects) //(!O->binding && O->curve_count > 0 && Constraint_Pack.IK == NULL)
+        else if (update_Curve_Objects && Constraint_Pack.IK == NULL) //(!O->binding && O->curve_count > 0 && Constraint_Pack.IK == NULL)
         {
             update_Objects_With_Curves(Delta, subdLevel);
         }
@@ -18873,11 +18873,13 @@ int main(int argc, char * args[])
                                         {
                                             snap_back_Deformer_Object_Cps_To_Pos(T->Deformer);
                                             update_Deformer_object_Curves(T->Deformer, subdLevel);
+                                            update_Deformer_object_Curves(T->Deformer, subdLevel);
                                         }
                                         else if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
                                         {
                                             snap_back_Deformer_Object_Cps_To_Pos(Constraint_Pack.IK->Deformer);
                                             update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
+                                            update_Deformer_object_Curves(T->Deformer, subdLevel);
                                         }
                                         else if (O->curve_count > 0)
                                         {
