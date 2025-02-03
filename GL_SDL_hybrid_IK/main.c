@@ -7829,6 +7829,7 @@ void goto_Deformer_Frame_(deformer * D, int frame)
 
             update_Deformer_Objects_Curves_Coordinates(D);
             update_Deformer_object_Curves(D, subdLevel);
+            update_Deformer_object_Curves(D, subdLevel);
         }
     }
 
@@ -7973,6 +7974,7 @@ void goto_Deformer_Frame(deformer * D, int frame)
             apply_Pose_position_(D, D->P, D->Delta);
 
             update_Deformer_Objects_Curves_Coordinates(D);
+            update_Deformer_object_Curves(D, subdLevel);
             update_Deformer_object_Curves(D, subdLevel);
         }
     }
