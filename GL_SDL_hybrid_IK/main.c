@@ -24230,19 +24230,19 @@ int main(int argc, char * args[])
                         T->style = ik_goal;
                         unfix_ik_goal(T);
 
-                        if (T->Deformer != NULL)
-                        {
-                            Update_Objects_Count = 0;
-                            if (T->Deformer->Transformers_Count > 0)
-                            {
-                                rotate_collect(T->Deformer->Transformers[0]);
-                            }
-                            else
-                            {
-                                rotate_collect(T);
-                            }
-                            rotate_Deformer(T);
-                        }
+//                        if (T->Deformer != NULL)
+//                        {
+//                            Update_Objects_Count = 0;
+//                            if (T->Deformer->Transformers_Count > 0)
+//                            {
+//                                rotate_collect(T->Deformer->Transformers[0]);
+//                            }
+//                            else
+//                            {
+//                                rotate_collect(T);
+//                            }
+//                            rotate_Deformer(T);
+//                        }
                     }
                 }
                 else
