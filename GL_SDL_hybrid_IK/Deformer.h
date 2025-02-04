@@ -83,7 +83,7 @@ struct deformer
     int Morph_Maps_Count;
 };
 
-void insert_Deformer_keyframe(deformer * D, int frame)
+void insert_Deformer_keyframe(deformer * D, int frame, int Indi)
 {
     transformer * T;
     int t;
@@ -91,7 +91,11 @@ void insert_Deformer_keyframe(deformer * D, int frame)
     for (t = 0; t < D->Transformers_Count; t ++)
     {
         T = D->Transformers[t];
-        insert_keyframe(T, frame, D->linear_pose, D->Delta);
+
+        if (!Indi || (Indi && T->selected))
+        {
+            insert_keyframe(T, frame, D->linear_pose, D->Delta);
+        }
     }
 }
 
@@ -109,7 +113,7 @@ void insert_Deformer_morf_keyframe(deformer * D, int frame)
     }
 }
 
-void delete_Deformer_keyframe(deformer * D, int frame)
+void delete_Deformer_keyframe(deformer * D, int frame, int Indi)
 {
     transformer * T;
     int t;
@@ -117,7 +121,11 @@ void delete_Deformer_keyframe(deformer * D, int frame)
     for (t = 0; t < D->Transformers_Count; t ++)
     {
         T = D->Transformers[t];
-        delete_keyframe(T, frame);
+
+        if (!Indi || (Indi && T->selected))
+        {
+            delete_keyframe(T, frame);
+        }
     }
 }
 
@@ -1524,34 +1532,38 @@ void update_Deformer_object_Curves(deformer * D, int level)
     }
 }
 
-int find_currentKey(deformer * D, int frame)
+int find_currentKey(transformer * T, deformer * D, int frame, int Indi)
 {
     int f;
 
-    transformer * T;
+    transformer * T0;
     timeline * Tm;
 
-    if (D->Transformers_Count > 0)
+    if (T != NULL && Indi)
     {
-        T = D->Transformers[0];
+        T0 = T;
+    }
+    else if (D != NULL && D->Transformers_Count > 0)
+    {
+        T0 = D->Transformers[0];
+    }
+    else
+    {
+        T0 = T;
+    }
 
-        if (T->Timeline != NULL)
+    if (T0->Timeline != NULL)
+    {
+        Tm = T0->Timeline;
+
+        for (f = 0; f < Tm->key_frames; f ++)
         {
-            Tm = T->Timeline;
-
-            for (f = 0; f < Tm->key_frames; f ++)
+            if (frame == Tm->Frames[f])
             {
-                if (frame == Tm->Frames[f])
-                {
-                    return f;
-                }
+                return f;
             }
-            return -1;
         }
-        else
-        {
-            return -1;
-        }
+        return -1;
     }
     else
     {
@@ -1606,7 +1618,7 @@ int find_current_Morph_Key(deformer * D, int frame)
     }
 }
 
-int change_Keyframe_Frame(deformer * D, int f, int frame, int change)
+int change_Keyframe_Frame(deformer * D, int f, int frame, int change, int Indi)
 {
     int t;
 
@@ -1619,33 +1631,36 @@ int change_Keyframe_Frame(deformer * D, int f, int frame, int change)
     {
         T = D->Transformers[t];
 
-        if (T->Timeline != NULL)
+        if (!Indi || (Indi && T->selected))
         {
-            Tm = T->Timeline;
-
-            if (f < Tm->key_frames)
+            if (T->Timeline != NULL)
             {
-                if (Tm->Frames[f] == frame)
+                Tm = T->Timeline;
+
+                if (f < Tm->key_frames)
                 {
-                    if (change < 0 && f > 0 && Tm->Frames[f - 1] < frame + change)
+                    if (Tm->Frames[f] == frame)
                     {
-                        Tm->Frames[f] += change;
-                        result = 1;
-                    }
-                    else if (change > 0 && f < Tm->key_frames - 1 && Tm->Frames[f + 1] > frame + change)
-                    {
-                        Tm->Frames[f] += change;
-                        result = 1;
-                    }
-                    else if (change < 0 && f == 0 && Tm->Frames[f] + change >= 0)
-                    {
-                        Tm->Frames[f] += change;
-                        result = 1;
-                    }
-                    else if (change > 0 && f == Tm->key_frames - 1 && Tm->Frames[f] + change < TimelineEnd)
-                    {
-                        Tm->Frames[f] += change;
-                        result = 1;
+                        if (change < 0 && f > 0 && Tm->Frames[f - 1] < frame + change)
+                        {
+                            Tm->Frames[f] += change;
+                            result = 1;
+                        }
+                        else if (change > 0 && f < Tm->key_frames - 1 && Tm->Frames[f + 1] > frame + change)
+                        {
+                            Tm->Frames[f] += change;
+                            result = 1;
+                        }
+                        else if (change < 0 && f == 0 && Tm->Frames[f] + change >= 0)
+                        {
+                            Tm->Frames[f] += change;
+                            result = 1;
+                        }
+                        else if (change > 0 && f == Tm->key_frames - 1 && Tm->Frames[f] + change < TimelineEnd)
+                        {
+                            Tm->Frames[f] += change;
+                            result = 1;
+                        }
                     }
                 }
             }
@@ -1704,7 +1719,7 @@ int change_Morph_Keyframe_Frame(deformer * D, int f, int frame, int change)
     return result;
 }
 
-void change_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int change)
+void change_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int change, int Indi)
 {
     int t;
 
@@ -1715,50 +1730,53 @@ void change_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int change)
     {
         T = D->Transformers[t];
 
-        if (T->Timeline != NULL)
+        if (!Indi || (Indi && T->selected))
         {
-            Tm = T->Timeline;
-
-            if (f < Tm->key_frames)
+            if (T->Timeline != NULL)
             {
-                if (Tm->Frames[f] == frame)
+                Tm = T->Timeline;
+
+                if (f < Tm->key_frames)
                 {
-                    if (AB == 0) // A
+                    if (Tm->Frames[f] == frame)
                     {
-                        if (change == 1)
-                            Tm->Acceleration[f].a_exponent += EXPONENT_CHANGE;
-                        else
-                            Tm->Acceleration[f].a_exponent -= EXPONENT_CHANGE;
-                        if (Tm->Acceleration[f].a_exponent > EXPONENT_MAX)
+                        if (AB == 0) // A
                         {
-                            Tm->Acceleration[f].a_exponent = EXPONENT_MAX;
+                            if (change == 1)
+                                Tm->Acceleration[f].a_exponent += EXPONENT_CHANGE;
+                            else
+                                Tm->Acceleration[f].a_exponent -= EXPONENT_CHANGE;
+                            if (Tm->Acceleration[f].a_exponent > EXPONENT_MAX)
+                            {
+                                Tm->Acceleration[f].a_exponent = EXPONENT_MAX;
+                            }
+                            if (Tm->Acceleration[f].a_exponent < 1)
+                            {
+                                Tm->Acceleration[f].a_exponent = 1.0;
+                            }
+                            if (t == 0)
+                            {
+                                printf("ACCELERATION A EXPONENT %f\n", Tm->Acceleration[f].a_exponent);
+                            }
                         }
-                        if (Tm->Acceleration[f].a_exponent < 1)
+                        else if (AB == 1) // B
                         {
-                            Tm->Acceleration[f].a_exponent = 1.0;
-                        }
-                        if (t == 0)
-                        {
-                            printf("ACCELERATION A EXPONENT %f\n", Tm->Acceleration[f].a_exponent);
-                        }
-                    }
-                    else if (AB == 1) // B
-                    {
-                        if (change == 1)
-                            Tm->Acceleration[f].b_exponent += EXPONENT_CHANGE;
-                        else
-                            Tm->Acceleration[f].b_exponent -= EXPONENT_CHANGE;
-                        if (Tm->Acceleration[f].b_exponent > EXPONENT_MAX)
-                        {
-                            Tm->Acceleration[f].b_exponent = EXPONENT_MAX;
-                        }
-                        if (Tm->Acceleration[f].b_exponent < 1)
-                        {
-                            Tm->Acceleration[f].b_exponent = 1.0;
-                        }
-                        if (t == 0)
-                        {
-                            printf("ACCELERATION B EXPONENT %f\n", Tm->Acceleration[f].b_exponent);
+                            if (change == 1)
+                                Tm->Acceleration[f].b_exponent += EXPONENT_CHANGE;
+                            else
+                                Tm->Acceleration[f].b_exponent -= EXPONENT_CHANGE;
+                            if (Tm->Acceleration[f].b_exponent > EXPONENT_MAX)
+                            {
+                                Tm->Acceleration[f].b_exponent = EXPONENT_MAX;
+                            }
+                            if (Tm->Acceleration[f].b_exponent < 1)
+                            {
+                                Tm->Acceleration[f].b_exponent = 1.0;
+                            }
+                            if (t == 0)
+                            {
+                                printf("ACCELERATION B EXPONENT %f\n", Tm->Acceleration[f].b_exponent);
+                            }
                         }
                     }
                 }
@@ -1830,7 +1848,7 @@ void change_Morph_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int ch
     }
 }
 
-void change_Key_Acceleration(deformer * D, int f, int frame, int change)
+void change_Key_Acceleration(deformer * D, int f, int frame, int change, int Indi)
 {
     int t;
 
@@ -1841,30 +1859,33 @@ void change_Key_Acceleration(deformer * D, int f, int frame, int change)
     {
         T = D->Transformers[t];
 
-        if (T->Timeline != NULL)
+        if (!Indi || (Indi && T->selected))
         {
-            Tm = T->Timeline;
-
-            if (f < Tm->key_frames)
+            if (T->Timeline != NULL)
             {
-                if (Tm->Frames[f] == frame)
+                Tm = T->Timeline;
+
+                if (f < Tm->key_frames)
                 {
-                    if (change > 0)
-                        Tm->Acceleration[f].segment_type ++;
-                    else
-                        Tm->Acceleration[f].segment_type --;
-                    if (Tm->Acceleration[f].segment_type > 3)
+                    if (Tm->Frames[f] == frame)
                     {
-                        Tm->Acceleration[f].segment_type = 0;
-                    }
-                    if (Tm->Acceleration[f].segment_type < 0)
-                    {
-                        Tm->Acceleration[f].segment_type = 3;
-                    }
-                    if (t == 0)
-                    {
-                        ACCELERATION_DEFAULT = Tm->Acceleration[f].segment_type;
-                        printf("ACCELERATION DEFAULT %s\n", Acceleration_Names[Tm->Acceleration[f].segment_type]);
+                        if (change > 0)
+                            Tm->Acceleration[f].segment_type ++;
+                        else
+                            Tm->Acceleration[f].segment_type --;
+                        if (Tm->Acceleration[f].segment_type > 3)
+                        {
+                            Tm->Acceleration[f].segment_type = 0;
+                        }
+                        if (Tm->Acceleration[f].segment_type < 0)
+                        {
+                            Tm->Acceleration[f].segment_type = 3;
+                        }
+                        if (t == 0)
+                        {
+                            ACCELERATION_DEFAULT = Tm->Acceleration[f].segment_type;
+                            printf("ACCELERATION DEFAULT %s\n", Acceleration_Names[Tm->Acceleration[f].segment_type]);
+                        }
                     }
                 }
             }

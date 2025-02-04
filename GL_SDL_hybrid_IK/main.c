@@ -208,6 +208,7 @@ int Bone_Mode = 0;
 int Curve_Mode = 0;
 int Modeling_Mode = 0;
 int selection_Mode = 0;
+int Timeline_Indi = 0;
 
 int mouse_button_down = 0;
 int add_selection_mode = 1;
@@ -2566,57 +2567,68 @@ void Draw_Timeline()
 	glEnd();
 
 	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
-	int vline, vline0, vline1, vline2, f;
+	int vline, vline0, vline1, vline2, f, frame = 0;
 
-	timeline * Tm;
-	transformer * T;
+	timeline * Tm = NULL;
+	transformer * T0;
 
-	if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+	if (T != NULL)
     {
-        D = deformers[currentDeformer_Node];
-        if (D->Transformers_Count > 0)
+        if (Timeline_Indi && T->selected)
         {
-            T = D->Transformers[0];
-            if (T->Timeline != NULL)
+            T0 = T;
+        }
+        else if (D != NULL && D->Transformers_Count > 0)
+        {
+            T0 = D->Transformers[0];
+        }
+        else
+        {
+            T0 = T;
+        }
+
+        if (T0->Timeline != NULL)
+        {
+            Tm = T0->Timeline;
+
+            for (f = 0; f < Tm->key_frames; f ++)
             {
-                Tm = T->Timeline;
-                for (f = 0; f < Tm->key_frames; f ++)
+                if (Tm->Frames[f] >= TimelineStart && Tm->Frames[f] < TimelineEnd)
                 {
-                    if (Tm->Frames[f] >= TimelineStart && Tm->Frames[f] < TimelineEnd)
+                    vline = (int)((Tm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0) + TIMELINE_ENTRY);
+                    glColor4fv(grayb);
+                    glBegin(GL_LINES);
+                    glVertex2f(vline, 0);
+                    glVertex2f(vline, h - inc * Tm->Acceleration[f].segment_type);
+                    glEnd();
+
+                    if (currentFrame >= Tm->Frames[f] && currentFrame < Tm->Frames[(f + 1) % Tm->key_frames]) //(f == Tm->current_Segment)
                     {
-                        vline = (int)((Tm->Frames[f] - TimelineStart) * tickw + (tickw / 2.0) + TIMELINE_ENTRY);
-                        glColor4fv(grayb);
-                        glBegin(GL_LINES);
-                        glVertex2f(vline, 0);
-                        glVertex2f(vline, h - inc * Tm->Acceleration[f].segment_type);
-                        glEnd();
+                        frame = f;
 
-                        if (f == Tm->current_Segment)
+                        find_Segment_Acceleration_Colors(Tm->Acceleration[f], grayb, white, accel_0, accel_1, accel_2);
+
+                        vline0 = (int)((Tm->Frames[f] - TimelineStart) * tickw + TIMELINE_ENTRY);
+                        glBegin(GL_QUAD_STRIP);
+                        glColor4fv(accel_0);
+                        glVertex2f(vline0 + tickw, 0);
+                        glVertex2f(vline0 + tickw, h);
+                        if (f + 1 < Tm->key_frames)
                         {
-                            find_Segment_Acceleration_Colors(Tm->Acceleration[f], grayb, white, accel_0, accel_1, accel_2);
-
-                            vline0 = (int)((Tm->Frames[f] - TimelineStart) * tickw + TIMELINE_ENTRY);
-                            glBegin(GL_QUAD_STRIP);
-                            glColor4fv(accel_0);
-                            glVertex2f(vline0 + tickw, 0);
-                            glVertex2f(vline0 + tickw, h);
-                            if (f + 1 < Tm->key_frames)
-                            {
-                                vline2 = (int)((Tm->Frames[f + 1] - TimelineStart) * tickw + TIMELINE_ENTRY);
-                            }
-                            else
-                            {
-                                 vline2 = screen_width - TIMELINE_ENTRY;
-                            }
-                            glColor4fv(accel_1);
-                            vline1 = vline0 + (vline2 - vline0) / 2;
-                            glVertex2f(vline1, 0);
-                            glVertex2f(vline1, h);
-                            glColor4fv(accel_2);
-                            glVertex2f(vline2, 0);
-                            glVertex2f(vline2, h);
-                            glEnd();
+                            vline2 = (int)((Tm->Frames[f + 1] - TimelineStart) * tickw + TIMELINE_ENTRY);
                         }
+                        else
+                        {
+                             vline2 = screen_width - TIMELINE_ENTRY;
+                        }
+                        glColor4fv(accel_1);
+                        vline1 = vline0 + (vline2 - vline0) / 2;
+                        glVertex2f(vline1, 0);
+                        glVertex2f(vline1, h);
+                        glColor4fv(accel_2);
+                        glVertex2f(vline2, 0);
+                        glVertex2f(vline2, h);
+                        glEnd();
                     }
                 }
             }
@@ -2653,6 +2665,16 @@ void Draw_Timeline()
 
 	sprintf(label, "%d", TimelineEnd);
 	draw_text(label, screen_width - TIMELINE_ENTRY, 20, 8, 0);
+
+	if (Tm != NULL && Tm->key_frames > 0)
+    {
+        glColor4fv(black1);
+        sprintf(label, "%.1f", Tm->Acceleration[frame].a_exponent);
+        draw_text(label, vline0 + 10, 18, 8, 0);
+
+        sprintf(label, "%.1f", Tm->Acceleration[frame].b_exponent);
+        draw_text(label, vline2 - 20, 18, 8, 0);
+    }
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
@@ -2715,6 +2737,7 @@ void Draw_Morph_Timeline()
             if (O->Morph_Timeline != NULL)
             {
                 Tmm = O->Morph_Timeline;
+
                 for (f = 0; f < Tmm->key_frames; f ++)
                 {
                     if (Tmm->Frames[f] >= TimelineStart && Tmm->Frames[f] < TimelineEnd)
@@ -2725,7 +2748,7 @@ void Draw_Morph_Timeline()
                         glVertex2f(vline, 0);
                         glVertex2f(vline, h - inc * Tmm->Acceleration[f].segment_type);
                         glEnd();
-                        if (f == Tmm->current_Segment)
+                        if (currentFrame >= Tmm->Frames[f] && currentFrame < Tmm->Frames[(f + 1) % Tmm->key_frames]) //(f == Tmm->current_Segment)
                         {
                             find_Segment_Acceleration_Colors(Tmm->Acceleration[f], grayb, white, accel_0, accel_1, accel_2);
 
@@ -12516,7 +12539,7 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
             frame = currentFrame;
 
             D = deformers[currentDeformer_Node];
-            insert_Deformer_keyframe(D, frame);
+            insert_Deformer_keyframe(D, frame, Timeline_Indi);
 
             Draw_Timeline();
             SDL_GL_SwapBuffers();
@@ -12603,7 +12626,7 @@ void handle_Pose_Dialog(char letter, SDLMod mod)
             frame = currentFrame;
 
             D = deformers[currentDeformer_Node];
-            insert_Deformer_keyframe(D, frame);
+            insert_Deformer_keyframe(D, frame, Timeline_Indi);
 
             Draw_Timeline();
 
@@ -13010,7 +13033,7 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             frame = currentFrame;
 
             D = deformers[currentDeformer_Node];
-            insert_Deformer_keyframe(D, frame);
+            insert_Deformer_keyframe(D, frame, Timeline_Indi);
             draw_Dialog();
             Draw_Timeline();
             Draw_Morph_Timeline();
@@ -14230,6 +14253,22 @@ void set_Modeling_Mode()
         update_Deformed_View_(0);
         Modeling_Mode = 0;
         Button_Mode[7].color = UI_GRAYB;
+    }
+}
+
+void set_Timeline_Mode()
+{
+    Draw_Bottom_Message("Timeline Mode\n");
+
+    Timeline_Indi = !Timeline_Indi;
+
+    if (Timeline_Indi)
+    {
+        Button_Mode[8].color = UI_GRAYD;
+    }
+    else
+    {
+        Button_Mode[8].color = UI_GRAYB;
     }
 }
 
@@ -18127,6 +18166,7 @@ int main(int argc, char * args[])
     Button_Mode[5].func = &set_Curve_Mode;
     Button_Mode[6].func = &set_Bind_Mode;
     Button_Mode[7].func = &set_Modeling_Mode;
+    Button_Mode[8].func = &set_Timeline_Mode;
 
     Button_ext[0].func = &set_Button_ext;
     Button_ext[1].func = &set_Button_ext;
@@ -18465,7 +18505,7 @@ int main(int argc, char * args[])
                 else if (Camera->bottom_line && !Camera_screen_lock && !dialog_lock && !Drag_Dialog)
                 {
                     int index = (mouse_x / BUTTON_WIDTH) - 1;
-                    printf("mouse button mode %d\n", index);
+                    //printf("mouse button mode %d\n", index);
                     if (index < BUTTONS_MODE && index >= 0)
                     {
                         Buttonindex_bottom = index;
@@ -22508,20 +22548,20 @@ int main(int argc, char * args[])
                 {
                     D = deformers[currentDeformer_Node];
 
-                    currentKey = find_currentKey(D, currentFrame);
+                    currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
                     if (currentKey >= 0)
                     {
                         if (mod & KMOD_CTRL)
                         {
-                            change_Key_AB_Exponent(D, currentKey, currentFrame, 0, 1); // A
+                            change_Key_AB_Exponent(D, currentKey, currentFrame, 0, 1, Timeline_Indi); // A
                         }
                         else if (mod & KMOD_ALT)
                         {
-                            change_Key_AB_Exponent(D, currentKey, currentFrame, 1, 1); // B
+                            change_Key_AB_Exponent(D, currentKey, currentFrame, 1, 1, Timeline_Indi); // B
                         }
                         else
                         {
-                            change_Key_Acceleration(D, currentKey, currentFrame, 1);
+                            change_Key_Acceleration(D, currentKey, currentFrame, 1, Timeline_Indi);
                         }
                     }
 
@@ -22663,20 +22703,20 @@ int main(int argc, char * args[])
                 {
                     D = deformers[currentDeformer_Node];
 
-                    currentKey = find_currentKey(D, currentFrame);
+                    currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
                     if (currentKey >= 0)
                     {
                         if (mod & KMOD_CTRL)
                         {
-                            change_Key_AB_Exponent(D, currentKey, currentFrame, 0, -1); // A
+                            change_Key_AB_Exponent(D, currentKey, currentFrame, 0, -1, Timeline_Indi); // A
                         }
                         else if (mod & KMOD_ALT)
                         {
-                            change_Key_AB_Exponent(D, currentKey, currentFrame, 1, -1); // B
+                            change_Key_AB_Exponent(D, currentKey, currentFrame, 1, -1, Timeline_Indi); // B
                         }
                         else
                         {
-                            change_Key_Acceleration(D, currentKey, currentFrame, -1);
+                            change_Key_Acceleration(D, currentKey, currentFrame, -1, Timeline_Indi);
                         }
                     }
 
@@ -22812,10 +22852,10 @@ int main(int argc, char * args[])
                         {
                             D = deformers[currentDeformer_Node];
 
-                            currentKey = find_currentKey(D, currentFrame);
+                            currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
                             if (currentKey >= 0)
                             {
-                                int r = change_Keyframe_Frame(D, currentKey, currentFrame, -1);
+                                int r = change_Keyframe_Frame(D, currentKey, currentFrame, -1, Timeline_Indi);
                                 if (r)
                                 {
                                     currentFrame -= 1;
@@ -22891,10 +22931,10 @@ int main(int argc, char * args[])
                         {
                             D = deformers[currentDeformer_Node];
 
-                            currentKey = find_currentKey(D, currentFrame);
+                            currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
                             if (currentKey >= 0)
                             {
-                                int r = change_Keyframe_Frame(D, currentKey, currentFrame, 1);
+                                int r = change_Keyframe_Frame(D, currentKey, currentFrame, 1, Timeline_Indi);
                                 if (r)
                                 {
                                     currentFrame += 1;
@@ -23959,7 +23999,7 @@ int main(int argc, char * args[])
                     frame = currentFrame;
 
                     D = deformers[currentDeformer_Node];
-                    insert_Deformer_keyframe(D, frame);
+                    insert_Deformer_keyframe(D, frame, Timeline_Indi);
 
                     Draw_Timeline();
                     Draw_Morph_Timeline();
@@ -23980,7 +24020,7 @@ int main(int argc, char * args[])
                     {
                         if (mouse_y > screen_height - BUTTON_HEIGHT && mouse_y < screen_height)
                         {
-                            delete_Deformer_keyframe(D, frame);
+                            delete_Deformer_keyframe(D, frame, Timeline_Indi);
                         }
                         else
                         {

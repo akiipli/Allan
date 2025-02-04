@@ -39,7 +39,7 @@ int DIALOG_HEIGHT = 270;
 #define UI_DIMSL 7
 
 #define BUTTONS 23
-#define BUTTONS_MODE 8
+#define BUTTONS_MODE 9
 
 #define MAXFILES 1000
 #define MAX_LISTLENGTH 100
@@ -337,6 +337,7 @@ typedef struct
 }
 ui_color;
 
+GLfloat black1[4] = {0.1, 0.1, 0.0, 0.5};
 GLfloat blueb[4] = {0.2, 0.2, 1, 1};
 GLfloat white[4] = {1, 1, 1, 1};
 GLfloat grayb[4] = {0.6, 0.3, 0.1, 1};
@@ -4854,6 +4855,7 @@ void draw_Bottom_Line(int width, int height)
     draw_Button_horizontal("Curve mode", 5, 1);
     draw_Button_horizontal("Bind mode", 6, 1);
     draw_Button_horizontal("Modeling", 7, 1);
+    draw_Button_horizontal("Timeline Indi", 8, 1);
 
 //    glEnable(GL_DEPTH_TEST);
 //	glEnable(GL_LIGHTING);
