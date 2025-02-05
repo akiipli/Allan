@@ -1939,7 +1939,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
     }
     else if (LOCAT_ID_RENDER && rendermode == ID_RENDER && !POLYS_ID_RENDER)
     {
-        render_Transformers_ID();
+        render_Transformers_ID(BIND_POSE);
     }
     else if (tripsRender)
     {
@@ -2567,7 +2567,7 @@ void Draw_Timeline()
 	glEnd();
 
 	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
-	int vline, vline0, vline1, vline2, f, frame = 0;
+	int vline, vline0, vline1, vline2 = 0, f, frame = 0;
 
 	timeline * Tm = NULL;
 	transformer * T0;
@@ -2666,7 +2666,7 @@ void Draw_Timeline()
 	sprintf(label, "%d", TimelineEnd);
 	draw_text(label, screen_width - TIMELINE_ENTRY, 20, 8, 0);
 
-	if (Tm != NULL && Tm->key_frames > 0)
+	if (Tm != NULL && Tm->key_frames > 1)
     {
         glColor4fv(black1);
         sprintf(label, "%.1f", Tm->Acceleration[frame].a_exponent);
@@ -2723,7 +2723,7 @@ void Draw_Morph_Timeline()
 
 	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
 	int vline, f, o, Preak = 0;
-	int vline0, vline1, vline2, frame = 0;
+	int vline0, vline1, vline2 = 0, frame = 0;
 
 	morph_timeline * Tmm = NULL;
 	object * O;
@@ -2804,7 +2804,7 @@ void Draw_Morph_Timeline()
 	draw_text(label, vline - (tickw / 2.0), 10, 8, 0);
 
 
-	if (Tmm != NULL && Tmm->key_frames > 0)
+	if (Tmm != NULL && Tmm->key_frames > 1)
     {
         glColor4fv(black1);
         sprintf(label, "%.1f", Tmm->Acceleration[frame].a_exponent);
@@ -2856,7 +2856,7 @@ void draw_Locators()
     if (rendermode != ID_RENDER)
     {
         if (!Bone_Mode)
-            render_Transformers(currentLocator);
+            render_Transformers(currentLocator, BIND_POSE);
         if (!BONES_ID_RENDER)
         {
             render_Parent_Lines();
@@ -24943,6 +24943,11 @@ int main(int argc, char * args[])
         else if (message == 54)
         {
             set_Modeling_Mode();
+            message = -1;
+        }
+        else if (message == 55)
+        {
+            set_Timeline_Mode();
             message = -1;
         }
         else if (message == 59)

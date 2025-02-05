@@ -6016,7 +6016,7 @@ void render_Bones_ID()
     glEnable(GL_LIGHTING);
 }
 
-void render_Transformers_ID()
+void render_Transformers_ID(int bind_Pose)
 {
     int t;
     transformer * T;
@@ -6084,20 +6084,40 @@ void render_Transformers_ID()
 
         if (T->Object != NULL)
         {
-            glVertex3f(T->pos[0] + rotVec_[0][0] / 2, T->pos[1] + rotVec_[0][1] / 2, T->pos[2] + rotVec_[0][2] / 2);
-            glVertex3f(T->pos[0] + rotVec_[2][0] / 2, T->pos[1] + rotVec_[2][1] / 2, T->pos[2] + rotVec_[2][2] / 2);
+            if (bind_Pose)
+            {
+                glVertex3f(T->pos[0] + rotVec_[0][0] / 4, T->pos[1] + rotVec_[0][1] / 4, T->pos[2] + rotVec_[0][2] / 4);
+                glVertex3f(T->pos[0] + rotVec_[2][0] / 4, T->pos[1] + rotVec_[2][1] / 4, T->pos[2] + rotVec_[2][2] / 4);
 
-            glVertex3f(T->pos[0] + rotVec_[2][0] / 2, T->pos[1] + rotVec_[2][1] / 2, T->pos[2] + rotVec_[2][2] / 2);
-            glVertex3f(T->pos[0] - rotVec_[0][0] / 2, T->pos[1] - rotVec_[0][1] / 2, T->pos[2] - rotVec_[0][2] / 2);
+                glVertex3f(T->pos[0] + rotVec_[2][0] / 4, T->pos[1] + rotVec_[2][1] / 4, T->pos[2] + rotVec_[2][2] / 4);
+                glVertex3f(T->pos[0] - rotVec_[0][0] / 4, T->pos[1] - rotVec_[0][1] / 4, T->pos[2] - rotVec_[0][2] / 4);
 
-            glVertex3f(T->pos[0] - rotVec_[0][0] / 2, T->pos[1] - rotVec_[0][1] / 2, T->pos[2] - rotVec_[0][2] / 2);
-            glVertex3f(T->pos[0] - rotVec_[2][0] / 2, T->pos[1] - rotVec_[2][1] / 2, T->pos[2] - rotVec_[2][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[0][0] / 4, T->pos[1] - rotVec_[0][1] / 4, T->pos[2] - rotVec_[0][2] / 4);
+                glVertex3f(T->pos[0] - rotVec_[2][0] / 4, T->pos[1] - rotVec_[2][1] / 4, T->pos[2] - rotVec_[2][2] / 4);
 
-            glVertex3f(T->pos[0] - rotVec_[2][0] / 2, T->pos[1] - rotVec_[2][1] / 2, T->pos[2] - rotVec_[2][2] / 2);
-            glVertex3f(T->pos[0] + rotVec_[0][0] / 2, T->pos[1] + rotVec_[0][1] / 2, T->pos[2] + rotVec_[0][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[2][0] / 4, T->pos[1] - rotVec_[2][1] / 4, T->pos[2] - rotVec_[2][2] / 4);
+                glVertex3f(T->pos[0] + rotVec_[0][0] / 4, T->pos[1] + rotVec_[0][1] / 4, T->pos[2] + rotVec_[0][2] / 4);
 
-            glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
-            glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
+                glVertex3f(T->pos[0] + rotVec_[1][0] / 4, T->pos[1] + rotVec_[1][1] / 4, T->pos[2] + rotVec_[1][2] / 4);
+                glVertex3f(T->pos[0] - rotVec_[1][0] / 4, T->pos[1] - rotVec_[1][1] / 4, T->pos[2] - rotVec_[1][2] / 4);
+            }
+            else
+            {
+                glVertex3f(T->pos[0] + rotVec_[0][0] / 2, T->pos[1] + rotVec_[0][1] / 2, T->pos[2] + rotVec_[0][2] / 2);
+                glVertex3f(T->pos[0] + rotVec_[2][0] / 2, T->pos[1] + rotVec_[2][1] / 2, T->pos[2] + rotVec_[2][2] / 2);
+
+                glVertex3f(T->pos[0] + rotVec_[2][0] / 2, T->pos[1] + rotVec_[2][1] / 2, T->pos[2] + rotVec_[2][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[0][0] / 2, T->pos[1] - rotVec_[0][1] / 2, T->pos[2] - rotVec_[0][2] / 2);
+
+                glVertex3f(T->pos[0] - rotVec_[0][0] / 2, T->pos[1] - rotVec_[0][1] / 2, T->pos[2] - rotVec_[0][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[2][0] / 2, T->pos[1] - rotVec_[2][1] / 2, T->pos[2] - rotVec_[2][2] / 2);
+
+                glVertex3f(T->pos[0] - rotVec_[2][0] / 2, T->pos[1] - rotVec_[2][1] / 2, T->pos[2] - rotVec_[2][2] / 2);
+                glVertex3f(T->pos[0] + rotVec_[0][0] / 2, T->pos[1] + rotVec_[0][1] / 2, T->pos[2] + rotVec_[0][2] / 2);
+
+                glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
+            }
         }
         else if (T->style == ik_goal || T->style == ik_fixed)
         {
@@ -6885,7 +6905,7 @@ void render_IK_Labels(int width, int height)
     display_labels(width, height);
 }
 
-void render_Transformers(int currentLocator)
+void render_Transformers(int currentLocator, int bind_Pose)
 {
     int t;
     transformer * T;
@@ -6948,20 +6968,40 @@ void render_Transformers(int currentLocator)
                 glColor4ubv(line_gray);
             }
 
-            glVertex3f(T->pos[0] + rotVec_[0][0] / 2, T->pos[1] + rotVec_[0][1] / 2, T->pos[2] + rotVec_[0][2] / 2);
-            glVertex3f(T->pos[0] + rotVec_[2][0] / 2, T->pos[1] + rotVec_[2][1] / 2, T->pos[2] + rotVec_[2][2] / 2);
+            if (bind_Pose)
+            {
+                glVertex3f(T->pos[0] + rotVec_[0][0] / 4, T->pos[1] + rotVec_[0][1] / 4, T->pos[2] + rotVec_[0][2] / 4);
+                glVertex3f(T->pos[0] + rotVec_[2][0] / 4, T->pos[1] + rotVec_[2][1] / 4, T->pos[2] + rotVec_[2][2] / 4);
 
-            glVertex3f(T->pos[0] + rotVec_[2][0] / 2, T->pos[1] + rotVec_[2][1] / 2, T->pos[2] + rotVec_[2][2] / 2);
-            glVertex3f(T->pos[0] - rotVec_[0][0] / 2, T->pos[1] - rotVec_[0][1] / 2, T->pos[2] - rotVec_[0][2] / 2);
+                glVertex3f(T->pos[0] + rotVec_[2][0] / 4, T->pos[1] + rotVec_[2][1] / 4, T->pos[2] + rotVec_[2][2] / 4);
+                glVertex3f(T->pos[0] - rotVec_[0][0] / 4, T->pos[1] - rotVec_[0][1] / 4, T->pos[2] - rotVec_[0][2] / 4);
 
-            glVertex3f(T->pos[0] - rotVec_[0][0] / 2, T->pos[1] - rotVec_[0][1] / 2, T->pos[2] - rotVec_[0][2] / 2);
-            glVertex3f(T->pos[0] - rotVec_[2][0] / 2, T->pos[1] - rotVec_[2][1] / 2, T->pos[2] - rotVec_[2][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[0][0] / 4, T->pos[1] - rotVec_[0][1] / 4, T->pos[2] - rotVec_[0][2] / 4);
+                glVertex3f(T->pos[0] - rotVec_[2][0] / 4, T->pos[1] - rotVec_[2][1] / 4, T->pos[2] - rotVec_[2][2] / 4);
 
-            glVertex3f(T->pos[0] - rotVec_[2][0] / 2, T->pos[1] - rotVec_[2][1] / 2, T->pos[2] - rotVec_[2][2] / 2);
-            glVertex3f(T->pos[0] + rotVec_[0][0] / 2, T->pos[1] + rotVec_[0][1] / 2, T->pos[2] + rotVec_[0][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[2][0] / 4, T->pos[1] - rotVec_[2][1] / 4, T->pos[2] - rotVec_[2][2] / 4);
+                glVertex3f(T->pos[0] + rotVec_[0][0] / 4, T->pos[1] + rotVec_[0][1] / 4, T->pos[2] + rotVec_[0][2] / 4);
 
-            glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
-            glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
+                glVertex3f(T->pos[0] + rotVec_[1][0] / 4, T->pos[1] + rotVec_[1][1] / 4, T->pos[2] + rotVec_[1][2] / 4);
+                glVertex3f(T->pos[0] - rotVec_[1][0] / 4, T->pos[1] - rotVec_[1][1] / 4, T->pos[2] - rotVec_[1][2] / 4);
+            }
+            else
+            {
+                glVertex3f(T->pos[0] + rotVec_[0][0] / 2, T->pos[1] + rotVec_[0][1] / 2, T->pos[2] + rotVec_[0][2] / 2);
+                glVertex3f(T->pos[0] + rotVec_[2][0] / 2, T->pos[1] + rotVec_[2][1] / 2, T->pos[2] + rotVec_[2][2] / 2);
+
+                glVertex3f(T->pos[0] + rotVec_[2][0] / 2, T->pos[1] + rotVec_[2][1] / 2, T->pos[2] + rotVec_[2][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[0][0] / 2, T->pos[1] - rotVec_[0][1] / 2, T->pos[2] - rotVec_[0][2] / 2);
+
+                glVertex3f(T->pos[0] - rotVec_[0][0] / 2, T->pos[1] - rotVec_[0][1] / 2, T->pos[2] - rotVec_[0][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[2][0] / 2, T->pos[1] - rotVec_[2][1] / 2, T->pos[2] - rotVec_[2][2] / 2);
+
+                glVertex3f(T->pos[0] - rotVec_[2][0] / 2, T->pos[1] - rotVec_[2][1] / 2, T->pos[2] - rotVec_[2][2] / 2);
+                glVertex3f(T->pos[0] + rotVec_[0][0] / 2, T->pos[1] + rotVec_[0][1] / 2, T->pos[2] + rotVec_[0][2] / 2);
+
+                glVertex3f(T->pos[0] + rotVec_[1][0] / 2, T->pos[1] + rotVec_[1][1] / 2, T->pos[2] + rotVec_[1][2] / 2);
+                glVertex3f(T->pos[0] - rotVec_[1][0] / 2, T->pos[1] - rotVec_[1][1] / 2, T->pos[2] - rotVec_[1][2] / 2);
+            }
         }
         else if (T->style == ik_goal || T->style == ik_fixed)
         {

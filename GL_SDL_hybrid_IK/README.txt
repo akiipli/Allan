@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+2:44 PM 2/5/2025
+Keyboard 9 sets Timeline Indi mode. In this mode keyframe functions affect selected transformers in Deformer.
+However to play animation, place first keyframe in Deformer mode (no Indi).
+
 10:07 AM 1/28/2025
 Shif + U with Locators visible unfixes IK goals. Ctrl + D - play Poses.
 
