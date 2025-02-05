@@ -1558,7 +1558,7 @@ int find_currentKey(transformer * T, deformer * D, int frame, int Indi)
 
         for (f = 0; f < Tm->key_frames; f ++)
         {
-            if (frame == Tm->Frames[f])
+            if (frame >= Tm->Frames[f] && frame < Tm->Frames[(f + 1) % Tm->key_frames]) //(frame == Tm->Frames[f])
             {
                 return f;
             }
@@ -1590,7 +1590,7 @@ int find_current_Morph_Key(deformer * D, int frame)
 
                 for (f = 0; f < Tmm->key_frames; f ++)
                 {
-                    if (frame == Tmm->Frames[f])
+                    if (frame >= Tmm->Frames[f] && frame < Tmm->Frames[(f + 1) % Tmm->key_frames]) //(frame == Tmm->Frames[f])
                     {
                         condition = 1;
                         break;
@@ -1689,7 +1689,7 @@ int change_Morph_Keyframe_Frame(deformer * D, int f, int frame, int change)
 
             if (f < Tmm->key_frames)
             {
-                if (Tmm->Frames[f] == frame)
+                if (frame >= Tmm->Frames[f] && frame < Tmm->Frames[(f + 1) % Tmm->key_frames]) //(Tmm->Frames[f] == frame)
                 {
                     if (change < 0 && f > 0 && Tmm->Frames[f - 1] < frame + change)
                     {
@@ -1738,7 +1738,7 @@ void change_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int change, 
 
                 if (f < Tm->key_frames)
                 {
-                    if (Tm->Frames[f] == frame)
+                    if (frame >= Tm->Frames[f] && frame < Tm->Frames[(f + 1) % Tm->key_frames]) //(Tm->Frames[f] == frame)
                     {
                         if (AB == 0) // A
                         {
@@ -1802,7 +1802,7 @@ void change_Morph_Key_AB_Exponent(deformer * D, int f, int frame, int AB, int ch
 
             if (f < Tmm->key_frames)
             {
-                if (Tmm->Frames[f] == frame)
+                if (frame >= Tmm->Frames[f] && frame < Tmm->Frames[(f + 1) % Tmm->key_frames]) //(Tmm->Frames[f] == frame)
                 {
                     if (AB == 0) // A
                     {
@@ -1867,7 +1867,7 @@ void change_Key_Acceleration(deformer * D, int f, int frame, int change, int Ind
 
                 if (f < Tm->key_frames)
                 {
-                    if (Tm->Frames[f] == frame)
+                    if (frame >= Tm->Frames[f] && frame < Tm->Frames[(f + 1) % Tm->key_frames]) //(Tm->Frames[f] == frame)
                     {
                         if (change > 0)
                             Tm->Acceleration[f].segment_type ++;
@@ -1910,7 +1910,7 @@ void change_Morph_Key_Acceleration(deformer * D, int f, int frame, int change)
 
             if (f < Tmm->key_frames)
             {
-                if (Tmm->Frames[f] == frame)
+                if (frame >= Tmm->Frames[f] && frame < Tmm->Frames[(f + 1) % Tmm->key_frames]) //(Tmm->Frames[f] == frame)
                 {
                     if (change > 0)
                         Tmm->Acceleration[f].segment_type ++;

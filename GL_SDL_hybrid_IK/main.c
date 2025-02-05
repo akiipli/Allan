@@ -2723,9 +2723,9 @@ void Draw_Morph_Timeline()
 
 	float tickw = (float)(screen_width - TIMELINE_ENTRY * 2) / (float)(TimelineEnd - TimelineStart);
 	int vline, f, o, Preak = 0;
-	int vline0, vline1, vline2;
+	int vline0, vline1, vline2, frame = 0;
 
-	morph_timeline * Tmm;
+	morph_timeline * Tmm = NULL;
 	object * O;
 
 	if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
@@ -2750,6 +2750,8 @@ void Draw_Morph_Timeline()
                         glEnd();
                         if (currentFrame >= Tmm->Frames[f] && currentFrame < Tmm->Frames[(f + 1) % Tmm->key_frames]) //(f == Tmm->current_Segment)
                         {
+                            frame = f;
+
                             find_Segment_Acceleration_Colors(Tmm->Acceleration[f], grayb, white, accel_0, accel_1, accel_2);
 
                             vline0 = (int)((Tmm->Frames[f] - TimelineStart) * tickw + TIMELINE_ENTRY);
@@ -2800,6 +2802,17 @@ void Draw_Morph_Timeline()
 	glColor4fv(black);
 	sprintf(label, "%d", currentFrame);
 	draw_text(label, vline - (tickw / 2.0), 10, 8, 0);
+
+
+	if (Tmm != NULL && Tmm->key_frames > 0)
+    {
+        glColor4fv(black1);
+        sprintf(label, "%.1f", Tmm->Acceleration[frame].a_exponent);
+        draw_text(label, vline0 + 10, 18, 8, 0);
+
+        sprintf(label, "%.1f", Tmm->Acceleration[frame].b_exponent);
+        draw_text(label, vline2 - 20, 18, 8, 0);
+    }
 
     glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
