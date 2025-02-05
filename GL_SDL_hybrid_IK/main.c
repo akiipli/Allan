@@ -24596,6 +24596,7 @@ int main(int argc, char * args[])
                     T->selected = 0;
                 }
                 T = transformers[currentLocator];
+                T->selected = 1;
             }
             else if (Curve_Mode)
             {
