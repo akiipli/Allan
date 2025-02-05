@@ -24732,6 +24732,7 @@ int main(int argc, char * args[])
             {
                 if (mod & KMOD_SHIFT)
                 {
+                    /*
                     if (Trajectories_c <= 0)
                     {
                         if (currentCurve >= 0 && currentCurve < curvesIndex)
@@ -24745,7 +24746,8 @@ int main(int argc, char * args[])
 
                     T = transformers[currentLocator];
                     run_Experimental_Curve_Travel(Trj, T);
-                    //curve_Draw = !curve_Draw;
+                    */
+                    curve_Draw = !curve_Draw;
                 }
                 else if (mod & KMOD_CTRL)
                 {
