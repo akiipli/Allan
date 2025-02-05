@@ -15322,7 +15322,7 @@ void make_Movement()
             {
                 if (T == T->Deformer->Transformers[0])
                 {
-                    if(!fixed_goals)
+                    if(!fixed_goals && !Timeline_Indi)
                     {
                         set_Deformer_Delta(T->Deformer);
                     }

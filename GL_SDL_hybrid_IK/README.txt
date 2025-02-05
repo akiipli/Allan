@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+3:46 PM 2/5/2025
+When moving Deformer Timeline Indi mode prevents Deformer Delta to be set as with fixed IK goals.
+
 2:44 PM 2/5/2025
 Keyboard 9 sets Timeline Indi mode. In this mode keyframe functions affect selected transformers in Deformer.
 However to play animation, place first keyframe in Deformer mode (no Indi).
