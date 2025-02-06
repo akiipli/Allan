@@ -270,37 +270,44 @@ void remove_Deformer(deformer * D)
 
 void add_Deformer()
 {
-    deformer * D = malloc(sizeof(deformer));
-    deformers[deformerIndex] = D;
-    D->index = deformerIndex;
-    D->Name = malloc(STRLEN * sizeof(char));
-    sprintf(D->Name, "%s %d", "Deformer", deformerIndex);
-    D->collapsed = 0;
-    D->selected = 0;
-    D->Transformers_Count = 0;
-    D->Selections_Count = 0;
-    D->Objects_Count = 0;
-    D->Bones_Count = 0;
-    D->Poses_Count = 0;
-    D->IKchains_Count = 0;
-    D->Subcharacters_Count = 0;
-    D->Transformers = malloc(0 * sizeof(transformer*));
-    D->Selections = malloc(0 * sizeof(vert_selection*));
-    D->Objects = malloc(0 * sizeof(object*));
-    D->Bones = malloc(0 * sizeof(bone*));
-    D->Poses = malloc(0 * sizeof(pose*));
-    D->IKchains = malloc(0 * sizeof(ikChain*));
-    D->Subcharacters = malloc(0 * sizeof(subcharacter*));
-    memcpy(D->Delta, (float[3]){0, 0, 0}, sizeof D->Delta);
-    D->current_pose = 0;
-    memcpy(&D->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof D->rotVec);
-    memcpy(D->rot, (float[3]){0, 0, 0}, sizeof D->rot);
-    D->play = -1;
-    D->P = NULL;
-    deformerIndex ++;
-    D->Morph_Maps = malloc(0 * sizeof(deformer_morph_map*));
-    D->Morph_Maps_Count = 0;
-    D->linear_pose = 0;
+    if (deformerIndex >= DEFORMERS)
+    {
+
+    }
+    else
+    {
+        deformer * D = malloc(sizeof(deformer));
+        deformers[deformerIndex] = D;
+        D->index = deformerIndex;
+        D->Name = malloc(STRLEN * sizeof(char));
+        sprintf(D->Name, "%s %d", "Deformer", deformerIndex);
+        D->collapsed = 0;
+        D->selected = 0;
+        D->Transformers_Count = 0;
+        D->Selections_Count = 0;
+        D->Objects_Count = 0;
+        D->Bones_Count = 0;
+        D->Poses_Count = 0;
+        D->IKchains_Count = 0;
+        D->Subcharacters_Count = 0;
+        D->Transformers = malloc(0 * sizeof(transformer*));
+        D->Selections = malloc(0 * sizeof(vert_selection*));
+        D->Objects = malloc(0 * sizeof(object*));
+        D->Bones = malloc(0 * sizeof(bone*));
+        D->Poses = malloc(0 * sizeof(pose*));
+        D->IKchains = malloc(0 * sizeof(ikChain*));
+        D->Subcharacters = malloc(0 * sizeof(subcharacter*));
+        memcpy(D->Delta, (float[3]){0, 0, 0}, sizeof D->Delta);
+        D->current_pose = 0;
+        memcpy(&D->rotVec, (float[3][3]) {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}, sizeof D->rotVec);
+        memcpy(D->rot, (float[3]){0, 0, 0}, sizeof D->rot);
+        D->play = -1;
+        D->P = NULL;
+        deformerIndex ++;
+        D->Morph_Maps = malloc(0 * sizeof(deformer_morph_map*));
+        D->Morph_Maps_Count = 0;
+        D->linear_pose = 0;
+    }
 }
 
 void list_Deformer_Nodes(deformer * D, int SelsIndex, object * O)

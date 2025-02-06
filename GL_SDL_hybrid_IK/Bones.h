@@ -1065,9 +1065,15 @@ void generate_Bones_Distances_Mapping_In_Deformer(deformer * D)
 
 int add_Bone(transformer * T0, transformer * T1)
 {
+    if (bonesIndex >= BONES)
+    {
+        return -1;
+    }
     bone * B = malloc(sizeof(bone));
     if (B == NULL)
+    {
         return -1;
+    }
     bones[bonesIndex] = B;
     B->index = bonesIndex;
     B->Name = malloc(STRLEN * sizeof(char));

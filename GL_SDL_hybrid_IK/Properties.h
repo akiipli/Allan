@@ -31,6 +31,7 @@ from corner.
 #define PROPERTIES_BONE 7
 #define PROPERTIES_MORPH 8
 #define PROPERTIES_DEFORMER 9
+#define PROPERTIES_TRJ 10
 
 #define X_OFFSET 5
 #define Y_OFFSET 10
@@ -395,6 +396,23 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         {
             O = D->Objects[i];
             sprintf(text, O->Name);
+            draw_Properties_Text(text, d_width, p_height, idx, 0, 1);
+            idx ++;
+        }
+    }
+    else if (subject != NULL && type == PROPERTIES_TRJ)
+    {
+        trajectory * Trj = (trajectory *)subject;
+        transformer * T;
+
+        sprintf(text, "lisa transformereid");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        idx ++;
+
+        for (i = 0; i < Trj->transformers_count; i ++)
+        {
+            T = Trj->Transformers[i];
+            sprintf(text, T->Name);
             draw_Properties_Text(text, d_width, p_height, idx, 0, 1);
             idx ++;
         }

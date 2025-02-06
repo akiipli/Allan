@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1738766071 source:c:\gl_sdl_hybrid_ik\main.c
+1738850616 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -30,6 +30,7 @@
 	"Bones.h"
 	"Subcharacters.h"
 	"Morphs.h"
+	"Trajectories.h"
 	"Properties.h"
 	"Shaders.h"
 	"File_IO.h"
@@ -51,7 +52,6 @@
 	"Validators.h"
 	"Loading.h"
 	"Modeling.h"
-	"Trajectories.h"
 	<windows.h>
 	<io.h>
 	<fcntl.h>
@@ -75,9 +75,9 @@
 
 1736761967 c:\gl_sdl_hybrid_ik\object.h
 
-1738586751 c:\gl_sdl_hybrid_ik\curves.h
+1738841914 c:\gl_sdl_hybrid_ik\curves.h
 
-1738667484 c:\gl_sdl_hybrid_ik\userinterface.h
+1738843712 c:\gl_sdl_hybrid_ik\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
@@ -89,17 +89,17 @@
 
 1737975878 c:\gl_sdl_hybrid_ik\iksolution.h
 
-1738755645 c:\gl_sdl_hybrid_ik\deformer.h
+1738849026 c:\gl_sdl_hybrid_ik\deformer.h
 
 1737917879 c:\gl_sdl_hybrid_ik\poses.h
 
-1736941124 c:\gl_sdl_hybrid_ik\bones.h
+1738848562 c:\gl_sdl_hybrid_ik\bones.h
 
 1737726813 c:\gl_sdl_hybrid_ik\subcharacters.h
 
 1734892334 c:\gl_sdl_hybrid_ik\morphs.h
 
-1737832013 c:\gl_sdl_hybrid_ik\properties.h
+1738844892 c:\gl_sdl_hybrid_ik\properties.h
 
 1636367110 c:\gl_sdl_hybrid_ik\shaders.h
 
@@ -146,9 +146,9 @@
 
 1636367110 c:\gl_sdl_hybrid_ik\validators.h
 
-1736757463 c:\gl_sdl_hybrid_ik\loading.h
+1738841914 c:\gl_sdl_hybrid_ik\loading.h
 
 1736252479 c:\gl_sdl_hybrid_ik\modeling.h
 
-1738566000 c:\gl_sdl_hybrid_ik\trajectories.h
+1738849871 c:\gl_sdl_hybrid_ik\trajectories.h
 

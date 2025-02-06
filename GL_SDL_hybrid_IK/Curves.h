@@ -138,6 +138,8 @@ struct cp
 
 cp * cps[CPS];
 
+typedef struct trajectory traj;
+
 struct curve
 {
     int index;
@@ -153,6 +155,7 @@ struct curve
     object * O;
     int visible;
     float len;
+    traj * Trj;
 };
 
 curve * curves[CURVES];
@@ -1293,6 +1296,7 @@ int add_New_Curve_To_Verts(float pos[3], int open, vertex * V, object * O)
     C->index = curvesIndex;
     curvesIndex ++;
     C->visible = 1;
+    C->Trj = NULL;
 
     if (O->curve_count < OBJECT_CURVES)
     {
@@ -1425,6 +1429,7 @@ int add_New_Curve(float pos[3], int open)
     C->index = curvesIndex;
     curvesIndex ++;
     C->visible = 1;
+    C->Trj = NULL;
 
     if (cpsIndex >= CPS)
     {
@@ -1485,31 +1490,6 @@ int add_New_Curve(float pos[3], int open)
     CP->segment_count = 1;
     CP->segments[0] = S;
 
-    return 1;
-}
-
-int add_Curve(object * O)
-{
-    printf("add Curve\n");
-
-    if (O->curve_count >= OBJECT_CURVES || curvesIndex >= CURVES)
-    {
-        return 0;
-    }
-
-    curve * C = malloc(sizeof(curve));
-    if (C == NULL)
-    {
-        return 0;
-    }
-
-    initialize_Curve(C);
-
-    O->curves[O->curve_count ++] = C;
-    curves[curvesIndex] = C;
-    C->index = curvesIndex;
-    C->O = O;
-    curvesIndex ++;
     return 1;
 }
 

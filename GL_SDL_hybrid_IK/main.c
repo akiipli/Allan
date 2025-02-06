@@ -69,6 +69,7 @@ int RESET = 0;
 #include "Bones.h"
 #include "Subcharacters.h"
 #include "Morphs.h"
+#include "Trajectories.h"
 #include "Properties.h"
 #include "Shaders.h"
 #include "File_IO.h"
@@ -97,8 +98,6 @@ int RESET = 0;
 
 #include "Modeling.h"
 
-#include "Trajectories.h"
-
 #include <windows.h> // console
 #include <io.h>
 #include <fcntl.h>
@@ -119,6 +118,7 @@ int RESET = 0;
 #define SAVES_DIALOG 13
 #define LOADING_DIALOG 14
 #define TIMELINE_DIALOG 15
+#define TRJ_DIALOG 16
 
 #define obj_EXTENSION 0
 #define OBJ_EXTENSION 1
@@ -5535,6 +5535,21 @@ int list_ik(char ** ikch_list, int start, int n)
     return chain;
 }
 
+int list_trajectory(char ** trj_list, int start, int n, int * trj_italic)
+{
+    int t = start;
+    int trj = 0;
+    for (trj = 0; trj < n; trj ++)
+    {
+        if (trj >= Trj_c - start)
+            break;
+        sprintf(trj_list[trj], "%s", Trj_Names[t]);
+        trj_italic[trj] = Trj_Italic[t];
+        t ++;
+    }
+    return trj;
+}
+
 int list_bones(char ** bones_list, int start, int n, int * bone_italic)
 {
     int b = start;
@@ -5721,6 +5736,77 @@ void open_Selections_List()
         draw_Selections_Dialog("Selections L.", screen_height, sel_type, sel_types, sel_type_count, sels_start[current_sel_type], 1, SelsIndex[current_sel_type] - sels_start[current_sel_type], selection_rectangle);
     }
     blit_ViewPort();
+    glDrawBuffer(GL_BACK);
+    SDL_GL_SwapBuffers();
+    message = 0;
+}
+
+void black_out_TrajList()
+{
+    int t;
+
+    for (t = 0; t < Trj_c; t ++)
+    {
+        TrajList[t].color = UI_BLACK;
+    }
+    if (TrjIndex - trj_start >= 0)
+        TrajList[TrjIndex - trj_start].color = UI_BACKL;
+}
+
+void open_Trajectory_List()
+{
+    printf("open Trajectory List\n");
+
+    if (currentTrj >= 0 && currentTrj < trjIndex)
+    {
+        Trj = trajectories[currentTrj];
+        Type = Trj;
+    }
+    else
+    {
+        Type = NULL;
+    }
+
+    PROPERTIES = PROPERTIES_TRJ;
+
+    create_Trajectory_List();
+
+    TrjIndex = currentTrj;
+
+    if (currentTrj < Trj_c && (TrjIndex - trj_start < 0 || TrjIndex >= trj_start + LISTLENGTH))
+    {
+        if (TrjIndex - LISTLENGTH / 2 >= 0)
+        {
+            trj_start = TrjIndex - LISTLENGTH / 2;
+        }
+        else
+        {
+            trj_start = 0;
+        }
+    }
+
+    black_out_TrajList();
+
+    SDL_SetCursor(Arrow);
+    dialog_lock = 1;
+    dialog_type = TRJ_DIALOG;
+
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    UPDATE_COLORS = 1;
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+    UPDATE_COLORS = 0;
+
+    draw_Trajectory_Dialog("Trajectory L.", screen_height,
+                       trj_start, 1, TrjIndex - trj_start, selection_rectangle);
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(Trj->Name, screen_height, 1, PROPERTIES_TRJ, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_TRJ, Type);
+    }
+
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
     message = 0;
@@ -7042,6 +7128,54 @@ void update_Subcharacters_List(int update, int blit)
         draw_Subcharacter_List(screen_height, subcharacter_start, 0, SubcharacterIndex - subcharacter_start, selection_rectangle);
         draw_Subcharacter_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
+    SDL_GL_SwapBuffers();
+    glDrawBuffer(GL_BACK);
+}
+
+void update_Trajectory_List(int update, int blit)
+{
+    if (currentTrj >= 0 && currentTrj < trjIndex)
+    {
+        Type = trajectories[currentTrj];
+    }
+    else
+    {
+        Type = NULL;
+    }
+
+    if (TrjIndex - trj_start >= 0)
+        TrajList[TrjIndex - trj_start].color = UI_BACKL;
+
+    if (blit)
+    {
+        blit_ViewPort();
+    }
+
+    if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
+    if (UPDATE_BACKGROUND || update)
+    {
+        draw_Trajectory_Dialog("Trajectory L.", screen_height, trj_start, 1, TrjIndex - trj_start, selection_rectangle);
+    }
+    else
+    {
+        draw_Trajectory_List(screen_height, trj_start, 0, TrjIndex - trj_start, selection_rectangle);
+        draw_Trajectory_Bottom_Line(DIALOG_WIDTH, screen_height);
+    }
+
+    if (DIALOG_HEIGHT < screen_height)
+    {
+        if (Type != NULL)
+            draw_Properties(trajectories[currentTrj]->Name, screen_height, 1, PROPERTIES_TRJ, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES_TRJ, Type);
+    }
+
+    if (DRAW_TIMELINE)
+    {
+        Draw_Timeline();
+        Draw_Morph_Timeline();
+    }
+
     SDL_GL_SwapBuffers();
     glDrawBuffer(GL_BACK);
 }
@@ -9082,6 +9216,42 @@ void handle_UP_Item(int scrollbar)
     update_Items_List(1, 0);
 }
 
+void handle_UP_Trajectory(int scrollbar)
+{
+    if (scrollbar)
+    {
+        if (TrjIndex - trj_start >= 0)
+            TrajList[TrjIndex - trj_start].color = UI_BLACK;
+        trj_start --;
+        if (trj_start < 0) trj_start = 0;
+        if (TrjIndex - trj_start >= 0)
+            TrajList[TrjIndex - trj_start].color = UI_BACKL;
+
+        update_Trajectory_List(0, 0);
+    }
+    else
+    {
+        if (TrjIndex - trj_start >= 0)
+            TrajList[TrjIndex - trj_start].color = UI_BLACK;
+        TrjIndex --;
+        if (TrjIndex < 0) TrjIndex ++;
+        if (TrjIndex - trj_start >= 0)
+            TrajList[TrjIndex - trj_start].color = UI_BACKL;
+        if (currentTrj >= 0 && currentTrj < trjIndex)
+        {
+            trajectories[currentTrj]->selected = 0;
+            currentTrj = Trj_List[TrjIndex];
+            trajectories[currentTrj]->selected = 1;
+        }
+
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
+        update_Trajectory_List(1, 1);
+        DRAW_UI = 1;
+    }
+}
+
 void handle_UP_Bone(int scrollbar)
 {
     if (scrollbar)
@@ -9459,6 +9629,10 @@ void handle_UP(int scrollbar)
         {
             handle_UP_Bone(scrollbar);
         }
+        else if (dialog_type == TRJ_DIALOG)
+        {
+            handle_UP_Trajectory(scrollbar);
+        }
         else if (dialog_type == IK_DIALOG)
         {
             handle_UP_IK(scrollbar);
@@ -9798,6 +9972,43 @@ void handle_DOWN_Bone(int scrollbar)
     }
 }
 
+void handle_DOWN_Trajectory(int scrollbar)
+{
+    if (scrollbar)
+    {
+        if (TrjIndex - trj_start >= 0)
+            TrajList[TrjIndex - trj_start].color = UI_BLACK;
+        trj_start ++;
+        if (trj_start > Trj_c - LISTLENGTH) trj_start --;
+        if (TrjIndex - trj_start >= 0)
+            TrajList[TrjIndex - trj_start].color = UI_BACKL;
+
+        update_Trajectory_List(0, 0);
+    }
+    else
+    {
+        if (TrjIndex - trj_start >= 0)
+            TrajList[TrjIndex - trj_start].color = UI_BLACK;
+        TrjIndex ++;
+        if (TrjIndex > Trj_c - 1)
+            TrjIndex --;
+        if (TrjIndex - trj_start >= 0)
+            TrajList[TrjIndex - trj_start].color = UI_BACKL;
+        if (currentTrj >= 0 && currentTrj < trjIndex)
+        {
+            trajectories[currentTrj]->selected = 0;
+            currentTrj = Trj_List[TrjIndex];
+            trajectories[currentTrj]->selected = 1;
+        }
+
+        DRAW_UI = 0;
+        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+
+        update_Trajectory_List(1, 1);
+        DRAW_UI = 1;
+    }
+}
+
 void swap_Poses_down(pose * P)
 {
     int p, index0, index1;
@@ -10056,6 +10267,10 @@ void handle_DOWN(int scrollbar)
         {
             handle_DOWN_Bone(scrollbar);
         }
+        else if (dialog_type == TRJ_DIALOG)
+        {
+            handle_DOWN_Trajectory(scrollbar);
+        }
         else if (dialog_type == IK_DIALOG)
         {
             handle_DOWN_IK(scrollbar);
@@ -10287,6 +10502,34 @@ void delete_Bone(bone * B)
         remove_Bone_From_Bones(B);
         //}
     }
+}
+
+void add_Trajectories()
+{
+    set_Trj_H_Button(0);
+    printf("add Trajectories\n");
+
+    int c;
+    curve * C;
+
+    for (c = 0; c < curvesIndex; c ++)
+    {
+        C = curves[c];
+
+        if (C->selected && C->Trj == NULL)
+        {
+            add_New_Trajectory(C);
+        }
+    }
+
+    if (dialog_lock)
+        draw_Dialog();
+}
+
+void remove_Trajectory()
+{
+    set_Trj_H_Button(1);
+    printf("remove Trajectory\n");
 }
 
 void remove_Bone()
@@ -11561,6 +11804,28 @@ void rename_Material()
     }
 }
 
+void rename_Trajectory()
+{
+    //set_Trj_H_Button(2);
+    printf("rename Trajectory\n");
+    if (dialog_lock)
+    {
+        if (!Edit_Lock && Trj_c > 0)
+        {
+            sprintf(Name_Remember, "%s", Trj_Names[TrjIndex]);
+            sprintf(Trj_Names[TrjIndex], "%s", "");
+            Edit_Lock = 1;
+            EditCursor = 0;
+            //EditCursor = strlen(Trj_Names[TrjIndex]);
+            //memcpy(EditString, &Trj_Names[TrjIndex], strlen(Trj_Names[TrjIndex]));
+            EditString[EditCursor] = '\0';
+            //init_Selection_Rectangle1(strlen(Trj_Names[TrjIndex]));
+            init_Selection_Rectangle();
+            update_Trajectory_List(0, 0);
+        }
+    }
+}
+
 void rename_Bone()
 {
     set_Bone_H_Button(1);
@@ -12560,6 +12825,39 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
     }
 }
 
+void handle_Trajectory_Dialog(char letter, SDLMod mod)
+{
+    if (Edit_Lock)
+    {
+        if (letter == 13 || letter == 10) // return, enter
+        {
+            if (strlength(EditString) > 1)
+            {
+                sprintf(Trj_Names[TrjIndex], "%s", EditString);
+                replace_Trj_Name(EditString);
+                sprintf(Name_Remember, "%s", EditString);
+            }
+            else
+            {
+                sprintf(Trj_Names[TrjIndex], "%s", Name_Remember);
+            }
+            Edit_Lock = 0;
+            selection_rectangle = 0;
+            //EditCursor = 0;
+            printf("Edit finishing!\n");
+            set_Trj_H_Button(-1);
+        }
+        else
+        {
+            text_Editor(mod, letter, Trj_Names[TrjIndex]);
+        }
+
+        update_Trajectory_List(1, 1);
+        //printf("%c%s", 13, EditString);
+        message = 0;
+    }
+}
+
 void handle_Bone_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
@@ -13092,6 +13390,14 @@ void handle_dialog(char letter, SDLMod mod)
             rename_Bone();
         }
     }
+    else if (dialog_type == TRJ_DIALOG)
+    {
+        handle_Trajectory_Dialog(letter, mod);
+        if (!Edit_Lock && letter == '`')
+        {
+            rename_Trajectory();
+        }
+    }
     else if (dialog_type == SUBC_DIALOG)
     {
         handle_Subcharacter_Dialog(letter, mod);
@@ -13370,6 +13676,10 @@ void draw_Dialog()
         else if (dialog_type == MATERIAL_DIALOG)
         {
             open_Materials_List();
+        }
+        else if (dialog_type == TRJ_DIALOG)
+        {
+            open_Trajectory_List();
         }
         else
         {
@@ -17316,6 +17626,21 @@ void select_currentSubcharacter()
     }
 }
 
+void select_currentTrajectory()
+{
+    printf("select currentTrajectory %d\n", currentTrj);
+
+    if (currentTrj >= 0 && currentTrj < trjIndex)
+    {
+        Trj = trajectories[currentTrj];
+        Trj->selected = 1;
+        if (Trj->Curve != NULL)
+        {
+            Trj->Curve->selected = 1;
+        }
+    }
+}
+
 void select_currentBone()
 {
     printf("select currentBone %d\n", currentBone);
@@ -18159,17 +18484,18 @@ int main(int argc, char * args[])
     SideBar[9] = &open_IK_List;
     SideBar[10] = &open_Subcharacters_List;
     SideBar[11] = &open_Morphs_List;
-    SideBar[12] = &collapse_Files;
-    SideBar[13] = &open_OBJ_List;
-    SideBar[14] = &open_Text_List;
-    SideBar[15] = &open_Norm_List;
-    SideBar[16] = &open_Bump_List;
-    SideBar[17] = &open_Saves_List;
-    SideBar[18] = &export_OBJ_Format;
-    SideBar[19] = &open_Loading_List;
-    SideBar[20] = &collapse_Clear;
-    SideBar[21] = &clear_All;
-    SideBar[22] = &Exit;
+    SideBar[12] = &open_Trajectory_List;
+    SideBar[13] = &collapse_Files;
+    SideBar[14] = &open_OBJ_List;
+    SideBar[15] = &open_Text_List;
+    SideBar[16] = &open_Norm_List;
+    SideBar[17] = &open_Bump_List;
+    SideBar[18] = &open_Saves_List;
+    SideBar[19] = &export_OBJ_Format;
+    SideBar[20] = &open_Loading_List;
+    SideBar[21] = &collapse_Clear;
+    SideBar[22] = &clear_All;
+    SideBar[23] = &Exit;
 
     Button_Mode[0].func = &set_Object_Mode;
     Button_Mode[1].func = &set_Polygon_Mode;
@@ -18248,6 +18574,9 @@ int main(int argc, char * args[])
 
     Button_h_bone[0].func = &remove_Bone;
     Button_h_bone[1].func = &rename_Bone;
+
+    Button_h_traj[0].func = &add_Trajectories;
+    Button_h_traj[1].func = &remove_Trajectory;
 
     Button_h_matr[0].func = &rename_Material;
     Button_h_matr[1].func = &add_Material;
@@ -19278,6 +19607,29 @@ int main(int argc, char * args[])
                                     DRAW_UI = 1;
                                 }
                             }
+                            else if (dialog_type == TRJ_DIALOG)
+                            {
+                                if (index + trj_start < Trj_c)
+                                {
+                                    if (TrjIndex - trj_start >= 0)
+                                        TrajList[TrjIndex - trj_start].color = UI_BLACK;
+                                    TrjIndex = index + trj_start;
+                                    if (TrjIndex - trj_start >= 0)
+                                        TrajList[TrjIndex - trj_start].color = UI_BACKL;
+
+                                    trajectories[currentTrj]->selected = 0;
+                                    currentTrj = Trj_List[TrjIndex];
+
+                                    select_currentTrajectory();
+
+                                    create_Trajectory_List();
+
+                                    DRAW_UI = 0;
+                                    poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                    update_Trajectory_List(1, 1);
+                                    DRAW_UI = 1;
+                                }
+                            }
                             else if (dialog_type == IK_DIALOG)
                             {
                                 if (index + ikch_start < ikChains_c)
@@ -19981,6 +20333,14 @@ int main(int argc, char * args[])
                                 if (h_index < H_BONE_NUM)
                                 {
                                     (*Button_h_bone[h_index].func)();
+                                }
+                            }
+                            else if (dialog_type == TRJ_DIALOG && !Edit_Lock)
+                            {
+                                h_index = (mouse_x - SIDEBAR * 2) / BUTTON_WIDTH_SHORT;
+                                if (h_index < H_TRAJ_NUM)
+                                {
+                                    (*Button_h_traj[h_index].func)();
                                 }
                             }
                             else if (dialog_type == MATERIAL_DIALOG && !Edit_Lock)
@@ -24734,7 +25094,7 @@ int main(int argc, char * args[])
                 if (mod & KMOD_SHIFT)
                 {
                     /*
-                    if (Trajectories_c <= 0)
+                    if (TrjIndex <= 0)
                     {
                         if (currentCurve >= 0 && currentCurve < curvesIndex)
                         {
@@ -24743,7 +25103,7 @@ int main(int argc, char * args[])
                         create_Experimental_Trajectory(C);
                     }
 
-                    Trj = Trajectories[Trajectories_c - 1];
+                    Trj = trajectories[TrjIndex - 1];
 
                     T = transformers[currentLocator];
                     run_Experimental_Curve_Travel(Trj, T);

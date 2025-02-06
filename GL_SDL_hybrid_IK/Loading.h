@@ -2392,6 +2392,7 @@ int read_Curves_file(Curves_In * CURV_IN, char * fileName)
                 sscanf(buff, "%u", (unsigned*)&C->O);
 
                 C->visible = 1;
+                C->Trj = NULL;
             }
         }
         else

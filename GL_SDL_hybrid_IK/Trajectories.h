@@ -16,7 +16,16 @@ frame by frame.
 #define TRAJECTORIES 100
 #define TRJ_TIMELINES 1000
 
-int Trajectories_c = 0;
+int Trj_c = 0;
+char Trj_Names[TRAJECTORIES][STRLEN];
+
+int TrjIndex = 0;
+int currentTrj = 0;
+int trj_start = 0;
+int trjIndex = 0;
+
+int Trj_Italic[TRAJECTORIES];
+int Trj_List[TRAJECTORIES];
 
 typedef struct
 {
@@ -46,6 +55,7 @@ typedef struct
     int index;
     unsigned address;
     char * Name;
+    int selected;
     curve * Curve;
     int update; // for animated curves
     int transformers_count;
@@ -55,7 +65,71 @@ typedef struct
 trajectory;
 
 trajectory * Trj;
-trajectory * Trajectories[TRAJECTORIES];
+trajectory * trajectories[TRAJECTORIES];
+
+int add_New_Trajectory(curve * C)
+{
+    if (trjIndex >= TRAJECTORIES)
+    {
+        return -1;
+    }
+    trajectory * Trj = malloc(sizeof(trajectory));
+    if (Trj == NULL)
+    {
+        return -1;
+    }
+    trajectories[trjIndex] = Trj;
+    Trj->index = trjIndex;
+    Trj->Name = malloc(STRLEN * sizeof(char));
+    sprintf(Trj->Name, "%s %d", "Trajectory", trjIndex);
+    Trj->selected = 0;
+    Trj->Curve = C;
+    C->Trj = (traj *)Trj;
+    Trj->update = 0;
+    Trj->transformers_count = 0;
+    Trj->Transformers = NULL;
+    Trj->trajectories_Timeline = NULL;
+    trjIndex ++;
+    return Trj->index;
+}
+
+void replace_Trj_Name(char * EditString)
+{
+    trajectory * Trj = trajectories[Trj_List[TrjIndex]];
+    memcpy(Trj->Name, EditString, strlen(EditString));
+    Trj->Name[strlen(EditString)] = '\0';
+}
+
+void set_Trj_H_Button(int index)
+{
+    int i;
+    for (i = 0; i < H_TRAJ_NUM; i ++)
+    {
+        Button_h_traj[i].color = UI_GRAYB;
+    }
+    if (index > -1)
+        Button_h_traj[index].color = UI_GRAYD;
+}
+
+void create_Trajectory_List()
+{
+    int t;
+    trajectory * Trj;
+    Trj_c = 0;
+
+    for (t = 0; t < trjIndex; t ++)
+    {
+        Trj = trajectories[t];
+
+        memcpy(Trj_Names[Trj_c], Trj->Name, strlen(Trj->Name));
+        Trj_Names[Trj_c][strlen(Trj->Name)] = '\0';
+        Trj_Italic[Trj_c] = Trj->selected;
+        Trj_List[Trj_c] = Trj_c;
+        Trj_c ++;
+        if (Trj_c >= TRAJECTORIES)
+            break;
+    }
+}
 
 float curve_segment_Length(curve_segment * S)
 {
@@ -215,7 +289,7 @@ void create_Experimental_Trajectory(curve * C)
     trajectory * Trj = malloc(sizeof(trajectory));
     if (Trj != NULL)
     {
-        Trajectories[Trajectories_c ++] = Trj;
+        trajectories[trjIndex ++] = Trj;
         Trj->Curve = C;
         Trj->update = 0;
     }
@@ -225,16 +299,24 @@ void create_Experimental_Trajectory(curve * C)
     }
 }
 
+void free_Trajectory(trajectory * Trj)
+{
+    free(Trj->Name);
+    free(Trj->Transformers);
+    free(Trj->trajectories_Timeline);
+    free(Trj);
+}
+
 void free_Trajectories()
 {
     int t;
 
-    for (t = 0; t < Trajectories_c; t ++)
+    for (t = 0; t < trjIndex; t ++)
     {
-        free(Trajectories[t]);
+        free_Trajectory(trajectories[t]);
     }
 
-    Trajectories_c = 0;
+    trjIndex = 0;
 }
 
 #endif // TRAJECTORIES_H_INCLUDED
