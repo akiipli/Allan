@@ -56,7 +56,7 @@ int LISTLENGTH = 12;
 #define H_SCEN_NUM 1
 #define H_POSE_NUM 5
 #define H_BONE_NUM 2
-#define H_TRAJ_NUM 2
+#define H_TRAJ_NUM 3
 #define H_MATR_NUM 4
 #define H_ITEM_NUM 1
 #define H_IKCH_NUM 6
@@ -4019,7 +4019,8 @@ void draw_Trajectory_Bottom_Line(int width, int height)
 	glDisable(GL_DEPTH_TEST);
 
     draw_Button_trajectory_horizontal("Add", 0, 1);
-    draw_Button_trajectory_horizontal("Remove", 1, 1);
+    draw_Button_trajectory_horizontal("Add T.", 1, 1);
+    draw_Button_trajectory_horizontal("Remove", 2, 1);
 
 //    glEnable(GL_DEPTH_TEST);
 //	glEnable(GL_LIGHTING);

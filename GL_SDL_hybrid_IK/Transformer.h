@@ -232,6 +232,7 @@ struct transformer
     int pin; //x 1, y 2, z 3
     constraint * Constraint;
     timeline * Timeline;
+    traj * Trj;
 };
 
 transformer * child_collection[TRANSFORMERS];
@@ -431,6 +432,7 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         T->pin = 0;
         T->Constraint = NULL;
         T->Timeline = NULL;
+        T->Trj = NULL;
     }
 }
 

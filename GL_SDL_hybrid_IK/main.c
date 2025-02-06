@@ -53,6 +53,8 @@ int RESET = 0;
 #define SCREEN_HEIGHT 400
 #define SCREEN_BPP 32
 
+typedef struct trajectory traj;
+
 #include "Timeline.h"
 #include "Transformer.h"
 #include "Object.h"
@@ -3687,6 +3689,10 @@ void set_Curve_Mode()
 void select_Transformer()
 {
     currentLocator = HierIndex;
+    if (currentLocator >= 0 && currentLocator < transformerIndex)
+    {
+        T = transformers[currentLocator];
+    }
     DRAW_UI = 0;
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
     DRAW_UI = 1;
@@ -10526,9 +10532,23 @@ void add_Trajectories()
         draw_Dialog();
 }
 
-void remove_Trajectory()
+void add_Trj_Transformers()
 {
     set_Trj_H_Button(1);
+    printf("add Trj Transformers\n");
+
+    if (Trj != NULL && T != NULL)
+    {
+        add_Transformer_To_Trajectory(T, Trj);
+    }
+
+    if (dialog_lock)
+        draw_Dialog();
+}
+
+void remove_Trajectory()
+{
+    set_Trj_H_Button(2);
     printf("remove Trajectory\n");
 }
 
@@ -18576,7 +18596,8 @@ int main(int argc, char * args[])
     Button_h_bone[1].func = &rename_Bone;
 
     Button_h_traj[0].func = &add_Trajectories;
-    Button_h_traj[1].func = &remove_Trajectory;
+    Button_h_traj[1].func = &add_Trj_Transformers;
+    Button_h_traj[2].func = &remove_Trajectory;
 
     Button_h_matr[0].func = &rename_Material;
     Button_h_matr[1].func = &add_Material;

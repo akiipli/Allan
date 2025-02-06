@@ -14,7 +14,6 @@ frame by frame.
 */
 
 #define TRAJECTORIES 100
-#define TRJ_TIMELINES 1000
 
 int Trj_c = 0;
 char Trj_Names[TRAJECTORIES][STRLEN];
@@ -29,26 +28,20 @@ int Trj_List[TRAJECTORIES];
 
 typedef struct
 {
-    int frame;
-    float Proportion;
+    float pos;
 }
-trajectories_keyframe;
+trajectory_value;
 
 typedef struct
 {
-    int index;
-    unsigned address;
-    int keyframes_count;
-    trajectories_keyframe ** trajectories_Keyframes;
-
-    int frames_count;   // for every frame in Timeline
-                        // If Timeline is rescaled, additional
-                        // frames are added.
-    float * frame_Pos[3];
+    int key_frames;
+    int * Frames;
+    trajectory_value * Values;
+    int current_Segment;
+    acceleration * Acceleration;
+    int start_Segment;
 }
 trajectories_timeline;
-
-trajectories_timeline * trajectories_Timelines[TRJ_TIMELINES];
 
 typedef struct
 {
@@ -66,6 +59,31 @@ trajectory;
 
 trajectory * Trj;
 trajectory * trajectories[TRAJECTORIES];
+
+void add_Transformer_To_Trajectory(transformer * T, trajectory * Trj)
+{
+    if (T->Trj == NULL && T != &World)
+    {
+        transformer ** Transformers;
+        trajectories_timeline ** trajectories_Timeline;
+
+        Transformers = realloc(Trj->Transformers, sizeof(transformer *) * (Trj->transformers_count + 1));
+        if (Transformers != NULL)
+        {
+            Trj->Transformers = Transformers;
+            Trj->Transformers[Trj->transformers_count] = T;
+
+            trajectories_Timeline = realloc(Trj->trajectories_Timeline, sizeof(trajectories_timeline *) * (Trj->transformers_count + 1));
+
+            if (trajectories_Timeline != NULL)
+            {
+                Trj->trajectories_Timeline = trajectories_Timeline;
+                T->Trj = (traj *)Trj;
+                Trj->transformers_count ++;
+            }
+        }
+    }
+}
 
 int add_New_Trajectory(curve * C)
 {
@@ -87,8 +105,8 @@ int add_New_Trajectory(curve * C)
     C->Trj = (traj *)Trj;
     Trj->update = 0;
     Trj->transformers_count = 0;
-    Trj->Transformers = NULL;
-    Trj->trajectories_Timeline = NULL;
+    Trj->Transformers = malloc(0);
+    Trj->trajectories_Timeline = malloc(0);
     trjIndex ++;
     return Trj->index;
 }

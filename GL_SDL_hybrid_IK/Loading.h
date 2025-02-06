@@ -2594,6 +2594,8 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                     sscanf(buff, "%u\n", (unsigned*)&T->Selections[j]);
                 }
 
+                T->Trj = NULL;
+
                 transformerIndex ++;
                 transformerCount ++;
             }

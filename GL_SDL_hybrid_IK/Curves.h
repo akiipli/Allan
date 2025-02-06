@@ -138,8 +138,6 @@ struct cp
 
 cp * cps[CPS];
 
-typedef struct trajectory traj;
-
 struct curve
 {
     int index;
