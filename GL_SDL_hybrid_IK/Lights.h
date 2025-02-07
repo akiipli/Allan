@@ -20,7 +20,7 @@ void empty_Hint()
 
 void init_Hint()
 {
-    sprintf(Hint, "Light theme:%d Alt+U\nNight:%d Alt+N Shadows:%d Alt+S\n\nELEMENT ARRAYS: %d",
+    sprintf(Hint, "Light theme:%d Alt+U\nNight:%d Alt+N Shadows:%d Alt+S\nELEMENT ARRAYS: %d Alt+E",
             currentTheme, NIGHT, SHADOWS, ELEMENT_ARRAYS);
 }
 

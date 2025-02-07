@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+11:26 PM 2/7/2025
+Trajectories integration into UI and Deformer Player. Transformers can be added to Trajectories. I to keyframe
+at selected frame in Timeline. Timeline Indi Mode is tested first and then Deformer existance. This may change.
+
 3:46 PM 2/5/2025
 When moving Deformer Timeline Indi mode prevents Deformer Delta to be set as with fixed IK goals.
 

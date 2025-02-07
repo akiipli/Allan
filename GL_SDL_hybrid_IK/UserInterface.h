@@ -13,7 +13,7 @@ Copyright <2018> <Allan Kiipli>
 
 #define STRLEN 256
 
-#define SCENE_EXT_NUM 11
+#define SCENE_EXT_NUM 12
 
 #define TIMELINE_ENTRY 30
 #define SIDEBAR 100
@@ -24,9 +24,9 @@ Copyright <2018> <Allan Kiipli>
 #define BUTTON_WIDTH_SHORT 50
 #define BUTTON_WIDTH_MEDIUM 60
 #define MIN_DIALOG_WIDTH 460
-#define MIN_DIALOG_HEIGHT 270
+#define MIN_DIALOG_HEIGHT 300
 int DIALOG_WIDTH = 460;
-int DIALOG_HEIGHT = 270;
+int DIALOG_HEIGHT = 300;
 #define DRAG_CORNER_WIDTH 20
 
 #define UI_WHITE 0
@@ -56,7 +56,7 @@ int LISTLENGTH = 12;
 #define H_SCEN_NUM 1
 #define H_POSE_NUM 5
 #define H_BONE_NUM 2
-#define H_TRAJ_NUM 3
+#define H_TRAJ_NUM 4
 #define H_MATR_NUM 4
 #define H_ITEM_NUM 1
 #define H_IKCH_NUM 6
@@ -4020,7 +4020,8 @@ void draw_Trajectory_Bottom_Line(int width, int height)
 
     draw_Button_trajectory_horizontal("Add", 0, 1);
     draw_Button_trajectory_horizontal("Add T.", 1, 1);
-    draw_Button_trajectory_horizontal("Remove", 2, 1);
+    draw_Button_trajectory_horizontal("Rem T.", 2, 1);
+    draw_Button_trajectory_horizontal("Remove", 3, 1);
 
 //    glEnable(GL_DEPTH_TEST);
 //	glEnable(GL_LIGHTING);

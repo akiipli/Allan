@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1015;
+int saving_version = 1016;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -40,6 +40,7 @@ void init_scene_extensions()
     sprintf(scene_extensions[8], "Curves");
     sprintf(scene_extensions[9], "Keyframes");
     sprintf(scene_extensions[10], "Morphs");
+    sprintf(scene_extensions[11], "Trajectories");
 
     sprintf(scene_files_dir, "%s", "c:/Trips Code/Scenes IK");
 
@@ -468,6 +469,7 @@ int save_Keyframes(char * keyframes_files_dir)
                 fprintf(F, "%d\n", Tm->Acceleration[f].segment_type);
                 fprintf(F, "%f\n", Tm->Acceleration[f].a_exponent);
                 fprintf(F, "%f\n", Tm->Acceleration[f].b_exponent);
+                fprintf(F, "%f\n", Tm->Values[f].trj_val);
             }
         }
         else
@@ -583,6 +585,7 @@ int save_Curves(char * curves_files_dir)
         }
         fprintf(F, "%d\n", C->open);
         fprintf(F, "%u\n", (unsigned)C->O);
+        fprintf(F, "%u\n", (unsigned)C->Trj);
     }
     fprintf(F, "\n");
     fclose(F);
@@ -647,6 +650,50 @@ int save_Curves(char * curves_files_dir)
                 S = CP->segments[s];
                 fprintf(F, "%u\n", (unsigned)S);
             }
+        }
+    }
+    fprintf(F, "\n");
+    fclose(F);
+
+    return 1;
+}
+
+int save_Trajectories(char * trajectory_files_dir)
+{
+    char dirfile[STRLEN];
+
+    int tr, t;
+
+    trajectory * Trj;
+    transformer * T;
+
+    dirfile[0] = '\0';
+    strcat(dirfile, trajectory_files_dir);
+    strcat(dirfile, "/");
+
+    strcat(dirfile, "Trajectories");
+    strcat(dirfile, ".txt");
+
+    FILE * F;
+    F = fopen(dirfile, "w");
+    if (F == NULL) return 0;
+
+    fprintf(F, "Trajectories\n");
+    fprintf(F, "%d\n", trjIndex);
+
+    for (tr = 0; tr < trjIndex; tr ++)
+    {
+        Trj = trajectories[tr];
+        fprintf(F, "%u\n", (unsigned)Trj);
+        fprintf(F, "%s\n", Trj->Name);
+        fprintf(F, "%u\n", (unsigned)Trj->Curve);
+        fprintf(F, "%d\n", Trj->update);
+        fprintf(F, "%d\n", Trj->transformers_count);
+
+        for (t = 0; t < Trj->transformers_count; t ++)
+        {
+            T = Trj->Transformers[t];
+            fprintf(F, "%u\n", (unsigned)T);
         }
     }
     fprintf(F, "\n");
@@ -1117,6 +1164,9 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
         {
             fprintf(F, "%u\n", (unsigned)T->Selections[i]);
         }
+
+        fprintf(F, "%u\n", (unsigned)T->Trj);
+        fprintf(F, "%f\n", T->Trj_Value);
 
         /*
         int index;

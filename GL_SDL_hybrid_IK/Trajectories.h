@@ -28,23 +28,6 @@ int Trj_List[TRAJECTORIES];
 
 typedef struct
 {
-    float pos;
-}
-trajectory_value;
-
-typedef struct
-{
-    int key_frames;
-    int * Frames;
-    trajectory_value * Values;
-    int current_Segment;
-    acceleration * Acceleration;
-    int start_Segment;
-}
-trajectories_timeline;
-
-typedef struct
-{
     int index;
     unsigned address;
     char * Name;
@@ -53,34 +36,33 @@ typedef struct
     int update; // for animated curves
     int transformers_count;
     transformer ** Transformers;
-    trajectories_timeline ** trajectories_Timeline;
 }
 trajectory;
 
 trajectory * Trj;
 trajectory * trajectories[TRAJECTORIES];
 
+void insert_Trajectory_keyframe(trajectory * Trj, transformer * T, int frame, float Value)
+{
+    if ((trajectory*)T->Trj == Trj)
+    {
+        insert_trj_keyframe(T, frame, Value);
+    }
+}
+
 void add_Transformer_To_Trajectory(transformer * T, trajectory * Trj)
 {
     if (T->Trj == NULL && T != &World)
     {
         transformer ** Transformers;
-        trajectories_timeline ** trajectories_Timeline;
 
         Transformers = realloc(Trj->Transformers, sizeof(transformer *) * (Trj->transformers_count + 1));
         if (Transformers != NULL)
         {
             Trj->Transformers = Transformers;
             Trj->Transformers[Trj->transformers_count] = T;
-
-            trajectories_Timeline = realloc(Trj->trajectories_Timeline, sizeof(trajectories_timeline *) * (Trj->transformers_count + 1));
-
-            if (trajectories_Timeline != NULL)
-            {
-                Trj->trajectories_Timeline = trajectories_Timeline;
-                T->Trj = (traj *)Trj;
-                Trj->transformers_count ++;
-            }
+            T->Trj = (traj *)Trj;
+            Trj->transformers_count ++;
         }
     }
 }
@@ -106,7 +88,6 @@ int add_New_Trajectory(curve * C)
     Trj->update = 0;
     Trj->transformers_count = 0;
     Trj->Transformers = malloc(0);
-    Trj->trajectories_Timeline = malloc(0);
     trjIndex ++;
     return Trj->index;
 }
@@ -291,6 +272,65 @@ void find_Trajectory_Pos(float Proportion, trajectory * Trj, float Pos[3], int L
     }
 }
 
+void set_T_Trajectory_value(trajectory * Trj, transformer * T, float Value, int Level)
+{
+    float Pos[3];
+
+    find_Trajectory_Pos(Value, Trj, Pos, Level);
+
+    T->pos[0] = Pos[0];
+    T->pos[1] = Pos[1];
+    T->pos[2] = Pos[2];
+}
+
+int find_current_Segment(transformer * T, int frame)
+{
+    int f, s = 0;
+
+    timeline * Tm;
+
+    if (T->Timeline != NULL)
+    {
+        Tm = T->Timeline;
+
+        for (f = 0; f < Tm->key_frames; f ++)
+        {
+            if (frame >= Tm->Frames[f] && frame < Tm->Frames[(f + 1) % Tm->key_frames]) //(frame == Tm->Frames[f])
+            {
+                s = f;
+                break;
+            }
+        }
+    }
+    return s;
+}
+
+void move_Trajectories_Transformers(int frame, int level)
+{
+    int t, tr;
+
+    transformer * T;
+    trajectory * Trj;
+
+    for (tr = 0; tr < trjIndex; tr ++)
+    {
+        Trj = trajectories[tr];
+
+        for (t = 0; t < Trj->transformers_count; t ++)
+        {
+            T = Trj->Transformers[t];
+            if (T->Timeline != NULL)
+            {
+
+                T->Timeline->current_Segment = find_current_Segment(T, frame);
+                T->Timeline->start_Segment = T->Timeline->current_Segment;
+                T->Trj_Value = get_T_Trajectory_value(T, frame);
+                set_T_Trajectory_value(Trj, T, T->Trj_Value, level);
+            }
+        }
+    }
+}
+
 void travel_By_Trajectory(transformer * T, trajectory * Trj, float Proportion, int subdLevel)
 {
     float Pos[3];
@@ -321,7 +361,6 @@ void free_Trajectory(trajectory * Trj)
 {
     free(Trj->Name);
     free(Trj->Transformers);
-    free(Trj->trajectories_Timeline);
     free(Trj);
 }
 

@@ -191,6 +191,104 @@ void create_Frame_Pose(deformer * D, int frame)
     }
 }
 
+float get_T_Trajectory_value(transformer * T, int frame)
+{
+    float Value = 0.0;
+
+    timeline * Tm;
+
+    int frame0, frame1, frame00, frame11;
+
+    float a, b;
+
+    if (T->Timeline != NULL)
+    {
+        Tm = T->Timeline;
+
+        if (frame == TimelineStart)
+        {
+            Tm->current_Segment = Tm->start_Segment;
+        }
+        if (frame < Tm->Frames[0])
+        {
+            Tm->current_Segment = Tm->start_Segment;
+        }
+        else if (frame >= Tm->Frames[Tm->key_frames - 1])
+        {
+            Tm->current_Segment = Tm->start_Segment;
+        }
+        else
+        {
+            frame0 = Tm->current_Segment;
+            frame1 = Tm->current_Segment + 1;
+
+            frame00 = Tm->Frames[Tm->current_Segment];
+            frame11 = Tm->Frames[Tm->current_Segment + 1];
+
+            if (frame11 > frame00)
+            {
+                b = (float)(frame - frame00) / (float)(frame11 - frame00);
+                if (Tm->Acceleration[frame0].segment_type == ACCELERATION_END)
+                {
+                    //b *= b; // accelerated interpolation
+                    b = pow(b, Tm->Acceleration[frame0].b_exponent);
+                    a = 1.0 - b;
+                }
+                else if (Tm->Acceleration[frame0].segment_type == ACCELERATION_START)
+                {
+                    a = 1.0 - b;
+                    //a *= a; // slowdown motion
+                    a = pow(a, Tm->Acceleration[frame0].a_exponent);
+                    b = 1.0 - a; // both active yields mid acceleration
+                }
+                else if (Tm->Acceleration[frame0].segment_type == ACCELERATION_MID)
+                {
+                    //b *= b; // accelerated interpolation
+                    b = pow(b, Tm->Acceleration[frame0].b_exponent);
+                    a = 1.0 - b;
+                    //a *= a; // slowdown motion
+                    a = pow(a, Tm->Acceleration[frame0].a_exponent);
+                    b = 1.0 - a; // both active yields mid acceleration
+                }
+                else if (Tm->Acceleration[frame0].segment_type == ACCELERATION_NONE)
+                {
+                    a = 1.0 - b;
+                }
+            }
+            else
+            {
+                frame11 = Tm->Frames[Tm->current_Segment];
+                b = 1.0;
+                a = 0.0;
+            }
+//                if(t == 0)
+//                    printf("%d %d %d %f %f %d\n", frame, frame00, frame11, a, b, Tm->current_Segment);
+
+            if (frame11 == frame)
+            {
+                Tm->current_Segment ++;
+
+                if (Tm->current_Segment >= Tm->key_frames)
+                {
+                    Tm->current_Segment = Tm->start_Segment;
+                }
+                else
+                {
+                    frame11 = Tm->Frames[Tm->current_Segment];
+                    if (frame11 >= TimelineEnd)
+                    {
+                        Tm->current_Segment = Tm->start_Segment;
+                    }
+                }
+            }
+
+            Value = Tm->Values[frame0].trj_val * a + Tm->Values[frame1].trj_val * b;
+        }
+    }
+
+    return Value;
+}
+
 void create_Inbetween_Frame_Pose(deformer * D, int frame, int linear_pose)
 {
     pose * P = D->P;

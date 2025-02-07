@@ -5813,6 +5813,11 @@ void open_Trajectory_List()
             draw_Properties("", screen_height, 1, PROPERTIES_TRJ, Type);
     }
 
+    if (Edit_Properties && Edit_Trajectory)
+    {
+        draw_Properties_Edit(EditString, screen_height, Trajectory_v_index + 1, Trajectory_h_index, 0);
+    }
+
     glDrawBuffer(GL_BACK);
     SDL_GL_SwapBuffers();
     message = 0;
@@ -6475,6 +6480,8 @@ void update_Properties_Edit(const char * text, int v_index, int h_index, int bli
             draw_Properties(Materials[currentMaterial].Name, screen_height, 1, PROPERTIES, Type);
         else if (PROPERTIES == PROPERTIES_LOCATOR)
             draw_Properties(transformers[currentLocator]->Name, screen_height, 1, PROPERTIES, Type);
+        else if (PROPERTIES == PROPERTIES_TRJ)
+            draw_Properties(trajectories[currentTrj]->Name, screen_height, 1, PROPERTIES, Type);
     }
 
     draw_Properties_Edit(text, screen_height, v_index, h_index, 1);
@@ -7176,6 +7183,11 @@ void update_Trajectory_List(int update, int blit)
             draw_Properties("", screen_height, 1, PROPERTIES_TRJ, Type);
     }
 
+    if (Edit_Properties && Edit_Trajectory)
+    {
+        draw_Properties_Edit(EditString, screen_height, Trajectory_v_index + 1, Trajectory_h_index, 0);
+    }
+
     if (DRAW_TIMELINE)
     {
         Draw_Timeline();
@@ -7454,6 +7466,7 @@ void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
         }
 
         apply_Pose_position_Play(D);
+
         solve_IK_Chains(D);
 
         if (D->Transformers_Count > 0)
@@ -7850,6 +7863,36 @@ void update_Selected_Morph_View(deformer * D)
     update_Deformed_View(D, 1);
 }
 
+void init_Trj_Timeline_Segments(trajectory * Trj, int TimelineStart)
+{
+    timeline * Tm;
+    transformer * T;
+    int t, f;
+
+    for (t = 0; t < Trj->transformers_count; t ++)
+    {
+        T = Trj->Transformers[t];
+
+        if (T->Timeline != NULL)
+        {
+            Tm = T->Timeline;
+            Tm->current_Segment = 0;
+            for (f = 0; f < Tm->key_frames; f ++)
+            {
+                if (Tm->Frames[f] <= TimelineStart)
+                {
+                    Tm->current_Segment = f;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            Tm->start_Segment = Tm->current_Segment;
+        }
+    }
+}
+
 void init_Timeline_Segments(deformer * D, int TimelineStart)
 {
     timeline * Tm;
@@ -8202,13 +8245,18 @@ void deformer_Keyframe_Player()
 //    pose * P;
     object * O;
     deformer * D;
-    deformer * D0;
+    deformer * D0 = NULL;
 //    transformer * T;
 
     ROTATED_POSE = 1;
 
-    int deformerSelector = currentDeformer_Node;
-    D0 = deformers[deformerSelector];
+    int deformerSelector = 0;
+
+    if (deformerIndex > 0)
+    {
+        deformerSelector = currentDeformer_Node;
+        D0 = deformers[deformerSelector];
+    }
 
     float rotation = 0.03;
     float movement = 0.02;
@@ -8245,6 +8293,21 @@ void deformer_Keyframe_Player()
 
     DRAW_UI = 0;
 
+    for (t = 0; t < trjIndex; t ++)
+    {
+        Trj = trajectories[t];
+        Trj->Curve->len = calculate_Curve_Length_(Trj->Curve, subdLevel);
+        init_Trj_Timeline_Segments(Trj, TimelineStart);
+    }
+
+    for (t = 0; t < transformerIndex; t ++)
+    {
+        if (transformers[t]->Object != NULL && !transformers[t]->Object->binding)
+        {
+            Transformer_Objects[Transformer_Objects_Count ++] = transformers[t]->Object;
+        }
+    }
+
     for (d = 0; d < deformerIndex; d ++)
     {
         D = deformers[d];
@@ -8275,14 +8338,6 @@ void deformer_Keyframe_Player()
                 if (condition)
                 {
                     Update_Objects[Update_Objects_Count ++] = O;
-                }
-            }
-
-            for (t = 0; t < D->Transformers_Count; t ++)
-            {
-                if (D->Transformers[t]->Object != NULL)
-                {
-                    Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
                 }
             }
         }
@@ -8372,8 +8427,12 @@ void deformer_Keyframe_Player()
                     {
                         deformerSelector ++;
                     }
-                    deformerSelector = abs(deformerSelector % deformerIndex);
-                    D0 = deformers[deformerSelector];
+
+                    if (deformerIndex > 0)
+                    {
+                        deformerSelector = abs(deformerSelector % deformerIndex);
+                        D0 = deformers[deformerSelector];
+                    }
                 }
                 else if (event.key.keysym.sym == SDLK_UP)
                 {
@@ -8456,11 +8515,14 @@ void deformer_Keyframe_Player()
 
         gettimeofday(&TimeValue, 0);
 
-        D0->Delta[0] += delta[0];
-        D0->Delta[2] += delta[2];
+        if (D0 != NULL)
+        {
+            D0->Delta[0] += delta[0];
+            D0->Delta[2] += delta[2];
 
-        D0->rot[0] = rot[0]; /* since we are not submitting rotVec_ matrix */
-        D0->rot[1] = rot[1]; /* else it should increment */
+            D0->rot[0] = rot[0]; /* since we are not submitting rotVec_ matrix */
+            D0->rot[1] = rot[1]; /* else it should increment */
+        }
 
         rotate_vertex_groups_D_Init();
         for (d = 0; d < deformerIndex; d ++)
@@ -8498,6 +8560,8 @@ void deformer_Keyframe_Player()
                 update_Deformer_object_Curves(D, subdLevel);
             }
         }
+
+        move_Trajectories_Transformers(frame, subdLevel);
 
         update_rotate_bounding_box();
 
@@ -10546,9 +10610,46 @@ void add_Trj_Transformers()
         draw_Dialog();
 }
 
-void remove_Trajectory()
+void remove_Trajectory_Transformer()
 {
     set_Trj_H_Button(2);
+    printf("remove Trajectory Transformer\n");
+
+    if (T->Trj != NULL && (trajectory *)T->Trj == Trj)
+    {
+        int t, index;
+        int condition = 0;
+
+        for (t = 0; t < Trj->transformers_count; t ++)
+        {
+            if (Trj->Transformers[t] == T)
+            {
+                T->Trj = NULL;
+                T->Trj_Value = 0;
+                index = t;
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            Trj->transformers_count --;
+
+            for (t = index; t < Trj->transformers_count; t ++)
+            {
+                Trj->Transformers[t] = Trj->Transformers[t + 1];
+            }
+        }
+    }
+
+    if (dialog_lock)
+        draw_Dialog();
+}
+
+void remove_Trajectory()
+{
+    set_Trj_H_Button(3);
     printf("remove Trajectory\n");
 }
 
@@ -11770,6 +11871,22 @@ void edit_Timeline_Value()
     }
 }
 
+void edit_Trajectory_Value()
+{
+    if (dialog_lock)
+    {
+        if (!Edit_Lock)
+        {
+            printf("edit Trajectory Value\n");
+            sprintf(Properties_Remember, "%1.2f", T->Trj_Value);
+            Edit_Lock = 1;
+            EditCursor = 0;
+            EditString[0] = '\0';
+            update_Properties_Edit("", Trajectory_v_index + 1, Trajectory_h_index, 0);
+        }
+    }
+}
+
 void edit_Locator_Value()
 {
     if (dialog_lock)
@@ -12845,9 +12962,124 @@ void handle_Subcharacter_Dialog(char letter, SDLMod mod)
     }
 }
 
+void update_Transformer_Object(transformer * T)
+{
+    object * O;
+
+    if (T->Object != NULL)
+    {
+        O = T->Object;
+
+        rotate_verts(O, *O->T);
+
+        if (O->deforms)
+        {
+            tune_subdivide_post_transformed(O, subdLevel);
+        }
+    }
+}
+
+void update_Trajectories_Transformer_Objects()
+{
+    int t, tr;
+
+    object * O;
+    transformer * T;
+    trajectory * Trj;
+
+    for (tr = 0; tr < trjIndex; tr ++)
+    {
+        Trj = trajectories[tr];
+
+        for (t = 0; t < Trj->transformers_count; t ++)
+        {
+            T = Trj->Transformers[t];
+            if (T->Object != NULL)
+            {
+                O = T->Object;
+
+                rotate_verts(O, *O->T);
+
+                if (O->deforms)
+                {
+                    tune_subdivide_post_transformed(O, subdLevel);
+                }
+            }
+        }
+    }
+}
+
 void handle_Trajectory_Dialog(char letter, SDLMod mod)
 {
-    if (Edit_Lock)
+    int update = 1;
+
+    if (Edit_Lock && Edit_Properties && Edit_Trajectory)
+    {
+        if (isdigit(letter) || letter == '.' || (letter == '-' && EditCursor == 0))
+        {
+            if (EditCursor < STRLEN - 1)
+            {
+                EditString[EditCursor] = letter;
+                EditCursor ++;
+                if (EditCursor > 5)
+                {
+                    EditCursor = 5;
+                }
+
+                EditString[EditCursor] = '\0';
+            }
+        }
+        else if (letter == 13 || letter == 10) // return, enter
+        {
+            printf("Finished editing properties\n");
+
+            Edit_Lock = 0;
+            Edit_Properties = 0;
+            Edit_Trajectory = 0;
+            EditCursor = 0;
+
+            T->Trj_Value = Trajectory_Value;
+
+            update_Trajectory_List(1, 1);
+
+            update = 0;
+            message = 0;
+        }
+        else if (letter == 8) // backspace
+        {
+            EditCursor --;
+            if (EditCursor < 0)
+                EditCursor = 0;
+            EditString[EditCursor] = '\0';
+        }
+
+        if (update)
+        {
+            if (atof(EditString) > 1000)
+            {
+                Float_Value = 1000;
+            }
+            else if (atof(EditString) < -1000)
+            {
+                Float_Value = -1000;
+            }
+            else
+            {
+                Float_Value = atof(EditString);
+            }
+
+            Trajectory_Value = Float_Value;
+
+            set_T_Trajectory_value(Trj, T, Trajectory_Value, subdLevel);
+
+            update_Transformer_Object(T);
+
+            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+            draw_Dialog();
+            SDL_GL_SwapBuffers();
+        }
+    }
+    else if (Edit_Lock)
     {
         if (letter == 13 || letter == 10) // return, enter
         {
@@ -12875,6 +13107,17 @@ void handle_Trajectory_Dialog(char letter, SDLMod mod)
         update_Trajectory_List(1, 1);
         //printf("%c%s", 13, EditString);
         message = 0;
+    }
+    else if (letter == 'i')
+    {
+        if (Trj != NULL && T != NULL)
+        {
+            insert_Trajectory_keyframe(Trj, T, currentFrame, T->Trj_Value);
+            draw_Dialog();
+            Draw_Timeline();
+            Draw_Morph_Timeline();
+            SDL_GL_SwapBuffers();
+        }
     }
 }
 
@@ -13171,6 +13414,11 @@ void clean_Unused_Transformers()
     }
 }
 
+void transfer_Trajectory_Values(trajectory * Trj, transformer * T)
+{
+    T->Trj_Value = get_T_Trajectory_value(T, currentFrame);
+}
+
 void transfer_Transformer_Values(transformer * T)
 {
     Locator_Values[0][0] = T->rot[0];
@@ -13220,9 +13468,9 @@ void handle_Hier_Dialog(char letter, SDLMod mod)
             {
                 EditString[EditCursor] = letter;
                 EditCursor ++;
-                if (EditCursor > 4)
+                if (EditCursor > 5)
                 {
-                    EditCursor = 4;
+                    EditCursor = 5;
                 }
 
                 EditString[EditCursor] = '\0';
@@ -17000,6 +17248,12 @@ void save_load_Scene()
             strcat(Path, "/");
             strcat(Path, "Morphs");
             save_Morphs(Path);
+
+            Path[0] = '\0';
+            strcat(Path, scene_files_dir);
+            strcat(Path, "/");
+            strcat(Path, "Trajectories");
+            save_Trajectories(Path);
         }
 
         if (flip)
@@ -17024,7 +17278,10 @@ void save_load_Scene()
         if (dialog_lock)
             update_Loading_List(1, 0);
 
-        int obj_count = 0, defr_count = 0, pose_count = 0, subcharacter_count = 0, subcharacter_poses_count = 0;
+        int obj_count = 0,
+        defr_count = 0,
+        pose_count = 0,
+        subcharacter_count = 0, subcharacter_poses_count = 0, curve_count = 0, tr_count = 0;
 
         hierarchys_pack hP = {0, 0, 0, 0};
         morf_pack mP = {0, 0};
@@ -17119,7 +17376,7 @@ void save_load_Scene()
                 strcat(Path, scene_files_dir);
                 strcat(Path, "/");
                 strcat(Path, "Curves");
-                load_Curves(Path, obj_count);
+                curve_count = load_Curves(Path, obj_count);
             }
 
             assign_Poses(pose_count, defr_count);
@@ -17156,7 +17413,16 @@ void save_load_Scene()
                 associate_Object_Morphs(obj_count, defr_count);
             }
 
-            null_Loaded_Addresses(hP, mP, defr_count);
+            if (loading_version >= 1016)
+            {
+                Path[0] = '\0';
+                strcat(Path, scene_files_dir);
+                strcat(Path, "/");
+                strcat(Path, "Trajectories");
+                tr_count = load_Trajectories(Path, hP.t_index, curve_count);
+            }
+
+            null_Loaded_Addresses(hP, mP, defr_count, tr_count);
 
             /* Load Subcharacter poses */
 
@@ -17316,6 +17582,18 @@ void change_Object_Subdiv_Max(int change)
 
         SDL_GL_SwapBuffers();
     }
+}
+
+void change_Trajectory_Update(trajectory * Trj)
+{
+    Trj->update = !Trj->update;
+
+    if (Type != NULL)
+        draw_Properties(Trj->Name, screen_height, 1, PROPERTIES_TRJ, Type);
+    else
+        draw_Properties("", screen_height, 1, PROPERTIES_TRJ, Type);
+
+    SDL_GL_SwapBuffers();
 }
 
 void change_Transformer_Pin()
@@ -17652,6 +17930,16 @@ void select_currentTrajectory()
 
     if (currentTrj >= 0 && currentTrj < trjIndex)
     {
+        int c;
+
+        curve * C;
+
+        for (c = 0; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+            C->selected = 0;
+        }
+
         Trj = trajectories[currentTrj];
         Trj->selected = 1;
         if (Trj->Curve != NULL)
@@ -17667,24 +17955,24 @@ void select_currentBone()
 
     if (currentBone >= 0 && currentBone < bonesIndex)
     {
-        int t;
-        int condition = 0;
-
-        for (t = 0; t < transformerIndex; t ++)
-        {
-            if (transformers[t] == bones[currentBone]->A)
-            {
-                condition = 1;
-                break;
-            }
-        }
-        if (condition)
-        {
-            T = bones[currentBone]->A;
-            T->selected = 1;
-            currentLocator = T->index;
-            bones[currentBone]->selected = 1;
-        }
+//        int t;
+//        int condition = 0;
+//
+//        for (t = 0; t < transformerIndex; t ++)
+//        {
+//            if (transformers[t] == bones[currentBone]->A)
+//            {
+//                condition = 1;
+//                break;
+//            }
+//        }
+//        if (condition)
+//        {
+//            T = bones[currentBone]->A;
+//            T->selected = 1;
+//            currentLocator = T->index;
+        bones[currentBone]->selected = 1;
+//        }
     }
 }
 
@@ -18543,6 +18831,7 @@ int main(int argc, char * args[])
     Button_scene_ext[8].func = &set_Button_scene_ext;
     Button_scene_ext[9].func = &set_Button_scene_ext;
     Button_scene_ext[10].func = &set_Button_scene_ext;
+    Button_scene_ext[11].func = &set_Button_scene_ext;
 
     Button_item[0].func = &set_Button_item;
     Button_item[1].func = &set_Button_item;
@@ -18597,7 +18886,8 @@ int main(int argc, char * args[])
 
     Button_h_traj[0].func = &add_Trajectories;
     Button_h_traj[1].func = &add_Trj_Transformers;
-    Button_h_traj[2].func = &remove_Trajectory;
+    Button_h_traj[2].func = &remove_Trajectory_Transformer;
+    Button_h_traj[3].func = &remove_Trajectory;
 
     Button_h_matr[0].func = &rename_Material;
     Button_h_matr[1].func = &add_Material;
@@ -18895,11 +19185,19 @@ int main(int argc, char * args[])
                             currentFrame = TimelineEnd - 1;
                         }
                         printf("\tTimeline %d\n", currentFrame);
+
                         if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
                         {
                             D = deformers[currentDeformer_Node];
                             goto_Deformer_Frame_(D, currentFrame);
                         }
+
+                        if (trjIndex > 0)
+                        {
+                            move_Trajectories_Transformers(currentFrame, subdLevel);
+                            update_Trajectories_Transformer_Objects();
+                        }
+
                         Drag_Timeline = 1;
                     }
                     else
@@ -19507,6 +19805,10 @@ int main(int argc, char * args[])
                     if (Drag_Color)
                     {
                         Drag_Color = 0;
+                    }
+                    if (Drag_Trajectory)
+                    {
+                        Drag_Trajectory = 0;
                     }
                     if (Drag_Morph)
                     {
@@ -20616,6 +20918,40 @@ int main(int argc, char * args[])
                                     }
                                 }
                             }
+                            else if (dialog_type == TRJ_DIALOG)
+                            {
+                                if (Trj != NULL && Trj->Curve != NULL)
+                                {
+                                    Trj->Curve->len = calculate_Curve_Length_(Trj->Curve, subdLevel);
+
+                                    if (v_index == 0)
+                                    {
+                                        if (h_index == 1)
+                                        {
+                                            change_Trajectory_Update(Trj);
+                                        }
+                                    }
+                                    else if (v_index >= 1 && Trj->transformers_count > 0)
+                                    {
+                                        Trajectory_v_index = v_index - 1;
+                                        T = Trj->Transformers[Trajectory_v_index];
+
+                                        if (h_index == 2)
+                                        {
+                                            if (!Drag_Trajectory)
+                                            {
+                                                Not_Drag = 1;
+                                                Drag_X = mouse_x;
+                                                if (h_index == 2)
+                                                {
+                                                    Drag_Trajectory = 1;
+                                                    Traj = T->Trj_Value; //get_T_Trajectory_value(T, currentFrame);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                             else if (dialog_type == ITEM_DIALOG && PROPERTIES == PROPERTIES_OBJECT)
                             {
                                 if (v_index == 4)
@@ -21213,6 +21549,7 @@ int main(int argc, char * args[])
                 {
                     HINTS = 1;
                     DRAW_UI = 1;
+                    T = transformers[currentLocator];
                 }
 
                 mouse_button_down = 0;
@@ -21234,7 +21571,7 @@ int main(int argc, char * args[])
                     Drag_Morph = 0;
                 }
 
-                if (Drag_Color || Drag_Shine || Drag_Displacement)
+                if (Drag_Color || Drag_Shine || Drag_Displacement || Drag_Trajectory)
                 {
                     if (dialog_lock)
                     {
@@ -21247,6 +21584,20 @@ int main(int argc, char * args[])
 
                             edit_Color_Value();
                         }
+                        else if (Drag_Trajectory && Not_Drag)
+                        {
+                            Not_Drag = 0;
+                            Edit_Properties = 1;
+                            Edit_Trajectory = 1;
+
+                            Float_Value = 0.0;
+
+                            T = Trj->Transformers[Trajectory_v_index];
+                            //transfer_Trajectory_Values(Trj, T);
+                            Trajectory_Value = T->Trj_Value;
+
+                            edit_Trajectory_Value();
+                        }
                         else
                         {
                             update_UI_With_Id_Colors();
@@ -21254,6 +21605,7 @@ int main(int argc, char * args[])
                         Drag_Color = 0;
                         Drag_Shine = 0;
                         Drag_Displacement = 0;
+                        Drag_Trajectory = 0;
                     }
                 }
                 else if (Edit_Locator)
@@ -21264,6 +21616,15 @@ int main(int argc, char * args[])
                         printf("Just clicked locator property value\n");
                         T = transformers[currentLocator];
                         edit_Locator_Value();
+                    }
+                }
+                else if (Edit_Trajectory)
+                {
+                    if (dialog_lock)
+                    {
+                        Edit_Properties = 1;
+                        printf("Just clicked trajectory property value\n");
+                        edit_Trajectory_Value();
                     }
                 }
 
@@ -21424,6 +21785,25 @@ int main(int argc, char * args[])
 
                         SDL_GL_SwapBuffers();
                     }
+                    else if (Drag_Trajectory)
+                    {
+                        Not_Drag = 0;
+
+                        DragDelta = (mouse_x - Drag_X) / 2;
+                        TrajDelta = (float)DragDelta / 100.0;
+
+                        Trj_adjusted = Traj + TrajDelta;
+                        Trj_adjusted = clamp_f(Trj_adjusted, -100.0, 100.0);
+
+                        T->Trj_Value = Trj_adjusted;
+
+                        set_T_Trajectory_value(Trj, T, Trj_adjusted, subdLevel);
+                        update_Trajectory_List(0, 0);
+
+                        update_Transformer_Object(T);
+
+                        SDL_GL_SwapBuffers();
+                    }
                     else if (Drag_Color)
                     {
                         Not_Drag = 0;
@@ -21502,6 +21882,20 @@ int main(int argc, char * args[])
                                         draw_Properties(ikChains[currentIK]->Name, screen_height, 1, PROPERTIES_IK, Type);
                                     else
                                         draw_Properties("", screen_height, 1, PROPERTIES_IK, Type);
+                                    SDL_GL_SwapBuffers();
+                                }
+                            }
+                            else if (PROPERTIES == PROPERTIES_TRJ)
+                            {
+                                if (properties[prop_y][prop_x] != UI_BACKL)
+                                {
+                                    //printf("rendering\t\t\r");
+                                    black_out_properties();
+                                    properties[prop_y][prop_x] = UI_BACKL;
+                                    if (Type != NULL)
+                                        draw_Properties(trajectories[currentTrj]->Name, screen_height, 1, PROPERTIES_TRJ, Type);
+                                    else
+                                        draw_Properties("", screen_height, 1, PROPERTIES_TRJ, Type);
                                     SDL_GL_SwapBuffers();
                                 }
                             }
@@ -22941,27 +23335,31 @@ int main(int argc, char * args[])
                 if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
                 {
                     D = deformers[currentDeformer_Node];
-
-                    currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
-                    if (currentKey >= 0)
-                    {
-                        if (mod & KMOD_CTRL)
-                        {
-                            change_Key_AB_Exponent(D, currentKey, currentFrame, 0, 1, Timeline_Indi); // A
-                        }
-                        else if (mod & KMOD_ALT)
-                        {
-                            change_Key_AB_Exponent(D, currentKey, currentFrame, 1, 1, Timeline_Indi); // B
-                        }
-                        else
-                        {
-                            change_Key_Acceleration(D, currentKey, currentFrame, 1, Timeline_Indi);
-                        }
-                    }
-
-                    Draw_Timeline();
-                    SDL_GL_SwapBuffers();
                 }
+                else
+                {
+                    D = NULL;
+                }
+
+                currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
+                if (currentKey >= 0)
+                {
+                    if (mod & KMOD_CTRL)
+                    {
+                        change_Key_AB_Exponent(D, T, currentKey, currentFrame, 0, 1, Timeline_Indi); // A
+                    }
+                    else if (mod & KMOD_ALT)
+                    {
+                        change_Key_AB_Exponent(D, T, currentKey, currentFrame, 1, 1, Timeline_Indi); // B
+                    }
+                    else
+                    {
+                        change_Key_Acceleration(D, T, currentKey, currentFrame, 1, Timeline_Indi);
+                    }
+                }
+
+                Draw_Timeline();
+                SDL_GL_SwapBuffers();
             }
             else if (DRAW_TIMELINE && mouse_y > screen_height - TIMELINE_HEIGHT && mouse_y < screen_height - BUTTON_HEIGHT)
             {
@@ -23096,27 +23494,31 @@ int main(int argc, char * args[])
                 if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
                 {
                     D = deformers[currentDeformer_Node];
-
-                    currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
-                    if (currentKey >= 0)
-                    {
-                        if (mod & KMOD_CTRL)
-                        {
-                            change_Key_AB_Exponent(D, currentKey, currentFrame, 0, -1, Timeline_Indi); // A
-                        }
-                        else if (mod & KMOD_ALT)
-                        {
-                            change_Key_AB_Exponent(D, currentKey, currentFrame, 1, -1, Timeline_Indi); // B
-                        }
-                        else
-                        {
-                            change_Key_Acceleration(D, currentKey, currentFrame, -1, Timeline_Indi);
-                        }
-                    }
-
-                    Draw_Timeline();
-                    SDL_GL_SwapBuffers();
                 }
+                else
+                {
+                    D = NULL;
+                }
+
+                currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
+                if (currentKey >= 0)
+                {
+                    if (mod & KMOD_CTRL)
+                    {
+                        change_Key_AB_Exponent(D, T, currentKey, currentFrame, 0, -1, Timeline_Indi); // A
+                    }
+                    else if (mod & KMOD_ALT)
+                    {
+                        change_Key_AB_Exponent(D, T, currentKey, currentFrame, 1, -1, Timeline_Indi); // B
+                    }
+                    else
+                    {
+                        change_Key_Acceleration(D, T, currentKey, currentFrame, -1, Timeline_Indi);
+                    }
+                }
+
+                Draw_Timeline();
+                SDL_GL_SwapBuffers();
             }
             else if (DRAW_TIMELINE && mouse_y > screen_height - TIMELINE_HEIGHT && mouse_y < screen_height - BUTTON_HEIGHT)
             {
@@ -23245,20 +23647,24 @@ int main(int argc, char * args[])
                         if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
                         {
                             D = deformers[currentDeformer_Node];
-
-                            currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
-                            if (currentKey >= 0)
-                            {
-                                int r = change_Keyframe_Frame(D, currentKey, currentFrame, -1, Timeline_Indi);
-                                if (r)
-                                {
-                                    currentFrame -= 1;
-                                }
-                            }
-
-                            Draw_Timeline();
-                            SDL_GL_SwapBuffers();
                         }
+                        else
+                        {
+                            D = NULL;
+                        }
+
+                        currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
+                        if (currentKey >= 0)
+                        {
+                            int r = change_Keyframe_Frame(D, T, currentKey, currentFrame, -1, Timeline_Indi);
+                            if (r)
+                            {
+                                currentFrame -= 1;
+                            }
+                        }
+
+                        Draw_Timeline();
+                        SDL_GL_SwapBuffers();
                     }
                     else if (mouse_y > screen_height - TIMELINE_HEIGHT && mouse_y < screen_height - BUTTON_HEIGHT)
                     {
@@ -23324,20 +23730,24 @@ int main(int argc, char * args[])
                         if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
                         {
                             D = deformers[currentDeformer_Node];
-
-                            currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
-                            if (currentKey >= 0)
-                            {
-                                int r = change_Keyframe_Frame(D, currentKey, currentFrame, 1, Timeline_Indi);
-                                if (r)
-                                {
-                                    currentFrame += 1;
-                                }
-                            }
-
-                            Draw_Timeline();
-                            SDL_GL_SwapBuffers();
                         }
+                        else
+                        {
+                            D = NULL;
+                        }
+
+                        currentKey = find_currentKey(T, D, currentFrame, Timeline_Indi);
+                        if (currentKey >= 0)
+                        {
+                            int r = change_Keyframe_Frame(D, T, currentKey, currentFrame, 1, Timeline_Indi);
+                            if (r)
+                            {
+                                currentFrame += 1;
+                            }
+                        }
+
+                        Draw_Timeline();
+                        SDL_GL_SwapBuffers();
                     }
                     else if (mouse_y > screen_height - TIMELINE_HEIGHT && mouse_y < screen_height - BUTTON_HEIGHT)
                     {
@@ -24310,7 +24720,7 @@ int main(int argc, char * args[])
                 altDown = 0;
                 add_selection_mode = 1;
                 SDL_SetCursor(Arrow);
-                if (!BIND_POSE && deformerIndex > 0)
+                if (!BIND_POSE) // && deformerIndex > 0)
                 {
                     deformer_Keyframe_Player();
                 }
@@ -24856,6 +25266,7 @@ int main(int argc, char * args[])
                         Edit_Properties = 0;
                         Edit_Color = 0;
                         Edit_Locator = 0;
+                        Edit_Trajectory = 0;
                         if (dialog_type == MATERIAL_DIALOG)
                         {
                             update_Materials_List(1, 0);
@@ -24863,6 +25274,11 @@ int main(int argc, char * args[])
                         else if (dialog_type == HIER_DIALOG)
                         {
                             update_Hierarchys_List(1, 0);
+                        }
+                        else if (dialog_type == TRJ_DIALOG)
+                        {
+                            T->Trj_Value = Trajectory_Value;
+                            update_Trajectory_List(1, 0);
                         }
                     }
                     else
@@ -24888,6 +25304,12 @@ int main(int argc, char * args[])
                             sprintf(Bone_Names[BoneIndex], "%s", Name_Remember);
                             set_Bone_H_Button(-1);
                             update_Bones_List(1, 0);
+                        }
+                        else if (dialog_type == TRJ_DIALOG)
+                        {
+                            sprintf(Trj_Names[TrjIndex], "%s", Name_Remember);
+                            set_Trj_H_Button(-1);
+                            update_Trajectory_List(1, 0);
                         }
                         else if (dialog_type == IK_DIALOG)
                         {
@@ -25348,6 +25770,12 @@ int main(int argc, char * args[])
                 {
                     D = deformers[currentDeformer_Node];
                     goto_Deformer_Frame(D, currentFrame);
+                }
+
+                if (trjIndex > 0)
+                {
+                    move_Trajectories_Transformers(currentFrame, subdLevel);
+                    update_Trajectories_Transformer_Objects();
                 }
             }
             message = -1;

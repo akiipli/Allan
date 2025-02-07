@@ -71,6 +71,12 @@ Curves_In;
 
 typedef struct
 {
+    int trajectoryIndex;
+}
+Trajectory_In;
+
+typedef struct
+{
     int segmentIndex;
 }
 Segments_In;
@@ -2152,6 +2158,15 @@ int read_Keyframes_file(Keyframes_In * KEYFR_IN, char * fileName, int t_index)
                                 sscanf(buff, "%f", &Tm->Acceleration[f].a_exponent);
                                 fgets(buff, BUF_SIZE, fp);
                                 sscanf(buff, "%f", &Tm->Acceleration[f].b_exponent);
+                                if (loading_version >= 1016)
+                                {
+                                    fgets(buff, BUF_SIZE, fp);
+                                    sscanf(buff, "%f", &Tm->Values[f].trj_val);
+                                }
+                                else
+                                {
+                                    Tm->Values[f].trj_val = 0;
+                                }
                             }
                         }
                     }
@@ -2392,7 +2407,115 @@ int read_Curves_file(Curves_In * CURV_IN, char * fileName)
                 sscanf(buff, "%u", (unsigned*)&C->O);
 
                 C->visible = 1;
-                C->Trj = NULL;
+
+                if (loading_version >= 1016)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&C->Trj);
+                }
+                else
+                {
+                    C->Trj = NULL;
+                }
+            }
+        }
+        else
+        {
+            fclose(fp);
+            return 0;
+        }
+    }
+
+    fclose(fp);
+    return 1;
+}
+
+int read_Trajectories_file(Trajectory_In * TRAJ_IN, char * fileName)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    char * p;
+
+    int tr, t;
+
+    trajectory * Trj;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Trajectories\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &TRAJ_IN->trajectoryIndex);
+
+            for (tr = 0; tr < TRAJ_IN->trajectoryIndex; tr ++)
+            {
+                if (trjIndex >= TRAJECTORIES)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                Trj = calloc(1, sizeof(trajectory));
+
+                if (Trj == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                trajectories[trjIndex] = Trj;
+                Trj->index = trjIndex;
+                trjIndex ++;
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", &Trj->address);
+
+                Trj->Name = malloc(STRLEN * sizeof(char));
+
+                if (Trj->Name == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                fgets(buff, BUF_SIZE, fp);
+
+                p = strchr(buff, '\n');
+                *p = '\0';
+
+                sprintf(Trj->Name, "%s", buff);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&Trj->Curve);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &Trj->update);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d", &Trj->transformers_count);
+
+                Trj->Transformers = malloc(Trj->transformers_count * sizeof(transformer*));
+
+                if (Trj->Transformers == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                for (t = 0; t < Trj->transformers_count; t ++)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&Trj->Transformers[t]);
+                }
             }
         }
         else
@@ -2594,7 +2717,18 @@ int read_Locators_file(Locators_In * LOC_IN, char * fileName)
                     sscanf(buff, "%u\n", (unsigned*)&T->Selections[j]);
                 }
 
-                T->Trj = NULL;
+                if (loading_version >= 1016)
+                {
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%u", (unsigned*)&T->Trj);
+                    fgets(buff, BUF_SIZE, fp);
+                    sscanf(buff, "%f", &T->Trj_Value);
+                }
+                else
+                {
+                    T->Trj = NULL;
+                    T->Trj_Value = 0;
+                }
 
                 transformerIndex ++;
                 transformerCount ++;
@@ -3789,9 +3923,9 @@ int load_Subcharacters(char * path)
     return s_index;
 }
 
-void null_Loaded_Addresses(hierarchys_pack hP, morf_pack mP, int defr_count)
+void null_Loaded_Addresses(hierarchys_pack hP, morf_pack mP, int defr_count, int tr_count)
 {
-    int b, s, o, t, i;
+    int tr, b, s, o, t, i;
     int m, d;
 
     bone * B;
@@ -3800,6 +3934,7 @@ void null_Loaded_Addresses(hierarchys_pack hP, morf_pack mP, int defr_count)
     vert_selection * S;
     transformer * T;
     deformer * D;
+    trajectory * Trj;
 
     deformer_morph_map * M;
     deformer_morph * Morf;
@@ -3859,6 +3994,12 @@ void null_Loaded_Addresses(hierarchys_pack hP, morf_pack mP, int defr_count)
     {
         D = deformers[d];
         D->address = 0;
+    }
+
+    for (tr = trjIndex - tr_count; tr < trjIndex; tr ++)
+    {
+        Trj = trajectories[tr];
+        Trj->address = 0;
     }
 }
 
@@ -3968,7 +4109,81 @@ void load_Morph_Keyframes(char * path, int loaded_objects)
     }
 }
 
-void load_Curves(char * path, int obj_count)
+int load_Trajectories(char * path, int t_index, int c_index)
+{
+    char Path[STRLEN];
+    DIR * dir;
+    struct dirent * ent;
+
+    int result;
+    int tr_index = 0;
+
+    int i, t, tr, c;
+    trajectory * Trj;
+    transformer * T, * T_Trj;
+    curve * C;
+
+    if ((dir = opendir(path)) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            Path[0] = '\0';
+            strcat(Path, path);
+            strcat(Path, "/");
+            strcat(Path, ent->d_name);
+            if (isFile(Path))
+            {
+                if (strcmp(ent->d_name, "Trajectories.txt") == 0)
+                {
+                    result = 0;
+                    printf("TRAJECTORIES\n");
+                    Trajectory_In * TRAJE_IN = calloc(1, sizeof(Trajectory_In));
+                    result = read_Trajectories_file(TRAJE_IN, Path);
+                    if (result)
+                    {
+                        printf("%d\n", TRAJE_IN->trajectoryIndex);
+                        tr_index = TRAJE_IN->trajectoryIndex;
+                    }
+                    free(TRAJE_IN);
+                }
+            }
+        }
+    }
+
+    for (tr = trjIndex - tr_index; tr < trjIndex; tr ++)
+    {
+        Trj = trajectories[tr];
+
+        for (i = 0; i < Trj->transformers_count; i ++)
+        {
+            T_Trj = Trj->Transformers[i];
+            for (t = transformerIndex - t_index; t < transformerIndex; t ++)
+            {
+                T = transformers[t];
+                if (T->address == (unsigned)T_Trj)
+                {
+                    Trj->Transformers[i] = T;
+                    T->Trj = (traj*)Trj;
+                }
+            }
+        }
+
+        for (c = curvesIndex - c_index; c < curvesIndex; c ++)
+        {
+            C = curves[c];
+
+            if (C->address == (unsigned)Trj->Curve)
+            {
+                C->Trj = (traj*)Trj;
+                Trj->Curve = C;
+            }
+        }
+    }
+
+    return tr_index;
+}
+
+int load_Curves(char * path, int obj_count)
 {
     char Path[STRLEN];
     DIR * dir;
@@ -4200,6 +4415,8 @@ void load_Curves(char * path, int obj_count)
             }
         }
     }
+
+    return c_index;
 }
 
 hierarchys_pack load_Hierarchys(char * path, int obj_count, int defr_count, int subcharacter_count)

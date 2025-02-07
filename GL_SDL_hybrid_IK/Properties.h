@@ -57,6 +57,16 @@ int Locator_v_index = 0;
 int Locator_h_index = 0;
 float Locator_Values[3][3];
 
+int Edit_Trajectory = 0;
+int Trajectory_v_index = 0;
+int Trajectory_h_index = 2;
+float Trajectory_Value = 0;
+
+int Drag_Trajectory = 0;
+float Traj = 0;
+float Trj_adjusted =0;
+float TrajDelta = 0;
+
 int Drag_Shine = 0;
 float Shine;
 float Shine_adjusted;
@@ -404,16 +414,25 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
     {
         trajectory * Trj = (trajectory *)subject;
         transformer * T;
+        float Value = 0.0;
 
-        sprintf(text, "lisa transformereid");
+        sprintf(text, "Update");
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%d", Trj->update);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
         idx ++;
 
         for (i = 0; i < Trj->transformers_count; i ++)
         {
             T = Trj->Transformers[i];
+
+            Value = T->Trj_Value; //get_T_Trajectory_value(T, currentFrame);
+
             sprintf(text, T->Name);
-            draw_Properties_Text(text, d_width, p_height, idx, 0, 1);
+            draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+
+            sprintf(text, "%1.2f", Value);
+            draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
             idx ++;
         }
     }

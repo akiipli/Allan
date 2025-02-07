@@ -63,6 +63,7 @@ typedef struct
     float pos[3];
     float scl_vec[3];
     float rotVec_[3][3]; // multiply with parents transpose rotVec_ (unscaled)
+    float trj_val;
 }
 transformer_values;
 

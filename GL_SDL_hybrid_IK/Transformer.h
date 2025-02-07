@@ -233,6 +233,7 @@ struct transformer
     constraint * Constraint;
     timeline * Timeline;
     traj * Trj;
+    float Trj_Value;
 };
 
 transformer * child_collection[TRANSFORMERS];
@@ -433,6 +434,7 @@ void init_transformer(transformer * T, transformer * parent, char * Name)
         T->Constraint = NULL;
         T->Timeline = NULL;
         T->Trj = NULL;
+        T->Trj_Value = 0;
     }
 }
 
@@ -769,6 +771,129 @@ void rotate_Vertex_I(float rotVec_I[3][3], float x, float y, float z, direction 
     D->x = rotVec_I[0][0] * x + rotVec_I[1][0] * y + rotVec_I[2][0] * z;
     D->y = rotVec_I[0][1] * x + rotVec_I[1][1] * y + rotVec_I[2][1] * z;
     D->z = rotVec_I[0][2] * x + rotVec_I[1][2] * y + rotVec_I[2][2] * z;
+}
+
+int insert_trj_keyframe(transformer * T, int frame, float Value)
+{
+    if (T == NULL)
+        return 0;
+
+    timeline * Tm;
+    int result, f, index, condition;
+
+    if (T->Timeline == NULL)
+    {
+        result = init_timeline(T);
+
+        if (result)
+        {
+            Tm = T->Timeline;
+            Tm->Frames = malloc(sizeof(int));
+            if (Tm->Frames != NULL)
+            {
+                Tm->Values = malloc(sizeof(transformer_values));
+                Tm->Acceleration = malloc(sizeof(acceleration));
+            }
+            else
+            {
+                Tm->key_frames = 0;
+                return 0;
+            }
+            if (Tm->Values == NULL || Tm->Acceleration == NULL)
+            {
+                Tm->key_frames = 0;
+                return 0;
+            }
+            else
+            {
+                Tm->key_frames = 1;
+                Tm->Frames[0] = frame;
+                Tm->Acceleration[0].segment_type = ACCELERATION_DEFAULT;
+                Tm->Acceleration[0].a_exponent = ACCELERATION_DEFAULT_OUT;
+                Tm->Acceleration[0].b_exponent = ACCELERATION_DEFAULT_IN;
+                Tm->Values[0].trj_val = Value;
+
+                return 1;
+            }
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        Tm = T->Timeline;
+        index = 0;
+        condition = 0;
+        for (f = 0; f < Tm->key_frames; f ++)
+        {
+            if (Tm->Frames[f] == frame)
+            {
+                index = f;
+                break;
+            }
+            else if (Tm->Frames[f] > frame)
+            {
+                index = f;
+                condition = 1;
+                break;
+            }
+        }
+
+        if (Tm->Frames[Tm->key_frames - 1] < frame)
+        {
+            index = Tm->key_frames;
+            condition = 1;
+        }
+
+        if (condition)
+        {
+            Tm->key_frames ++;
+            Tm->Frames = realloc(Tm->Frames, Tm->key_frames * sizeof(int));
+            if (Tm->Frames != NULL)
+            {
+                Tm->Values = realloc(Tm->Values, Tm->key_frames * sizeof(transformer_values));
+                Tm->Acceleration = realloc(Tm->Acceleration, Tm->key_frames * sizeof(acceleration));
+            }
+            else
+            {
+                Tm->key_frames = 0;
+                return 0;
+            }
+            if (Tm->Values == NULL || Tm->Acceleration == NULL)
+            {
+                Tm->key_frames = 0;
+                return 0;
+            }
+            else
+            {
+                for (f = Tm->key_frames - 1; f > index; f --)
+                {
+                    Tm->Frames[f] = Tm->Frames[f - 1];
+                    memcpy(&Tm->Acceleration[f], &Tm->Acceleration[f - 1], sizeof(acceleration));
+                    memcpy(&Tm->Values[f], &Tm->Values[f - 1], sizeof(transformer_values));
+                }
+                Tm->Frames[index] = frame;
+                Tm->Acceleration[index].segment_type = ACCELERATION_DEFAULT;
+                Tm->Acceleration[index].a_exponent = ACCELERATION_DEFAULT_OUT;
+                Tm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
+                Tm->Values[index].trj_val = Value;
+
+                return 1;
+            }
+        }
+        else
+        {
+            Tm->Frames[index] = frame;
+            Tm->Acceleration[index].segment_type = ACCELERATION_DEFAULT;
+            Tm->Acceleration[index].a_exponent = ACCELERATION_DEFAULT_OUT;
+            Tm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
+            Tm->Values[index].trj_val = Value;
+
+            return 1;
+        }
+    }
 }
 
 int insert_keyframe(transformer * T, int frame, int linear_pose, float Delta[3])
