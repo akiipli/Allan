@@ -137,6 +137,10 @@ void draw_Properties_Text(const char * text, int width, int height, int index, i
                 idx = UI_YELLO;
             }
 	    }
+	    else if (highlight == 3)
+        {
+            idx = UI_BACKL;
+        }
         glColor4fv(buttoncolors[idx].color);
 	}
     else
@@ -405,8 +409,13 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         for (i = 0; i < D->Objects_Count; i ++)
         {
             O = D->Objects[i];
+
             sprintf(text, O->Name);
-            draw_Properties_Text(text, d_width, p_height, idx, 0, 1);
+
+            if (O->selected)
+                draw_Properties_Text(text, d_width, p_height, idx, 3, 1);
+            else
+                draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
             idx ++;
         }
     }
@@ -429,7 +438,11 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
             Value = T->Trj_Value; //get_T_Trajectory_value(T, currentFrame);
 
             sprintf(text, T->Name);
-            draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
+
+            if (T->selected)
+                draw_Properties_Text(text, d_width, p_height, idx, 3, 1); // 3 is permanent highlight
+            else
+                draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
 
             sprintf(text, "%1.2f", Value);
             draw_Properties_Text(text, d_width, p_height, idx, 1, 2);

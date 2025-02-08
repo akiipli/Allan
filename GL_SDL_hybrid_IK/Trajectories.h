@@ -39,7 +39,7 @@ typedef struct
 }
 trajectory;
 
-trajectory * Trj;
+trajectory * Trj = NULL;
 trajectory * trajectories[TRAJECTORIES];
 
 void insert_Trajectory_keyframe(trajectory * Trj, transformer * T, int frame, float Value)

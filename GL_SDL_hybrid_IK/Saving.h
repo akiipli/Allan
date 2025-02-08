@@ -47,6 +47,15 @@ void init_scene_extensions()
     sprintf(scene_extension, "%s", "");
 }
 
+void free_scene_extensions()
+{
+    int i;
+    for (i = 0; i < scene_ext_count; i ++)
+    {
+        free(scene_extensions[i]);
+    }
+}
+
 void save_Subcharacter_Poses(char * subcharacter_poses_dir)
 {
     char dirfile[STRLEN];

@@ -2984,6 +2984,8 @@ void erase_Vertex_Patch_Indicators(object * O)
     }
 }
 
+void remove_Trajectory(traj * Trj_);
+
 void delete_Curve(curve * C)
 {
     int c, s, p;
@@ -3101,6 +3103,11 @@ void delete_Curve(curve * C)
         {
             curves[c] = curves[c + 1];
             curves[c]->index = c;
+        }
+
+        if (C->Trj != NULL)
+        {
+            remove_Trajectory(C->Trj);
         }
 
         free_Curve(C);

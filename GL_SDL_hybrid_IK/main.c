@@ -912,6 +912,7 @@ void cleanup()
     free_Cps();
 
     free_Trajectories(); // Experimental
+    free_scene_extensions();
 
     quit_app(0);
 }
@@ -5310,6 +5311,20 @@ void open_Img()
 //    SetFocus(gHwnd);
 }
 
+void deselect_Transformers()
+{
+    int t;
+
+    transformer * T;
+
+    for (t = 0; t < transformerIndex; t ++)
+    {
+        T = transformers[t];
+        T->selected = 0;
+    }
+    selected_transformer_count = 0;
+}
+
 void deselect_Objects()
 {
     int o;
@@ -8228,6 +8243,20 @@ void goto_Deformer_Frame(deformer * D, int frame)
     DRAW_UI = 1;
 }
 
+void prep_For_Trajectory_Animation()
+{
+    int t;
+
+    trajectory * Trj;
+
+    for (t = 0; t < trjIndex; t ++)
+    {
+        Trj = trajectories[t];
+        Trj->Curve->len = calculate_Curve_Length_(Trj->Curve, subdLevel);
+        init_Trj_Timeline_Segments(Trj, TimelineStart);
+    }
+}
+
 void deformer_Keyframe_Player()
 {
     printf("deformer Keyframe Player\n");
@@ -8293,12 +8322,7 @@ void deformer_Keyframe_Player()
 
     DRAW_UI = 0;
 
-    for (t = 0; t < trjIndex; t ++)
-    {
-        Trj = trajectories[t];
-        Trj->Curve->len = calculate_Curve_Length_(Trj->Curve, subdLevel);
-        init_Trj_Timeline_Segments(Trj, TimelineStart);
-    }
+    prep_For_Trajectory_Animation();
 
     for (t = 0; t < transformerIndex; t ++)
     {
@@ -9310,8 +9334,12 @@ void handle_UP_Trajectory(int scrollbar)
         if (currentTrj >= 0 && currentTrj < trjIndex)
         {
             trajectories[currentTrj]->selected = 0;
+        }
             currentTrj = Trj_List[TrjIndex];
+        if (currentTrj >= 0 && currentTrj < trjIndex)
+        {
             trajectories[currentTrj]->selected = 1;
+            Trj = trajectories[currentTrj];
         }
 
         DRAW_UI = 0;
@@ -10067,8 +10095,12 @@ void handle_DOWN_Trajectory(int scrollbar)
         if (currentTrj >= 0 && currentTrj < trjIndex)
         {
             trajectories[currentTrj]->selected = 0;
+        }
             currentTrj = Trj_List[TrjIndex];
+        if (currentTrj >= 0 && currentTrj < trjIndex)
+        {
             trajectories[currentTrj]->selected = 1;
+            Trj = trajectories[currentTrj];
         }
 
         DRAW_UI = 0;
@@ -10647,10 +10679,82 @@ void remove_Trajectory_Transformer()
         draw_Dialog();
 }
 
-void remove_Trajectory()
+void remove_Trajectory(traj * Trj_)
+{
+    int t, tr, index;
+    int condition = 0;
+
+    transformer * T;
+    trajectory * Trj_0 = (trajectory *)Trj_;
+
+    if (Trj_0 != NULL)
+    {
+        for (tr = 0; tr < trjIndex; tr ++)
+        {
+            if (trajectories[tr] == Trj_0)
+            {
+                index = tr;
+                condition = 1;
+                break;
+            }
+        }
+
+        if (condition)
+        {
+            trjIndex --;
+            for (tr = index; tr < trjIndex; tr ++)
+            {
+                trajectories[tr] = trajectories[tr + 1];
+                trajectories[tr]->index = tr;
+            }
+
+            if (Trj_0->Curve != NULL)
+            {
+                Trj_0->Curve->Trj = NULL;
+            }
+
+            for (t = 0; t < Trj_0->transformers_count; t ++)
+            {
+                T = Trj_0->Transformers[t];
+                T->Trj = NULL;
+                T->Trj_Value = 0;
+            }
+
+            free_Trajectory(Trj_0);
+
+            if (currentTrj >= trjIndex)
+            {
+                currentTrj = trjIndex - 1;
+            }
+            if (currentTrj < 0)
+            {
+                currentTrj = 0;
+            }
+            if (trjIndex > 0)
+            {
+                Trj = trajectories[currentTrj];
+            }
+            else
+            {
+                Trj = NULL;
+            }
+        }
+    }
+}
+
+void remove_Trajectory_H_Button()
 {
     set_Trj_H_Button(3);
     printf("remove Trajectory\n");
+    if (Trj != NULL)
+    {
+        remove_Trajectory((traj*)Trj);
+
+        if (dialog_lock)
+        {
+            draw_Dialog();
+        }
+    }
 }
 
 void remove_Bone()
@@ -17510,19 +17614,13 @@ void change_Material_Smooth()
     SDL_GL_SwapBuffers();
 }
 
-void change_Deformer_Linear_Pose()
+void change_Deformer_Linear_Pose(deformer * D)
 {
-    //printf("change Deformer Linear Pose\n");
-    if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
-    {
-        D = deformers[currentDeformer_Node];
-        D->linear_pose = !D->linear_pose;
-        //printf("%d\n", D->linear_pose);
+    D->linear_pose = !D->linear_pose;
 
-        draw_Dialog();
+    draw_Dialog();
 
-        SDL_GL_SwapBuffers();
-    }
+    SDL_GL_SwapBuffers();
 }
 
 void change_Object_Smooth()
@@ -18887,7 +18985,7 @@ int main(int argc, char * args[])
     Button_h_traj[0].func = &add_Trajectories;
     Button_h_traj[1].func = &add_Trj_Transformers;
     Button_h_traj[2].func = &remove_Trajectory_Transformer;
-    Button_h_traj[3].func = &remove_Trajectory;
+    Button_h_traj[3].func = &remove_Trajectory_H_Button;
 
     Button_h_matr[0].func = &rename_Material;
     Button_h_matr[1].func = &add_Material;
@@ -19194,6 +19292,7 @@ int main(int argc, char * args[])
 
                         if (trjIndex > 0)
                         {
+                            prep_For_Trajectory_Animation();
                             move_Trajectories_Transformers(currentFrame, subdLevel);
                             update_Trajectories_Transformer_Objects();
                         }
@@ -20934,9 +21033,16 @@ int main(int argc, char * args[])
                                     else if (v_index >= 1 && Trj->transformers_count > 0)
                                     {
                                         Trajectory_v_index = v_index - 1;
+                                        deselect_Transformers();
                                         T = Trj->Transformers[Trajectory_v_index];
-
-                                        if (h_index == 2)
+                                        T->selected = 1;
+                                        currentLocator = T->index;
+                                        if (h_index == 1)
+                                        {
+                                            poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
+                                            update_Trajectory_List(1, 0);
+                                        }
+                                        else if (h_index == 2)
                                         {
                                             if (!Drag_Trajectory)
                                             {
@@ -20987,11 +21093,34 @@ int main(int argc, char * args[])
                             }
                             else if (dialog_type == DEFR_DIALOG && PROPERTIES == PROPERTIES_DEFORMER)
                             {
-                                if (v_index == 0)
+                                if (currentDeformer_Node >= 0 && currentDeformer_Node < deformerIndex)
                                 {
-                                    if (h_index == 2)
+                                    D = deformers[currentDeformer_Node];
+                                }
+                                else
+                                {
+                                    D = NULL;
+                                }
+
+                                if (D != NULL)
+                                {
+                                    if (v_index == 0)
                                     {
-                                        change_Deformer_Linear_Pose();
+                                        if (h_index == 2)
+                                        {
+                                            change_Deformer_Linear_Pose(D);
+                                        }
+                                    }
+                                    else if (v_index >= 1 && v_index < D->Objects_Count + 1)
+                                    {
+                                        if (h_index == 1)
+                                        {
+                                            deselect_Objects();
+                                            O = D->Objects[v_index - 1];
+                                            O->selected = 1;
+                                            currentObject = O->index;
+                                            update_Deformers_List(0);
+                                        }
                                     }
                                 }
                             }
@@ -25392,12 +25521,7 @@ int main(int argc, char * args[])
             }
             else if (DRAW_LOCATORS && Object_Mode)
             {
-                int t;
-                for (t = 0; t < transformerIndex; t ++)
-                {
-                    T = transformers[t];
-                    T->selected = 0;
-                }
+                deselect_Transformers();
                 T = transformers[currentLocator];
                 T->selected = 1;
             }
@@ -25774,6 +25898,7 @@ int main(int argc, char * args[])
 
                 if (trjIndex > 0)
                 {
+                    prep_For_Trajectory_Animation();
                     move_Trajectories_Transformers(currentFrame, subdLevel);
                     update_Trajectories_Transformer_Objects();
                 }
