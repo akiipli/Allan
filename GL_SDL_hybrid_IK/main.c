@@ -3388,6 +3388,8 @@ void cycle_frame_Player(camera * C, int all_Views)
 
 camera * find_View(int mouse_x, int mouse_y, int splitview)
 {
+    printf("FIND VIEW\n");
+
     Camera_Top.uv_draw = 0;
     Camera_Front.uv_draw = 0;
     Camera_Persp.uv_draw = 0;
@@ -8335,6 +8337,14 @@ void deformer_Keyframe_Player()
     //ELEMENT_ARRAYS = 1;
     empty_Hint();
 
+    if (camIndex > CAMERAS && CAM != NULL)
+    {
+        CAM0 = Camera;
+        Camera = CAM;
+        //Camera_Persp = *Camera;
+        find_Camera_Objects();
+    }
+
     if (subdLevel > -1)
     {
         load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
@@ -8427,6 +8437,13 @@ void deformer_Keyframe_Player()
 //                    rotate_M(D->Transformers[0]);  /* update rotVec_ */
 //                }
 //            }
+
+            if (camIndex > CAMERAS)
+            {
+                //Camera_Persp = *CAM0;
+                Camera = CAM0;
+            }
+
             sprintf(bottom_message, "Play stop frame %d", frame);
             break;
         }

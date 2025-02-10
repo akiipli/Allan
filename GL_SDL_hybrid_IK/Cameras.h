@@ -98,6 +98,7 @@ void read_Camera_Pose(camera * C)
 camera Camera_Persp, Camera_Top, Camera_Front, Camera_Left, Camera_Thumb;
 camera * Camera;
 camera * CAM = NULL;
+camera * CAM0 = NULL;
 
 camera * cameras[CAMERAS_TOTAL];
 
@@ -298,7 +299,11 @@ void update_camera_top(camera * C, float CamDist)
 
 void update_camera(camera * C, float CamDist)
 {
-    if (C->ID == CAMERA_PERSPECTIVE)
+    if (C->ID == CAMERA_ANIM)
+    {
+        update_camera_persp(C, CamDist);
+    }
+    else if (C->ID == CAMERA_PERSPECTIVE)
     {
         update_camera_persp(C, CamDist);
     }
