@@ -64,7 +64,6 @@ typedef struct trajectory traj;
 #include FT_FREETYPE_H
 #include "UserInterface.h"
 #include "Materials.h"
-#include "Items.h"
 #include "IKSolution.h"
 #include "Deformer.h"
 #include "Poses.h"
@@ -72,13 +71,15 @@ typedef struct trajectory traj;
 #include "Subcharacters.h"
 #include "Morphs.h"
 #include "Trajectories.h"
-#include "Properties.h"
+
 #include "Shaders.h"
 #include "File_IO.h"
 
 #include "ImageLoad.h"
 #include "MathFunctions.h"
 #include "Cameras.h"
+#include "Properties.h"
+#include "Items.h"
 #include "Selections.h"
 #include "Saving.h"
 
@@ -225,6 +226,7 @@ float object_Rot[3];
 float object_Scl[3];
 float T_pos[3];
 
+item * I = NULL;
 object * O = NULL;
 transformer * T = NULL;
 deformer * D = NULL;
@@ -912,6 +914,7 @@ void cleanup()
     free_Cps();
 
     free_Trajectories(); // Experimental
+    free_Cameras(0);
     free_scene_extensions();
 
     quit_app(0);
@@ -1807,6 +1810,8 @@ int create_Objects()
 
     objects[0]->subdlevel_Max = 2;
 
+    CUBE = objects[0];
+
 //
 //    result = create_Z(objectIndex, "Z");
 //
@@ -2669,7 +2674,7 @@ void Draw_Timeline()
 	sprintf(label, "%d", TimelineEnd);
 	draw_text(label, screen_width - TIMELINE_ENTRY, 20, 8, 0);
 
-	if (Tm != NULL && Tm->key_frames > 1)
+	if (Tm != NULL && Tm->key_frames > 1 && Tm->Frames[0] >= TimelineStart)
     {
         glColor4fv(black1);
         sprintf(label, "%.1f", Tm->Acceleration[frame].a_exponent);
@@ -2807,7 +2812,7 @@ void Draw_Morph_Timeline()
 	draw_text(label, vline - (tickw / 2.0), 10, 8, 0);
 
 
-	if (Tmm != NULL && Tmm->key_frames > 1)
+	if (Tmm != NULL && Tmm->key_frames > 1 && Tmm->Frames[0] >= TimelineStart)
     {
         glColor4fv(black1);
         sprintf(label, "%.1f", Tmm->Acceleration[frame].a_exponent);
@@ -4987,6 +4992,7 @@ void set_Button_item(int idx)
     }
     Button_item[idx].color = UI_GRAYD;
     memcpy(&item_type, item_types[idx], TYPE_LENGTH);
+    Item_type = idx;
 }
 
 void set_Button_scene_ext(int idx, int type)
@@ -6559,8 +6565,8 @@ void black_out_ItemsList()
     {
         ItemList[i].color = UI_BLACK;
     }
-    if (currentItem - item_start >= 0 && currentItem - item_start < LISTLENGTH)
-        ItemList[currentItem - item_start].color = UI_BACKL;
+    if (ItemIndex - item_start >= 0 && ItemIndex - item_start < LISTLENGTH)
+        ItemList[ItemIndex - item_start].color = UI_BACKL;
 }
 
 void open_Items_List()
@@ -6568,23 +6574,36 @@ void open_Items_List()
     Osd = 0;
     HINTS = 0;
 
+    Type = NULL;
+
+    ItemIndex = 0;
+    item_start = 0;
+
     if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
     {
-        create_Items_List(1);
-        currentItem = currentObject;
-        ItemIndex = currentItem;
+        create_Items_List(0);
+        currentItem = Item_List[ItemIndex];
         PROPERTIES = PROPERTIES_OBJECT;
+        currentObject = ItemIndex;
         Type = objects[currentObject];
     }
     else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
     {
-        create_Items_List(2);
+        create_Items_List(1);
+        currentItem = Item_List[ItemIndex];
         PROPERTIES = PROPERTIES_CAMERA;
+        currentCamera = ItemIndex + CAMERAS;
+        Type = cameras[currentCamera];
     }
     else if (strcmp(item_type, ITEM_TYPE_LIGHT) == 0)
     {
-        create_Items_List(3);
+        create_Items_List(2);
         PROPERTIES = PROPERTIES_LIGHT;
+    }
+
+    if (Items_c <= 0)
+    {
+        Type = NULL;
     }
 
     if (Bottom_Message)
@@ -6610,7 +6629,10 @@ void open_Items_List()
 
     if (DIALOG_HEIGHT < screen_height)
     {
-        draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
+        if (Type != NULL)
+            draw_Properties(Item_Names[ItemIndex - item_start], screen_height, 1, PROPERTIES, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES, Type);
     }
 
     glDrawBuffer(GL_BACK);
@@ -7305,11 +7327,16 @@ void update_Items_List(int update, int blit)
     }
     else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
     {
-
+        Type = cameras[currentCamera];
     }
     else if (strcmp(item_type, ITEM_TYPE_LIGHT) == 0)
     {
 
+    }
+
+    if (Items_c <= 0)
+    {
+        Type = NULL;
     }
 
     black_out_ItemsList();
@@ -7330,13 +7357,16 @@ void update_Items_List(int update, int blit)
     }
     else
     {
-        draw_Items_List(screen_height, item_start, item_type, 0, ItemIndex - item_start, selection_rectangle);
+        draw_Items_List(screen_height, item_start, item_type, 0, currentItem, selection_rectangle);
         draw_Items_Bottom_Line(DIALOG_WIDTH, screen_height);
     }
 
     if (DIALOG_HEIGHT < screen_height)
     {
-        draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
+        if (Type != NULL)
+            draw_Properties(Item_Names[ItemIndex], screen_height, 1, PROPERTIES, Type);
+        else
+            draw_Properties("", screen_height, 1, PROPERTIES, Type);
     }
 
     if (DRAW_TIMELINE)
@@ -9274,28 +9304,25 @@ void handle_UP_Item(int scrollbar)
 {
     if (scrollbar)
     {
-//        if (ItemIndex - item_start >= 0)
-//            ItemList[ItemIndex - item_start].color = UI_BLACK;
         item_start --;
         if (item_start < 0) item_start = 0;
-//        if (ItemIndex - item_start >= 0)
-//            ItemList[ItemIndex - item_start].color = UI_BACKL;
     }
     else
     {
-//        if (ItemIndex - item_start >= 0)
-//            ItemList[ItemIndex - item_start].color = UI_BLACK;
         ItemIndex --;
         if (ItemIndex < 0) ItemIndex ++;
-//        if (ItemIndex - item_start >= 0)
-//            ItemList[ItemIndex - item_start].color = UI_BACKL;
+
         if (currentItem >= 0 && currentItem < itemIndex)
         {
             currentItem = Item_List[ItemIndex];
         }
         if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
         {
-            currentObject = currentItem;
+            currentObject = ItemIndex;
+        }
+        else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0 && camIndex > CAMERAS)
+        {
+            currentCamera = ItemIndex + CAMERAS;
         }
     }
 
@@ -9996,29 +10023,26 @@ void handle_DOWN_Item(int scrollbar)
 {
     if (scrollbar)
     {
-//        if (ItemIndex - item_start >= 0)
-//            ItemList[ItemIndex - item_start].color = UI_BLACK;
         item_start ++;
         if (item_start > Items_c - LISTLENGTH) item_start --;
-//        if (ItemIndex - item_start >= 0)
-//            ItemList[ItemIndex - item_start].color = UI_BACKL;
     }
     else
     {
-//        if (ItemIndex - item_start >= 0)
-//            ItemList[ItemIndex - item_start].color = UI_BLACK;
         ItemIndex ++;
         if (ItemIndex > Items_c - 1)
             ItemIndex --;
-//        if (ItemIndex - item_start >= 0)
-//            ItemList[ItemIndex - item_start].color = UI_BACKL;
+
         if (currentItem >= 0 && currentItem < itemIndex)
         {
             currentItem = Item_List[ItemIndex];
         }
         if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
         {
-            currentObject = currentItem;
+            currentObject = ItemIndex;
+        }
+        else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0 && camIndex > CAMERAS)
+        {
+            currentCamera = ItemIndex + CAMERAS;
         }
     }
 
@@ -10642,37 +10666,42 @@ void add_Trj_Transformers()
         draw_Dialog();
 }
 
-void remove_Trajectory_Transformer()
+void remove_Trajectory_Transformer(trajectory * Trj, transformer * T)
+{
+    int t, index;
+    int condition = 0;
+
+    for (t = 0; t < Trj->transformers_count; t ++)
+    {
+        if (Trj->Transformers[t] == T)
+        {
+            T->Trj = NULL;
+            T->Trj_Value = 0;
+            index = t;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        Trj->transformers_count --;
+
+        for (t = index; t < Trj->transformers_count; t ++)
+        {
+            Trj->Transformers[t] = Trj->Transformers[t + 1];
+        }
+    }
+}
+
+void remove_Trajectory_Transformer_H_Button()
 {
     set_Trj_H_Button(2);
     printf("remove Trajectory Transformer\n");
 
     if (T->Trj != NULL && (trajectory *)T->Trj == Trj)
     {
-        int t, index;
-        int condition = 0;
-
-        for (t = 0; t < Trj->transformers_count; t ++)
-        {
-            if (Trj->Transformers[t] == T)
-            {
-                T->Trj = NULL;
-                T->Trj_Value = 0;
-                index = t;
-                condition = 1;
-                break;
-            }
-        }
-
-        if (condition)
-        {
-            Trj->transformers_count --;
-
-            for (t = index; t < Trj->transformers_count; t ++)
-            {
-                Trj->Transformers[t] = Trj->Transformers[t + 1];
-            }
-        }
+        remove_Trajectory_Transformer(Trj, T);
     }
 
     if (dialog_lock)
@@ -11740,7 +11769,7 @@ void rename_Subcharacter()
 
 void rename_Item()
 {
-    set_Item_H_Button(0);
+    set_Item_H_Button(1);
     printf("rename Item\n");
     if (dialog_lock)
     {
@@ -12785,15 +12814,23 @@ void handle_Item_Dialog(char letter, SDLMod mod)
         {
             if (strlength(EditString) > 1)
             {
+                //int idx = get_Item_Index(Item_type, currentItem);
+                currentItem = Item_List[ItemIndex];
+                I = items[currentItem];
+
                 sprintf(Item_Names[ItemIndex], "%s", EditString);
-                replace_Item_Name(EditString);
+                replace_Item_Name(EditString, I);
                 sprintf(Name_Remember, "%s", EditString);
 
-                item * I = items[currentItem];
                 if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
                 {
                     O = (object *)I->pointer;
                     transfer_Item_Name_To_Object(I, O);
+                }
+                else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
+                {
+                    CAM = (camera *)I->pointer;
+                    transfer_Item_Name_To_Cam(I, CAM);
                 }
             }
             else
@@ -12872,15 +12909,15 @@ void handle_Item_Dialog(char letter, SDLMod mod)
             if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
             DRAW_UI = 0;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-            ItemList[currentObject - item_start].color = UI_BACKL;
-            draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, currentObject, selection_rectangle);
-            ItemList[currentObject - item_start].color = UI_BLACK;
+            ItemList[ItemIndex - item_start].color = UI_BACKL;
+            draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, ItemIndex - item_start, selection_rectangle);
+            ItemList[ItemIndex - item_start].color = UI_BLACK;
             DRAW_UI = 1;
             glDrawBuffer(GL_BACK);
         }
         else
         {
-            draw_Items_List(screen_height, item_start, item_type, 1, currentObject, selection_rectangle);
+            draw_Items_List(screen_height, item_start, item_type, 1, ItemIndex - item_start, selection_rectangle);
         }
         SDL_GL_SwapBuffers();
         UPDATE_BACKGROUND = 0;
@@ -14464,6 +14501,11 @@ void delete_Transformer(transformer * T0)
         remove_Transformer_From_Transformers(T0);
         remove_Transformer_From_Locators(T0);
 
+        if (T0->Trj != NULL)
+        {
+            remove_Trajectory_Transformer((trajectory *)T0->Trj, T0);
+        }
+
         free_Transformer(T0);
         free(T0);
 
@@ -14690,6 +14732,10 @@ void delete_Locator()
         {
             condition = 0;
         }
+        if (current_T->Trj != NULL)
+        {
+            condition = 0;
+        }
     }
 
     if (condition && current_T->Bone == NULL)
@@ -14751,6 +14797,52 @@ void delete_Locator()
     {
         set_Hier_H_Button(4);
         draw_Dialog();
+    }
+}
+
+void delete_Camera(camera * C)
+{
+    int c;
+    int index = 0;
+    int condition = 0;
+
+    for (c = CAMERAS; c < camIndex; c ++)
+    {
+        if (cameras[c] == C)
+        {
+            condition = 1;
+            index = c;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        camIndex --;
+        create_Transformers_List();
+        currentLocator = C->T->index;
+        delete_Locator();
+        create_Hierarchys_List(currentLocator);
+
+        for (c = index; c < camIndex; c ++)
+        {
+            cameras[c] = cameras[c + 1];
+            cameras[c]->index = c;
+        }
+
+        remove_Camera_From_Items(C);
+
+        if (currentCamera >= camIndex)
+        {
+            currentCamera = camIndex - 1;
+        }
+        if (currentCamera < 0)
+        {
+            currentCamera = 0;
+        }
+
+        free(C->P);
+        free(C);
     }
 }
 
@@ -16570,6 +16662,32 @@ void delete_Object(int index, int render)
         transform_Objects_And_Render();
 }
 
+void remove_Item_H_Button()
+{
+    set_Item_H_Button(2);
+    printf("remove Item H Button\n");
+
+    if (Item_type == TYPE_OBJECT)
+    {
+        printf("Object\n");
+        delete_Object(currentObject, 1);
+    }
+    else if (Item_type == TYPE_CAMERA)
+    {
+        printf("Camera\n");
+        CAM = cameras[currentCamera];
+        delete_Camera(CAM);
+    }
+    else if (Item_type == TYPE_LIGHT)
+    {
+        printf("Light\n");
+    }
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
+}
+
 void clear_Objects()
 {
     if (!dialog_lock)
@@ -16648,6 +16766,9 @@ void clear_All()
         free_subcharacter_poses();
 
         free_Trajectories(); // Experimental
+        free_Cameras(CAMERAS);
+
+        CAM = cameras[0];
 
     /*
     This is cheap clean;
@@ -16665,6 +16786,8 @@ void clear_All()
         curvesIndex = 0;
         cpsIndex = 0;
         segmentIndex = 0;
+        trjIndex = 0;
+        camIndex = CAMERAS;
 
         deformer_morph_Index = 0;
         deformer_morph_map_Index = 0;
@@ -16699,6 +16822,7 @@ void clear_All()
         bone_start = 0;
         ikch_start = 0;
         morph_start = 0;
+        trj_start = 0;
         memcpy(sels_start, (int[4]){0, 0, 0, 0}, sizeof(sels_start));
         currentLocator = CUBEINDEX - 1;
         currentPose = 0;
@@ -17385,7 +17509,11 @@ void save_load_Scene()
         int obj_count = 0,
         defr_count = 0,
         pose_count = 0,
-        subcharacter_count = 0, subcharacter_poses_count = 0, curve_count = 0, tr_count = 0;
+        subcharacter_count = 0,
+        subcharacter_poses_count = 0,
+        curve_count = 0,
+        tr_count = 0,
+        cam_count = 0;
 
         hierarchys_pack hP = {0, 0, 0, 0};
         morf_pack mP = {0, 0};
@@ -17524,6 +17652,16 @@ void save_load_Scene()
                 strcat(Path, "/");
                 strcat(Path, "Trajectories");
                 tr_count = load_Trajectories(Path, hP.t_index, curve_count);
+            }
+
+            if (loading_version >= 1017)
+            {
+                Path[0] = '\0';
+                strcat(Path, scene_files_dir);
+                strcat(Path, "/");
+                strcat(Path, "Hierarchys");
+                cam_count = load_Cameras(Path, hP.t_index);
+                add_cameras_as_items(cam_count);
             }
 
             null_Loaded_Addresses(hP, mP, defr_count, tr_count);
@@ -18784,6 +18922,22 @@ void make_Scale_Persp(float delta_1, float delta_2)
     }
 }
 
+void add_Item_H_Button()
+{
+    set_Item_H_Button(0);
+    printf("add Item H Button\n");
+
+    if (Item_type == TYPE_CAMERA)
+    {
+        add_Camera(screen_width, screen_height, CamDist, ortho_on, CAMERA_ANIM);
+    }
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
+}
+
 int main(int argc, char * args[])
 {
     AllocConsole();
@@ -18832,6 +18986,7 @@ int main(int argc, char * args[])
     set_Camera_Pose(&Camera_Persp, CamDist);
 
     Camera = &Camera_Persp;
+    CAM = cameras[0];
 
     memset(loaded_objects, 0, sizeof(loaded_objects));
 
@@ -18951,7 +19106,9 @@ int main(int argc, char * args[])
     Button_defr[1].func = &set_Button_defr;
     Button_defr[2].func = &set_Button_defr;
 
-    Button_h_item[0].func = &rename_Item;
+    Button_h_item[0].func = &add_Item_H_Button;
+    Button_h_item[1].func = &rename_Item;
+    Button_h_item[2].func = &remove_Item_H_Button;
 
     Button_h_sels[0].func = &add_Selection;
     Button_h_sels[1].func = &edit_Selection;
@@ -18984,7 +19141,7 @@ int main(int argc, char * args[])
 
     Button_h_traj[0].func = &add_Trajectories;
     Button_h_traj[1].func = &add_Trj_Transformers;
-    Button_h_traj[2].func = &remove_Trajectory_Transformer;
+    Button_h_traj[2].func = &remove_Trajectory_Transformer_H_Button;
     Button_h_traj[3].func = &remove_Trajectory_H_Button;
 
     Button_h_matr[0].func = &rename_Material;
@@ -20486,32 +20643,21 @@ int main(int argc, char * args[])
                                     }
                                     else
                                     {
-//                                        if (currentObject - item_start >= 0 && currentObject - item_start < LISTLENGTH)
-//                                        {
-//                                            ItemList[currentObject - item_start].color = UI_BLACK;
-//                                        }
-
                                         if (ItemIndex < objectIndex && ItemIndex >= 0)
                                         {
                                             if (controlDown)
                                             {
                                                 objects[ItemIndex]->selected = 0;
-//                                                ItemList[index].color = UI_BLACK;
                                                 assert_Object_Selection();
-                                                if (ItemIndex == currentObject && selected_object_count > 0)
-                                                {
-                                                    currentObject = selected_objects[selected_object_count - 1];
-                                                    O = objects[currentObject];
-                                                }
-//                                                if (currentObject - item_start >= 0)
-//                                                    ItemList[currentObject - item_start].color = UI_BACKL;
+                                                ItemIndex = currentObject;
+
                                                 update_Items_List(1, 0);
                                                 glDrawBuffer(GL_BACK);
                                             }
                                             else
                                             {
                                                 currentObject = ItemIndex;
-                                                currentItem = ItemIndex;
+                                                currentItem = Item_List[ItemIndex];
                                                 O = objects[currentObject];
                                                 O->selected = 1;
 
@@ -20527,6 +20673,21 @@ int main(int argc, char * args[])
 //                                                ItemList[index].color = UI_BLACK;
                                             }
                                         }
+                                    }
+                                }
+                                else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
+                                {
+                                    ItemIndex = index + item_start;
+
+                                    if (ItemIndex + CAMERAS <= camIndex && ItemIndex >= 0)
+                                    {
+                                        CAM->selected = 0;
+                                        currentCamera = ItemIndex + CAMERAS;
+                                        currentItem = Item_List[ItemIndex];
+                                        CAM = cameras[currentCamera];
+                                        clear_Camera_Selection();
+                                        CAM->selected = 1;
+                                        update_Items_List(1, 0);
                                     }
                                 }
                             }
@@ -20660,9 +20821,6 @@ int main(int argc, char * args[])
                                     (*Button_item[Buttonindex].func)(Buttonindex);
                                     if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
                                     draw_Dialog();
-//                                    draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, currentObject, selection_rectangle);
-//                                    SDL_GL_SwapBuffers();
-//                                    glDrawBuffer(GL_BACK);
                                 }
                             }
                             else if (dialog_type == MRPH_DIALOG)
@@ -22050,7 +22208,7 @@ int main(int argc, char * args[])
                                     black_out_properties();
                                     properties[prop_y][prop_x] = UI_BACKL;
                                     if (Type != NULL)
-                                        draw_Properties(items[currentItem]->Name, screen_height, 1, PROPERTIES, Type);
+                                        draw_Properties(Item_Names[ItemIndex - item_start], screen_height, 1, PROPERTIES, Type);
                                     else
                                         draw_Properties("", screen_height, 1, PROPERTIES, Type);
                                     SDL_GL_SwapBuffers();

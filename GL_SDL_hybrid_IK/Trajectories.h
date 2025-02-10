@@ -52,7 +52,7 @@ void insert_Trajectory_keyframe(trajectory * Trj, transformer * T, int frame, fl
 
 void add_Transformer_To_Trajectory(transformer * T, trajectory * Trj)
 {
-    if (T->Trj == NULL && T != &World)
+    if (T->Trj == NULL && T != &World && T != CUBE->T)
     {
         transformer ** Transformers;
 
@@ -300,6 +300,11 @@ int find_current_Segment(transformer * T, int frame)
                 s = f;
                 break;
             }
+            else if (frame >= Tm->Frames[f] && f == Tm->key_frames - 1)
+            {
+                s = f;
+                break;
+            }
         }
     }
     return s;
@@ -321,9 +326,8 @@ void move_Trajectories_Transformers(int frame, int level)
             T = Trj->Transformers[t];
             if (T->Timeline != NULL)
             {
-
-                T->Timeline->current_Segment = find_current_Segment(T, frame);
-                T->Timeline->start_Segment = T->Timeline->current_Segment;
+                //T->Timeline->current_Segment = find_current_Segment(T, frame);
+                //T->Timeline->start_Segment = 0;//T->Timeline->current_Segment;
                 T->Trj_Value = get_T_Trajectory_value(T, frame);
                 set_T_Trajectory_value(Trj, T, T->Trj_Value, level);
             }

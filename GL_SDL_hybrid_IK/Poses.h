@@ -212,10 +212,11 @@ float get_T_Trajectory_value(transformer * T, int frame)
         if (frame < Tm->Frames[0])
         {
             Tm->current_Segment = Tm->start_Segment;
+            Value = Tm->Values[0].trj_val;
         }
         else if (frame >= Tm->Frames[Tm->key_frames - 1])
         {
-            Tm->current_Segment = Tm->start_Segment;
+            Value = Tm->Values[Tm->key_frames - 1].trj_val;
         }
         else
         {

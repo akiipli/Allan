@@ -645,5 +645,6 @@ int selected_object_count = 0;
 int objectIndex = 0;
 
 transformer World;
+object * CUBE;
 
 #endif // OBJECT_H_INCLUDED

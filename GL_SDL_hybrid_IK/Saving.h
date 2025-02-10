@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1016;
+int saving_version = 1017;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -1055,8 +1055,9 @@ void save_Deformers(char * deformers_files_dir)
 
 int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
 {
-    int i, t;
+    int a, i, t;
 
+    camera * Cam;
     transformer * T;
 
     char dirfile[STRLEN];
@@ -1098,6 +1099,45 @@ int save_Hierarchys(char * hierarchys_files_dir, float CamDist)
 
     fprintf(F, "\n");
     fclose(F);
+
+    /**/
+    dirfile[0] = '\0';
+    strcat(dirfile, hierarchys_files_dir);
+    strcat(dirfile, "/");
+    strcat(dirfile, "Anim Cameras");
+    strcat(dirfile, ".txt");
+
+    F = fopen(dirfile, "w");
+
+    if (F == NULL) return 0;
+
+    fprintf(F, "Anim Cameras\n");
+    fprintf(F, "%d\n", camIndex - CAMERAS);
+
+    for (a = CAMERAS; a < camIndex; a ++)
+    {
+        Cam = cameras[a];
+        fprintf(F, "%s\n", Cam->Name);
+        fprintf(F, "%u\n", (unsigned)Cam->T);
+        // P
+        fprintf(F, "%f %f %f %f\n", Cam->P->h_view, Cam->P->pos[0], Cam->P->pos[1], Cam->P->pos[2]);
+        fprintf(F, "%f %f %f\n", Cam->P->rot[0], Cam->P->rot[1], Cam->P->rot[2]);
+        fprintf(F, "%f %f %f\n", Cam->P->target[0], Cam->P->target[1], Cam->P->target[2]);
+        fprintf(F, "%f %f %f\n", Cam->P->rotVec_[0][0], Cam->P->rotVec_[0][1], Cam->P->rotVec_[0][2]);
+        fprintf(F, "%f %f %f\n", Cam->P->rotVec_[1][0], Cam->P->rotVec_[1][1], Cam->P->rotVec_[1][2]);
+        fprintf(F, "%f %f %f\n", Cam->P->rotVec_[2][0], Cam->P->rotVec_[2][1], Cam->P->rotVec_[2][2]);
+        fprintf(F, "%f\n", Cam->P->CamDist);
+        //
+        fprintf(F, "%d %d %d\n", Cam->ID, Cam->width, Cam->height);
+        fprintf(F, "%f %f %f %f %f\n", Cam->h_v_ratio, Cam->h_view, Cam->v_view, Cam->view_minor, Cam->view_major);
+        fprintf(F, "%d %f %f %f %f\n", Cam->ortho, Cam->dim, Cam->origin_2d[0], Cam->origin_2d[1], Cam->_ratio);
+        fprintf(F, "%d %d %d %d\n", Cam->sidebar, Cam->bottom_line, Cam->time_line, Cam->uv_draw);
+        fprintf(F, "%f %f %f\n", Cam->View_Radius, Cam->Resolution_Radius, Cam->Pixel_Size_In_Radians);
+    }
+
+    fprintf(F, "\n");
+    fclose(F);
+    /**/
 
     dirfile[0] = '\0';
     strcat(dirfile, hierarchys_files_dir);

@@ -1377,7 +1377,6 @@ void rotate_T_(transformer * T)
 
 void synthesize_Bone_Axis(bone * B, float scale[3]);
 
-ikChain * I;
 void update_Spine(ikChain * I);
 
 void rotate_T(transformer * T)

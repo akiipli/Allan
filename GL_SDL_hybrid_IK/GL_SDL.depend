@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1739040200 source:c:\gl_sdl_hybrid_ik\main.c
+1739180338 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -23,7 +23,6 @@
 	<ft2build.h>
 	"UserInterface.h"
 	"Materials.h"
-	"Items.h"
 	"IKSolution.h"
 	"Deformer.h"
 	"Poses.h"
@@ -31,12 +30,13 @@
 	"Subcharacters.h"
 	"Morphs.h"
 	"Trajectories.h"
-	"Properties.h"
 	"Shaders.h"
 	"File_IO.h"
 	"ImageLoad.h"
 	"MathFunctions.h"
 	"Cameras.h"
+	"Properties.h"
+	"Items.h"
 	"Selections.h"
 	"Saving.h"
 	"InitializingFunctions.h"
@@ -71,13 +71,13 @@
 
 1738945359 c:\gl_sdl_hybrid_ik\timeline.h
 
-1738937210 c:\gl_sdl_hybrid_ik\transformer.h
+1739165562 c:\gl_sdl_hybrid_ik\transformer.h
 
-1736761967 c:\gl_sdl_hybrid_ik\object.h
+1739085856 c:\gl_sdl_hybrid_ik\object.h
 
 1739038829 c:\gl_sdl_hybrid_ik\curves.h
 
-1738953848 c:\gl_sdl_hybrid_ik\userinterface.h
+1739170071 c:\gl_sdl_hybrid_ik\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
@@ -85,13 +85,13 @@
 
 1679838488 c:\gl_sdl_hybrid_ik\materials.h
 
-1666285043 c:\gl_sdl_hybrid_ik\items.h
+1739170829 c:\gl_sdl_hybrid_ik\items.h
 
 1737975878 c:\gl_sdl_hybrid_ik\iksolution.h
 
 1738963267 c:\gl_sdl_hybrid_ik\deformer.h
 
-1739039608 c:\gl_sdl_hybrid_ik\poses.h
+1739088860 c:\gl_sdl_hybrid_ik\poses.h
 
 1738871109 c:\gl_sdl_hybrid_ik\bones.h
 
@@ -99,7 +99,7 @@
 
 1734892334 c:\gl_sdl_hybrid_ik\morphs.h
 
-1739034169 c:\gl_sdl_hybrid_ik\properties.h
+1739115370 c:\gl_sdl_hybrid_ik\properties.h
 
 1636367110 c:\gl_sdl_hybrid_ik\shaders.h
 
@@ -109,11 +109,11 @@
 
 1642261226 c:\gl_sdl_hybrid_ik\mathfunctions.h
 
-1735301679 c:\gl_sdl_hybrid_ik\cameras.h
+1739167874 c:\gl_sdl_hybrid_ik\cameras.h
 
 1737120496 c:\gl_sdl_hybrid_ik\selections.h
 
-1739038203 c:\gl_sdl_hybrid_ik\saving.h
+1739179223 c:\gl_sdl_hybrid_ik\saving.h
 
 1733144028 c:\gl_sdl_hybrid_ik\initializingfunctions.h
 
@@ -146,9 +146,9 @@
 
 1636367110 c:\gl_sdl_hybrid_ik\validators.h
 
-1738956627 c:\gl_sdl_hybrid_ik\loading.h
+1739179182 c:\gl_sdl_hybrid_ik\loading.h
 
 1736252479 c:\gl_sdl_hybrid_ik\modeling.h
 
-1739035670 c:\gl_sdl_hybrid_ik\trajectories.h
+1739088860 c:\gl_sdl_hybrid_ik\trajectories.h
 

@@ -77,6 +77,12 @@ Trajectory_In;
 
 typedef struct
 {
+    int cameraIndex;
+}
+Camera_In;
+
+typedef struct
+{
     int segmentIndex;
 }
 Segments_In;
@@ -2430,6 +2436,108 @@ int read_Curves_file(Curves_In * CURV_IN, char * fileName)
     return 1;
 }
 
+int read_Anim_Cameras_file(Camera_In * CAM_IN, char * fileName)
+{
+    FILE * fp;
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+        printf("Maybe no permission.\n");
+        return 0;
+    }
+
+    char buff[BUF_SIZE];
+    buff[0] = '\0';
+
+    char * p;
+
+    int c;
+
+    camera * C;
+
+    if (fgets(buff, BUF_SIZE, fp))
+    {
+        if (strcmp("Anim Cameras\n", buff) == 0)
+        {
+            fgets(buff, BUF_SIZE, fp);
+            sscanf(buff, "%d", &CAM_IN->cameraIndex);
+
+            for (c = 0; c < CAM_IN->cameraIndex; c ++)
+            {
+                if (camIndex >= CAMERAS_TOTAL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                C = calloc(1, sizeof(camera));
+
+                if (C == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                cameras[camIndex] = C;
+                C->index = camIndex;
+                camIndex ++;
+
+                fgets(buff, BUF_SIZE, fp);
+
+                p = strchr(buff, '\n');
+                *p = '\0';
+
+                sprintf(C->Name, "%s", buff);
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%u", (unsigned*)&C->T);
+
+                C->P = calloc(1, sizeof(camera_pose));
+
+                if (C->P == NULL)
+                {
+                    fclose(fp);
+                    return 0;
+                }
+
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f %f", &C->P->h_view, &C->P->pos[0], &C->P->pos[1], &C->P->pos[2]);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &C->P->rot[0], &C->P->rot[1], &C->P->rot[2]);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &C->P->target[0], &C->P->target[1], &C->P->target[2]);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &C->P->rotVec_[0][0], &C->P->rotVec_[0][1], &C->P->rotVec_[0][2]);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &C->P->rotVec_[1][0], &C->P->rotVec_[1][1], &C->P->rotVec_[1][2]);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &C->P->rotVec_[2][0], &C->P->rotVec_[2][1], &C->P->rotVec_[2][2]);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f", &C->P->CamDist);
+                //
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d %d %d", &C->ID, &C->width, &C->height);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f %f %f", &C->h_v_ratio, &C->h_view, &C->v_view, &C->view_minor, &C->view_major);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d %f %f %f %f", &C->ortho, &C->dim, &C->origin_2d[0], &C->origin_2d[1], &C->_ratio);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%d %d %d %d", &C->sidebar, &C->bottom_line, &C->time_line, &C->uv_draw);
+                fgets(buff, BUF_SIZE, fp);
+                sscanf(buff, "%f %f %f", &C->View_Radius, &C->Resolution_Radius, &C->Pixel_Size_In_Radians);
+            }
+        }
+        else
+        {
+            fclose(fp);
+            return 0;
+        }
+    }
+
+    fclose(fp);
+    return 1;
+}
+
 int read_Trajectories_file(Trajectory_In * TRAJ_IN, char * fileName)
 {
     FILE * fp;
@@ -4107,6 +4215,64 @@ void load_Morph_Keyframes(char * path, int loaded_objects)
             }
         }
     }
+}
+
+int load_Cameras(char * path, int t_index)
+{
+    char Path[STRLEN];
+    DIR * dir;
+    struct dirent * ent;
+
+    int result;
+    int cam_index = 0;
+
+    int t, c;
+    camera * Cam;
+    transformer * T;
+
+    if ((dir = opendir(path)) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            Path[0] = '\0';
+            strcat(Path, path);
+            strcat(Path, "/");
+            strcat(Path, ent->d_name);
+            if (isFile(Path))
+            {
+                if (strcmp(ent->d_name, "Anim Cameras.txt") == 0)
+                {
+                    result = 0;
+                    printf("ANIM CAMERAS\n");
+                    Camera_In * CAM_IN = calloc(1, sizeof(Camera_In));
+                    result = read_Anim_Cameras_file(CAM_IN, Path);
+                    if (result)
+                    {
+                        printf("%d\n", CAM_IN->cameraIndex);
+                        cam_index = CAM_IN->cameraIndex;
+                    }
+                    free(CAM_IN);
+                }
+            }
+        }
+    }
+
+    for (c = camIndex - cam_index; c < camIndex; c ++)
+    {
+        Cam = cameras[c];
+
+        for (t = transformerIndex - t_index; t < transformerIndex; t ++)
+        {
+            T = transformers[t];
+
+            if (T->address == (unsigned)Cam->T)
+            {
+                Cam->T = T;
+            }
+        }
+    }
+
+    return cam_index;
 }
 
 int load_Trajectories(char * path, int t_index, int c_index)

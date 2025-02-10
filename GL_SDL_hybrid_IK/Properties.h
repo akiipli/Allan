@@ -217,6 +217,15 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
         idx ++;
     }
+    else if (subject != NULL && type == PROPERTIES_CAMERA)
+    {
+        camera * C = (camera *)subject;
+        sprintf(text, "Horizontal View");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%1.2f", C->h_view);
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 2);
+        idx ++;
+    }
     else if (type == PROPERTIES_MATERIAL)
     {
         surface_Material * M = (surface_Material *)subject;

@@ -14,8 +14,10 @@ Copyright <2018> <Allan Kiipli>
 #define CAMERA_FRONT 2
 #define CAMERA_LEFT 3
 #define CAMERA_THUMB 4
+#define CAMERA_ANIM 5
 
 #define CAMERAS 5
+#define CAMERAS_TOTAL 30
 
 #define PIXEL_SIZE_ADJUSTMENT 1.5
 
@@ -27,6 +29,8 @@ float persp_Far = 2048 * 10;
 float z_near = 2000.0;
 
 int Camera_screen_lock = 0;
+
+int currentCamera = 0;
 
 typedef struct
 {
@@ -41,6 +45,8 @@ camera_pose;
 
 typedef struct
 {
+    int index;
+    int selected;
     char Name[STRLEN];
     transformer * T;
     camera_pose * P;
@@ -91,8 +97,38 @@ void read_Camera_Pose(camera * C)
 
 camera Camera_Persp, Camera_Top, Camera_Front, Camera_Left, Camera_Thumb;
 camera * Camera;
+camera * CAM = NULL;
 
-camera * cameras[CAMERAS];
+camera * cameras[CAMERAS_TOTAL];
+
+int camIndex = 0;
+
+void free_Cameras(int start)
+{
+    int c;
+
+    camera * C;
+
+    for (c = start; c < camIndex; c ++)
+    {
+        C = cameras[c];
+        free(C->P);
+        free(C);
+    }
+}
+
+void clear_Camera_Selection()
+{
+    int c;
+
+    camera * C;
+
+    for (c = 0; c < camIndex; c ++)
+    {
+        C = cameras[c];
+        C->selected = 0;
+    }
+}
 
 void init_Cameras()
 {
@@ -101,6 +137,8 @@ void init_Cameras()
     cameras[2] = &Camera_Front;
     cameras[3] = &Camera_Left;
     cameras[4] = &Camera_Thumb;
+
+    camIndex = CAMERAS;
 
     int c;
 
@@ -312,6 +350,36 @@ void init_camera(camera * C, char * Name, int hres, int vres, float CamDist, int
     C->bottom_line = 0;
     C->time_line = 0;
     C->uv_draw = 0;
+}
+
+int add_Item(int type, char * Name, void * pointer);
+
+void add_Camera(int screen_width, int screen_height, int CamDist, int ortho_on, int CAMERA_TYPE)
+{
+    if (camIndex < CAMERAS_TOTAL)
+    {
+        char Name[STRLEN];
+        camera * Camera = calloc(1, sizeof(camera));
+        if (Camera != NULL)
+        {
+            Camera->T = calloc(1, sizeof(transformer));
+            Camera->P = malloc(sizeof(camera_pose));
+
+            init_transformer(Camera->T, &World, "Camera");
+            sprintf(Name, "Cam Anim %d", camIndex);
+            add_Item(TYPE_CAMERA, Name, Camera);
+
+            Camera->index = camIndex;
+            Camera->selected = 0;
+            cameras[camIndex] = Camera;
+            Camera->ID = CAMERA_TYPE;
+            currentCamera = camIndex;
+            CAM = Camera;
+            init_camera(Camera, Name, screen_width, screen_height, CamDist, ortho_on, CAMERA_TYPE);
+            //Camera->h_view = camIndex;
+            camIndex ++;
+        }
+    }
 }
 
 #endif // CAMERAS_H_INCLUDED

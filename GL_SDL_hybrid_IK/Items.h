@@ -23,46 +23,6 @@ for objects.
 #ifndef ITEMS_H_INCLUDED
 #define ITEMS_H_INCLUDED
 
-#define ITEMS 1000
-
-#define ITEM_TYPE_OBJECT "object"
-#define ITEM_TYPE_CAMERA "camera"
-#define ITEM_TYPE_LIGHT  "light"
-
-#define TYPE_OBJECT 1
-#define TYPE_CAMERA 2
-#define TYPE_LIGHT  3
-
-void * Type = NULL;
-
-char item_type[TYPE_LENGTH];
-char * item_types[ITEM_NUM];
-int item_types_c = 3;
-
-void init_item_types()
-{
-    int i;
-
-	for (i = 0; i < ITEM_NUM; i ++)
-    {
-        item_types[i] = malloc(TYPE_LENGTH * sizeof(char));
-    }
-
-    item_types[0] = ITEM_TYPE_OBJECT;
-    item_types[1] = ITEM_TYPE_CAMERA;
-    item_types[2] = ITEM_TYPE_LIGHT;
-
-    memcpy(&item_type, item_types[0], strlen(item_types[0]));
-}
-
-int Items_c = 0;
-char Item_Names[ITEMS][STRLEN];
-int ItemIndex;
-int item_start;
-
-int Item_List[ITEMS];
-int currentItem = 0;
-
 typedef struct
 {
     int index;
@@ -90,7 +50,7 @@ void init_items()
     }
 }
 
-int add_Item(int type, char * Name, void * pointer)
+int add_Item(int type, char * Name, void * pointer) /* items mix different types, thus index does not reflect them */
 {
     item * I = malloc(sizeof(item));
     if (I == NULL)
@@ -106,25 +66,33 @@ int add_Item(int type, char * Name, void * pointer)
     return I->index;
 }
 
-int query_items(const char * type)
+int get_Item_Index(int Item_type, int currentItem)
 {
-    int s = 0;
-    int i;
-    for (i = 0; i < objectIndex; i++)
+    int i = 0;
+
+    item * I;
+    int counter = 0;
+
+    for (i = 0; i < itemIndex; i ++)
     {
-        if (strcmp(type, ITEM_TYPE_OBJECT) == 0)
+        I = items[i];
+
+        if (I->type == Item_type)
         {
-            memcpy(Item_Names[s], objects[s]->Name, strlen(objects[s]->Name));
-            Item_Names[s][strlen(objects[s]->Name)] = '\0';
-            s++;
+            if (counter == currentItem)
+            {
+                return i;
+                break;
+            }
+            counter ++;
         }
     }
-    return s;
+
+    return i;
 }
 
-void replace_Item_Name(char * EditString)
+void replace_Item_Name(char * EditString, item * I)
 {
-    item * I = items[Item_List[ItemIndex]];
     memcpy(I->Name, EditString, strlen(EditString));
     I->Name[strlen(EditString)] = '\0';
 }
@@ -155,7 +123,7 @@ void create_Items_List(int type)
             memcpy(Item_Names[Items_c], I->Name, strlen(I->Name));
             Item_Names[Items_c][strlen(I->Name)] = '\0';
             //Item_Italic[Items_c] = I->selected;
-            Item_List[Items_c] = Items_c;
+            Item_List[Items_c] = i;
             Items_c ++;
             if (Items_c >= ITEMS)
                 break;
@@ -163,12 +131,14 @@ void create_Items_List(int type)
     }
 }
 
-int list_items(char ** item_list, int start, int n, const char * type, int * selected, int * hidden, int currentObject)
+int list_items(char ** item_list, int start, int n, const char * type, int * selected, int * hidden, int currentItem)
 {
     int s = start;
     int i = 0;
 
+    item * I = items[currentItem];
     object * O;
+    camera * C;
 
     if (strcmp(type, ITEM_TYPE_OBJECT) == 0)
     {
@@ -188,7 +158,7 @@ int list_items(char ** item_list, int start, int n, const char * type, int * sel
                 sprintf(item_list[i], "%s", Item_Names[s]);
             }
 
-            if (O->selected && O->index != currentObject)
+            if (O->selected && O != (object *)I->pointer)
                 selected[i] = 1;
             else
                 selected[i] = 0;
@@ -196,6 +166,26 @@ int list_items(char ** item_list, int start, int n, const char * type, int * sel
                 hidden[i] = 1;
             else
                 hidden[i] = 0;
+            s++;
+        }
+    }
+    if (strcmp(type, ITEM_TYPE_CAMERA) == 0)
+    {
+        for (i = 0; i < n; i++)
+        {
+            if (i >= Items_c - start)
+                break;
+
+            C = cameras[s + CAMERAS];
+
+            sprintf(item_list[i], "%s", Item_Names[s]);
+
+            if (C->selected && C != (camera *)I->pointer)
+                selected[i] = 1;
+            else
+                selected[i] = 0;
+
+            hidden[i] = 2;
             s++;
         }
     }
@@ -211,6 +201,49 @@ void add_objects_as_items(int obj_count)
     {
         O = objects[o];
         add_Item(TYPE_OBJECT, O->Name, O);
+    }
+}
+
+void add_cameras_as_items(int cam_count)
+{
+    int c;
+    camera * C;
+
+    for (c = camIndex - cam_count; c < camIndex; c ++)
+    {
+        C = cameras[c];
+        add_Item(TYPE_CAMERA, C->Name, C);
+    }
+}
+
+void remove_Camera_From_Items(camera * C)
+{
+    int i, index;
+    item * I;
+
+    int condition = 0;
+
+    for (i = 0; i < itemIndex; i ++)
+    {
+        I = items[i];
+
+        if ((camera *)I->pointer == C)
+        {
+            index = i;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        itemIndex --;
+
+        for (i = index; i < itemIndex; i ++)
+        {
+            items[i] = items[i + 1];
+            items[i]->index = i;
+        }
     }
 }
 
@@ -264,4 +297,8 @@ void transfer_Item_Name_To_Object(item * I, object * O)
     sprintf(O->Name, "%s", I->Name);
 }
 
+void transfer_Item_Name_To_Cam(item * I, camera * C)
+{
+    sprintf(C->Name, "%s", I->Name);
+}
 #endif // ITEMS_H_INCLUDED

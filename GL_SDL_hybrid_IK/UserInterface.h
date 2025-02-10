@@ -58,7 +58,7 @@ int LISTLENGTH = 12;
 #define H_BONE_NUM 2
 #define H_TRAJ_NUM 4
 #define H_MATR_NUM 4
-#define H_ITEM_NUM 1
+#define H_ITEM_NUM 3
 #define H_IKCH_NUM 6
 #define H_SUBC_NUM 5
 #define H_MRPH_NUM 6
@@ -78,6 +78,48 @@ int LISTLENGTH = 12;
 
 #define DEFORMER_MORPH 0
 #define OBJECT_MORPH 1
+
+#define TYPE_OBJECT 0
+#define TYPE_CAMERA 1
+#define TYPE_LIGHT 2
+
+#define ITEMS 1000
+
+#define ITEM_TYPE_OBJECT "object"
+#define ITEM_TYPE_CAMERA "camera"
+#define ITEM_TYPE_LIGHT  "light"
+
+void * Type = NULL;
+
+char item_type[TYPE_LENGTH];
+char * item_types[ITEM_NUM];
+int item_types_c = 3;
+
+void init_item_types()
+{
+    int i;
+
+	for (i = 0; i < ITEM_NUM; i ++)
+    {
+        item_types[i] = malloc(TYPE_LENGTH * sizeof(char));
+    }
+
+    item_types[0] = ITEM_TYPE_OBJECT;
+    item_types[1] = ITEM_TYPE_CAMERA;
+    item_types[2] = ITEM_TYPE_LIGHT;
+
+    memcpy(&item_type, item_types[0], strlen(item_types[0]));
+}
+
+int Items_c = 0;
+char Item_Names[ITEMS][STRLEN];
+int ItemIndex;
+int item_start;
+
+int Item_List[ITEMS];
+int currentItem = 0;
+
+int Item_type = 0;
 
 GLuint Material_Textures_Lists[MATERIALS_TOTAL];
 
@@ -1697,7 +1739,8 @@ void draw_Button_item_text(const char * text, int width, int height, int index, 
 
     if (hidden)
     {
-        draw_text("-", width - 20, origin_y, font_height, 0);
+        if (hidden == 1)
+            draw_text("-", width - 20, origin_y, font_height, 0);
     }
     else
     {
@@ -3459,7 +3502,7 @@ void draw_Materials_List(int s_height, int start, int clear_background, int curr
 	glPopMatrix();
 }
 
-void draw_Items_List(int s_height, int start, char * type, int clear_background, int currentObject, int selection_rectangle)
+void draw_Items_List(int s_height, int start, char * type, int clear_background, int currentItem, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH - SIDEBAR;
     int d_height = DIALOG_HEIGHT - BUTTON_HEIGHT;
@@ -3509,11 +3552,11 @@ void draw_Items_List(int s_height, int start, char * type, int clear_background,
     int selected_items[LISTLENGTH];
     int hidden_items[LISTLENGTH];
 
-    int s = list_items(item_list, start, LISTLENGTH, type, selected_items, hidden_items, currentObject);
+    int s = list_items(item_list, start, LISTLENGTH, type, selected_items, hidden_items, currentItem);
 
 	for (i = 0; i < s; i ++)
     {
-        if (i == currentObject && selection_rectangle)
+        if (Item_List[i] == currentItem && selection_rectangle)
             draw_Button_item_text(item_list[i], d_width, d_height, i, 1, selected_items[i], hidden_items[i], 1);
         else
             draw_Button_item_text(item_list[i], d_width, d_height, i, 1, selected_items[i], hidden_items[i], 0);
@@ -3852,7 +3895,9 @@ void draw_Items_Bottom_Line(int width, int height)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 
-    draw_Button_item_horizontal("Rename", 0, 1);
+    draw_Button_item_horizontal("Add", 0, 1);
+    draw_Button_item_horizontal("Rename", 1, 1);
+    draw_Button_item_horizontal("Remove", 2, 1);
 
 //    glEnable(GL_DEPTH_TEST);
 //	glEnable(GL_LIGHTING);
@@ -3860,7 +3905,7 @@ void draw_Items_Bottom_Line(int width, int height)
 }
 
 void draw_Items_Dialog(const char * text, int s_height, char * item_type, char ** item_types, int item_types_c, int item_start, int clear_background,
-                       int currentObject, int selection_rectangle)
+                       int currentItem, int selection_rectangle)
 {
     int d_width = DIALOG_WIDTH;
     int d_height = DIALOG_HEIGHT;
@@ -3912,7 +3957,7 @@ void draw_Items_Dialog(const char * text, int s_height, char * item_type, char *
         draw_Button_item(item_types[i], SIDEBAR, d_height, i, 1);
     }
 
-	draw_Items_List(s_height, item_start, item_type, clear_background, currentObject, selection_rectangle);
+	draw_Items_List(s_height, item_start, item_type, clear_background, currentItem, selection_rectangle);
 
 //    glEnable(GL_DEPTH_TEST);
 //	glEnable(GL_LIGHTING);
