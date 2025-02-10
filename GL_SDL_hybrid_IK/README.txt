@@ -3,6 +3,11 @@
 Author here is:
 Allan Kiipli
 
+8:13 PM 2/10/2025
+Camera Items added in Items List are saved and loaded. They can be added to Trajectories with Transformer.
+Pressing (r) in Camera List resets Perspective Camera to camera 0. Click on the item sets Camera to this
+camera, depends on split view. UVs are disabled for this camera. Playback (Alt + D) uses this camera.
+
 11:26 PM 2/7/2025
 Trajectories integration into UI and Deformer Player. Transformers can be added to Trajectories. I to keyframe
 at selected frame in Timeline. Timeline Indi Mode is tested first and then Deformer existance. This may change.

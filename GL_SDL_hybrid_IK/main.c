@@ -8005,6 +8005,50 @@ float time_difference_in_msec(struct timeval t0, struct timeval t1)
     return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
 }
 
+void prep_For_Trajectory_Animation()
+{
+    int t;
+
+    trajectory * Trj;
+
+    for (t = 0; t < trjIndex; t ++)
+    {
+        Trj = trajectories[t];
+        Trj->Curve->len = calculate_Curve_Length_(Trj->Curve, subdLevel);
+        init_Trj_Timeline_Segments(Trj, TimelineStart);
+    }
+}
+
+void update_Trajectories_Transformer_Objects()
+{
+    int t, tr;
+
+    object * O;
+    transformer * T;
+    trajectory * Trj;
+
+    for (tr = 0; tr < trjIndex; tr ++)
+    {
+        Trj = trajectories[tr];
+
+        for (t = 0; t < Trj->transformers_count; t ++)
+        {
+            T = Trj->Transformers[t];
+            if (T->Object != NULL)
+            {
+                O = T->Object;
+
+                rotate_verts(O, *O->T);
+
+                if (O->deforms)
+                {
+                    tune_subdivide_post_transformed(O, subdLevel);
+                }
+            }
+        }
+    }
+}
+
 void goto_Deformer_Frame_(deformer * D, int frame)
 {
     printf("goto Deformer Frame_\n");
@@ -8017,6 +8061,10 @@ void goto_Deformer_Frame_(deformer * D, int frame)
 
     Update_Objects_Count = 0;
     Transformer_Objects_Count = 0;
+
+    all_objects_in_frame(Camera);
+
+    prep_For_Trajectory_Animation();
 
     int condition;
 
@@ -8098,6 +8146,9 @@ void goto_Deformer_Frame_(deformer * D, int frame)
             update_Deformer_object_Curves(D, subdLevel);
         }
     }
+
+    move_Trajectories_Transformers(frame, subdLevel);
+    update_Trajectories_Transformer_Objects();
 
     update_rotate_bounding_box();
 
@@ -8127,166 +8178,6 @@ void goto_Deformer_Frame_(deformer * D, int frame)
     poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
 
     DRAW_UI = 1;
-}
-
-void goto_Deformer_Frame(deformer * D, int frame)
-{
-    printf("goto Deformer Frame\n");
-
-    timeline * Tm;
-    transformer * T;
-    object * O;
-
-    int u, o, t;
-
-    Update_Objects_Count = 0;
-    Transformer_Objects_Count = 0;
-
-    int condition;
-
-    DRAW_UI = 1;
-
-    //ELEMENT_ARRAYS = 1;
-    init_Hint();
-
-    if (subdLevel > -1)
-    {
-        load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
-    }
-    else
-    {
-        load_id_colors_Fan_all(Camera, OBJECT_COLORS);
-    }
-
-    UPDATE_COLORS = 1;
-
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
-
-    UPDATE_COLORS = 0;
-
-    DRAW_UI = 0;
-
-    D->P = init_Deformer_P(D);
-
-    fill_Start_Pose(D, D->P, D->linear_pose);
-
-    if (D->Transformers_Count > 0)
-    {
-        T = D->Transformers[0];
-
-        if (T->Timeline != NULL)
-        {
-            init_Timeline_Segments(D, frame);
-            init_Morph_Timeline_Segments(D, frame);
-
-            for (o = 0; o < D->Objects_Count; o ++)
-            {
-                O = D->Objects[o];
-                condition = 1;
-                for (u = 0; u < Update_Objects_Count; u ++)
-                {
-                    if (Update_Objects[u] == O)
-                    {
-                        condition = 0;
-                        break;
-                    }
-                }
-                if (condition)
-                {
-                    Update_Objects[Update_Objects_Count ++] = O;
-                }
-            }
-
-            for (t = 0; t < D->Transformers_Count; t ++)
-            {
-                if (D->Transformers[t]->Object != NULL)
-                {
-                    Transformer_Objects[Transformer_Objects_Count ++] = D->Transformers[t]->Object;
-                }
-            }
-        }
-    }
-
-    rotate_vertex_groups_D_Init();
-
-    if (D->rot[0] != 0)
-        rotate_axis(D->rot[0], D->rotVec[1], D->rotVec[2], D->rotVec[1], D->rotVec[2]);
-    if (D->rot[1] != 0)
-        rotate_axis(D->rot[1], D->rotVec[2], D->rotVec[0], D->rotVec[2], D->rotVec[0]);
-
-    if (D->Objects_Count > 0)
-    {
-        create_Inbetween_Frame_Morf(D, frame);
-    }
-
-    if (D->Transformers_Count > 0)
-    {
-        T = D->Transformers[0];
-
-        if (T->Timeline != NULL)
-        {
-            Tm = T->Timeline;
-            if (Tm->key_frames > 0 && frame >= Tm->Frames[0])
-            {
-                if (frame >= Tm->Frames[Tm->key_frames - 1])
-                {
-                    create_Frame_Pose(D, frame);
-                }
-                else
-                {
-                    create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
-                }
-            }
-            apply_Pose_position_(D, D->P, D->Delta);
-
-            update_Deformer_Objects_Curves_Coordinates(D);
-            update_Deformer_object_Curves(D, subdLevel);
-            update_Deformer_object_Curves(D, subdLevel);
-        }
-    }
-
-    update_rotate_bounding_box();
-
-    if (subdLevel > -1)
-    {
-        for (o = 0; o < Update_Objects_Count; o ++)
-        {
-            O = Update_Objects[o];
-            if (O->deforms)
-            {
-                tune_subdivide_post_transformed(O, subdLevel);
-            }
-        }
-    }
-
-    for (o = 0; o < Transformer_Objects_Count; o++)
-    {
-        O = Transformer_Objects[o];
-
-        rotate_verts(O, *O->T);
-        if (O->deforms)
-        {
-            tune_subdivide_post_transformed(O, subdLevel);
-        }
-    }
-
-    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
-
-    DRAW_UI = 1;
-}
-
-void prep_For_Trajectory_Animation()
-{
-    int t;
-
-    trajectory * Trj;
-
-    for (t = 0; t < trjIndex; t ++)
-    {
-        Trj = trajectories[t];
-        Trj->Curve->len = calculate_Curve_Length_(Trj->Curve, subdLevel);
-        init_Trj_Timeline_Segments(Trj, TimelineStart);
-    }
 }
 
 void deformer_Keyframe_Player()
@@ -8337,13 +8228,15 @@ void deformer_Keyframe_Player()
     //ELEMENT_ARRAYS = 1;
     empty_Hint();
 
-    if (camIndex > CAMERAS && CAM != NULL)
-    {
-        CAM0 = Camera;
-        Camera = CAM;
-        //Camera_Persp = *Camera;
-        find_Camera_Objects();
-    }
+//    if (camIndex > CAMERAS && CAM != NULL)
+//    {
+//        CAM0 = Camera;
+//        Camera = CAM;
+//        //Camera_Persp = *Camera;
+//        find_Camera_Objects();
+//    }
+
+    all_objects_in_frame(Camera);
 
     if (subdLevel > -1)
     {
@@ -8438,11 +8331,11 @@ void deformer_Keyframe_Player()
 //                }
 //            }
 
-            if (camIndex > CAMERAS)
-            {
-                //Camera_Persp = *CAM0;
-                Camera = CAM0;
-            }
+//            if (camIndex > CAMERAS)
+//            {
+//                //Camera_Persp = *CAM0;
+//                Camera = CAM0;
+//            }
 
             sprintf(bottom_message, "Play stop frame %d", frame);
             break;
@@ -12873,19 +12766,42 @@ void handle_Item_Dialog(char letter, SDLMod mod)
     }
     else
     {
-        if (letter == 'u')
+        if (Item_type == TYPE_OBJECT)
         {
-            unhide_Object(currentObject);
-            UPDATE_BACKGROUND = 1;
+            if (letter == 'u')
+            {
+                unhide_Object(currentObject);
+                UPDATE_BACKGROUND = 1;
+            }
+            else if (letter == 8) // backspace
+            {
+                hide_Object(currentObject);
+                UPDATE_BACKGROUND = 1;
+            }
+            else if (letter == 'a')
+            {
+                item_start = 0;
+            }
         }
-        else if (letter == 8) // backspace
+        else if (Item_type == TYPE_CAMERA)
         {
-            hide_Object(currentObject);
-            UPDATE_BACKGROUND = 1;
-        }
-        else if (letter == 'a')
-        {
-            item_start = 0;
+            if (letter == 'r')
+            {
+                sprintf(bottom_message, "Camera 0 is again perspective view camera");
+                draw_Bottom_Line(screen_width, screen_height);
+                if (splitview)
+                {
+                    Camera_Persp = *cameras[0];
+                }
+                else
+                {
+                    Camera = cameras[0];
+                }
+                update_camera(cameras[0], CamDist);
+                //CamDist = find_CamDist(Camera);
+                find_Camera_Objects();
+                UPDATE_BACKGROUND = 1;
+            }
         }
 //        else
 //        {
@@ -12923,21 +12839,14 @@ void handle_Item_Dialog(char letter, SDLMod mod)
         if (UPDATE_BACKGROUND)
         {
             all_objects_in_frame(Camera);
-            if (!NVIDIA) glDrawBuffer(GL_FRONT_AND_BACK);
-            DRAW_UI = 0;
             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-            ItemList[ItemIndex - item_start].color = UI_BACKL;
-            draw_Items_Dialog("Items List", screen_height, item_type, item_types, item_types_c, item_start, 1, ItemIndex - item_start, selection_rectangle);
-            ItemList[ItemIndex - item_start].color = UI_BLACK;
-            DRAW_UI = 1;
-            glDrawBuffer(GL_BACK);
         }
-        else
-        {
-            draw_Items_List(screen_height, item_start, item_type, 1, ItemIndex - item_start, selection_rectangle);
-        }
-        SDL_GL_SwapBuffers();
+
+        update_Items_List(1, 0);
+
         UPDATE_BACKGROUND = 0;
+
+        SDL_GL_SwapBuffers();
     }
 }
 
@@ -13133,36 +13042,6 @@ void update_Transformer_Object(transformer * T)
         if (O->deforms)
         {
             tune_subdivide_post_transformed(O, subdLevel);
-        }
-    }
-}
-
-void update_Trajectories_Transformer_Objects()
-{
-    int t, tr;
-
-    object * O;
-    transformer * T;
-    trajectory * Trj;
-
-    for (tr = 0; tr < trjIndex; tr ++)
-    {
-        Trj = trajectories[tr];
-
-        for (t = 0; t < Trj->transformers_count; t ++)
-        {
-            T = Trj->Transformers[t];
-            if (T->Object != NULL)
-            {
-                O = T->Object;
-
-                rotate_verts(O, *O->T);
-
-                if (O->deforms)
-                {
-                    tune_subdivide_post_transformed(O, subdLevel);
-                }
-            }
         }
     }
 }
@@ -19464,12 +19343,12 @@ int main(int argc, char * args[])
                             goto_Deformer_Frame_(D, currentFrame);
                         }
 
-                        if (trjIndex > 0)
-                        {
-                            prep_For_Trajectory_Animation();
-                            move_Trajectories_Transformers(currentFrame, subdLevel);
-                            update_Trajectories_Transformer_Objects();
-                        }
+//                        if (trjIndex > 0)
+//                        {
+//                            prep_For_Trajectory_Animation();
+//                            move_Trajectories_Transformers(currentFrame, subdLevel);
+//                            update_Trajectories_Transformer_Objects();
+//                        }
 
                         Drag_Timeline = 1;
                     }
@@ -20696,7 +20575,7 @@ int main(int argc, char * args[])
                                 {
                                     ItemIndex = index + item_start;
 
-                                    if (ItemIndex + CAMERAS <= camIndex && ItemIndex >= 0)
+                                    if (camIndex > CAMERAS && ItemIndex >= 0)
                                     {
                                         CAM->selected = 0;
                                         currentCamera = ItemIndex + CAMERAS;
@@ -20704,6 +20583,22 @@ int main(int argc, char * args[])
                                         CAM = cameras[currentCamera];
                                         clear_Camera_Selection();
                                         CAM->selected = 1;
+                                        if (CAM->T != NULL)
+                                        {
+                                            currentLocator = T->index;
+                                        }
+                                        if (splitview)
+                                        {
+                                            Camera_Persp = *CAM;
+                                        }
+                                        else
+                                        {
+                                            Camera = CAM;
+                                        }
+                                        update_camera(CAM, CamDist);
+                                        //CamDist = find_CamDist(Camera);
+                                        update_camera(Camera, CamDist);
+                                        find_Camera_Objects();
                                         update_Items_List(1, 0);
                                     }
                                 }
@@ -26068,15 +25963,15 @@ int main(int argc, char * args[])
                 if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
                 {
                     D = deformers[currentDeformer_Node];
-                    goto_Deformer_Frame(D, currentFrame);
+                    goto_Deformer_Frame_(D, currentFrame);
                 }
 
-                if (trjIndex > 0)
-                {
-                    prep_For_Trajectory_Animation();
-                    move_Trajectories_Transformers(currentFrame, subdLevel);
-                    update_Trajectories_Transformer_Objects();
-                }
+//                if (trjIndex > 0)
+//                {
+//                    prep_For_Trajectory_Animation();
+//                    move_Trajectories_Transformers(currentFrame, subdLevel);
+//                    update_Trajectories_Transformer_Objects();
+//                }
             }
             message = -1;
         }

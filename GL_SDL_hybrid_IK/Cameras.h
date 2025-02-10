@@ -75,6 +75,19 @@ typedef struct
 }
 camera;
 
+float find_CamDist(camera * C)
+{
+    direction_Pack D;
+
+    D = length_AB(C->T->pos, C->T->target);
+
+    memcpy(C->T->aim, D.vec, sizeof(D.vec));
+
+    move_Back(C->T, D.distance);
+
+    return D.distance;
+}
+
 void set_Camera_Pose(camera * C, float dist)
 {
     C->P->h_view = C->h_view;
