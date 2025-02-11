@@ -8228,14 +8228,6 @@ void deformer_Keyframe_Player()
     //ELEMENT_ARRAYS = 1;
     empty_Hint();
 
-//    if (camIndex > CAMERAS && CAM != NULL)
-//    {
-//        CAM0 = Camera;
-//        Camera = CAM;
-//        //Camera_Persp = *Camera;
-//        find_Camera_Objects();
-//    }
-
     all_objects_in_frame(Camera);
 
     if (subdLevel > -1)
@@ -8322,21 +8314,6 @@ void deformer_Keyframe_Player()
 
         if (Preak)
         {
-//            for (d = 0; d < deformerIndex; d ++)
-//            {
-//                D = deformers[d];
-//                if (D->Transformers_Count > 0)
-//                {
-//                    rotate_M(D->Transformers[0]);  /* update rotVec_ */
-//                }
-//            }
-
-//            if (camIndex > CAMERAS)
-//            {
-//                //Camera_Persp = *CAM0;
-//                Camera = CAM0;
-//            }
-
             sprintf(bottom_message, "Play stop frame %d", frame);
             break;
         }
@@ -12785,57 +12762,43 @@ void handle_Item_Dialog(char letter, SDLMod mod)
         }
         else if (Item_type == TYPE_CAMERA)
         {
+            if (letter == 10) // Enter
+            {
+                if (camIndex > CAMERAS && ItemIndex >= 0)
+                {
+                    CAM->selected = 0;
+                    currentCamera = ItemIndex + CAMERAS;
+                    currentItem = Item_List[ItemIndex];
+                    CAM = cameras[currentCamera];
+                    clear_Camera_Selection();
+                    CAM->selected = 1;
+                    if (CAM->T != NULL)
+                    {
+                        currentLocator = T->index;
+                    }
+
+                    Camera = CAM;
+                    update_camera(CAM, CamDist);
+                    //CamDist = find_CamDist(Camera);
+                    //update_camera(Camera, CamDist);
+                    find_Camera_Objects();
+                    UPDATE_BACKGROUND = 1;
+                }
+            }
             if (letter == 'r')
             {
-                sprintf(bottom_message, "Camera 0 is again perspective view camera");
+                sprintf(bottom_message, "Camera 0 is again main view camera");
                 draw_Bottom_Line(screen_width, screen_height);
-                if (splitview)
-                {
-                    Camera_Persp = *cameras[0];
-                }
-                else
-                {
-                    Camera = cameras[0];
-                }
+
+                Camera = cameras[0];
                 update_camera(cameras[0], CamDist);
                 //CamDist = find_CamDist(Camera);
+
                 find_Camera_Objects();
                 UPDATE_BACKGROUND = 1;
             }
         }
-//        else
-//        {
-//            letter -= 32;
-//            int start_Big = 0;
-//            int start_Low = 0;
-//            int items_num = query_items(item_type);
-//            printf("items num %d\n", items_num);
-//            int i;
-//            for (i = 0; i < items_num; i ++)
-//            {
-//                if (Item_Names[i][0] == letter)
-//                {
-//                    start_Big = i;
-//                    break;
-//                }
-//            }
-//            letter += 32;
-//            for (i = 0; i < items_num; i ++)
-//            {
-//                if (Item_Names[i][0] == letter)
-//                {
-//                    start_Low = i;
-//                    break;
-//                }
-//            }
-//            if (start_Big)
-//                item_start = start_Big;
-//            else if (start_Low)
-//                item_start = start_Low;
-//            if (item_start > items_num - LISTLENGTH)
-//                item_start = items_num - LISTLENGTH;
-//            if (item_start < 0) item_start = 0;
-//        }
+
         if (UPDATE_BACKGROUND)
         {
             all_objects_in_frame(Camera);
@@ -16573,6 +16536,7 @@ void remove_Item_H_Button()
         printf("Camera\n");
         CAM = cameras[currentCamera];
         delete_Camera(CAM);
+        Camera = cameras[0];
     }
     else if (Item_type == TYPE_LIGHT)
     {
@@ -16665,6 +16629,7 @@ void clear_All()
         free_Cameras(CAMERAS);
 
         CAM = cameras[0];
+        Camera = cameras[0];
 
     /*
     This is cheap clean;
@@ -20587,14 +20552,8 @@ int main(int argc, char * args[])
                                         {
                                             currentLocator = T->index;
                                         }
-                                        if (splitview)
-                                        {
-                                            Camera_Persp = *CAM;
-                                        }
-                                        else
-                                        {
-                                            Camera = CAM;
-                                        }
+
+                                        Camera = CAM;
                                         update_camera(CAM, CamDist);
                                         //CamDist = find_CamDist(Camera);
                                         update_camera(Camera, CamDist);

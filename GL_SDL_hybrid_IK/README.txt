@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+10:20 AM 2/11/2025
+(Enter) in Camera List sets view to currentCamera. (r) resets view to Camera 0.
+
 8:13 PM 2/10/2025
 Camera Items added in Items List are saved and loaded. They can be added to Trajectories with Transformer.
 Pressing (r) in Camera List resets Perspective Camera to camera 0. Click on the item sets Camera to this
