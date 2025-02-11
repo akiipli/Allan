@@ -111,7 +111,7 @@ void read_Camera_Pose(camera * C)
 camera Camera_Persp, Camera_Top, Camera_Front, Camera_Left, Camera_Thumb;
 camera * Camera;
 camera * CAM = NULL;
-camera * CAM0 = NULL;
+camera * CAM0 = &Camera_Persp;
 
 camera * cameras[CAMERAS_TOTAL];
 

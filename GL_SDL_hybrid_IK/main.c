@@ -12778,9 +12778,10 @@ void handle_Item_Dialog(char letter, SDLMod mod)
                     }
 
                     Camera = CAM;
+                    //Camera_Persp = *CAM;
+
                     update_camera(CAM, CamDist);
                     //CamDist = find_CamDist(Camera);
-                    //update_camera(Camera, CamDist);
                     find_Camera_Objects();
                     UPDATE_BACKGROUND = 1;
                 }
@@ -12790,9 +12791,10 @@ void handle_Item_Dialog(char letter, SDLMod mod)
                 sprintf(bottom_message, "Camera 0 is again main view camera");
                 draw_Bottom_Line(screen_width, screen_height);
 
-                Camera = cameras[0];
-                update_camera(cameras[0], CamDist);
-                //CamDist = find_CamDist(Camera);
+                Camera = CAM0;
+                //Camera_Persp = *CAM0;
+
+                update_camera(CAM0, CamDist);
 
                 find_Camera_Objects();
                 UPDATE_BACKGROUND = 1;
@@ -20554,9 +20556,8 @@ int main(int argc, char * args[])
                                         }
 
                                         Camera = CAM;
+
                                         update_camera(CAM, CamDist);
-                                        //CamDist = find_CamDist(Camera);
-                                        update_camera(Camera, CamDist);
                                         find_Camera_Objects();
                                         update_Items_List(1, 0);
                                     }
