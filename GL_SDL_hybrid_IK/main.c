@@ -3114,9 +3114,9 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
         glPushMatrix();
         glViewport(screen_width/2 + SIDEBAR, screen_height/2 + BOTTOM_LINE, screen_width/2, screen_height/2); // top right, perspective view
 
-        update_camera_persp(&Camera_Persp, CamDist);
+        update_camera_persp(Camera_Persp_Anim, CamDist);
 
-        render_Objects(&Camera_Persp, tripsRender, wireframe, draw_uv_view, rendermode, Level);
+        render_Objects(Camera_Persp_Anim, tripsRender, wireframe, draw_uv_view, rendermode, Level);
         if (!draw_uv_view)
         {
             if (DRAW_LOCATORS)
@@ -3133,7 +3133,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
         if (draw_uv_view)
             display_osd_font("UVs", screen_width, screen_height, Osd);
         else
-            display_osd_font("Perspective", screen_width, screen_height, Osd);
+            display_osd_font(Camera_Persp_Anim->Name, screen_width, screen_height, Osd);
     }
 
     else
@@ -12778,6 +12778,7 @@ void handle_Item_Dialog(char letter, SDLMod mod)
                     }
 
                     Camera = CAM;
+                    Camera_Persp_Anim = CAM;
                     //Camera_Persp = *CAM;
 
                     update_camera(CAM, CamDist);
@@ -12792,6 +12793,7 @@ void handle_Item_Dialog(char letter, SDLMod mod)
                 draw_Bottom_Line(screen_width, screen_height);
 
                 Camera = CAM0;
+                Camera_Persp_Anim = CAM0;
                 //Camera_Persp = *CAM0;
 
                 update_camera(CAM0, CamDist);
@@ -15830,7 +15832,7 @@ void start_Movement()
     }
     else if (mod & KMOD_CTRL)
     {
-        if (Camera == &Camera_Persp)
+        if (Camera->ID == CAMERA_PERSPECTIVE || Camera->ID == CAMERA_ANIM)
             camera_rotate = 1;
     }
     else
@@ -16538,7 +16540,9 @@ void remove_Item_H_Button()
         printf("Camera\n");
         CAM = cameras[currentCamera];
         delete_Camera(CAM);
-        Camera = cameras[0];
+        CAM = CAM0;
+        Camera = CAM0;
+        Camera_Persp_Anim = CAM0;
     }
     else if (Item_type == TYPE_LIGHT)
     {
@@ -16630,8 +16634,9 @@ void clear_All()
         free_Trajectories(); // Experimental
         free_Cameras(CAMERAS);
 
-        CAM = cameras[0];
-        Camera = cameras[0];
+        CAM = CAM0;
+        Camera = CAM0;
+        Camera_Persp_Anim = CAM0;
 
     /*
     This is cheap clean;
@@ -18793,6 +18798,7 @@ void add_Item_H_Button()
     if (Item_type == TYPE_CAMERA)
     {
         add_Camera(screen_width, screen_height, CamDist, ortho_on, CAMERA_ANIM);
+        rotate_Camera(cameras[camIndex - 1], CamDist);
     }
 
     if (dialog_lock)
@@ -20556,6 +20562,7 @@ int main(int argc, char * args[])
                                         }
 
                                         Camera = CAM;
+                                        Camera_Persp_Anim = CAM;
 
                                         update_camera(CAM, CamDist);
                                         find_Camera_Objects();

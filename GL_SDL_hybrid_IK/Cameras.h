@@ -112,6 +112,7 @@ camera Camera_Persp, Camera_Top, Camera_Front, Camera_Left, Camera_Thumb;
 camera * Camera;
 camera * CAM = NULL;
 camera * CAM0 = &Camera_Persp;
+camera * Camera_Persp_Anim = &Camera_Persp; // split view
 
 camera * cameras[CAMERAS_TOTAL];
 
