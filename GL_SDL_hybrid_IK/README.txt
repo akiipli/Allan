@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+5:22 PM 2/11/2025
+Ctrl + C in Object Mode sets Camera pose. Alt + C in Object Mode switches to first Anim camera if any.
+
 10:20 AM 2/11/2025
 (Enter) in Camera List sets view to currentCamera. (r) resets view to Camera 0.
 

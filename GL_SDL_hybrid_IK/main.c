@@ -12817,6 +12817,36 @@ void handle_Item_Dialog(char letter, SDLMod mod)
     }
 }
 
+void switch_Anim_Camera()
+{
+    if (Camera_Persp_Anim == CAM0 && camIndex > CAMERAS)
+    {
+        currentCamera = CAMERAS;
+        CAM = cameras[currentCamera];
+        clear_Camera_Selection();
+        CAM->selected = 1;
+        if (CAM->T != NULL)
+        {
+            currentLocator = T->index;
+        }
+
+        Camera = CAM;
+        Camera_Persp_Anim = CAM;
+
+        update_camera(CAM, CamDist);
+        find_Camera_Objects();
+    }
+    else
+    {
+        Camera = CAM0;
+        Camera_Persp_Anim = CAM0;
+
+        update_camera(CAM0, CamDist);
+
+        find_Camera_Objects();
+    }
+}
+
 void handle_IK_Dialog(char letter, SDLMod mod)
 {
     if (Edit_Lock)
@@ -25739,6 +25769,11 @@ int main(int argc, char * args[])
             else if (Object_Mode)
             {
                 if (mod & KMOD_ALT)
+                {
+                    Draw_Bottom_Message("switch Anim Camera");
+                    switch_Anim_Camera();
+                }
+                else if (mod & KMOD_CTRL)
                 {
                     Draw_Bottom_Message("Camera Pose Set");
                     set_Camera_Pose(&Camera_Persp, CamDist);
