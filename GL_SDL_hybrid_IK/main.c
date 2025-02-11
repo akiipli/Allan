@@ -3215,6 +3215,8 @@ void update_Resize_Event()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_SCISSOR_TEST);
 
+        update_camera_ratio(Camera_Persp_Anim, screen_width, screen_height);
+        update_camera_ratio(Camera, screen_width, screen_height);
         update_camera_ratio(&Camera_Persp, screen_width, screen_height);
         update_camera_ratio(&Camera_Top, screen_width, screen_height);
         update_camera_ratio(&Camera_Front, screen_width, screen_height);
