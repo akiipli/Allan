@@ -25772,6 +25772,11 @@ int main(int argc, char * args[])
                 {
                     Draw_Bottom_Message("switch Anim Camera");
                     switch_Anim_Camera();
+                    if (deformerIndex > 0 && currentDeformer_Node < deformerIndex)
+                    {
+                        D = deformers[currentDeformer_Node];
+                        goto_Deformer_Frame_(D, currentFrame);
+                    }
                 }
                 else if (mod & KMOD_CTRL)
                 {
