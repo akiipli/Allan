@@ -12823,14 +12823,8 @@ void switch_Anim_Camera()
 {
     if (Camera_Persp_Anim == CAM0 && camIndex > CAMERAS)
     {
-        currentCamera = CAMERAS;
-        CAM = cameras[currentCamera];
         clear_Camera_Selection();
         CAM->selected = 1;
-        if (CAM->T != NULL)
-        {
-            currentLocator = T->index;
-        }
 
         Camera = CAM;
         Camera_Persp_Anim = CAM;
