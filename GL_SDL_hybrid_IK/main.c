@@ -2872,6 +2872,8 @@ void draw_Locators()
         }
         if (!Bone_Mode)
             render_IK_Chains();
+
+        render_Camera_Icons();
     }
 }
 

@@ -1845,7 +1845,7 @@ void find_objects_in_frame(camera * C)
     object * O;
     int o;
     C->object_count = 0;
-    float deviation, objectradius, aim_deviation;
+    float deviation, aim_deviation; // objectradius,
     aim objectAim;
 
     int object_c = 0;
@@ -1858,19 +1858,19 @@ void find_objects_in_frame(camera * C)
             continue;
         O = objects[o];
         update_Box_T(O);
-        objectradius = O->B.radius;
+        //objectradius = O->B.radius;
         objectAim = vector3d(O->B, C->T->pos);
 
-        if (objectAim.dist > objectradius)
-        {
-            deviation = atan2(objectradius * 2, objectAim.dist - objectradius);
-        }
-        else
-        {
+//        if (objectAim.dist > objectradius)
+//        {
+//            deviation = atan2(objectradius * 2, objectAim.dist - objectradius);
+//        }
+//        else
+//        {
             deviation = pi;
-        }
+        //}
 
-        deviation += C->view_minor;
+        //deviation += C->view_minor;
 
         aim_deviation = acos(dot_productFF(C->T->aim, objectAim.vec));
 
@@ -5890,6 +5890,55 @@ void draw_Rhombic(transformer * T, float rotVec_[3][3])
     glVertex3f(tip[5][0], tip[5][1], tip[5][2]);
 }
 
+void draw_Cam_Loop(transformer * T, float rotVec_[3][3])
+{
+    float corner[8][3];
+    float corner1[8][3];
+
+    float d_01 = 1.0;
+    float d_15 = 1.5;
+    float d_05 = 0.5;
+
+    corner1[0][0] = 0; corner1[0][1] = -d_01; corner1[0][2] =  d_01;
+    corner1[1][0] = 0; corner1[1][1] = -d_05; corner1[1][2] =  d_01;
+    corner1[2][0] = 0; corner1[2][1] = -d_05; corner1[2][2] =  d_15;
+    corner1[3][0] = 0; corner1[3][1] =  d_05; corner1[3][2] =  d_15;
+    corner1[4][0] = 0; corner1[4][1] =  d_05; corner1[4][2] =  d_01;
+    corner1[5][0] = 0; corner1[5][1] =  d_01; corner1[5][2] =  d_01;
+    corner1[6][0] = 0; corner1[6][1] =  d_01; corner1[6][2] = -d_01;
+    corner1[7][0] = 0; corner1[7][1] = -d_01; corner1[7][2] = -d_01;
+
+    rotate_vector(rotVec_, corner1[0], corner[0]);
+    rotate_vector(rotVec_, corner1[1], corner[1]);
+    rotate_vector(rotVec_, corner1[2], corner[2]);
+    rotate_vector(rotVec_, corner1[3], corner[3]);
+    rotate_vector(rotVec_, corner1[4], corner[4]);
+    rotate_vector(rotVec_, corner1[5], corner[5]);
+    rotate_vector(rotVec_, corner1[6], corner[6]);
+    rotate_vector(rotVec_, corner1[7], corner[7]);
+
+    corner[0][0] += T->pos[0]; corner[0][1] += T->pos[1]; corner[0][2] += T->pos[2];
+    corner[1][0] += T->pos[0]; corner[1][1] += T->pos[1]; corner[1][2] += T->pos[2];
+    corner[2][0] += T->pos[0]; corner[2][1] += T->pos[1]; corner[2][2] += T->pos[2];
+    corner[3][0] += T->pos[0]; corner[3][1] += T->pos[1]; corner[3][2] += T->pos[2];
+    corner[4][0] += T->pos[0]; corner[4][1] += T->pos[1]; corner[4][2] += T->pos[2];
+    corner[5][0] += T->pos[0]; corner[5][1] += T->pos[1]; corner[5][2] += T->pos[2];
+    corner[6][0] += T->pos[0]; corner[6][1] += T->pos[1]; corner[6][2] += T->pos[2];
+    corner[7][0] += T->pos[0]; corner[7][1] += T->pos[1]; corner[7][2] += T->pos[2];
+
+    glVertex3f(corner[0][0], corner[0][1], corner[0][2]);
+    glVertex3f(corner[1][0], corner[1][1], corner[1][2]);
+
+    glVertex3f(corner[2][0], corner[2][1], corner[2][2]);
+    glVertex3f(corner[3][0], corner[3][1], corner[3][2]);
+
+    glVertex3f(corner[4][0], corner[4][1], corner[4][2]);
+    glVertex3f(corner[5][0], corner[5][1], corner[5][2]);
+
+    glVertex3f(corner[6][0], corner[6][1], corner[6][2]);
+    glVertex3f(corner[7][0], corner[7][1], corner[7][2]);
+}
+
 void draw_Box(transformer * T, float rotVec_[3][3])
 {
     float corner[8][3];
@@ -6903,6 +6952,68 @@ void render_IK_Labels(int width, int height)
     }
 
     display_labels(width, height);
+}
+
+void render_Camera_Icons()
+{
+    int c;
+
+    camera * C;
+    transformer * T;
+
+    float rotVec_[3][3];
+    float L_size;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+
+    glLineWidth(1);
+
+    for (c = CAMERAS; c < camIndex; c ++)
+    {
+        C = cameras[c];
+
+        if (C->T != NULL)
+        {
+            T = C->T;
+
+            L_size = T->LocatorSize;
+
+            memcpy(rotVec_, T->rotVec_, sizeof(rotVec_));
+
+            rotVec_[0][0] *= L_size;
+            rotVec_[0][1] *= L_size;
+            rotVec_[0][2] *= L_size;
+            rotVec_[1][0] *= L_size;
+            rotVec_[1][1] *= L_size;
+            rotVec_[1][2] *= L_size;
+            rotVec_[2][0] *= L_size;
+            rotVec_[2][1] *= L_size;
+            rotVec_[2][2] *= L_size;
+
+            if (C->selected)
+            {
+                glColor4ubv(line_white);
+            }
+            else
+            {
+                glColor4ubv(line_gray);
+            }
+
+            glBegin(GL_LINE_LOOP);
+
+            draw_Cam_Loop(T, rotVec_);
+
+            glEnd();
+        }
+    }
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
 }
 
 void render_Transformers(int currentLocator, int bind_Pose)
