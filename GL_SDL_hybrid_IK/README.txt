@@ -3,6 +3,10 @@
 Author here is:
 Allan Kiipli
 
+4:42 PM 2/12/2025
+F11 to render Animation. Destination folder needs to be ready. Esc to escape rendering. Folder is
+C:\Allan\anim_render
+
 5:22 PM 2/11/2025
 Ctrl + C in Object Mode sets Camera pose. Alt + C in Object Mode switches to first Anim camera if any.
 

@@ -97,6 +97,7 @@ void print_UV_edgePack(UV_edgePack * E)
 void update_Box_T(object * O)
 {
     vertex * V;
+
     if (O->vertcount > 1)
     {
         V = &O->verts[0][0];

@@ -9911,8 +9911,12 @@ typedef struct
     int width;
     int height;
     int index;
+    int finish;
 }
 render_arguments;
+
+int Preak = 0;
+int Finish = 0;
 
 void * perform_work(void * arguments)
 {
@@ -9987,6 +9991,11 @@ void * perform_work(void * arguments)
             Args->data[index + 2] = (unsigned char)rgba.B;
             Args->data[index + 3] = (unsigned char)rgba.A;
 
+            if (Preak)
+            {
+                break;
+            }
+
             H_Mark -= H_step;
             View_Span_H += H_step;
         }
@@ -9998,6 +10007,11 @@ void * perform_work(void * arguments)
             printf("%s", Hint);
             printf("\r");
             //printf("\n");
+        }
+
+        if (Preak)
+        {
+            break;
         }
 
         V_Mark += V_step;
@@ -10012,16 +10026,18 @@ void * perform_work(void * arguments)
         printf("\r");
     }
 
+    Finish += 1;
+
     return NULL;
 }
 
-void render_Image(unsigned char * data, camera * C, int width, int height, int L)
+void render_Image(unsigned char * data, camera * C, int width, int height, int L, int Anim_frame)
 {
     light_vec[0] = -light.Position[0];
     light_vec[1] = -light.Position[1];
     light_vec[2] = -light.Position[2];
 
-    printf("Rendering started\n\n");
+    printf("Rendering started\npress ESC to quit and save\n");
     clock_t begin_ = clock();
 
     pthread_t threads[NUM_THREADS];
@@ -10031,7 +10047,16 @@ void render_Image(unsigned char * data, camera * C, int width, int height, int L
 
     int t;
 
+    double time_spent;
+
     EXIT_RENDER = 0;
+
+    if (!Anim_frame)
+    {
+        Preak = 0;
+    }
+
+    Finish = 0;
 
     for (t = 0; t < NUM_THREADS; t ++)
     {
@@ -10041,9 +10066,29 @@ void render_Image(unsigned char * data, camera * C, int width, int height, int L
         thread_args[t].width = width;
         thread_args[t].height = height;
         thread_args[t].index = t;
+        thread_args[t].finish = 0;
         result_code = pthread_create(&threads[t], NULL, perform_work, &thread_args[t]);
         pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
         assert(!result_code);
+    }
+
+    while (!Preak)
+    {
+        if (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_KEYUP)
+            {
+                if (event.key.keysym.sym == SDLK_ESCAPE)
+                {
+                    Preak = 1;
+                }
+            }
+        }
+
+        if (Finish == NUM_THREADS -1)
+        {
+            break;
+        }
     }
 
     for (t = 0; t < NUM_THREADS; t ++)
@@ -10053,15 +10098,14 @@ void render_Image(unsigned char * data, camera * C, int width, int height, int L
     }
 
     clock_t end_ = clock();
-
-    double time_spent = (double)(end_ - begin_) / CLOCKS_PER_SEC;
+    time_spent = (double)(end_ - begin_) / CLOCKS_PER_SEC;
 
     printf("\ntime spent %f\n", time_spent);
 }
 
 int makepath(char * file_path, mode_t mode);
 
-void render_and_save_Image(camera * C, int width, int height, int L)
+void render_and_save_Image(char * Path, camera * C, int width, int height, int L, int Anim_frame)
 {
     ILuint ImgId = 0;
 
@@ -10073,7 +10117,7 @@ void render_and_save_Image(camera * C, int width, int height, int L)
 
     if (Data != NULL)
     {
-        render_Image(Data, C, width, height, L);
+        render_Image(Data, C, width, height, L, Anim_frame);
 
         //ilLoadL(IL_TYPE_UNKNOWN, Data, width * height * 4 * 8);
 
@@ -10095,19 +10139,6 @@ void render_and_save_Image(camera * C, int width, int height, int L)
 
         if (result)
         {
-            char Path[STRLEN];
-
-            Path[0] = '\0';
-
-            strcat(Path, renderfiles);
-            strcat(Path, renderName);
-            strcat(Path, ".png");
-
-            if (isFile(Path))
-            {
-                remove(Path);
-            }
-
             ilSave(IL_PNG, Path);
 
             printf("image saved to %s\n", Path);

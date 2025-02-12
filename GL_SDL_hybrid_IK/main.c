@@ -37,6 +37,13 @@ int RESET = 0;
 #include "SDL/SDL_image.h"
 #include "SDL/SDL_syswm.h"
 #include "SDL/SDL_mouse.h"
+
+SDL_Surface * screen = NULL;
+SDL_Surface * Message = NULL;
+SDL_Surface * foreground = NULL;
+SDL_Event event;
+SDLMod mod;
+
 #define GLEW_STATIC
 #include "SDL/glew.h"
 #include <GL/gl.h>
@@ -255,12 +262,6 @@ int ortho_on = 0;
 
 int screen_width = SCREEN_WIDTH - SIDEBAR;
 int screen_height = SCREEN_HEIGHT - BOTTOM_LINE;
-
-SDL_Surface * screen = NULL;
-SDL_Surface * Message = NULL;
-SDL_Surface * foreground = NULL;
-SDL_Event event;
-SDLMod mod;
 
 HWND gHwnd;
 HANDLE hEvent;
@@ -8507,6 +8508,7 @@ void deformer_Keyframe_Player()
         }
 
         move_Trajectories_Transformers(frame, subdLevel);
+        //rotate_Camera_Aim(Camera);
 
         update_rotate_bounding_box();
 
@@ -8555,6 +8557,164 @@ void deformer_Keyframe_Player()
 
     init_Hint();
     DRAW_UI = 1;
+}
+
+void prep_for_Anim_Render()
+{
+    int t, u, o, d;
+    int condition;
+
+    object * O;
+    deformer * D;
+
+    prep_For_Trajectory_Animation();
+
+    Update_Objects_Count = 0;
+    Transformer_Objects_Count = 0;
+
+    if (subdLevel > -1)
+    {
+        load_id_colors_all(Camera, subdLevel, OBJECT_COLORS);
+    }
+    else
+    {
+        load_id_colors_Fan_all(Camera, OBJECT_COLORS);
+    }
+
+    UPDATE_COLORS = 0;
+
+    for (t = 0; t < transformerIndex; t ++)
+    {
+        if (transformers[t]->Object != NULL && !transformers[t]->Object->binding)
+        {
+            Transformer_Objects[Transformer_Objects_Count ++] = transformers[t]->Object;
+        }
+    }
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+
+        D->P = init_Deformer_P(D);
+
+        fill_Start_Pose(D, D->P, D->linear_pose);
+
+        if (D->Transformers_Count > 0)
+        {
+            T = D->Transformers[0];
+
+            init_Timeline_Segments(D, TimelineStart);
+            init_Morph_Timeline_Segments(D, TimelineStart);
+
+            for (o = 0; o < D->Objects_Count; o ++)
+            {
+                O = D->Objects[o];
+                condition = 1;
+                for (u = 0; u < Update_Objects_Count; u ++)
+                {
+                    if (Update_Objects[u] == O)
+                    {
+                        condition = 0;
+                        break;
+                    }
+                }
+                if (condition)
+                {
+                    Update_Objects[Update_Objects_Count ++] = O;
+                }
+            }
+        }
+    }
+}
+
+void goto_Animation_Frame(int frame)
+{
+    timeline * Tm;
+    transformer * T;
+
+    int o, d;
+
+    object * O;
+    deformer * D;
+
+    ROTATED_POSE = 1;
+
+    float rot[3];
+    float delta[3];
+    memcpy(rot, (float[3]){0, 0, 0}, sizeof(float[3]));
+    memcpy(delta, (float[3]){0, 0, 0}, sizeof(float[3]));
+
+    rotate_vertex_groups_D_Init();
+
+    rotate_Camera_Aim(Camera);
+    update_camera(Camera, CamDist);
+
+    find_Camera_Objects();
+
+    for (d = 0; d < deformerIndex; d ++)
+    {
+        D = deformers[d];
+
+        if (D->rot[0] != 0)
+            rotate_axis(D->rot[0], D->rotVec[1], D->rotVec[2], D->rotVec[1], D->rotVec[2]);
+        if (D->rot[1] != 0)
+            rotate_axis(D->rot[1], D->rotVec[2], D->rotVec[0], D->rotVec[2], D->rotVec[0]);
+
+        if (D->Objects_Count > 0)
+        {
+            create_Inbetween_Frame_Morf(D, frame);
+        }
+
+        if (D->Transformers_Count > 0)
+        {
+            T = D->Transformers[0];
+
+            if (T->Timeline != NULL)
+            {
+                Tm = T->Timeline;
+                if (Tm->key_frames > 0 && frame >= Tm->Frames[0])
+                {
+                    if (D->play < 0)
+                    {
+                        create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
+                    }
+                }
+            }
+            apply_Pose_position_keyframes(D, D->P, D->Delta);
+
+            update_Deformer_Objects_Curves_Coordinates(D);
+            update_Deformer_object_Curves(D, subdLevel);
+        }
+    }
+
+    move_Trajectories_Transformers(frame, subdLevel);
+
+    update_rotate_bounding_box();
+
+    if (subdLevel > -1)
+    {
+        for (o = 0; o < Update_Objects_Count; o ++)
+        {
+            O = Update_Objects[o];
+            if (O->deforms)
+            {
+                tune_subdivide_post_transformed(O, subdLevel);
+            }
+        }
+    }
+
+    for (o = 0; o < Transformer_Objects_Count; o++)
+    {
+        O = Transformer_Objects[o];
+
+        rotate_verts(O, *O->T);
+        if (O->deforms)
+        {
+            tune_subdivide_post_transformed(O, subdLevel);
+        }
+    }
+
+    poly_Render(tripsRender, wireframe, splitview, CamDist, 1, subdLevel);
 }
 
 void deformer_Player()
@@ -12831,6 +12991,7 @@ void switch_Anim_Camera()
         Camera = CAM;
         Camera_Persp_Anim = CAM;
 
+        update_camera_ratio(CAM, screen_width, screen_height);
         update_camera(CAM, CamDist);
         find_Camera_Objects();
     }
@@ -12839,6 +13000,7 @@ void switch_Anim_Camera()
         Camera = CAM0;
         Camera_Persp_Anim = CAM0;
 
+        update_camera_ratio(CAM0, screen_width, screen_height);
         update_camera(CAM0, CamDist);
 
         find_Camera_Objects();
@@ -19144,6 +19306,7 @@ int main(int argc, char * args[])
                     case SDLK_F4: message = 22; printf("F4\n"); break;
                     case SDLK_F5: message = 76; printf("F5\n"); break;
                     case SDLK_F6: message = 77; printf("F6\n"); break;
+                    case SDLK_F11: message = 79; printf("F11\n"); break;
                     case SDLK_F12: message = 78; printf("F12\n"); break;
 
                     case SDLK_TAB: message = 25; printf("TAB\n"); break;
@@ -20591,7 +20754,7 @@ int main(int argc, char * args[])
 
                                         Camera = CAM;
                                         Camera_Persp_Anim = CAM;
-
+                                        update_camera_ratio(CAM, screen_width, screen_height);
                                         update_camera(CAM, CamDist);
                                         find_Camera_Objects();
                                         update_Items_List(1, 0);
@@ -25999,11 +26162,64 @@ int main(int argc, char * args[])
         }
         else if (message == 78) // 40 for K
         {
-            find_Camera_Objects();
+            char Path[STRLEN];
+
+            Path[0] = '\0';
+
+            strcat(Path, renderfiles);
+            strcat(Path, renderName);
+            strcat(Path, ".png");
+
+            if (isFile(Path))
+            {
+                remove(Path);
+            }
+
             Camera = find_View(mouse_x, mouse_y, splitview);
+            find_Camera_Objects();
             populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
             generate_Object_Polygroups(Camera);
-            render_and_save_Image(Camera, screen_width, screen_height, subdLevel);
+            render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 0);
+        }
+        else if (message == 79) // F11
+        {
+            char Path[STRLEN];
+
+            DRAW_UI = 0;
+
+            prep_for_Anim_Render();
+
+            Preak = 0;
+
+            for (f = TimelineStart; f < TimelineEnd; f ++)
+            {
+                goto_Animation_Frame(f);
+
+                sprintf(frame_N, " %d", f);
+
+                Path[0] = '\0';
+
+                strcat(Path, anim_renderfiles);
+                strcat(Path, anim_renderName);
+                strcat(Path, frame_N);
+                strcat(Path, ".png");
+
+                if (isFile(Path))
+                {
+                    remove(Path);
+                }
+
+                populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
+                generate_Object_Polygroups(Camera);
+                render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 1);
+
+                if (Preak)
+                {
+                    break;
+                }
+            }
+
+            DRAW_UI = 1;
         }
         if (message != 0 && !dialog_lock)
         {

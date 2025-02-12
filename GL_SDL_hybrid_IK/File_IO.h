@@ -11,6 +11,10 @@ char outfiles[] = "C:/Allan/outfiles/";
 char renderfiles[] = "C:/Allan/render/";
 char renderName[] = "muhv";
 
+char anim_renderfiles[] = "C:/Allan/anim_render/";
+char anim_renderName[] = "anim_muhv";
+char frame_N[STRLEN] = "";
+
 int write_OBJ_to_Disk_level_(object * O, int L)
 {
     char dirfile[STRLEN];
