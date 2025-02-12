@@ -26189,13 +26189,16 @@ int main(int argc, char * args[])
 
             prep_for_Anim_Render();
 
+            rotate_Camera_Aim(Camera);
+            update_camera(Camera, CamDist);
+
             Preak = 0;
 
             for (f = TimelineStart; f < TimelineEnd; f ++)
             {
                 goto_Animation_Frame(f);
 
-                sprintf(frame_N, " %d", f);
+                sprintf(frame_N, "%04d", f);
 
                 Path[0] = '\0';
 

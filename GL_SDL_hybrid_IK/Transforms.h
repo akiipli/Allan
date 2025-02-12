@@ -21,8 +21,8 @@ void rotate_Camera_Aim(camera * C)
     transformer * T = C->T;
     direction_Pack D;
     D = length_AB(T->pos, T->target);
-    cross_Product(D.vec, T->rotVec_[1], T->rotVec_[0]);
-    cross_Product(T->rotVec_[1], T->rotVec_[0], T->rotVec_[2]);
+    cross_Product(T->rotVec_[1], D.vec, T->rotVec_[0]);
+    cross_Product(T->rotVec_[0], T->rotVec_[1], T->rotVec_[2]);
 }
 
 void rotate_Camera(camera * C, float CamDist)
