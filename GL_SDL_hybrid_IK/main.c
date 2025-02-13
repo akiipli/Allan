@@ -7542,11 +7542,13 @@ void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3], int p
 
 void update_post_solve(deformer * D, float Delta[3])
 {
-    solve_IK_Chains(D);
-
     if (D->Transformers_Count > 0)
     {
         transformer * T = D->Transformers[0];
+
+        compose_Hierarchy(T); // to be able to animate with IK, however translation poses are disabled
+
+        solve_IK_Chains(D);
 
         move_IKs_To_Parent(T);
 
