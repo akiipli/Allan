@@ -10137,8 +10137,13 @@ void render_and_save_Image(char * Path, camera * C, int width, int height, int L
 
         printf("%d\n", result);
 
-        if (result)
+        if (result && !Preak)
         {
+            if (isFile(Path))
+            {
+                remove(Path);
+            }
+
             ilSave(IL_PNG, Path);
 
             printf("image saved to %s\n", Path);

@@ -8168,7 +8168,11 @@ void goto_Deformer_Frame_(deformer * D, int frame)
                     create_Inbetween_Frame_Pose(D, frame, D->linear_pose);
                 }
             }
-            apply_Pose_position_(D, D->P, D->Delta);
+            apply_Pose_position_keyframes(D, D->P, D->Delta, 1);
+
+            move_Trajectories_Transformers_D(D, frame, subdLevel); // change to Deformer related IK goals and constraints
+
+            update_post_solve(D, D->Delta);
 
             update_Deformer_Objects_Curves_Coordinates(D);
             update_Deformer_object_Curves(D, subdLevel);
@@ -8708,7 +8712,11 @@ void goto_Animation_Frame(int frame)
                     }
                 }
             }
-            apply_Pose_position_keyframes(D, D->P, D->Delta, 0);
+            apply_Pose_position_keyframes(D, D->P, D->Delta, 1);
+
+            move_Trajectories_Transformers_D(D, frame, subdLevel); // change to Deformer related IK goals and constraints
+
+            update_post_solve(D, D->Delta);
 
             update_Deformer_Objects_Curves_Coordinates(D);
             update_Deformer_object_Curves(D, subdLevel);
@@ -26198,11 +26206,6 @@ int main(int argc, char * args[])
             strcat(Path, renderName);
             strcat(Path, ".png");
 
-            if (isFile(Path))
-            {
-                remove(Path);
-            }
-
             Camera = find_View(mouse_x, mouse_y, splitview);
             find_Camera_Objects();
             populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
@@ -26233,11 +26236,6 @@ int main(int argc, char * args[])
                 strcat(Path, anim_renderName);
                 strcat(Path, frame_N);
                 strcat(Path, ".png");
-
-                if (isFile(Path))
-                {
-                    remove(Path);
-                }
 
                 populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
                 generate_Object_Polygroups(Camera);
