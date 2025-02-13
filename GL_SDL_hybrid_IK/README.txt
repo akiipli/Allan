@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+10:03 PM 2/13/2025
+R Alt + Del in Timeline Indi erases selected Transformers keyframes.
+
 1:53 PM 2/13/2025
 Before animating with Deformer, place at least one keyframe in the start frame.
 

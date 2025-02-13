@@ -343,6 +343,36 @@ int init_timeline(transformer * T)
     }
 }
 
+void delete_Transformer_Keyframes(transformer * T)
+{
+    timeline * Tm;
+
+    if (T->Timeline != NULL)
+    {
+        Tm = T->Timeline;
+        Tm->key_frames = 0;
+        Tm->current_Segment = 0; // segment frame start index for current time
+        Tm->start_Segment = 0;
+    }
+}
+
+void delete_Selected_Transformers_Keyframes()
+{
+    int t;
+
+    transformer * T;
+
+    for (t = 0; t < transformerIndex; t ++)
+    {
+        T = transformers[t];
+
+        if (T->selected)
+        {
+            delete_Transformer_Keyframes(T);
+        }
+    }
+}
+
 int delete_keyframe(transformer * T, int frame)
 {
     timeline * Tm;

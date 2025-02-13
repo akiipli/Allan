@@ -24222,7 +24222,15 @@ int main(int argc, char * args[])
                 O->T->pos[2] += 0.5;
             else if (DRAW_LOCATORS)
             {
-                if (Bone_Mode && currentBone < bonesIndex)
+                if (mod & KMOD_RALT)
+                {
+                    if (Timeline_Indi)
+                    {
+                        Draw_Bottom_Message("delete Selected Transformers Keyframes");
+                        delete_Selected_Transformers_Keyframes();
+                    }
+                }
+                else if (Bone_Mode && currentBone < bonesIndex)
                 {
                     if (bones[currentBone]->selected)
                     {
