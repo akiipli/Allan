@@ -303,6 +303,9 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame, int linear_pose)
     {
         T = D->Transformers[t];
 
+        if (T->Trj != NULL) // process trajectory animation later
+            continue;
+
         if (T->Timeline != NULL)
         {
             Tm = T->Timeline;

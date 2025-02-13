@@ -3,6 +3,9 @@
 Author here is:
 Allan Kiipli
 
+1:53 PM 2/13/2025
+Before animating with Deformer, place at least one keyframe in the start frame.
+
 4:42 PM 2/12/2025
 F11 to render Animation. Destination folder needs to be ready. Esc to escape rendering. Folder is
 C:\Allan\anim_render

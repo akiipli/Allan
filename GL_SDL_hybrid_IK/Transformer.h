@@ -1463,10 +1463,7 @@ void rotate_children_M(transformer * T)
         {
             if (C->IK != NULL && C->style == ik_fixed && C->IK->update)
             {
-                if (!C->IK->stretch)
-                {
-                    project_IK_goal_To_Spine(C->IK);
-                }
+
             }
 
             if (C->Bone != NULL)

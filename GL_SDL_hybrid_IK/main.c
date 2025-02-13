@@ -7504,7 +7504,7 @@ void apply_Pose_rotation_keyframes(deformer * D, float Delta[3])
     }
 }
 
-void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
+void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3], int post_solve)
 {
     if (!BIND_POSE)
     {
@@ -7519,21 +7519,45 @@ void apply_Pose_position_keyframes(deformer * D, pose * P, float Delta[3])
 
         apply_Pose_position_Play(D);
 
-        solve_IK_Chains(D);
-
-        if (D->Transformers_Count > 0)
+        if (!post_solve)
         {
-            transformer * T = D->Transformers[0];
+            solve_IK_Chains(D);
 
-            move_Pose_T(T, Delta);
+            if (D->Transformers_Count > 0)
+            {
+                transformer * T = D->Transformers[0];
 
-            if (ROTATED_POSE)
-                rotate_Pose(D);
+                move_Pose_T(T, Delta);
 
-            rotate_Deformer_verts(D);
+                if (ROTATED_POSE)
+                    rotate_Pose(D);
 
-            rotate_M(T); /* update rotVec_ */
+                rotate_Deformer_verts(D);
+
+                rotate_M(T); /* update rotVec_ */
+            }
         }
+    }
+}
+
+void update_post_solve(deformer * D, float Delta[3])
+{
+    solve_IK_Chains(D);
+
+    if (D->Transformers_Count > 0)
+    {
+        transformer * T = D->Transformers[0];
+
+        move_IKs_To_Parent(T);
+
+        move_Pose_T(T, Delta);
+
+        if (ROTATED_POSE)
+            rotate_Pose(D);
+
+        rotate_Deformer_verts(D);
+
+        rotate_M(T); /* update rotVec_ */
     }
 }
 
@@ -7691,7 +7715,7 @@ void transition_into_Pose(deformer * D, pose * P0, pose * P1)
 
         rotate_vertex_groups_D_Init();
 
-        apply_Pose_position_keyframes(D, D->P, D->Delta);
+        apply_Pose_position_keyframes(D, D->P, D->Delta, 0);
 
         update_Deformer_Objects_Curves_Coordinates(D);
         update_Deformer_object_Curves(D, subdLevel);
@@ -8501,7 +8525,11 @@ void deformer_Keyframe_Player()
                         }
                     }
                 }
-                apply_Pose_position_keyframes(D, D->P, D->Delta);
+                apply_Pose_position_keyframes(D, D->P, D->Delta, 1);
+
+                move_Trajectories_Transformers_D(D, frame, subdLevel); // change to Deformer related IK goals and constraints
+
+                update_post_solve(D, D->Delta);
 
                 update_Deformer_Objects_Curves_Coordinates(D);
                 update_Deformer_object_Curves(D, subdLevel);
@@ -8680,7 +8708,7 @@ void goto_Animation_Frame(int frame)
                     }
                 }
             }
-            apply_Pose_position_keyframes(D, D->P, D->Delta);
+            apply_Pose_position_keyframes(D, D->P, D->Delta, 0);
 
             update_Deformer_Objects_Curves_Coordinates(D);
             update_Deformer_object_Curves(D, subdLevel);
@@ -9020,7 +9048,7 @@ void deformer_Player()
                     }
                     else
                     {
-                        apply_Pose_position_keyframes(D, D->P, D->Delta);
+                        apply_Pose_position_keyframes(D, D->P, D->Delta, 0);
                     }
 
                     update_Deformer_Objects_Curves_Coordinates(D);

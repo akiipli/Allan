@@ -310,6 +310,31 @@ int find_current_Segment(transformer * T, int frame)
     return s;
 }
 
+void move_Trajectories_Transformers_D(deformer * D, int frame, int level)
+{
+    int t, tr;
+
+    transformer * T;
+    trajectory * Trj;
+
+    for (tr = 0; tr < trjIndex; tr ++)
+    {
+        Trj = trajectories[tr];
+
+        for (t = 0; t < Trj->transformers_count; t ++)
+        {
+            T = Trj->Transformers[t];
+            if (T->Timeline != NULL && T->Deformer == D)
+            {
+                //T->Timeline->current_Segment = find_current_Segment(T, frame);
+                //T->Timeline->start_Segment = 0;//T->Timeline->current_Segment;
+                T->Trj_Value = get_T_Trajectory_value(T, frame);
+                set_T_Trajectory_value(Trj, T, T->Trj_Value, level);
+            }
+        }
+    }
+}
+
 void move_Trajectories_Transformers(int frame, int level)
 {
     int t, tr;
@@ -324,7 +349,7 @@ void move_Trajectories_Transformers(int frame, int level)
         for (t = 0; t < Trj->transformers_count; t ++)
         {
             T = Trj->Transformers[t];
-            if (T->Timeline != NULL)
+            if (T->Timeline != NULL && T->Deformer == NULL) // Deformer T is processed in move_Trajectories_Transformers_D before
             {
                 //T->Timeline->current_Segment = find_current_Segment(T, frame);
                 //T->Timeline->start_Segment = 0;//T->Timeline->current_Segment;

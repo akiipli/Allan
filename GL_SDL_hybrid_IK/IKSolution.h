@@ -1057,6 +1057,14 @@ void solve_IK_Chain(ikChain * I)
     direction_Pack P;
     P = length_AB(I->A->pos, I->B->pos);
 
+    if (!I->stretch)
+    {
+        if (P.distance > I->sum_length)
+        {
+            P.distance = I->sum_length;
+        }
+    }
+
     if (I->bonescount == 1)
     {
         Transition_Amount = 1;
@@ -1401,6 +1409,15 @@ void solve_IK_Chain(ikChain * I)
 
     if (I->update)
     {
+        if (!I->stretch)
+        {
+            T = I->B;
+
+            T->pos[0] = I->Bones[I->bonescount - 1]->B->pos[0];
+            T->pos[1] = I->Bones[I->bonescount - 1]->B->pos[1];
+            T->pos[2] = I->Bones[I->bonescount - 1]->B->pos[2];
+        }
+
         make_Spine(I, I->rotVec_F, P.vec, I->A->parent->rotVec_, I->A->parent->rot_Order, 0);
 
         memcpy(I->A->rotVec, I->rotVec_F, sizeof(float[3][3]));
