@@ -8153,6 +8153,7 @@ void goto_Deformer_Frame_(deformer * D, int frame)
     }
 
     move_Trajectories_Transformers(frame, subdLevel);
+    rotate_Camera_Aim(Camera);
     update_Trajectories_Transformer_Objects();
 
     update_rotate_bounding_box();
@@ -8508,8 +8509,7 @@ void deformer_Keyframe_Player()
         }
 
         move_Trajectories_Transformers(frame, subdLevel);
-        //rotate_Camera_Aim(Camera);
-
+        rotate_Camera_Aim(Camera);
         update_rotate_bounding_box();
 
         if (subdLevel > -1)
@@ -26189,7 +26189,6 @@ int main(int argc, char * args[])
 
             prep_for_Anim_Render();
 
-            rotate_Camera_Aim(Camera);
             update_camera(Camera, CamDist);
 
             Preak = 0;
