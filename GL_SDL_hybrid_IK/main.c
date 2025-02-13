@@ -7546,7 +7546,8 @@ void update_post_solve(deformer * D, float Delta[3])
     {
         transformer * T = D->Transformers[0];
 
-        compose_Hierarchy(T); // to be able to animate with IK, however translation poses are disabled
+        if (D->compose_hierarchy)
+            compose_Hierarchy(T); // to be able to animate with IK, however translation poses are disabled
 
         solve_IK_Chains(D);
 
@@ -17848,6 +17849,15 @@ void change_Material_Smooth()
     SDL_GL_SwapBuffers();
 }
 
+void change_Deformer_Compose_H(deformer * D)
+{
+    D->compose_hierarchy = !D->compose_hierarchy;
+
+    draw_Dialog();
+
+    SDL_GL_SwapBuffers();
+}
+
 void change_Deformer_Linear_Pose(deformer * D)
 {
     D->linear_pose = !D->linear_pose;
@@ -21377,12 +21387,19 @@ int main(int argc, char * args[])
                                             change_Deformer_Linear_Pose(D);
                                         }
                                     }
-                                    else if (v_index >= 1 && v_index < D->Objects_Count + 1)
+                                    else if (v_index == 1)
+                                    {
+                                        if (h_index == 2)
+                                        {
+                                            change_Deformer_Compose_H(D);
+                                        }
+                                    }
+                                    else if (v_index >= 2 && v_index < D->Objects_Count + 2)
                                     {
                                         if (h_index == 1)
                                         {
                                             deselect_Objects();
-                                            O = D->Objects[v_index - 1];
+                                            O = D->Objects[v_index - 2];
                                             O->selected = 1;
                                             currentObject = O->index;
                                             update_Deformers_List(0);

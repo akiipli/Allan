@@ -7,7 +7,7 @@ Copyright <2018> <Allan Kiipli>
 #ifndef SAVING_H_INCLUDED
 #define SAVING_H_INCLUDED
 
-int saving_version = 1017;
+int saving_version = 1018;
 
 int NIGHT = 0;
 int SHADOWS = 0;
@@ -1047,7 +1047,7 @@ void save_Deformers(char * deformers_files_dir)
                 D->rotVec[2][0], D->rotVec[2][1], D->rotVec[2][2]);
 
         fprintf(F, "%f %f %f\n", D->rot[0], D->rot[1], D->rot[2]);
-        fprintf(F, "%d\n", D->linear_pose);
+        fprintf(F, "%d %d\n", D->linear_pose, D->compose_hierarchy);
 
         fclose(F);
     }

@@ -81,6 +81,9 @@ struct deformer
 
     deformer_morph_map ** Morph_Maps;
     int Morph_Maps_Count;
+
+    int compose_hierarchy;
+    int solve_ik;
 };
 
 void insert_Deformer_keyframe(deformer * D, int frame, int Indi)
@@ -307,6 +310,8 @@ void add_Deformer()
         D->Morph_Maps = malloc(0 * sizeof(deformer_morph_map*));
         D->Morph_Maps_Count = 0;
         D->linear_pose = 0;
+        D->compose_hierarchy = 1;
+        D->solve_ik = 1;
     }
 }
 

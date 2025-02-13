@@ -415,6 +415,11 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "%d", D->linear_pose);
         draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
         idx ++;
+        sprintf(text, "compose hierarchy");
+        draw_Properties_Text(text, d_width, p_height, idx, 0, 0);
+        sprintf(text, "%d", D->compose_hierarchy);
+        draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+        idx ++;
         for (i = 0; i < D->Objects_Count; i ++)
         {
             O = D->Objects[i];
