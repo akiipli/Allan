@@ -358,6 +358,22 @@ direction_Pack length_AB_(float x0, float y0, float z0, float x1, float y1, floa
     return P;
 }
 
+direction_Pack length_AB_1(float A[3], float B[3])
+{
+    float V[3];
+    direction_Pack P;
+    V[0] = B[0] - A[0];
+    V[1] = B[1] - A[1];
+    V[2] = B[2] - A[2];
+    P.distance = sqrt(V[0] * V[0] + V[1] * V[1] + V[2] * V[2]);
+
+    P.vec[0] = V[0];
+    P.vec[1] = V[1];
+    P.vec[2] = V[2];
+
+    return P;
+}
+
 direction_Pack length_AB(float A[3], float B[3])
 {
     float V[3];
@@ -977,12 +993,14 @@ void compose_Hierarchy(transformer * T)
 {
     int t;
     transformer * C;
-    float len;
+    direction_Pack D;
+
+    float rotVec_[3][3];
 
     for (t = 0; t < T->childcount; t ++)
     {
         C = T->childs[t];
-        len = distance(T->pos_bind, C->pos_bind);
+        D = length_AB_1(T->pos_bind, C->pos_bind);
 
         if (C->Bone != NULL && C->Bone->IK_member > 0)
         {
@@ -998,26 +1016,10 @@ void compose_Hierarchy(transformer * T)
         {
 
         }
-        else if (len > 0)
+        else if (D.distance > 0)
         {
-            if (T->rot_Order == yxz || T->rot_Order == xyz)
-            {
-                C->pos[0] = T->pos[0] + T->rotVec[2][0] * len;
-                C->pos[1] = T->pos[1] + T->rotVec[2][1] * len;
-                C->pos[2] = T->pos[2] + T->rotVec[2][2] * len;
-            }
-            else if (T->rot_Order == zxy || T->rot_Order == xzy)
-            {
-                C->pos[0] = T->pos[0] + T->rotVec[1][0] * len;
-                C->pos[1] = T->pos[1] + T->rotVec[1][1] * len;
-                C->pos[2] = T->pos[2] + T->rotVec[1][2] * len;
-            }
-            else if (T->rot_Order == zyx || T->rot_Order == yzx)
-            {
-                C->pos[0] = T->pos[0] + T->rotVec[0][0] * len;
-                C->pos[1] = T->pos[1] + T->rotVec[0][1] * len;
-                C->pos[2] = T->pos[2] + T->rotVec[0][2] * len;
-            }
+            rotate_matrix_I(rotVec_, T->rotVec, C->rotVec_B);
+            rotate_center_1(D.vec, rotVec_, T->pos, C->pos);
         }
         else
         {
