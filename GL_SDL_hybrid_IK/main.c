@@ -6597,32 +6597,37 @@ void open_Items_List()
 
     if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
     {
-        create_Items_List(0);
-        if (Items_c > 0 && ItemIndex >= Items_c)
-        {
-            ItemIndex = Items_c - 1;
-        }
-        currentItem = Item_List[ItemIndex];
         PROPERTIES = PROPERTIES_OBJECT;
-        currentObject = ItemIndex;
-        Type = objects[currentObject];
+        create_Items_List(0);
+        if (Items_c > 0)
+        {
+            ItemIndex = currentObject;
+            currentItem = Item_List[currentObject];
+            Type = objects[currentObject];
+        }
     }
     else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
     {
-        create_Items_List(1);
-        if (Items_c > 0 && ItemIndex >= Items_c)
-        {
-            ItemIndex = Items_c - 1;
-        }
-        currentItem = Item_List[ItemIndex];
         PROPERTIES = PROPERTIES_CAMERA;
-        currentCamera = ItemIndex + CAMERAS;
-        Type = cameras[currentCamera];
+        create_Items_List(1);
+        if (Items_c > 0)
+        {
+            ItemIndex = currentCamera - CAMERAS;
+            currentItem = Item_List[currentCamera];
+            Type = cameras[currentCamera];
+        }
     }
     else if (strcmp(item_type, ITEM_TYPE_LIGHT) == 0)
     {
         create_Items_List(2);
         PROPERTIES = PROPERTIES_LIGHT;
+    }
+
+    if (Items_c <= 0)
+    {
+        ItemIndex = 0;
+        currentItem = 0;
+        Type = NULL;
     }
 
     if (item_start >= ItemIndex - LISTLENGTH / 2)
@@ -6633,11 +6638,6 @@ void open_Items_List()
     if (item_start < 0)
     {
         item_start = 0;
-    }
-
-    if (Items_c <= 0)
-    {
-        Type = NULL;
     }
 
     if (Bottom_Message)
