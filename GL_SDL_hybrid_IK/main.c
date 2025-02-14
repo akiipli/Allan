@@ -944,12 +944,12 @@ void set_O_T_as_current_Locator(transformer * T)
 void assert_Object_Selection()
 {
     int o;
-    object * O0;
+    object * O;
     selected_object_count = 0;
     for (o = 0; o < objectIndex; o ++)
     {
-        O0 = objects[o];
-        if (O0->selected && loaded_objects[o])
+        O = objects[o];
+        if (O->selected && loaded_objects[o])
         {
             selected_objects[selected_object_count ++] = o;
         }
@@ -6583,12 +6583,13 @@ void open_Items_List()
 
     Type = NULL;
 
-    ItemIndex = 0;
-    item_start = 0;
-
     if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
     {
         create_Items_List(0);
+        if (Items_c > 0 && ItemIndex >= Items_c)
+        {
+            ItemIndex = Items_c - 1;
+        }
         currentItem = Item_List[ItemIndex];
         PROPERTIES = PROPERTIES_OBJECT;
         currentObject = ItemIndex;
@@ -6597,6 +6598,10 @@ void open_Items_List()
     else if (strcmp(item_type, ITEM_TYPE_CAMERA) == 0)
     {
         create_Items_List(1);
+        if (Items_c > 0 && ItemIndex >= Items_c)
+        {
+            ItemIndex = Items_c - 1;
+        }
         currentItem = Item_List[ItemIndex];
         PROPERTIES = PROPERTIES_CAMERA;
         currentCamera = ItemIndex + CAMERAS;
@@ -6606,6 +6611,16 @@ void open_Items_List()
     {
         create_Items_List(2);
         PROPERTIES = PROPERTIES_LIGHT;
+    }
+
+    if (item_start >= ItemIndex - LISTLENGTH / 2)
+    {
+        item_start = ItemIndex - LISTLENGTH / 2;
+    }
+
+    if (item_start < 0)
+    {
+        item_start = 0;
     }
 
     if (Items_c <= 0)
@@ -17885,7 +17900,7 @@ void change_Object_Smooth()
         poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
         DRAW_UI = 1;
 
-        draw_Dialog();
+        update_Items_List(1, 0);
 
         SDL_GL_SwapBuffers();
     }
@@ -17916,11 +17931,7 @@ void change_Object_Subdiv_Max(int change)
             O0->subdlevel_Max = O->subdlevel_Max;
         }
 
-        DRAW_UI = 0;
-        poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
-        DRAW_UI = 1;
-
-        draw_Dialog();
+        update_Items_List(1, 0);
 
         SDL_GL_SwapBuffers();
     }
