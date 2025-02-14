@@ -854,6 +854,7 @@ int read_Deformer_file(Deformer_In * DEFR_IN, char * fileName)
             {
                 if (fgets(buff, BUF_SIZE, fp))
                     sscanf(buff, "%d", &D->linear_pose);
+                D->compose_hierarchy = 0;
             }
             else
             {
