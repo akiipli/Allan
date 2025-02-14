@@ -6269,6 +6269,18 @@ void open_Deformers_List()
 
     DefrIndex = selected_deformer_node;
 
+    if (DefrIndex < Deformers_c && (DefrIndex - defr_start < 0 || DefrIndex >= defr_start + LISTLENGTH))
+    {
+        if (DefrIndex - LISTLENGTH / 2 >= 0)
+        {
+            defr_start = DefrIndex - LISTLENGTH / 2;
+        }
+        else
+        {
+            defr_start = 0;
+        }
+    }
+
     black_out_DefrList();
 
 //    DRAW_LOCATORS = 1;
