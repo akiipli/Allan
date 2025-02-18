@@ -71,6 +71,7 @@ typedef struct trajectory traj;
 #include FT_FREETYPE_H
 #include "UserInterface.h"
 #include "Materials.h"
+#include "Cameras.h"
 #include "IKSolution.h"
 #include "Deformer.h"
 #include "Poses.h"
@@ -84,7 +85,6 @@ typedef struct trajectory traj;
 
 #include "ImageLoad.h"
 #include "MathFunctions.h"
-#include "Cameras.h"
 #include "Properties.h"
 #include "Items.h"
 #include "Selections.h"
@@ -8571,6 +8571,8 @@ void deformer_Keyframe_Player()
         }
 
         move_Trajectories_Transformers(frame, subdLevel);
+        if (Camera->T->Constraint != NULL)
+            move_Camera_Target(Camera->T->Constraint->Locator, Camera);
         rotate_Camera_Aim(Camera);
         update_rotate_bounding_box();
 
@@ -11970,6 +11972,11 @@ void add_IK_Constraint()
     }
 }
 
+void add_Camera_Target_Constraint(camera * C)
+{
+    init_Transformer_Constraint(C->T, constraint_camera_target);
+}
+
 void transfer_Object_Surface_To_Geometry(object * O, int s)
 {
     int p, l, q;
@@ -14925,6 +14932,8 @@ void delete_Camera(camera * C)
     int index = 0;
     int condition = 0;
 
+    transformer * T0;
+
     for (c = CAMERAS; c < camIndex; c ++)
     {
         if (cameras[c] == C)
@@ -14940,7 +14949,24 @@ void delete_Camera(camera * C)
         camIndex --;
         create_Transformers_List();
         currentLocator = C->T->index;
-        delete_Locator();
+        if (C->T->Constraint != NULL)
+        {
+            T0 = delete_Transformer_Constraint(C->T->Constraint);
+            if (T0 != NULL)
+                delete_Transformer(T0);
+        }
+        delete_Transformer(C->T);
+
+        if (currentLocator >= transformerIndex)
+        {
+            currentLocator = transformerIndex - 1;
+        }
+
+        if (currentLocator < 0)
+        {
+            currentLocator = 0;
+        }
+
         create_Hierarchys_List(currentLocator);
 
         for (c = index; c < camIndex; c ++)
@@ -15667,7 +15693,8 @@ void start_Movement_HIER()
     {
         Constraint_Pack.IK = NULL;
         Constraint_Pack.Deformer = NULL;
-        scan_For_Locator_Constraints(T);
+        Constraint_Pack.Camera = NULL;
+        scan_For_Locator_Constraints(T, CAM);
 
         if (Constraint_Pack.IK != NULL)
             printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
@@ -15896,7 +15923,8 @@ void start_Movement()
         {
             Constraint_Pack.IK = NULL;
             Constraint_Pack.Deformer = NULL;
-            scan_For_Locator_Constraints(T);
+            Constraint_Pack.Camera = NULL;
+            scan_For_Locator_Constraints(T, CAM);
 
             if (Constraint_Pack.IK != NULL)
                 printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);
@@ -16204,9 +16232,30 @@ void make_Movement()
         {
             move_Constraint(T, Delta);
         }
+        else if (Constraint_Pack.Camera != NULL)
+        {
+            move_T(T, Delta);
+            if (splitview)
+            {
+                move_Camera_Target(T, CAM);
+                rotate_Camera_Aim(CAM);
+                update_camera(CAM, CamDist);
+                find_objects_in_frame(CAM);
+            }
+        }
         else
         {
-            move_(T, Delta);
+            if (CAM->T == T)
+            {
+                move_T(T, Delta);
+                rotate_Camera_Aim(CAM);
+                update_camera(CAM, CamDist);
+                find_objects_in_frame(CAM);
+            }
+            else
+            {
+                move_(T, Delta);
+            }
         }
 
         if (T->Deformer != NULL)
@@ -16426,7 +16475,14 @@ void transform_Objects_And_Render()
                         }
                         else
                         {
-                            rotate_T(T);
+                            if (T == CAM->T && T->Constraint != NULL)
+                            {
+
+                            }
+                            else
+                            {
+                                rotate_T(T);
+                            }
                         }
                     }
                 }
@@ -16779,6 +16835,82 @@ void delete_Object(int index, int render)
 
     if (render)
         transform_Objects_And_Render();
+}
+
+void remove_Transformer_Constraint(transformer * T)
+{
+    constraint * C;
+    transformer * T0;
+
+    if (T->Constraint != NULL)
+    {
+        C = T->Constraint;
+
+        T0 = delete_Transformer_Constraint(C);
+        T->Constraint = NULL;
+
+        if (T0 != NULL)
+        {
+            delete_Transformer(T0);
+        }
+    }
+}
+
+void remove_Camera_Target_Constraint(camera * C)
+{
+    remove_Transformer_Constraint(C->T);
+}
+
+void remove_Item_Constraint_H_Button()
+{
+    set_Item_H_Button(4);
+    printf("remove Item Constraint H Button\n");
+
+    if (Item_type == TYPE_OBJECT)
+    {
+        printf("Object\n");
+    }
+    else if (Item_type == TYPE_CAMERA)
+    {
+        printf("Camera\n");
+        CAM = cameras[currentCamera];
+        remove_Camera_Target_Constraint(CAM);
+    }
+    else if (Item_type == TYPE_LIGHT)
+    {
+        printf("Light\n");
+    }
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
+}
+
+void add_Item_Constraint_H_Button()
+{
+    set_Item_H_Button(3);
+    printf("add Item Constraint H Button\n");
+
+    if (Item_type == TYPE_OBJECT)
+    {
+        printf("Object\n");
+    }
+    else if (Item_type == TYPE_CAMERA)
+    {
+        printf("Camera\n");
+        CAM = cameras[currentCamera];
+        add_Camera_Target_Constraint(CAM);
+    }
+    else if (Item_type == TYPE_LIGHT)
+    {
+        printf("Light\n");
+    }
+
+    if (dialog_lock)
+    {
+        draw_Dialog();
+    }
 }
 
 void remove_Item_H_Button()
@@ -19239,6 +19371,8 @@ int main(int argc, char * args[])
     Button_h_item[0].func = &add_Item_H_Button;
     Button_h_item[1].func = &rename_Item;
     Button_h_item[2].func = &remove_Item_H_Button;
+    Button_h_item[3].func = &add_Item_Constraint_H_Button;
+    Button_h_item[4].func = &remove_Item_Constraint_H_Button;
 
     Button_h_sels[0].func = &add_Selection;
     Button_h_sels[1].func = &edit_Selection;
@@ -19970,6 +20104,10 @@ int main(int argc, char * args[])
                                             snap_back_Deformer_Object_Cps_To_Pos(Constraint_Pack.IK->Deformer);
                                             update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
                                             update_Deformer_object_Curves(T->Deformer, subdLevel);
+                                        }
+                                        else if (Constraint_Pack.Camera != NULL)
+                                        {
+                                            snap_back_Camera_Target(T, CAM);
                                         }
                                         else if (O->curve_count > 0)
                                         {
@@ -21341,17 +21479,14 @@ int main(int argc, char * args[])
                                             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                             update_Trajectory_List(1, 0);
                                         }
-                                        else if (h_index == 2)
+                                        else if (h_index == 3)
                                         {
                                             if (!Drag_Trajectory)
                                             {
                                                 Not_Drag = 1;
                                                 Drag_X = mouse_x;
-                                                if (h_index == 2)
-                                                {
-                                                    Drag_Trajectory = 1;
-                                                    Traj = T->Trj_Value; //get_T_Trajectory_value(T, currentFrame);
-                                                }
+                                                Drag_Trajectory = 1;
+                                                Traj = T->Trj_Value; //get_T_Trajectory_value(T, currentFrame);
                                             }
                                         }
                                     }
@@ -25619,7 +25754,8 @@ int main(int argc, char * args[])
                         {
                             Constraint_Pack.IK = NULL;
                             Constraint_Pack.Deformer = NULL;
-                            scan_For_Locator_Constraints(T);
+                            Constraint_Pack.Camera = NULL;
+                            scan_For_Locator_Constraints(T, CAM);
 
                             if (Constraint_Pack.IK != NULL)
                                 printf("Constraint Pack IK %s\n", Constraint_Pack.IK->Name);

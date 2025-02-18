@@ -16,13 +16,33 @@ int Transformer_Objects_Count = 0;
 object * Update_Objects[OBJECTS];
 int Update_Objects_Count = 0;
 
+void snap_back_Camera_Target(transformer * T, camera * C)
+{
+    T->pos[0] = T->Pos_[0];
+    T->pos[1] = T->Pos_[1];
+    T->pos[2] = T->Pos_[2];
+
+    C->T->target[0] = T->pos[0];
+    C->T->target[1] = T->pos[1];
+    C->T->target[2] = T->pos[2];
+}
+
+void move_Camera_Target(transformer * T, camera * C)
+{
+    C->T->target[0] = T->pos[0];
+    C->T->target[1] = T->pos[1];
+    C->T->target[2] = T->pos[2];
+}
+
 void rotate_Camera_Aim(camera * C)
 {
     transformer * T = C->T;
     direction_Pack D;
     D = length_AB(T->pos, T->target);
-    cross_Product(T->rotVec_[1], D.vec, T->rotVec_[0]);
-    cross_Product(T->rotVec_[0], T->rotVec_[1], T->rotVec_[2]);
+
+    cross_Product((float[3]){0.0, 1.0, 0.0}, D.vec, T->rotVec_[0]);
+    cross_Product(D.vec, T->rotVec_[0], T->rotVec_[1]);
+    memcpy(T->rotVec_[2], D.vec, sizeof(float[3]));
 }
 
 void rotate_Camera(camera * C, float CamDist)

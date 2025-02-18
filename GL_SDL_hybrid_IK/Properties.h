@@ -59,7 +59,7 @@ float Locator_Values[3][3];
 
 int Edit_Trajectory = 0;
 int Trajectory_v_index = 0;
-int Trajectory_h_index = 2;
+int Trajectory_h_index = 3;
 float Trajectory_Value = 0;
 
 int Drag_Trajectory = 0;
@@ -225,6 +225,12 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
         sprintf(text, "%1.2f", C->h_view);
         draw_Properties_Text(text, d_width, p_height, idx, 0, 2);
         idx ++;
+        if (C->T->Constraint != NULL)
+        {
+            sprintf(text, "%s", C->T->Constraint->Locator->Name);
+            draw_Properties_Text(text, d_width, p_height, idx, 0, 1);
+            idx ++;
+        }
     }
     else if (type == PROPERTIES_MATERIAL)
     {
@@ -459,7 +465,7 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
                 draw_Properties_Text(text, d_width, p_height, idx, 1, 1);
 
             sprintf(text, "%1.2f", Value);
-            draw_Properties_Text(text, d_width, p_height, idx, 1, 2);
+            draw_Properties_Text(text, d_width, p_height, idx, 1, 3);
             idx ++;
         }
     }

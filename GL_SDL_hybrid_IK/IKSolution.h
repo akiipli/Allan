@@ -97,23 +97,32 @@ ikChain * ik_Chains_Collection[IKCHAINS];
 constraint * constraints[CONSTRAINTS];
 int constraintsIndex = 0;
 
-void scan_For_Locator_Constraints(transformer * T)
+void scan_For_Locator_Constraints(transformer * T, camera * Camera)
 {
     int c;
 
     transformer * C;
 
-    if (T->Constraint != NULL && T == T->Constraint->Locator)
+    if (Camera->T->Constraint != NULL && Camera->T->Constraint->Locator == T)
     {
-        Constraint_Pack.IK = T->Constraint->IK_goal->IK;
-        Constraint_Pack.Deformer = Constraint_Pack.IK->Deformer;
+        Constraint_Pack.IK = NULL;
+        Constraint_Pack.Deformer = NULL;
+        Constraint_Pack.Camera = (cam*)Camera;
+    }
+    else if (T->Constraint != NULL && T == T->Constraint->Locator)
+    {
+        if (T->Constraint->IK_goal != NULL)
+        {
+            Constraint_Pack.IK = T->Constraint->IK_goal->IK;
+            Constraint_Pack.Deformer = Constraint_Pack.IK->Deformer;
+        }
     }
     else
     {
         for (c = 0; c < T->childcount; c ++)
         {
             C = T->childs[c];
-            scan_For_Locator_Constraints(C);
+            scan_For_Locator_Constraints(C, Camera);
         }
     }
 }
@@ -251,6 +260,79 @@ void init_IK_Pole(ikChain * I)
                 {
                     parent(T, I->B->Constraint->Locator);
                 }
+                constraintsIndex ++;
+            }
+            else
+            {
+                free(C);
+            }
+        }
+    }
+}
+
+transformer * delete_Transformer_Constraint(constraint * C)
+{
+    int c, index;
+    int condition = 0;
+
+    transformer * T = NULL;
+
+    for (c = 0; c < constraintsIndex; c ++)
+    {
+        if (constraints[c] == C)
+        {
+            index = c;
+            condition = 1;
+            break;
+        }
+    }
+
+    if (condition)
+    {
+        constraintsIndex --;
+        for (c = index; c < constraintsIndex; c ++)
+        {
+            constraints[c] = constraints[c + 1];
+            constraints[c]->index = c;
+        }
+
+        C->Locator->Constraint = NULL;
+        T = C->Locator;
+        free_Constraint(C);
+    }
+
+    return T;
+}
+
+void init_Transformer_Constraint(transformer * T0, int constraint_type)
+{
+    if (T0->Constraint == NULL && transformerIndex < TRANSFORMERS)
+    {
+        constraint * C = calloc(1, sizeof(constraint));
+
+        if (C != NULL && constraintsIndex < CONSTRAINTS)
+        {
+            C->index = constraintsIndex;
+            constraints[constraintsIndex] = C;
+
+            transformer * T = calloc(1, sizeof(transformer));
+
+            if (T != NULL)
+            {
+                Locators[locatorIndex ++] = T;
+
+                init_transformer(T, &World, "Constraint");
+
+                memcpy(T->pos, (float[3]){0.0, 0.0, 0.0}, sizeof(T->pos));
+
+                T->LocatorSize *= 2;
+
+                C->Name = malloc(STRLEN * sizeof(char));
+                sprintf(C->Name, "T Constraint %d", constraintsIndex);
+                C->constraint_type = constraint_type;
+                C->Locator = T;
+                C->IK_goal = NULL;
+                T0->Constraint = C;
                 constraintsIndex ++;
             }
             else

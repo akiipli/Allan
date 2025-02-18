@@ -5015,7 +5015,7 @@ hierarchys_pack load_Hierarchys(char * path, int obj_count, int defr_count, int 
         }
     }
 
-   if (w_address && t_index && i_index && c_index)
+   if (w_address && t_index && c_index)
     {
         int t, i, c;
 
@@ -5076,22 +5076,17 @@ hierarchys_pack load_Hierarchys(char * path, int obj_count, int defr_count, int 
             for (t = transformerIndex - t_index; t < transformerIndex; t ++)
             {
                 T = transformers[t];
+                if (C->address == (unsigned)T->Constraint)
+                {
+                    T->Constraint = C;
+                }
                 if (T->address == (unsigned)C->Locator)
                 {
                     C->Locator = T;
-                    T->Constraint = C;
-                    break;
                 }
-            }
-
-            for (t = transformerIndex - t_index; t < transformerIndex; t ++)
-            {
-                T = transformers[t];
                 if (T->address == (unsigned)C->IK_goal)
                 {
                     C->IK_goal = T;
-                    T->Constraint = C;
-                    break;
                 }
             }
         }

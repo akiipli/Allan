@@ -7007,6 +7007,13 @@ void render_Camera_Icons()
             draw_Cam_Loop(T, rotVec_);
 
             glEnd();
+
+            glBegin(GL_LINES);
+
+            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
+            glVertex3f(T->target[0], T->target[1], T->target[2]);
+
+            glEnd();
         }
     }
 

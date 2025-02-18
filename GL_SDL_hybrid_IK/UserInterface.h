@@ -58,7 +58,7 @@ int LISTLENGTH = 12;
 #define H_BONE_NUM 2
 #define H_TRAJ_NUM 4
 #define H_MATR_NUM 4
-#define H_ITEM_NUM 3
+#define H_ITEM_NUM 5
 #define H_IKCH_NUM 6
 #define H_SUBC_NUM 5
 #define H_MRPH_NUM 6
@@ -3898,6 +3898,8 @@ void draw_Items_Bottom_Line(int width, int height)
     draw_Button_item_horizontal("Add", 0, 1);
     draw_Button_item_horizontal("Rename", 1, 1);
     draw_Button_item_horizontal("Remove", 2, 1);
+    draw_Button_item_horizontal("Add C.", 3, 1);
+    draw_Button_item_horizontal("Rem C.", 4, 1);
 
 //    glEnable(GL_DEPTH_TEST);
 //	glEnable(GL_LIGHTING);

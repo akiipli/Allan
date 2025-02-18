@@ -56,6 +56,7 @@ float dot_productFF(float[3], float[3]);
 #define constraint_none 0
 #define constraint_to_point 1
 #define constraint_pole 2
+#define constraint_camera_target 3
 
 typedef struct transformer transformer;
 typedef struct object object;
@@ -89,10 +90,13 @@ typedef struct
 }
 constraint;
 
+typedef struct camera cam;
+
 typedef struct
 {
     ikChain * IK;
     deformer * Deformer;
+    cam * Camera;
 }
 constraint_Pack;
 

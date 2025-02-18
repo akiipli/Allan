@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1739557402 source:c:\gl_sdl_hybrid_ik\main.c
+1739900296 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -23,6 +23,7 @@
 	<ft2build.h>
 	"UserInterface.h"
 	"Materials.h"
+	"Cameras.h"
 	"IKSolution.h"
 	"Deformer.h"
 	"Poses.h"
@@ -34,7 +35,6 @@
 	"File_IO.h"
 	"ImageLoad.h"
 	"MathFunctions.h"
-	"Cameras.h"
 	"Properties.h"
 	"Items.h"
 	"Selections.h"
@@ -71,13 +71,13 @@
 
 1738945359 c:\gl_sdl_hybrid_ik\timeline.h
 
-1739477708 c:\gl_sdl_hybrid_ik\transformer.h
+1739887145 c:\gl_sdl_hybrid_ik\transformer.h
 
 1739085856 c:\gl_sdl_hybrid_ik\object.h
 
 1739038829 c:\gl_sdl_hybrid_ik\curves.h
 
-1739170071 c:\gl_sdl_hybrid_ik\userinterface.h
+1739862061 c:\gl_sdl_hybrid_ik\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
@@ -87,7 +87,7 @@
 
 1739170829 c:\gl_sdl_hybrid_ik\items.h
 
-1739527429 c:\gl_sdl_hybrid_ik\iksolution.h
+1739893275 c:\gl_sdl_hybrid_ik\iksolution.h
 
 1739483619 c:\gl_sdl_hybrid_ik\deformer.h
 
@@ -99,7 +99,7 @@
 
 1734892334 c:\gl_sdl_hybrid_ik\morphs.h
 
-1739484308 c:\gl_sdl_hybrid_ik\properties.h
+1739900296 c:\gl_sdl_hybrid_ik\properties.h
 
 1636367110 c:\gl_sdl_hybrid_ik\shaders.h
 
@@ -134,19 +134,19 @@
 
 1636367110 c:\gl_sdl_hybrid_ik\cubedata.h
 
-1739375463 c:\gl_sdl_hybrid_ik\transforms.h
+1739899754 c:\gl_sdl_hybrid_ik\transforms.h
 
 1636367110 c:\gl_sdl_hybrid_ik\arrays.h
 
 1738920184 c:\gl_sdl_hybrid_ik\lights.h
 
-1739470926 c:\gl_sdl_hybrid_ik\rendering.h
+1739897974 c:\gl_sdl_hybrid_ik\rendering.h
 
 1737116074 c:\gl_sdl_hybrid_ik\hierarchys.h
 
 1636367110 c:\gl_sdl_hybrid_ik\validators.h
 
-1739543312 c:\gl_sdl_hybrid_ik\loading.h
+1739889816 c:\gl_sdl_hybrid_ik\loading.h
 
 1736252479 c:\gl_sdl_hybrid_ik\modeling.h
 
