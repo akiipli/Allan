@@ -43,6 +43,10 @@ void rotate_Camera_Aim(camera * C)
     cross_Product((float[3]){0.0, 1.0, 0.0}, D.vec, T->rotVec_[0]);
     cross_Product(D.vec, T->rotVec_[0], T->rotVec_[1]);
     memcpy(T->rotVec_[2], D.vec, sizeof(float[3]));
+
+    rotate_axis(T->rot[2], T->rotVec_[0], T->rotVec_[1], T->rotVec_[0], T->rotVec_[1]);
+    memcpy(T->rotVec, T->rotVec_, sizeof(float[3][3]));
+//    memcpy(T->aim, T->rotVec_[2], sizeof(float[3]));
 }
 
 void rotate_Camera(camera * C, float CamDist)
@@ -909,6 +913,21 @@ void snap_back_Curve_Objects(int subdLevel)
         snap_back_Object_Cps_To_Pos(O);
         update_object_Curves(O, subdLevel);
         update_object_Curves(O, subdLevel);
+    }
+}
+
+void move_Cameras()
+{
+    int c;
+
+    camera * C;
+
+    for (c = CAMERAS; c < camIndex; c ++)
+    {
+        C = cameras[c];
+        if (C->T->Constraint != NULL)
+            move_Camera_Target(C->T->Constraint->Locator, C);
+        rotate_Camera_Aim(C);
     }
 }
 

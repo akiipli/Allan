@@ -6065,6 +6065,87 @@ void render_Bones_ID()
     glEnable(GL_LIGHTING);
 }
 
+void render_Camera_Icons_ID(int id_offset)
+{
+    int c, c_o;
+
+    camera * C;
+    transformer * T;
+
+    float rotVec_[3][3];
+    float L_size;
+
+    int idx0, idx1, idx2;
+
+    int M0 = 255 * 255 * 255;
+    int M1 = 255 * 255;
+
+    float R, G, B, A;
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_DITHER);
+    glDisable(GL_MULTISAMPLE);
+
+    glLineWidth(6);
+
+    for (c = CAMERAS; c < camIndex; c ++)
+    {
+        C = cameras[c];
+
+        if (C->T != NULL)
+        {
+            T = C->T;
+
+            L_size = T->LocatorSize;
+
+            memcpy(rotVec_, T->rotVec_, sizeof(rotVec_));
+
+            rotVec_[0][0] *= L_size;
+            rotVec_[0][1] *= L_size;
+            rotVec_[0][2] *= L_size;
+            rotVec_[1][0] *= L_size;
+            rotVec_[1][1] *= L_size;
+            rotVec_[1][2] *= L_size;
+            rotVec_[2][0] *= L_size;
+            rotVec_[2][1] *= L_size;
+            rotVec_[2][2] *= L_size;
+
+            c_o = c + id_offset;
+
+            R = (float)(c_o / M0) / (float)255;
+            idx0 = c_o % M0;
+            G = (float)(idx0 / M1) / (float)255;
+            idx1 = idx0 % M1;
+            B = (float)(idx1 / 255) / (float)255;
+            idx2 = idx1 % 255;
+            A = (float)(idx2) / (float)255;
+
+            glColor4f(R, G, B, A);
+
+            glBegin(GL_LINE_LOOP);
+
+            draw_Cam_Loop(T, rotVec_);
+
+            glEnd();
+
+//            glBegin(GL_LINES);
+//
+//            glVertex3f(T->pos[0], T->pos[1], T->pos[2]);
+//            glVertex3f(T->target[0], T->target[1], T->target[2]);
+//
+//            glEnd();
+        }
+    }
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glEnable(GL_DITHER);
+    glEnable(GL_MULTISAMPLE);
+}
+
 void render_Transformers_ID(int bind_Pose)
 {
     int t;

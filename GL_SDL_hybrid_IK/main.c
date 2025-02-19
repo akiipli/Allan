@@ -1949,6 +1949,7 @@ void render_Objects(camera * C, int tripsRender, int wireframe, int uv_draw, int
     else if (LOCAT_ID_RENDER && rendermode == ID_RENDER && !POLYS_ID_RENDER)
     {
         render_Transformers_ID(BIND_POSE);
+        render_Camera_Icons_ID(transformerIndex);
     }
     else if (tripsRender)
     {
@@ -8211,7 +8212,7 @@ void goto_Deformer_Frame_(deformer * D, int frame)
     }
 
     move_Trajectories_Transformers(frame, subdLevel);
-    rotate_Camera_Aim(Camera);
+    move_Cameras();
     update_Trajectories_Transformer_Objects();
 
     update_rotate_bounding_box();
@@ -8571,9 +8572,7 @@ void deformer_Keyframe_Player()
         }
 
         move_Trajectories_Transformers(frame, subdLevel);
-        if (Camera->T->Constraint != NULL)
-            move_Camera_Target(Camera->T->Constraint->Locator, Camera);
-        rotate_Camera_Aim(Camera);
+        move_Cameras();
         update_rotate_bounding_box();
 
         if (subdLevel > -1)
@@ -8756,7 +8755,7 @@ void goto_Animation_Frame(int frame)
     }
 
     move_Trajectories_Transformers(frame, subdLevel);
-
+    move_Cameras();
     update_rotate_bounding_box();
 
     if (subdLevel > -1)
@@ -14588,7 +14587,7 @@ void delete_IK_Transformers(ikChain * I)
         currentLocator = 0;
 }
 
-void delete_Transformer(transformer * T0)
+void delete_Transformer(transformer * T0, int update_dialog)
 {
     if (T0->Constraint == NULL && T0->IK == NULL)
     {
@@ -14644,7 +14643,7 @@ void delete_Transformer(transformer * T0)
 
         T = transformers[currentLocator];
 
-        if (dialog_lock)
+        if (dialog_lock && update_dialog)
         {
             set_Hier_H_Button(4);
             draw_Dialog();
@@ -14705,7 +14704,7 @@ void remove_ikChain_From_ikChains_(ikChain * I)
             T = delete_Constraint(I);
             if (T != NULL)
             {
-                delete_Transformer(T);
+                delete_Transformer(T, 1);
             }
         }
 
@@ -14714,7 +14713,7 @@ void remove_ikChain_From_ikChains_(ikChain * I)
             T = delete_Pole(I);
             if (T != NULL)
             {
-                delete_Transformer(T);
+                delete_Transformer(T, 1);
             }
         }
 
@@ -14781,13 +14780,9 @@ void remove_IK_Pole()
                 T = delete_Pole(I);
                 if (T != NULL)
                 {
-                    delete_Transformer(T);
+                    delete_Transformer(T, 1);
                 }
             }
-
-//            DRAW_UI = 0;
-//            draw_Dialog();
-//            DRAW_UI = 1;
         }
     }
 }
@@ -14810,13 +14805,9 @@ void remove_IK_Constraint()
                 T = delete_Constraint(I);
                 if (T != NULL)
                 {
-                    delete_Transformer(T);
+                    delete_Transformer(T, 1);
                 }
             }
-
-//            DRAW_UI = 0;
-//            draw_Dialog();
-//            DRAW_UI = 1;
         }
     }
 }
@@ -14952,10 +14943,11 @@ void delete_Camera(camera * C)
         if (C->T->Constraint != NULL)
         {
             T0 = delete_Transformer_Constraint(C->T->Constraint);
+            C->T->Constraint = NULL;
             if (T0 != NULL)
-                delete_Transformer(T0);
+                delete_Transformer(T0, 0);
         }
-        delete_Transformer(C->T);
+        delete_Transformer(C->T, 0);
 
         if (currentLocator >= transformerIndex)
         {
@@ -16429,10 +16421,15 @@ void transform_Objects_And_Render()
                     }
                     else
                     {
-                        if (Update_Objects_Count == 0)
+                        if (CAM->T == T)
+                        {
+                            rotate_Camera_Aim(CAM);
+                        }
+                        else if (Update_Objects_Count == 0)
                         {
                             start_Rotation();
                         }
+
                         if (Constraint_Pack.IK != NULL && Constraint_Pack.IK->Deformer != NULL)
                         {
                             rotate_Deformer_Constraint(T);
@@ -16448,11 +16445,18 @@ void transform_Objects_And_Render()
                             }
                             else
                             {
-//                                rotate_vertex_groups_D_Init();
-                                rotate(T);
+                                if (CAM->T == T)
+                                {
 
-                                memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
-                                rotate_T(Action_Center);
+                                }
+                                else
+                                {
+                                    rotate(T);
+
+                                    memcpy(Action_Center->rotVec_, Identity_, sizeof(float[3][3]));
+                                    rotate_T(Action_Center);
+                                }
+//                                rotate_vertex_groups_D_Init();
                             }
                         }
                         if (update_Curve_Objects)
@@ -16475,7 +16479,7 @@ void transform_Objects_And_Render()
                         }
                         else
                         {
-                            if (T == CAM->T && T->Constraint != NULL)
+                            if (CAM->T == T)
                             {
 
                             }
@@ -16803,7 +16807,7 @@ void delete_Object(int index, int render)
                 recreate_Segment_Selection();
                 recreate_Cp_Selection();
             }
-            delete_Transformer(O->T);
+            delete_Transformer(O->T, 0);
 
             remove_Selections_From_Transformers(O);
 
@@ -16851,7 +16855,7 @@ void remove_Transformer_Constraint(transformer * T)
 
         if (T0 != NULL)
         {
-            delete_Transformer(T0);
+            delete_Transformer(T0, 0);
         }
     }
 }
@@ -21790,6 +21794,20 @@ int main(int argc, char * args[])
                                 }
                                 break;
                             }
+                            else if (Object_Mode && LOCAT_ID_RENDER && o < camIndex + transformerIndex && o >= transformerIndex)
+                            {
+                                currentCamera = o - transformerIndex;
+                                CAM = cameras[currentCamera];
+                                CAM->selected = 1;
+                                if (CAM->T != NULL)
+                                {
+                                    currentLocator = CAM->T->index;
+                                    T = transformers[currentLocator];
+                                }
+                                Camera = CAM;
+                                Camera_Persp_Anim = CAM;
+                                find_objects_in_frame(CAM);
+                            }
                             else if (Object_Mode && o < objectIndex && o >= 0)
                             {
                                 sels_start[current_sel_type] = 0;
@@ -23550,6 +23568,20 @@ int main(int argc, char * args[])
                                     T->selected = 0;
                                 }
                                 break;
+                            }
+                            else if (Object_Mode && LOCAT_ID_RENDER && o < camIndex + transformerIndex && o >= transformerIndex)
+                            {
+                                currentCamera = o - transformerIndex;
+                                CAM = cameras[currentCamera];
+                                CAM->selected = 1;
+                                if (CAM->T != NULL)
+                                {
+                                    currentLocator = CAM->T->index;
+                                    T = transformers[currentLocator];
+                                }
+                                Camera = CAM;
+                                Camera_Persp_Anim = CAM;
+                                find_objects_in_frame(CAM);
                             }
                             else if (Object_Mode && o < objectIndex && o >= 0)
                             {
@@ -25971,6 +26003,7 @@ int main(int argc, char * args[])
             }
             else if (DRAW_LOCATORS && Object_Mode)
             {
+                clear_Camera_Selection();
                 deselect_Transformers();
                 T = transformers[currentLocator];
                 T->selected = 1;
@@ -26393,6 +26426,7 @@ int main(int argc, char * args[])
             strcat(Path, ".png");
 
             Camera = find_View(mouse_x, mouse_y, splitview);
+            update_camera_ratio(Camera, screen_width, screen_height);
             find_Camera_Objects();
             populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
             generate_Object_Polygroups(Camera);
@@ -26405,7 +26439,7 @@ int main(int argc, char * args[])
             DRAW_UI = 0;
 
             prep_for_Anim_Render();
-
+            update_camera_ratio(Camera, screen_width, screen_height);
             update_camera(Camera, CamDist);
 
             Preak = 0;
