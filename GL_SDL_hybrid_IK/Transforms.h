@@ -38,7 +38,10 @@ void rotate_Camera_Aim(camera * C)
 {
     transformer * T = C->T;
     direction_Pack D;
+
     D = length_AB(T->pos, T->target);
+
+    //memcpy(T->rotVec_, Identity_, sizeof(float[3][3]));
 
     cross_Product((float[3]){0.0, 1.0, 0.0}, D.vec, T->rotVec_[0]);
     cross_Product(D.vec, T->rotVec_[0], T->rotVec_[1]);
@@ -927,6 +930,10 @@ void move_Cameras()
         C = cameras[c];
         if (C->T->Constraint != NULL)
             move_Camera_Target(C->T->Constraint->Locator, C);
+
+//        direction_Pack D = length_AB(C->T->pos, C->T->target);
+//        rotate_Camera(C, D.distance);
+
         rotate_Camera_Aim(C);
     }
 }

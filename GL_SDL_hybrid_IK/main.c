@@ -8709,9 +8709,12 @@ void goto_Animation_Frame(int frame)
 
     rotate_vertex_groups_D_Init();
 
-    rotate_Camera_Aim(Camera);
-    update_camera(Camera, CamDist);
+    //rotate_Camera_Aim(Camera);
 
+    //direction_Pack D0 = length_AB(Camera->T->pos, Camera->T->target);
+
+    //update_camera(Camera, D0.distance);
+    //rotate_Camera(Camera, D0.distance);
     find_Camera_Objects();
 
     for (d = 0; d < deformerIndex; d ++)
@@ -26426,8 +26429,10 @@ int main(int argc, char * args[])
             strcat(Path, ".png");
 
             Camera = find_View(mouse_x, mouse_y, splitview);
-            update_camera_ratio(Camera, screen_width, screen_height);
-            find_Camera_Objects();
+
+            direction_Pack D = length_AB(Camera->T->pos, Camera->T->target);
+            rotate_Camera(Camera, D.distance);
+            //update_camera_ratio(Camera, screen_width, screen_height);
             populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
             generate_Object_Polygroups(Camera);
             render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 0);
@@ -26439,7 +26444,7 @@ int main(int argc, char * args[])
             DRAW_UI = 0;
 
             prep_for_Anim_Render();
-            update_camera_ratio(Camera, screen_width, screen_height);
+            //update_camera_ratio(Camera, screen_width, screen_height);
             update_camera(Camera, CamDist);
 
             Preak = 0;
