@@ -22,6 +22,7 @@ Copyright <2018> <Allan Kiipli>
 #define PIXEL_SIZE_ADJUSTMENT 1.5
 
 float CamDist = 10;
+float CamDist_Camera = 10;
 
 float persp_Near = 0.001;
 float persp_Far = 2048 * 10;

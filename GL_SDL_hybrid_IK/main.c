@@ -3418,7 +3418,14 @@ camera * find_View(int mouse_x, int mouse_y, int splitview)
         {
             if (mouse_y >= 0 && mouse_y < screen_height / 2) // top
             {
-                Camera = &Camera_Persp;
+                if (camIndex > CAMERAS && Camera_Persp_Anim != &Camera_Persp)
+                {
+                    Camera = Camera_Persp_Anim;
+                }
+                else
+                {
+                    Camera = &Camera_Persp;
+                }
             }
             else if (mouse_y >= screen_height / 2 && mouse_y <= screen_height) // low
             {
@@ -19197,8 +19204,8 @@ void add_Item_H_Button()
 
     if (Item_type == TYPE_CAMERA)
     {
-        add_Camera(screen_width, screen_height, CamDist, ortho_on, CAMERA_ANIM);
-        rotate_Camera(cameras[camIndex - 1], CamDist);
+        add_Camera(screen_width, screen_height, CamDist_Camera, ortho_on, CAMERA_ANIM);
+        rotate_Camera(cameras[camIndex - 1], CamDist_Camera);
     }
 
     if (dialog_lock)
