@@ -26430,8 +26430,9 @@ int main(int argc, char * args[])
 
             Camera = find_View(mouse_x, mouse_y, splitview);
 
-            direction_Pack D = length_AB(Camera->T->pos, Camera->T->target);
-            rotate_Camera(Camera, D.distance);
+//            direction_Pack D = length_AB(Camera->T->pos, Camera->T->target);
+//            rotate_Camera(Camera, D.distance);
+            rotate_Camera_Aim(Camera);
             //update_camera_ratio(Camera, screen_width, screen_height);
             populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
             generate_Object_Polygroups(Camera);

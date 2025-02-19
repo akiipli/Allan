@@ -44,7 +44,11 @@ void rotate_Camera_Aim(camera * C)
     //memcpy(T->rotVec_, Identity_, sizeof(float[3][3]));
 
     cross_Product((float[3]){0.0, 1.0, 0.0}, D.vec, T->rotVec_[0]);
+
+    normalizeF(T->rotVec_[0]);
+
     cross_Product(D.vec, T->rotVec_[0], T->rotVec_[1]);
+    //normalizeF(T->rotVec_[1]);
     memcpy(T->rotVec_[2], D.vec, sizeof(float[3]));
 
     rotate_axis(T->rot[2], T->rotVec_[0], T->rotVec_[1], T->rotVec_[0], T->rotVec_[1]);
