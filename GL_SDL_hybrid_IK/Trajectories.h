@@ -209,7 +209,14 @@ void find_Trajectory_Pos(float Proportion, trajectory * Trj, float Pos[3], int L
         Curve_Length = C->len;
     }
 
-    Proportion = fmod(Proportion, 1.0);
+    if (C->open && Proportion >= 1.0)
+    {
+        Proportion = 1.0;
+    }
+    else
+    {
+        Proportion = fmod(Proportion, 1.0);
+    }
 
     float Position_On_Curve = Curve_Length * Proportion;
     float segment_count = C->segment_count - 1;
