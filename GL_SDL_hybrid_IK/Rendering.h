@@ -772,7 +772,7 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
     }
 
     if (dot_light < 0)
-        dot_light = abs(dot_light);
+        dot_light = -dot_light; //abs(dot_light);
 
     P->D[volume_counter] = Q->B.Aim.dist;
     P->trip[volume_counter] = Q->index;
@@ -933,7 +933,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
         }
 
         if (dot_light < 0)
-            dot_light = abs(dot_light);
+            dot_light = -dot_light; //abs(dot_light);
 
         P->D[volume_counter] = dist;
         P->trip[volume_counter] = t;
@@ -1096,7 +1096,7 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
         }
 
         if (dot_light < 0)
-            dot_light = abs(dot_light);
+            dot_light = -dot_light; //abs(dot_light);
 
         P->D[volume_counter] = dist;
         P->trip[volume_counter] = t;
