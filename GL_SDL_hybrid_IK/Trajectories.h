@@ -272,6 +272,11 @@ void find_Trajectory_Pos(float Proportion, trajectory * Trj, float Pos[3], int L
     }
 }
 
+void set_T_Roll_z(transformer * T, float Value)
+{
+    T->rot[2] = Value;
+}
+
 void set_T_Trajectory_value(trajectory * Trj, transformer * T, float Value, int Level)
 {
     float Pos[3];
@@ -316,6 +321,7 @@ void move_Trajectories_Transformers_D(deformer * D, int frame, int level)
 
     transformer * T;
     trajectory * Trj;
+    trajectory_Pack trj_P;
 
     for (tr = 0; tr < trjIndex; tr ++)
     {
@@ -328,8 +334,10 @@ void move_Trajectories_Transformers_D(deformer * D, int frame, int level)
             {
                 //T->Timeline->current_Segment = find_current_Segment(T, frame);
                 //T->Timeline->start_Segment = 0;//T->Timeline->current_Segment;
-                T->Trj_Value = get_T_Trajectory_value(T, frame);
+                trj_P = get_T_Trajectory_value(T, frame);
+                T->Trj_Value = trj_P.Value;
                 set_T_Trajectory_value(Trj, T, T->Trj_Value, level);
+                T->rot[2] = trj_P.Rollz;
             }
         }
     }
@@ -342,6 +350,8 @@ void move_Trajectories_Transformers(int frame, int level)
     transformer * T;
     trajectory * Trj;
 
+    trajectory_Pack trj_P;
+
     for (tr = 0; tr < trjIndex; tr ++)
     {
         Trj = trajectories[tr];
@@ -353,8 +363,10 @@ void move_Trajectories_Transformers(int frame, int level)
             {
                 //T->Timeline->current_Segment = find_current_Segment(T, frame);
                 //T->Timeline->start_Segment = 0;//T->Timeline->current_Segment;
-                T->Trj_Value = get_T_Trajectory_value(T, frame);
+                trj_P = get_T_Trajectory_value(T, frame);
+                T->Trj_Value = trj_P.Value;
                 set_T_Trajectory_value(Trj, T, T->Trj_Value, level);
+                T->rot[2] = trj_P.Rollz;
             }
         }
     }

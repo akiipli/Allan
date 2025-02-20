@@ -67,6 +67,8 @@ float Traj = 0;
 float Trj_adjusted =0;
 float TrajDelta = 0;
 
+float Roll_z = 0;
+
 int Drag_Shine = 0;
 float Shine;
 float Shine_adjusted;
@@ -466,6 +468,9 @@ void draw_Properties_List(int s_height, int clear_background, int type, void * s
 
             sprintf(text, "%1.2f", Value);
             draw_Properties_Text(text, d_width, p_height, idx, 1, 3);
+
+            sprintf(text, "%1.2f", T->rot[2]); // Roll
+            draw_Properties_Text(text, d_width, p_height, idx, 1, 4);
             idx ++;
         }
     }

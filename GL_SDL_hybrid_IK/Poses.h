@@ -191,9 +191,16 @@ void create_Frame_Pose(deformer * D, int frame)
     }
 }
 
-float get_T_Trajectory_value(transformer * T, int frame)
+typedef struct
 {
-    float Value = 0.0;
+    float Value;
+    float Rollz;
+}
+trajectory_Pack;
+
+trajectory_Pack get_T_Trajectory_value(transformer * T, int frame)
+{
+    trajectory_Pack trj_P;
 
     timeline * Tm;
 
@@ -212,19 +219,22 @@ float get_T_Trajectory_value(transformer * T, int frame)
         if (frame < Tm->Frames[0])
         {
             Tm->current_Segment = Tm->start_Segment;
-            Value = Tm->Values[0].trj_val;
+            trj_P.Value = Tm->Values[0].trj_val;
+            trj_P.Rollz = Tm->Values[0].rot[2];
         }
         else if (frame >= Tm->Frames[Tm->key_frames - 1])
         {
-            Value = Tm->Values[Tm->key_frames - 1].trj_val;
+            Tm->current_Segment = Tm->start_Segment;
+            trj_P.Value = Tm->Values[Tm->key_frames - 1].trj_val;
+            trj_P.Rollz = Tm->Values[Tm->key_frames - 1].rot[2];
         }
         else
         {
             frame0 = Tm->current_Segment;
             frame1 = Tm->current_Segment + 1;
 
-            frame00 = Tm->Frames[Tm->current_Segment];
-            frame11 = Tm->Frames[Tm->current_Segment + 1];
+            frame00 = Tm->Frames[frame0];
+            frame11 = Tm->Frames[frame1];
 
             if (frame11 > frame00)
             {
@@ -269,7 +279,7 @@ float get_T_Trajectory_value(transformer * T, int frame)
             {
                 Tm->current_Segment ++;
 
-                if (Tm->current_Segment >= Tm->key_frames)
+                if (Tm->current_Segment >= Tm->key_frames - 1)
                 {
                     Tm->current_Segment = Tm->start_Segment;
                 }
@@ -283,11 +293,12 @@ float get_T_Trajectory_value(transformer * T, int frame)
                 }
             }
 
-            Value = Tm->Values[frame0].trj_val * a + Tm->Values[frame1].trj_val * b;
+            trj_P.Value = Tm->Values[frame0].trj_val * a + Tm->Values[frame1].trj_val * b;
+            trj_P.Rollz = Tm->Values[frame0].rot[2] * a + Tm->Values[frame1].rot[2] * b;
         }
     }
 
-    return Value;
+    return trj_P;
 }
 
 void create_Inbetween_Frame_Pose(deformer * D, int frame, int linear_pose)
@@ -327,8 +338,8 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame, int linear_pose)
                 frame0 = Tm->current_Segment;
                 frame1 = Tm->current_Segment + 1;
 
-                frame00 = Tm->Frames[Tm->current_Segment];
-                frame11 = Tm->Frames[Tm->current_Segment + 1];
+                frame00 = Tm->Frames[frame0];
+                frame11 = Tm->Frames[frame1];
 
                 if (frame11 > frame00)
                 {
@@ -373,7 +384,7 @@ void create_Inbetween_Frame_Pose(deformer * D, int frame, int linear_pose)
                 {
                     Tm->current_Segment ++;
 
-                    if (Tm->current_Segment >= Tm->key_frames)
+                    if (Tm->current_Segment >= Tm->key_frames - 1)
                     {
                         Tm->current_Segment = Tm->start_Segment;
                     }
@@ -508,8 +519,8 @@ void create_Inbetween_Frame_Morf(deformer * D, int frame)
                 frame0 = Tmm->current_Segment;
                 frame1 = Tmm->current_Segment + 1;
 
-                frame00 = Tmm->Frames[Tmm->current_Segment];
-                frame11 = Tmm->Frames[Tmm->current_Segment + 1];
+                frame00 = Tmm->Frames[frame0];
+                frame11 = Tmm->Frames[frame1];
 
                 if (frame11 > frame00)
                 {
@@ -552,7 +563,7 @@ void create_Inbetween_Frame_Morf(deformer * D, int frame)
                 {
                     Tmm->current_Segment ++;
 
-                    if (Tmm->current_Segment >= Tmm->key_frames)
+                    if (Tmm->current_Segment >= Tmm->key_frames - 1)
                     {
                         Tmm->current_Segment = Tmm->start_Segment;
                     }

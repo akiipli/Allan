@@ -846,6 +846,7 @@ int insert_trj_keyframe(transformer * T, int frame, float Value)
                 Tm->Acceleration[0].a_exponent = ACCELERATION_DEFAULT_OUT;
                 Tm->Acceleration[0].b_exponent = ACCELERATION_DEFAULT_IN;
                 Tm->Values[0].trj_val = Value;
+                Tm->Values[0].rot[2] = T->rot[2]; // Roll
 
                 return 1;
             }
@@ -913,6 +914,7 @@ int insert_trj_keyframe(transformer * T, int frame, float Value)
                 Tm->Acceleration[index].a_exponent = ACCELERATION_DEFAULT_OUT;
                 Tm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
                 Tm->Values[index].trj_val = Value;
+                Tm->Values[index].rot[2] = T->rot[2]; // Roll
 
                 return 1;
             }
@@ -924,6 +926,7 @@ int insert_trj_keyframe(transformer * T, int frame, float Value)
             Tm->Acceleration[index].a_exponent = ACCELERATION_DEFAULT_OUT;
             Tm->Acceleration[index].b_exponent = ACCELERATION_DEFAULT_IN;
             Tm->Values[index].trj_val = Value;
+            Tm->Values[index].rot[2] = T->rot[2]; // Roll
 
             return 1;
         }

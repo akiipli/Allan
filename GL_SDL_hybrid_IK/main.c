@@ -22,6 +22,8 @@ int MOVEMENT = 0;
 int SCALE = 0;
 int RESET = 0;
 
+int h_index, v_index; // mouse index in lists
+
 #define CUBEINDEX 7
 
 #define DEBUG_WITHOUT_IL 0 //  change this to 1
@@ -13027,9 +13029,11 @@ void handle_Item_Dialog(char letter, SDLMod mod)
                     Camera_Persp_Anim = CAM;
                     //Camera_Persp = *CAM;
 
-                    update_camera(CAM, CamDist);
+                    //update_camera(CAM, CamDist);
                     //CamDist = find_CamDist(Camera);
-                    find_Camera_Objects();
+                    rotate_Camera_Aim(CAM);
+
+                    find_objects_in_frame(CAM);
                     UPDATE_BACKGROUND = 1;
                 }
             }
@@ -13042,9 +13046,11 @@ void handle_Item_Dialog(char letter, SDLMod mod)
                 Camera_Persp_Anim = CAM0;
                 //Camera_Persp = *CAM0;
 
-                update_camera(CAM0, CamDist);
+                //update_camera(CAM0, CamDist);
 
-                find_Camera_Objects();
+                rotate_Camera(CAM0, CamDist);
+
+                find_objects_in_frame(CAM0);
                 UPDATE_BACKGROUND = 1;
             }
         }
@@ -13346,7 +13352,19 @@ void handle_Trajectory_Dialog(char letter, SDLMod mod)
 
             Trajectory_Value = Float_Value;
 
-            set_T_Trajectory_value(Trj, T, Trajectory_Value, subdLevel);
+            if (Trajectory_h_index == 3)
+            {
+                set_T_Trajectory_value(Trj, T, Trajectory_Value, subdLevel);
+            }
+            else if (Trajectory_h_index == 4)
+            {
+                set_T_Roll_z(T, Trajectory_Value);
+                rotate_T(T);
+                if (CAM->T == T) // && T->Constraint != NULL)
+                {
+                    rotate_Camera_Aim(CAM);
+                }
+            }
 
             update_Transformer_Object(T);
 
@@ -13692,7 +13710,10 @@ void clean_Unused_Transformers()
 
 void transfer_Trajectory_Values(trajectory * Trj, transformer * T)
 {
-    T->Trj_Value = get_T_Trajectory_value(T, currentFrame);
+    trajectory_Pack trj_P;
+    trj_P = get_T_Trajectory_value(T, currentFrame);
+    T->Trj_Value = trj_P.Value;
+    T->rot[2] = trj_P.Rollz;
 }
 
 void transfer_Transformer_Values(transformer * T)
@@ -19971,7 +19992,6 @@ int main(int argc, char * args[])
                         /* Properties panel */
                         if (mouse_x > SIDEBAR * 2 && mouse_x < SIDEBAR + DIALOG_WIDTH && mouse_y > DIALOG_HEIGHT && mouse_y < screen_height - (BUTTON_HEIGHT * DRAW_TIMELINE))
                         {
-                            int h_index, v_index;
                             h_index = (mouse_x - SIDEBAR * 2) / TABULATOR;
                             v_index = (mouse_y - DIALOG_HEIGHT) / BUTTON_HEIGHT;
 
@@ -21493,14 +21513,22 @@ int main(int argc, char * args[])
                                             poly_Render(tripsRender, wireframe, splitview, CamDist, 0, subdLevel);
                                             update_Trajectory_List(1, 0);
                                         }
-                                        else if (h_index == 3)
+                                        else if (h_index == 3 || h_index == 4)
                                         {
+                                            Trajectory_h_index = h_index;
                                             if (!Drag_Trajectory)
                                             {
                                                 Not_Drag = 1;
                                                 Drag_X = mouse_x;
                                                 Drag_Trajectory = 1;
-                                                Traj = T->Trj_Value; //get_T_Trajectory_value(T, currentFrame);
+                                                if (h_index == 3)
+                                                {
+                                                    Traj = T->Trj_Value;
+                                                }
+                                                else if (h_index == 4)
+                                                {
+                                                    Traj = T->rot[2];
+                                                }
                                             }
                                         }
                                     }
@@ -22192,7 +22220,14 @@ int main(int argc, char * args[])
 
                             T = Trj->Transformers[Trajectory_v_index];
                             //transfer_Trajectory_Values(Trj, T);
-                            Trajectory_Value = T->Trj_Value;
+                            if (Trajectory_h_index == 3)
+                            {
+                                Trajectory_Value = T->Trj_Value;
+                            }
+                            else if (Trajectory_h_index == 4)
+                            {
+                                Trajectory_Value = T->rot[2];
+                            }
 
                             edit_Trajectory_Value();
                         }
@@ -22393,9 +22428,22 @@ int main(int argc, char * args[])
                         Trj_adjusted = Traj + TrajDelta;
                         Trj_adjusted = clamp_f(Trj_adjusted, -100.0, 100.0);
 
-                        T->Trj_Value = Trj_adjusted;
+                        if (Trajectory_h_index == 3)
+                        {
+                            T->Trj_Value = Trj_adjusted;
+                            set_T_Trajectory_value(Trj, T, Trj_adjusted, subdLevel);
+                        }
+                        else if (Trajectory_h_index == 4)
+                        {
+                            T->rot[2] = Trj_adjusted;
+                            set_T_Roll_z(T, Trj_adjusted);
+                            rotate_T(T);
+                            if (CAM->T == T) // && T->Constraint != NULL)
+                            {
+                                rotate_Camera_Aim(CAM);
+                            }
+                        }
 
-                        set_T_Trajectory_value(Trj, T, Trj_adjusted, subdLevel);
                         update_Trajectory_List(0, 0);
 
                         update_Transformer_Object(T);
@@ -25898,7 +25946,15 @@ int main(int argc, char * args[])
                         }
                         else if (dialog_type == TRJ_DIALOG)
                         {
-                            T->Trj_Value = Trajectory_Value;
+                            if (Trajectory_h_index == 3)
+                            {
+                                T->Trj_Value = Trajectory_Value;
+                            }
+                            else if (Trajectory_h_index == 4)
+                            {
+                                T->rot[2] = Trajectory_Value;
+                            }
+
                             update_Trajectory_List(1, 0);
                         }
                     }
