@@ -1845,7 +1845,7 @@ void find_objects_in_frame(camera * C)
     object * O;
     int o;
     C->object_count = 0;
-    float deviation, aim_deviation; // objectradius,
+    float deviation, aim_deviation, objectradius;
     aim objectAim;
 
     int object_c = 0;
@@ -1858,19 +1858,19 @@ void find_objects_in_frame(camera * C)
             continue;
         O = objects[o];
         update_Box_T(O);
-        //objectradius = O->B.radius;
+        objectradius = O->B.radius;
         objectAim = vector3d(O->B, C->T->pos);
 
-//        if (objectAim.dist > objectradius)
-//        {
-//            deviation = atan2(objectradius * 2, objectAim.dist - objectradius);
-//        }
-//        else
-//        {
+        if (objectAim.dist > objectradius)
+        {
+            deviation = atan2(objectradius * 2, objectAim.dist - objectradius);
+        }
+        else
+        {
             deviation = pi;
-        //}
+        }
 
-        //deviation += C->view_minor;
+        deviation += C->view_minor;
 
         aim_deviation = acos(dot_productFF(C->T->aim, objectAim.vec));
 
@@ -1886,11 +1886,11 @@ void find_objects_in_frame(camera * C)
 
     int i, k, d;
 
-    for (i = 0; i < C->object_count - 1; i ++)
+    for (i = 1; i < C->object_count; i ++)
     {
-        for (k = 0; k < C->object_count - i - 1; k ++)
+        for (k = 0; k < C->object_count - i; k ++)
         {
-            if (d_index[k] < d_index[k + 1]) // to reverse use other comparison
+            if (d_index[k] > d_index[k + 1]) // to reverse use other comparison
             {
                 s = d_index[k + 1];
                 d_index[k + 1] = d_index[k];
