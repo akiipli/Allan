@@ -20997,9 +20997,10 @@ int main(int argc, char * args[])
 
                                         Camera = CAM;
                                         Camera_Persp_Anim = CAM;
-                                        update_camera_ratio(CAM, screen_width, screen_height);
-                                        update_camera(CAM, CamDist);
-                                        find_Camera_Objects();
+
+                                        rotate_Camera_Aim(CAM);
+
+                                        find_objects_in_frame(CAM);
                                         update_Items_List(1, 0);
                                     }
                                 }
