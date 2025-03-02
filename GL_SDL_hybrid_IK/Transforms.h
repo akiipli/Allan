@@ -85,6 +85,141 @@ union Dir
    normal N;
 };
 
+int place_Polygon_Into_HexG(camera * C, object * O, polygon * P, HexG * H, HexG * Super, int result, int * cancel)
+{
+    HexG * H_0;
+    int h;
+    float deviation;
+
+    deviation = acos(dot_productN((normal *)&H->D, P->B.Aim.vec));
+
+    if (H->Radius > P->B.deviation && deviation < H->Radius - P->B.deviation)
+    // (H->Radius > P->B.deviation && deviation < H->Radius)
+    // (H->Radius > P->B.deviation && deviation < H->Radius + P->B.deviation)
+    // (H->Radius > P->B.deviation && deviation < H->Radius - P->B.deviation) // is inside hexagon
+    // (H->Radius > P->B.deviation && deviation < H->Radius - P->B.deviation * 2)
+
+    // Polygon must be smaller than hexagon to fit in and
+    // more than half intersects // it intersects hexagon // is inside hexagon // it intersects more
+    {
+        if (H->subdivided) // && H->Radius * 0.5 > P->B.deviation) // && H->Level == 2
+        {
+            for (h = 0; h < 7; h ++)
+            {
+                H_0 = H->subH[h];
+                result = place_Polygon_Into_HexG(C, O, P, H_0, H, result, cancel);
+
+//                if (result)
+//                {
+//                    break;
+//                }
+            }
+        }
+
+        if (result == 0 && cancel[0] == 0)
+        {
+            if (H->Polygons != NULL && (H->polypacks + (POLYCHUNK / 2)) > (sizeof(H->Polygons) / sizeof(polyPack)))
+            {
+                H->Polygons = realloc(H->Polygons, sizeof(polyPack) * (H->polypacks + POLYCHUNK));
+            }
+            //printf("%d-%d\n", H->polypacks, H->index);
+            if (H->Polygons != NULL)
+            {
+                H->Polygons[H->polypacks].O = O;
+                H->Polygons[H->polypacks].idx = P->index;
+                H->polypacks ++;
+            }
+
+            cancel[0] = 1;
+        }
+    }
+
+    if (cancel[0])
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void generate_Hexa_Groups(camera * C)
+{
+    int result, * cancel;
+    int h, o, p;
+    int Cancel;
+    cancel = &Cancel;
+
+    object * O;
+    polygon * P;
+
+    HexG * H;
+
+    float R;
+
+    union Dir D = {{0.0, 0.0, -1.0}};
+
+    float H_Mark;
+    float V_Mark;
+
+    for (h = 0; h < hexaIndex; h ++)
+    {
+        H = Hexas[h];
+        H->polypacks = 0;
+
+        H_Mark = H->Center[0];
+        V_Mark = H->Center[1];
+
+        R = cos(V_Mark);
+        D.D.y = sin(V_Mark);
+        D.D.x = sin(H_Mark) * R;
+        D.D.z = cos(H_Mark) * R;
+
+//        D.D.y = V_Mark;
+//        D.D.x = H_Mark;
+//        D.D.z = 1;
+
+//        normalize((normal *)&D);
+
+        rotate_Vector(C->T, -D.D.x, D.D.y, D.D.z, &H->D);
+
+        //printf("H-D %d\t%f\t%f\t%f\n", h, H->D.x, H->D.y, H->D.z);
+    }
+
+    for (o = 0; o < C->object_count; o ++)
+    {
+        O = objects[C->objects[o]];
+
+        printf("%s\n", O->Name);
+
+        for (p = 0; p < O->polycount; p ++)
+        {
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+            if (P->B.backface)
+            {
+                continue;
+            }
+
+            for (h = 6; h < 7; h ++)
+            {
+                H = Hex_Group[h];
+                result = 0;
+                Cancel = 0;
+                result = place_Polygon_Into_HexG(C, O, P, H, H, result, cancel);
+
+//                printf("%d-%d\n", H->index, result);
+//                if (result)
+//                {
+//                    break;
+//                }
+            }
+        }
+        //printf("\n");
+    }
+}
+/*
 void generate_Object_Polygroups(camera * C)
 {
     int x, y;
@@ -167,6 +302,7 @@ void generate_Object_Polygroups(camera * C)
         V_Mark += V_step;
     }
 }
+*/
 
 void update_transformed_Objects(int obj_count)
 {

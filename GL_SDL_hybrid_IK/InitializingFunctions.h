@@ -778,7 +778,7 @@ void free_object(object * O)
         free_Morph_Timeline(O->Morph_Timeline);
         free(O->Morph_Timeline);
     }
-
+/*
     int x, y;
 
     for (y = 0; y < OBJECT_GROUP_V; y ++)
@@ -788,7 +788,7 @@ void free_object(object * O)
             free(O->Polygroups[y][x].indices);
         }
     }
-
+*/
     free(O->Name);
     free(O->WEncapsulator);
 
@@ -1018,7 +1018,7 @@ int initialize_object(int index,
     O->Morph_Maps = malloc(0 * sizeof(morph_map*));
     O->Morph_Maps_count = 0;
     O->Morph_Timeline = NULL;
-
+/*
     int x, y;
 
     for (y = 0; y < OBJECT_GROUP_V; y ++)
@@ -1028,7 +1028,7 @@ int initialize_object(int index,
             O->Polygroups[y][x].indices = malloc(O->polycount * sizeof(int));
         }
     }
-
+*/
     loaded_objects[index] = 1;
     return 1;
 }

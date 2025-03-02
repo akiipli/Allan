@@ -18,8 +18,8 @@ Copyright <2018> <Allan Kiipli>
 
 #define INFLUENCES 1
 
-#define OBJECT_GROUP_V 4
-#define OBJECT_GROUP_H 4
+#define OBJECT_GROUP_V 32
+#define OBJECT_GROUP_H 64
 
 typedef struct morph_map morph_map;
 typedef struct cp cp;
@@ -553,7 +553,7 @@ struct object
     morph_map ** Morph_Maps;
     int Morph_Maps_count;
 
-    polygroup Polygroups[OBJECT_GROUP_V][OBJECT_GROUP_H];
+    //polygroup Polygroups[OBJECT_GROUP_V][OBJECT_GROUP_H];
 
     morph_timeline * Morph_Timeline;
 };

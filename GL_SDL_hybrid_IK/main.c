@@ -97,6 +97,7 @@ typedef struct trajectory traj;
 #include "Subdivision.h"
 #include "Generators.h"
 #include "Creators.h"
+#include "Hexagon.h"
 #include "Transforms.h"
 #include "Arrays.h"
 #include "Lights.h"
@@ -301,6 +302,7 @@ int UPDATE_BACKGROUND = 1;
 int UPDATE_COLORS = 0;
 int UPDATE_UV = 0;
 int DRAW_UI = 1;
+int DRAW_HEXAS = 0;
 
 int DRAW_LABELS = 1;
 int DRAW_LOCATORS = 0;
@@ -919,6 +921,8 @@ void cleanup()
     free_Trajectories(); // Experimental
     free_Cameras(0);
     free_scene_extensions();
+
+    free_Hexagons();
 
     quit_app(0);
 }
@@ -3146,6 +3150,13 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
     {
         glViewport(SIDEBAR, BOTTOM_LINE, screen_width, screen_height);
         update_camera(Camera, CamDist);
+
+        if (DRAW_HEXAS)
+        {
+            render_Hexagons(Camera);
+            render_Hexagon_Labels(Camera, screen_width, screen_height);
+        }
+
         render_Objects(Camera, tripsRender, wireframe, draw_uv_view, rendermode, Level);
         if (!draw_uv_view)
         {
@@ -3156,6 +3167,7 @@ void poly_Render(int tripsRender, int wireframe, int splitview, float CamDist, i
             if (DRAW_LABELS)
             {
                 render_IK_Labels(screen_width, screen_height);
+
                 //render_poly_winding_Labels(screen_width, screen_height, O, Level);
                 //render_patch_edge_Labels(screen_width, screen_height, O, Level);
                 //render_patch_edge_polys_Labels(screen_width, screen_height, O, Level);
@@ -5501,7 +5513,7 @@ void open_OBJ(char * fileName)
 
             assert_Object_Selection();
 
-            subdLevel = -1;
+            //subdLevel = -1;
         }
     }
     dialog_lock = 0;
@@ -17842,7 +17854,7 @@ void save_load_Scene()
             obj_count = load_Objects(Path, VBO);
             add_objects_as_items(obj_count);
             create_edge_Flows(obj_count);
-            subdLevel = -1;
+            //subdLevel = -1;
 
             Path[0] = '\0';
             strcat(Path, scene_files_dir);
@@ -19497,6 +19509,9 @@ int main(int argc, char * args[])
     init_hierarcys();
     init_deformers();
     init_poses();
+    init_HexasColor();
+
+    create_Seven_Hexagons();
 
     add_Item(TYPE_OBJECT, O->Name, O);
 
@@ -25096,51 +25111,6 @@ int main(int argc, char * args[])
             else
             {
                 open_OBJ_dialog();
-                /*
-                int result;
-                char * fileName;
-                fileName = open_FileName(gHwnd);
-                OBJ_File = read_OBJ_file(fileName);
-
-                if (OBJ_File.initialized)
-                {
-                    result = create_Object_OBJ(fileName, &OBJ_File);
-
-                    printf("OBJ create result %d\n", result);
-
-                    if (result)
-                    {
-                        currentObject = objectIndex - 1;
-                        O0 = &objects[objectIndex - 1];
-                        subdLevel = -1;
-                    }
-
-//                    int k;
-//
-//                    for (i = 0; i < OBJ_File.Vertcoord_c; i += 3)
-//                    {
-//                        printf("v %f %f %f\n", OBJ_File.Vertcoords[i], OBJ_File.Vertcoords[i + 1], OBJ_File.Vertcoords[i + 2]);
-//                    }
-//                    for (i = 0; i < OBJ_File.Normcoord_c; i += 3)
-//                    {
-//                        printf("vn %f %f %f\n", OBJ_File.Normcoords[i], OBJ_File.Normcoords[i + 1], OBJ_File.Normcoords[i + 2]);
-//                    }
-//                    for (i = 0; i < OBJ_File.Textcoord_c; i += 2)
-//                    {
-//                        printf("vt %f %f\n", OBJ_File.Textcoords[i], OBJ_File.Textcoords[i + 1]);
-//                    }
-//                    for (i = 0; i < OBJ_File.Face_c; i ++)
-//                    {
-//                        printf("f ");
-//                        for (k = 0; k < OBJ_File.Faces[i].vert_c; k ++)
-//                        {
-//                            printf("%d/", OBJ_File.Faces[i].vert[k]);
-//                            printf("%d/", OBJ_File.Faces[i].text[k]);
-//                            printf("%d ", OBJ_File.Faces[i].norm[k]);
-//                        }
-//                        printf("\n");
-//                    }
-                }*/
                 message = -10;
             }
         }
@@ -26310,7 +26280,28 @@ int main(int argc, char * args[])
         }
         else if (message == 38)
         {
-            HINTS = !HINTS;
+            /*
+            populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
+            generate_Hexa_Groups(Camera);
+            //print_Hexa_Groups_Info();
+
+            union Dir D = {{0.0, 0.0, -1.0}};
+            HexG * G[HEXAS];
+            int g_idx;
+            g_idx = 0;
+            collect_Hexa_Groups(D.D, G, g_idx);
+
+            //print_Hexagons_Info();
+            */
+
+            if (mod & KMOD_SHIFT)
+            {
+                DRAW_HEXAS = !DRAW_HEXAS;
+            }
+            else
+            {
+                HINTS = !HINTS;
+            }
         }
         else if (message == 41)
         {
@@ -26499,7 +26490,8 @@ int main(int argc, char * args[])
             rotate_Camera_Aim(Camera);
             //update_camera_ratio(Camera, screen_width, screen_height);
             populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
-            generate_Object_Polygroups(Camera);
+            //generate_Object_Polygroups(Camera);
+            generate_Hexa_Groups(Camera);
             render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 0);
         }
         else if (message == 79) // F11
@@ -26528,7 +26520,8 @@ int main(int argc, char * args[])
                 strcat(Path, ".png");
 
                 populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
-                generate_Object_Polygroups(Camera);
+                //generate_Object_Polygroups(Camera);
+                generate_Hexa_Groups(Camera);
                 render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 1);
 
                 if (Preak)

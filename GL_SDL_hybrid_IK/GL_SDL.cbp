@@ -42,6 +42,7 @@
 		<Unit filename="ExtensionFunctions.h" />
 		<Unit filename="File_IO.h" />
 		<Unit filename="Generators.h" />
+		<Unit filename="Hexagon.h" />
 		<Unit filename="Hierarchys.h" />
 		<Unit filename="IKSolution.h" />
 		<Unit filename="ImageLoad.h" />

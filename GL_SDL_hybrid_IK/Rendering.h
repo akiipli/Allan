@@ -185,7 +185,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level, int width, int hei
 
     normal polynormal;
 
-    float BACKFACE_QUALIFIER = -0.5;
+    float BACKFACE_QUALIFIER = 0.0; // -0.5 // 0.0
 
 /*
     normal D;
@@ -772,7 +772,7 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
     }
 
     if (dot_light < 0)
-        dot_light = -dot_light; //abs(dot_light);
+        dot_light = -dot_light; // 0;
 
     P->D[volume_counter] = Q->B.Aim.dist;
     P->trip[volume_counter] = Q->index;
@@ -933,7 +933,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
         }
 
         if (dot_light < 0)
-            dot_light = -dot_light; //abs(dot_light);
+            dot_light = -dot_light; // 0;
 
         P->D[volume_counter] = dist;
         P->trip[volume_counter] = t;
@@ -1096,7 +1096,7 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
         }
 
         if (dot_light < 0)
-            dot_light = -dot_light; //abs(dot_light);
+            dot_light = -dot_light; // 0;
 
         P->D[volume_counter] = dist;
         P->trip[volume_counter] = t;
@@ -1122,11 +1122,11 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
     return Cancel;
 }
 
-RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, int gx, int gy)
+RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, HexG ** G, int g_idx)
 {
     trianges_cancel Cancel;
 
-    int i, idx, k, o, q, q0, q1, q2;
+    int i, idx, k, q, q0, q1, q2; // o
     //edge * E;
     polygon * P0;
     quadrant * Q, * Q0, * Q1, * Q2;
@@ -1156,32 +1156,36 @@ RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, int gx, int gy)
     int d;
     float s;
 
-    int t, Preak;
+    int p, t, Preak;
 
     Preak = 0;
 
-    polygroup * G;
+    polyPack * PP;
 
     float shading_normal[3];
 
+    int h;
+    HexG * H;
+
     if (L > 3) L = 3;
 
-    for (o = 0; o < C->object_count; o ++)
+    for (h = 0; h < g_idx; h ++)
     {
         if (Preak)
             break;
 
-        idx = C->objects[o];
-        O = objects[idx];
+        H = G[h];
 
-        G = &O->Polygroups[gy][gx];
-
-        for (i = 0; i < G->indices_count; i ++)
+        for (p = 0; p < H->polypacks; p ++)
         {
             if (Preak)
                 break;
 
-            idx = G->indices[i];
+            PP = &H->Polygons[p];
+
+            O = PP->O;
+
+            idx = PP->idx;
 
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
@@ -1679,10 +1683,10 @@ void project_Selected_Locators(camera * C, object * O, int * selected_transforme
     }
 }
 
-RGBA come_With_Pixel(pixel * P, camera * C, normal * D, int gx, int gy)
+RGBA come_With_Pixel(pixel * P, camera * C, normal * D, HexG ** G, int g_idx)
 {
     trianges_cancel Cancel;
-    int i, idx, k, o;
+    int i, idx, k; // o;
 
     //edge * E;
     polygon *P0;
@@ -1711,36 +1715,36 @@ RGBA come_With_Pixel(pixel * P, camera * C, normal * D, int gx, int gy)
     int d;
     float s;
 
-    int t, Preak;
+    int p, t, Preak;
 
     Preak = 0;
-
-    polygroup * G0;
+    polyPack * PP;
 
     float shading_normal[3];
 
-    for (o = 0; o < C->object_count; o ++)
+    int h;
+    HexG * H;
+
+    for (h = 0; h < g_idx; h ++)
     {
         if (Preak)
             break;
 
-        idx = C->objects[o];
-        O = objects[idx];
+        H = G[h];
 
-        G0 = &O->Polygroups[gy][gx];
-
-        for (i = 0; i < G0->indices_count; i ++)
+        for (p = 0; p < H->polypacks; p ++)
         {
             if (Preak)
                 break;
 
-            idx = G0->indices[i];
+            PP = &H->Polygons[p];
+
+            O = PP->O; //printf("%s", O->Name);
+
+            idx = PP->idx;
 
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-/*
-            dot = dot_product(&polynormal, D);
-*/
             aim_deviation = acos(dot_productN(D, P0->B.Aim.vec));
 
             if (aim_deviation > P0->B.deviation)
@@ -6782,6 +6786,58 @@ void render_Patch_Labels(int width, int height, object * O, int l)
     display_labels(width, height);
 }
 
+void label_Hexas(HexG * H, camera * C, int width, int height)
+{
+    int h;
+    HexG * H_0;
+    label * L;
+
+    int x_2 = width / 2;
+    int y_2 = height / 2;
+
+    float h_view = C->h_view * 2;
+    float v_view = C->v_view * 2;
+
+    if (label_count < LABELS)
+    {
+        L = labels[label_count ++];
+        sprintf(L->text, "%d", H->index);
+        L->x = (H->Center[0] / h_view) * width + x_2;
+        L->y = (-H->Center[1] / v_view) * height + y_2;
+    }
+
+    if (H->subdivided)
+    {
+        for (h = 0; h < 6; h ++) // 6
+        {
+            H_0 = H->subH[h];
+
+            if (H_0 != NULL)
+            {
+                label_Hexas(H_0, C, width, height);
+            }
+        }
+    }
+}
+
+void render_Hexagon_Labels(camera * C, int width, int height)
+{
+    int h;
+
+    HexG * H;
+
+    label_count = 0;
+
+    for (h = 0; h < 7; h ++)
+    {
+        H = Hex_Group[h];
+
+        label_Hexas(H, C, width, height);
+    }
+
+    display_labels(width, height);
+}
+
 void render_patch_edge_polys_Labels(int width, int height, object * O, int l)
 {
     int p, e, v_start, idx;
@@ -7102,6 +7158,54 @@ void render_Camera_Icons()
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+}
+
+void render_Hexagons(camera * C)
+{
+    float width = C->h_view;
+    float height = C->v_view;
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(-width, width, -height, height, 1, -1);
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_BLEND);
+
+//    glLineWidth(1);
+//    glColor4ubv(line_gray);
+
+    int h;
+
+    HexG * H;
+
+    for (h = 0; h < hexaIndex; h ++)
+    {
+        H = Hexas[h];
+
+        glColor4fv(hexasColor[h % 7]);
+
+        glBegin(GL_POLYGON);
+
+        glVertex2f(H->Verts[0][0], H->Verts[0][1]);
+        glVertex2f(H->Verts[1][0], H->Verts[1][1]);
+        glVertex2f(H->Verts[2][0], H->Verts[2][1]);
+        glVertex2f(H->Verts[3][0], H->Verts[3][1]);
+        glVertex2f(H->Verts[4][0], H->Verts[4][1]);
+        glVertex2f(H->Verts[5][0], H->Verts[5][1]);
+
+        glEnd();
+    }
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_BLEND);
+
+    glPopMatrix();
 }
 
 void render_Transformers(int currentLocator, int bind_Pose)
@@ -10006,6 +10110,97 @@ render_arguments;
 int Preak = 0;
 int Finish = 0;
 
+typedef struct
+{
+    int result;
+    HexG ** G;
+    int g_idx;
+}
+HexPack;
+
+HexPack collect_Hexas(HexG * H, direction D, HexG ** G, int g_idx, int result)
+{
+    HexG * H_0;
+    HexPack HP;
+    HP.result = result;
+    HP.G = G;
+    HP.g_idx = g_idx;
+
+    int h;
+    float deviation;
+
+    deviation = acos(dot_product((normal *)&H->D, (normal *)&D));
+
+    //printf("%f\t%f\n", deviation, H->Radius);
+
+    if (deviation < H->Radius) //(deviation < H->Radius) // (acos(deviation) < H->Radius * 2) //
+    {
+        if (H->subdivided)
+        {
+            for (h = 0; h < 7; h ++)
+            {
+                H_0 = H->subH[h];
+                HP = collect_Hexas(H_0, D, HP.G, HP.g_idx, HP.result);
+
+//                if (HP.result)
+//                {
+//                    break;
+//                }
+            }
+        }
+
+//        if (HP.result == 0)
+//        {
+        if (g_idx < HEXAS && H->polypacks > 0)
+        {
+            HP.G[HP.g_idx ++] = H;
+            HP.result ++;
+//                return HP;
+        }
+//        }
+    }
+    return HP;
+}
+
+HexPack collect_Hexa_Groups(direction D, HexG ** G, int g_idx)
+{
+    int h;
+
+    HexG * H;
+
+    HexPack HP;
+    HP.G = G;
+    HP.g_idx = g_idx;
+
+//    for (h = 0; h < hexaIndex; h ++)
+//    {
+//        H = Hexas[h];
+//        G[g_idx ++] = H;
+//    }
+
+//    int result;
+
+    for (h = 0; h < 7; h ++)
+    {
+        //printf("Hex_Group %d\n", h);
+
+        H = Hex_Group[h];
+        HP.result = 0;
+        HP = collect_Hexas(H, D, HP.G, HP.g_idx, HP.result);
+
+        //printf("%d ", HP.result);
+
+        //printf("\n");
+
+//        if (HP.result)
+//        {
+//            break;
+//        }
+    }
+
+    return HP;
+}
+
 void * perform_work(void * arguments)
 {
     //SDL_Event event;
@@ -10014,7 +10209,7 @@ void * perform_work(void * arguments)
 
     normalizeF((float *)&light_vec);
 
-    int x, y, index, gx, gy;
+    int x, y, index; //gx, gy;
     float R;
     pixel P;
 
@@ -10033,8 +10228,8 @@ void * perform_work(void * arguments)
     H_Mark += pi;
     V_Mark += pi_2;
 
-    float Group_Width = Args->C->h_view / (float)OBJECT_GROUP_H;
-    float Group_Height = Args->C->v_view / (float)OBJECT_GROUP_V;
+//    float Group_Width = Args->C->h_view / (float)OBJECT_GROUP_H;
+//    float Group_Height = Args->C->v_view / (float)OBJECT_GROUP_V;
     float View_Span_H = 0.0;
     float View_Span_V = 0.0;
 
@@ -10043,18 +10238,22 @@ void * perform_work(void * arguments)
     char Hint[] = "rendering 100";
     char Percent[] = "100";
 
+    HexG * G[HEXAS];
+    int g_idx;
+    HexPack HP;
+
     for (y = 0; y < Args->height; y ++)
     {
         R = sin(V_Mark);
         DDy = -cos(V_Mark);
         H_Mark = H_MARK;
 
-        gy = (int)(View_Span_V / Group_Height);
+//        gy = (int)(View_Span_V / Group_Height);
         View_Span_H = 0.0;
 
         for (x = Args->index; x < Args->width; x += NUM_THREADS)
         {
-            gx = (int)(View_Span_H / Group_Width);
+//            gx = (int)(View_Span_H / Group_Width);
 
 //            if (!Args->index && !(y % 10))
 //                printf(".");
@@ -10065,13 +10264,16 @@ void * perform_work(void * arguments)
             rotate_Vector(Args->C->T, -D.D.x, D.D.y, -D.D.z, &D.D); // direction is submitted from union
             index = y * Args->width * 4 + x * 4;
 
+            g_idx = 0;
+            HP = collect_Hexa_Groups(D.D, G, g_idx);
+
             if (Args->L == -1)
             {
-                rgba = come_With_Pixel(&P, Args->C, &D.N, gx, gy); // normal is submitted from union
+                rgba = come_With_Pixel(&P, Args->C, &D.N, HP.G, HP.g_idx); // normal is submitted from union
             }
             else
             {
-                rgba = come_With_Pixel_(&P, Args->C, &D.N, Args->L, gx, gy);
+                rgba = come_With_Pixel_(&P, Args->C, &D.N, Args->L, HP.G, HP.g_idx);
             }
 
             Args->data[index] =     (unsigned char)rgba.R;

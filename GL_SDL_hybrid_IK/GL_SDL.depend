@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1740053353 source:c:\gl_sdl_hybrid_ik\main.c
+1740770720 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -44,6 +44,7 @@
 	"Subdivision.h"
 	"Generators.h"
 	"Creators.h"
+	"Hexagon.h"
 	"Transforms.h"
 	"Arrays.h"
 	"Lights.h"
@@ -73,11 +74,11 @@
 
 1740041174 c:\gl_sdl_hybrid_ik\transformer.h
 
-1739085856 c:\gl_sdl_hybrid_ik\object.h
+1740769754 c:\gl_sdl_hybrid_ik\object.h
 
 1739038829 c:\gl_sdl_hybrid_ik\curves.h
 
-1739862061 c:\gl_sdl_hybrid_ik\userinterface.h
+1740517238 c:\gl_sdl_hybrid_ik\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
@@ -109,13 +110,13 @@
 
 1642261226 c:\gl_sdl_hybrid_ik\mathfunctions.h
 
-1739985920 c:\gl_sdl_hybrid_ik\cameras.h
+1740500500 c:\gl_sdl_hybrid_ik\cameras.h
 
 1737120496 c:\gl_sdl_hybrid_ik\selections.h
 
 1739484065 c:\gl_sdl_hybrid_ik\saving.h
 
-1733144028 c:\gl_sdl_hybrid_ik\initializingfunctions.h
+1740769803 c:\gl_sdl_hybrid_ik\initializingfunctions.h
 
 1636367110 c:\gl_sdl_hybrid_ik\extensionfunctions.h
 
@@ -132,15 +133,15 @@
 
 1636367110 c:\gl_sdl_hybrid_ik\zplane.h
 
-1636367110 c:\gl_sdl_hybrid_ik\cubedata.h
+1740142952 c:\gl_sdl_hybrid_ik\cubedata.h
 
-1739981243 c:\gl_sdl_hybrid_ik\transforms.h
+1740769789 c:\gl_sdl_hybrid_ik\transforms.h
 
 1636367110 c:\gl_sdl_hybrid_ik\arrays.h
 
 1738920184 c:\gl_sdl_hybrid_ik\lights.h
 
-1740059510 c:\gl_sdl_hybrid_ik\rendering.h
+1740910378 c:\gl_sdl_hybrid_ik\rendering.h
 
 1737116074 c:\gl_sdl_hybrid_ik\hierarchys.h
 
@@ -151,4 +152,6 @@
 1736252479 c:\gl_sdl_hybrid_ik\modeling.h
 
 1740051626 c:\gl_sdl_hybrid_ik\trajectories.h
+
+1740769927 c:\gl_sdl_hybrid_ik\hexagon.h
 
