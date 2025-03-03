@@ -24,7 +24,7 @@ int RESET = 0;
 
 int h_index, v_index; // mouse index in lists
 
-#define CUBEINDEX 7
+#define CUBEINDEX 8
 
 #define DEBUG_WITHOUT_IL 0 //  change this to 1
 
@@ -920,6 +920,7 @@ void cleanup()
 
     free_Trajectories(); // Experimental
     free_Cameras(0);
+    release_Light0();
     free_scene_extensions();
 
     free_Hexagons();
@@ -19272,6 +19273,7 @@ int main(int argc, char * args[])
 
     init_transformer(&World, NULL, "World");
     init_Cameras();
+    init_Light0();
     init_camera(&Camera_Persp, "Perspective", screen_width, screen_height, CamDist, ortho_on, CAMERA_PERSPECTIVE);
     init_camera(&Camera_Top, "Top", screen_width, screen_height, CamDist, ortho_on, CAMERA_TOP);
     init_camera(&Camera_Front, "Front", screen_width, screen_height, CamDist, ortho_on, CAMERA_FRONT);
@@ -26483,15 +26485,22 @@ int main(int argc, char * args[])
             strcat(Path, renderName);
             strcat(Path, ".png");
 
-            Camera = find_View(mouse_x, mouse_y, splitview);
+            prep_for_Anim_Render();
 
-//            direction_Pack D = length_AB(Camera->T->pos, Camera->T->target);
-//            rotate_Camera(Camera, D.distance);
-            rotate_Camera_Aim(Camera);
-            //update_camera_ratio(Camera, screen_width, screen_height);
-            populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
-            //generate_Object_Polygroups(Camera);
+            update_camera(Camera, CamDist);
+
+            update_rotate_bounding_box();
+
+            populate_box_3d_Aim_And_Deviation(Camera, subdLevel);
             generate_Hexa_Groups(Camera);
+
+            find_objects_in_frame(Light0);
+
+            printf("Light0 %d\n", Light0->object_count);
+
+            populate_box_3d_Aim_And_Deviation_light(Light0); // level -1
+            generate_Hexa_Groups_light(Light0);
+
             render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 0);
         }
         else if (message == 79) // F11
@@ -26501,7 +26510,7 @@ int main(int argc, char * args[])
             DRAW_UI = 0;
 
             prep_for_Anim_Render();
-            //update_camera_ratio(Camera, screen_width, screen_height);
+
             update_camera(Camera, CamDist);
 
             Preak = 0;
@@ -26519,9 +26528,16 @@ int main(int argc, char * args[])
                 strcat(Path, frame_N);
                 strcat(Path, ".png");
 
-                populate_box_3d_Aim_And_Deviation(Camera, subdLevel, screen_width, screen_height);
-                //generate_Object_Polygroups(Camera);
+                populate_box_3d_Aim_And_Deviation(Camera, subdLevel);
                 generate_Hexa_Groups(Camera);
+
+                find_objects_in_frame(Light0);
+
+                printf("Light0 %d\n", Light0->object_count);
+
+                populate_box_3d_Aim_And_Deviation_light(Light0); // level -1
+                generate_Hexa_Groups_light(Light0);
+
                 render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 1);
 
                 if (Preak)

@@ -15,11 +15,15 @@ Copyright <2018> <Allan Kiipli>
 #define CAMERA_LEFT 3
 #define CAMERA_THUMB 4
 #define CAMERA_ANIM 5
+#define CAMERA_LIGHT 6
 
 #define CAMERAS 5
 #define CAMERAS_TOTAL 30
 
 #define PIXEL_SIZE_ADJUSTMENT 1.5
+
+float light_cone = 0.2;
+float SHADOW = 255 / 2;
 
 float CamDist = 10;
 float CamDist_Camera = 10;
@@ -96,11 +100,13 @@ void read_Camera_Pose(camera * C)
     CamDist = C->P->CamDist;
 }
 
-camera Camera_Persp, Camera_Top, Camera_Front, Camera_Left, Camera_Thumb;
+camera Camera_Persp, Camera_Top, Camera_Front, Camera_Left, Camera_Thumb, Light_Render;
 camera * Camera;
 camera * CAM = NULL;
 camera * CAM0 = &Camera_Persp;
 camera * Camera_Persp_Anim = &Camera_Persp; // split view
+
+camera * Light0 = &Light_Render;
 
 camera * cameras[CAMERAS_TOTAL];
 
@@ -151,6 +157,33 @@ void init_Cameras()
         cameras[c]->P = malloc(sizeof(camera_pose));
         init_transformer(cameras[c]->T, &World, "Camera");
     }
+}
+
+void update_light_ratio(camera * C, int hres, int vres)
+{
+    C->width = hres;
+    C->height = vres;
+    C->h_v_ratio = (float)hres / (float)vres;
+    C->v_view = C->h_view / C->h_v_ratio;
+
+    if (C->h_view > C->v_view)
+    {
+        C->view_minor = C->v_view;
+        C->view_major = C->h_view;
+    }
+    else
+    {
+        C->view_minor = C->v_view;
+        C->view_major = C->h_view;
+    }
+
+    C->View_Radius = sqrt(C->h_view * C->h_view + C->v_view * C->v_view);
+    C->Resolution_Radius = sqrt(C->width * C->width + C->height * C->height);
+    C->Pixel_Size_In_Radians = C->View_Radius / C->Resolution_Radius;
+
+    //printf("Pixel Size In Radians %f\n", C->Pixel_Size_In_Radians);
+
+    if (hres > vres){C->dim = hres; C->_ratio = C->h_v_ratio;} else {C->dim = vres; C->_ratio = 1.0 / C->h_v_ratio;}
 }
 
 void update_camera_ratio(camera * C, int hres, int vres)
@@ -387,6 +420,35 @@ void add_Camera(int screen_width, int screen_height, int CamDist, int ortho_on, 
             camIndex ++;
         }
     }
+}
+
+void rotate_Camera_Aim(camera * C);
+
+void init_Light0()
+{
+    Light0->T = calloc(1, sizeof(transformer));
+    Light0->P = malloc(sizeof(camera_pose));
+    init_transformer(Light0->T, &World, "Light Render");
+
+    init_camera(Light0, "Light0", 100, 100, 30, 0, CAMERA_LIGHT);
+
+    Light0->T->rot[0] = 2.0;
+    Light0->T->rot[1] = 1.0;
+    Light0->T->rot[2] = 0.0;
+
+    rotate_T(Light0->T);
+
+    //rotate_Camera_Aim(Light0);
+
+    move_Back(Light0->T, 30);
+
+    update_light_ratio(Light0, 100, 100);
+}
+
+void release_Light0()
+{
+    free(Light0->T);
+    free(Light0->P);
 }
 
 #endif // CAMERAS_H_INCLUDED

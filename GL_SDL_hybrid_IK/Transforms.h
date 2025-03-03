@@ -90,6 +90,7 @@ int place_Polygon_Into_HexG(camera * C, object * O, polygon * P, HexG * H, HexG 
     HexG * H_0;
     int h;
     float deviation;
+    polyPack * PP;
 
     deviation = acos(dot_productN((normal *)&H->D, P->B.Aim.vec));
 
@@ -108,11 +109,6 @@ int place_Polygon_Into_HexG(camera * C, object * O, polygon * P, HexG * H, HexG 
             {
                 H_0 = H->subH[h];
                 result = place_Polygon_Into_HexG(C, O, P, H_0, H, result, cancel);
-
-//                if (result)
-//                {
-//                    break;
-//                }
             }
         }
 
@@ -122,11 +118,14 @@ int place_Polygon_Into_HexG(camera * C, object * O, polygon * P, HexG * H, HexG 
             {
                 H->Polygons = realloc(H->Polygons, sizeof(polyPack) * (H->polypacks + POLYCHUNK));
             }
-            //printf("%d-%d\n", H->polypacks, H->index);
             if (H->Polygons != NULL)
             {
-                H->Polygons[H->polypacks].O = O;
-                H->Polygons[H->polypacks].idx = P->index;
+                PP = &H->Polygons[H->polypacks];
+                PP->O = O;
+                PP->idx = P->index;
+                PP->deviation = P->B.deviation;
+                memcpy(&PP->Aim, &P->B.Aim, sizeof(aim));
+                PP->backface = P->B.backface;
                 H->polypacks ++;
             }
 
@@ -176,15 +175,7 @@ void generate_Hexa_Groups(camera * C)
         D.D.x = sin(H_Mark) * R;
         D.D.z = cos(H_Mark) * R;
 
-//        D.D.y = V_Mark;
-//        D.D.x = H_Mark;
-//        D.D.z = 1;
-
-//        normalize((normal *)&D);
-
         rotate_Vector(C->T, -D.D.x, D.D.y, D.D.z, &H->D);
-
-        //printf("H-D %d\t%f\t%f\t%f\n", h, H->D.x, H->D.y, H->D.z);
     }
 
     for (o = 0; o < C->object_count; o ++)
@@ -208,101 +199,121 @@ void generate_Hexa_Groups(camera * C)
                 result = 0;
                 Cancel = 0;
                 result = place_Polygon_Into_HexG(C, O, P, H, H, result, cancel);
-
-//                printf("%d-%d\n", H->index, result);
-//                if (result)
-//                {
-//                    break;
-//                }
             }
         }
-        //printf("\n");
     }
 }
-/*
-void generate_Object_Polygroups(camera * C)
-{
-    int x, y;
-    float R;
 
-    int o, p;
+int place_Polygon_Into_HexG_light(camera * C, object * O, polygon * P, HexG * H, HexG * Super, int result, int * cancel)
+{
+    HexG * H_0;
+    int h;
+    float deviation;
+    polyPack * PP;
+
+    deviation = acos(dot_productN((normal *)&H->D_light0, P->B.Aim.vec));
+
+    if (H->Radius > P->B.deviation && deviation < H->Radius - P->B.deviation)
+    {
+        if (H->subdivided)
+        {
+            for (h = 0; h < 7; h ++)
+            {
+                H_0 = H->subH[h];
+                result = place_Polygon_Into_HexG_light(C, O, P, H_0, H, result, cancel);
+            }
+        }
+
+        if (result == 0 && cancel[0] == 0)
+        {
+            if (H->Lights != NULL && (H->lightpacks + (POLYCHUNK / 2)) > (sizeof(H->Lights) / sizeof(polyPack)))
+            {
+                H->Lights = realloc(H->Lights, sizeof(polyPack) * (H->lightpacks + POLYCHUNK));
+            }
+
+            if (H->Lights != NULL)
+            {
+                PP = &H->Lights[H->lightpacks];
+                PP->O = O;
+                PP->idx = P->index;
+                PP->deviation = P->B.deviation;
+                memcpy(&PP->Aim, &P->B.Aim, sizeof(aim));
+                PP->backface = P->B.backface;
+                H->lightpacks ++;
+            }
+
+            cancel[0] = 1;
+        }
+    }
+
+    if (cancel[0])
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void generate_Hexa_Groups_light(camera * C)
+{
+    int result, * cancel;
+    int h, o, p;
+    int Cancel;
+    cancel = &Cancel;
 
     object * O;
     polygon * P;
 
-    polygroup * G;
+    HexG * H;
 
-    float deviation;
+    float R;
 
     union Dir D = {{0.0, 0.0, -1.0}};
-    float DDy;
 
-    float H_Mark = C->h_view / 2.0;
-    float V_Mark = -C->v_view / 2.0;
-    float H_step = (C->h_view / (float)OBJECT_GROUP_H);
-    float V_step = (C->v_view / (float)OBJECT_GROUP_V);
-    H_Mark -= H_step / 2.0;
-    V_Mark += V_step / 2.0;
-    H_Mark += pi;
-    V_Mark += pi_2;
+    float H_Mark;
+    float V_Mark;
 
-    float Radius;
-
-    Radius = sqrt(V_step * V_step + H_step * H_step) / 1.9;
-
-    //printf("h_view %f\n", C->h_view);
-    //printf("Radius %f\n", Radius);
-
-    float H_MARK = H_Mark;
-
-    for (y = 0; y < OBJECT_GROUP_V; y ++)
+    for (h = 0; h < hexaIndex; h ++)
     {
-        R = sin(V_Mark);
-        DDy = -cos(V_Mark);
-        H_Mark = H_MARK;
-        for (x = 0; x < OBJECT_GROUP_H; x ++)
+        H = Hexas[h];
+        H->lightpacks = 0;
+
+        H_Mark = H->Center[0];
+        V_Mark = H->Center[1];
+
+        R = cos(V_Mark);
+        D.D.y = sin(V_Mark);
+        D.D.x = sin(H_Mark) * R;
+        D.D.z = cos(H_Mark) * R;
+
+        rotate_Vector(C->T, -D.D.x, D.D.y, D.D.z, &H->D_light0);
+    }
+
+    for (o = 0; o < C->object_count; o ++)
+    {
+        O = objects[C->objects[o]];
+
+        for (p = 0; p < O->polycount; p ++)
         {
-            D.D.y = DDy;
-            D.D.x = sin(H_Mark) * R;
-            D.D.z = cos(H_Mark) * R;
+            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
 
-            rotate_Vector(C->T, -D.D.x, D.D.y, -D.D.z, &D.D); // direction is submitted from union
+//            if (P->B.backface)
+//            {
+//                continue;
+//            }
 
-            for (o = 0; o < C->object_count; o ++)
+            for (h = 6; h < 7; h ++)
             {
-                O = objects[C->objects[o]];
-
-                G = &O->Polygroups[y][x];
-
-                G->indices_count = 0;
-
-                for (p = 0; p < O->polycount; p ++)
-                {
-                    P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-
-                    if (P->B.backface)
-                    {
-                        continue;
-                    }
-
-                    deviation = dot_productN((normal *)&D, P->B.Aim.vec);
-
-                    if (acos(deviation) < Radius + P->B.deviation)
-                    {
-                        G->indices[G->indices_count ++] = P->index;
-                    }
-                }
-
-                //printf("%s %d, %d, %d\n", O->Name, G->indices_count, y, x);
+                H = Hex_Group[h];
+                result = 0;
+                Cancel = 0;
+                result = place_Polygon_Into_HexG_light(C, O, P, H, H, result, cancel);
             }
-
-            H_Mark -= H_step;
         }
-
-        V_Mark += V_step;
     }
 }
-*/
 
 void update_transformed_Objects(int obj_count)
 {

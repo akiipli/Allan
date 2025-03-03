@@ -52,6 +52,9 @@ typedef struct
 {
     object * O;
     int idx;
+    float deviation;
+    aim Aim;
+    int backface;
 }
 polyPack;
 
@@ -65,6 +68,7 @@ struct HexG
     float Verts[6][2];
     float Edges[6][2];
     direction D;
+    direction D_light0;
     HexG * super; // since subdivided hexagons share parents, super may mislead
     int Level;
 
@@ -99,6 +103,9 @@ struct HexG
     };
     int polypacks;
     polyPack * Polygons;
+
+    int lightpacks;
+    polyPack * Lights;
     /*
       Add poly and vertex data, polygroups
     */
@@ -147,6 +154,7 @@ int subdivide_Hexagon(HexG * H)
             else
             {
                 H_0->Polygons = malloc(0);
+                H_0->Lights = malloc(0);
                 H_0->index = hexaIndex;
                 H_0->super = H;
                 H_0->Level = H->Level + 1;
@@ -166,6 +174,7 @@ int subdivide_Hexagon(HexG * H)
     else
     {
         H_0->Polygons = malloc(0);
+        H_0->Lights = malloc(0);
         H_0->index = hexaIndex;
         H_0->super = H;
         H_0->Level = H->Level + 1;
@@ -273,6 +282,7 @@ int create_Seven_Hexagons()
         else
         {
             H->Polygons = malloc(0);
+            H->Lights = malloc(0);
             H->index = hexaIndex;
             H->super = H;
             H->Level = 0;
@@ -527,6 +537,10 @@ void free_Hexagons()
         if (H->Polygons != NULL)
         {
             free(H->Polygons);
+        }
+        if (H->Lights != NULL)
+        {
+            free(H->Lights);
         }
         free(H);
     }
