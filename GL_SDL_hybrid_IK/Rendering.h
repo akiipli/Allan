@@ -650,7 +650,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
     normal polynormal;
 
-    float BACKFACE_QUALIFIER = 0.0; // -0.5 // 0.0
+    float BACKFACE_QUALIFIER = -0.5; // 0.0
 
 /*
     normal D;
@@ -1269,12 +1269,14 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
     Cancel.cancel = 0;
 
     int idx, c;
-    float dot, dist;
+    float dot, dist, Dot;
     normal polynormal;
     vertex * V;
     polyplane plane;
     float polypoints[3][3];
+    float polynormals[3][3];
     float intersection_Point[3];
+    texelPack T_uvNormal;
     float shadow_intensity = 1.0;
 
     polynormal.x = -T->N.Tx;
@@ -1288,16 +1290,25 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
     polypoints[0][0] = V->Tx;
     polypoints[0][1] = V->Ty;
     polypoints[0][2] = V->Tz;
+    polynormals[0][0] = V->N.Tx;
+    polynormals[0][1] = V->N.Ty;
+    polynormals[0][2] = V->N.Tz;
     idx = T->verts[1];
     V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
     polypoints[1][0] = V->Tx;
     polypoints[1][1] = V->Ty;
     polypoints[1][2] = V->Tz;
+    polynormals[1][0] = V->N.Tx;
+    polynormals[1][1] = V->N.Ty;
+    polynormals[1][2] = V->N.Tz;
     idx = T->verts[2];
     V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
     polypoints[2][0] = V->Tx;
     polypoints[2][1] = V->Ty;
     polypoints[2][2] = V->Tz;
+    polynormals[2][0] = V->N.Tx;
+    polynormals[2][1] = V->N.Ty;
+    polynormals[2][2] = V->N.Tz;
 
     plane = init_plane(polypoints[1], &polynormal);
     dist = nearest(Light0->T->pos, plane);
@@ -1314,12 +1325,21 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
 
         if (c > 0)
         {
-            shadow_intensity = dist / Dist;
-            shadow_intensity = pow(shadow_intensity, 4.0);
+            normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);
+
+            Dot = dot_productF(T_uvNormal.normal, D);
+
+            if (Dot < 0.0)
+            {
+                Dot = - Dot;
+            }
+
+            //shadow_intensity = dist / Dist;
+            //shadow_intensity = pow(shadow_intensity, 4.0);  // fade to distance
 
             if (O == Pixel_Object) // self shadow
             {
-                shadow_intensity *= 0.5;
+                shadow_intensity *= Dot;
             }
 
             shadow[0] = SHADOW * shadow_intensity; // * dot
@@ -1344,12 +1364,14 @@ trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Lig
     Cancel.cancel = 0;
 
     int idx, c;
-    float dot, dist;
+    float dot, dist, Dot;
     normal polynormal;
     vertex * V;
     polyplane plane;
     float polypoints[3][3];
+    float polynormals[3][3];
     float intersection_Point[3];
+    texelPack T_uvNormal;
     float shadow_intensity = 1.0;
 
     polynormal.x = -T->N.Tx;
@@ -1363,16 +1385,25 @@ trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Lig
     polypoints[0][0] = V->Tx;
     polypoints[0][1] = V->Ty;
     polypoints[0][2] = V->Tz;
+    polynormals[0][0] = V->N.Tx;
+    polynormals[0][1] = V->N.Ty;
+    polynormals[0][2] = V->N.Tz;
     idx = T->verts[1];
     V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
     polypoints[1][0] = V->Tx;
     polypoints[1][1] = V->Ty;
     polypoints[1][2] = V->Tz;
+    polynormals[1][0] = V->N.Tx;
+    polynormals[1][1] = V->N.Ty;
+    polynormals[1][2] = V->N.Tz;
     idx = T->verts[2];
     V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
     polypoints[2][0] = V->Tx;
     polypoints[2][1] = V->Ty;
     polypoints[2][2] = V->Tz;
+    polynormals[2][0] = V->N.Tx;
+    polynormals[2][1] = V->N.Ty;
+    polynormals[2][2] = V->N.Tz;
 
     plane = init_plane(polypoints[1], &polynormal);
     dist = nearest(Light0->T->pos, plane);
@@ -1389,12 +1420,21 @@ trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Lig
 
         if (c > 0)
         {
-            shadow_intensity = dist / Dist;
-            shadow_intensity = pow(shadow_intensity, 4.0);
+            normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);
+
+            Dot = dot_productF(T_uvNormal.normal, D);
+
+            if (Dot < 0.0)
+            {
+                Dot = - Dot;
+            }
+
+            //shadow_intensity = dist / Dist;
+            //shadow_intensity = pow(shadow_intensity, 4.0); // fade to distance
 
             if (O == Pixel_Object) // self shadow
             {
-                shadow_intensity *= 0.5;
+                shadow_intensity *= Dot;
             }
 
             shadow[0] = SHADOW * shadow_intensity; // * dot
@@ -1799,7 +1839,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
             g = Material.RGBA.G;
             b = Material.RGBA.B;
             a = Material.RGBA.A;
-            normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
+            normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);
         }
         if (Material.smooth)
         {
@@ -1963,7 +2003,7 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
             g = Material.RGBA.G;
             b = Material.RGBA.B;
             a = Material.RGBA.A;
-            normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);;
+            normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);
         }
         if (Material.smooth)
         {
