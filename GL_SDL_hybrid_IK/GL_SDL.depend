@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1741006718 source:c:\gl_sdl_hybrid_ik\main.c
+1741019989 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -110,7 +110,7 @@
 
 1642261226 c:\gl_sdl_hybrid_ik\mathfunctions.h
 
-1740988417 c:\gl_sdl_hybrid_ik\cameras.h
+1741019973 c:\gl_sdl_hybrid_ik\cameras.h
 
 1737120496 c:\gl_sdl_hybrid_ik\selections.h
 
@@ -139,9 +139,9 @@
 
 1636367110 c:\gl_sdl_hybrid_ik\arrays.h
 
-1740929714 c:\gl_sdl_hybrid_ik\lights.h
+1741019973 c:\gl_sdl_hybrid_ik\lights.h
 
-1741011935 c:\gl_sdl_hybrid_ik\rendering.h
+1741020623 c:\gl_sdl_hybrid_ik\rendering.h
 
 1737116074 c:\gl_sdl_hybrid_ik\hierarchys.h
 

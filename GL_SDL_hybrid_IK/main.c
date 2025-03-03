@@ -5514,7 +5514,7 @@ void open_OBJ(char * fileName)
 
             assert_Object_Selection();
 
-            //subdLevel = -1;
+            subdLevel = -1;
         }
     }
     dialog_lock = 0;
@@ -17855,7 +17855,7 @@ void save_load_Scene()
             obj_count = load_Objects(Path, VBO);
             add_objects_as_items(obj_count);
             create_edge_Flows(obj_count);
-            //subdLevel = -1;
+            subdLevel = -1;
 
             Path[0] = '\0';
             strcat(Path, scene_files_dir);
@@ -25396,6 +25396,7 @@ int main(int argc, char * args[])
                 init_Hint();
                 update_Light(Light_Themes[currentTheme]);
                 init_lights();
+                update_Light0(Light0, Light_Themes[currentTheme]);
             }
             else if (DRAW_LOCATORS)
             {

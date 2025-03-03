@@ -181,6 +181,17 @@ void setMatrices()
 
 }
 
+void update_Light0(camera * Light0, Light L)
+{
+    Light0->T->pos[0] = L.Position[0];
+    Light0->T->pos[1] = L.Position[1];
+    Light0->T->pos[2] = L.Position[2];
+
+    rotate_Camera_Aim(Light0);
+
+    move_Back(Light0->T, LightDist);
+}
+
 void update_Light(Light L)
 {
     //float len = sqrt(L.Position[0] * L.Position[0] + L.Position[1] * L.Position[1] + L.Position[2] * L.Position[2]);

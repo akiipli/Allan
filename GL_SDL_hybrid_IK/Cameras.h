@@ -22,6 +22,7 @@ Copyright <2018> <Allan Kiipli>
 
 #define PIXEL_SIZE_ADJUSTMENT 1.5
 
+float LightDist = 30.0;
 float light_cone = 0.2;
 float SHADOW = 255 / 2;
 
@@ -431,16 +432,20 @@ void init_Light0()
     init_transformer(Light0->T, &World, "Light Render");
 
     init_camera(Light0, "Light0", 100, 100, 30, 0, CAMERA_LIGHT);
-
+/*
     Light0->T->rot[0] = 2.0;
     Light0->T->rot[1] = 1.0;
     Light0->T->rot[2] = 0.0;
 
     rotate_T(Light0->T);
+*/
+    Light0->T->pos[0] = 10.0;
+    Light0->T->pos[1] = 10.0;
+    Light0->T->pos[2] = 10.0;
 
-    //rotate_Camera_Aim(Light0);
+    rotate_Camera_Aim(Light0);
 
-    move_Back(Light0->T, 30);
+    move_Back(Light0->T, LightDist);
 
     update_light_ratio(Light0, 100, 100);
 }
