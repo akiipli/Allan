@@ -26498,7 +26498,7 @@ int main(int argc, char * args[])
 
             printf("Light0 %d\n", Light0->object_count);
 
-            populate_box_3d_Aim_And_Deviation_light(Light0); // level -1
+            populate_box_3d_Aim_And_Deviation_light(Light0, subdLevel); // level -1
             generate_Hexa_Groups_light(Light0);
 
             render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 0);
@@ -26535,7 +26535,7 @@ int main(int argc, char * args[])
 
                 printf("Light0 %d\n", Light0->object_count);
 
-                populate_box_3d_Aim_And_Deviation_light(Light0); // level -1
+                populate_box_3d_Aim_And_Deviation_light(Light0, subdLevel); // level -1
                 generate_Hexa_Groups_light(Light0);
 
                 render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 1);

@@ -52,9 +52,6 @@ typedef struct
 {
     object * O;
     int idx;
-    float deviation;
-    aim Aim;
-    int backface;
 }
 polyPack;
 

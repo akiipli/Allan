@@ -633,13 +633,15 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
     }
 }
 
-void populate_box_3d_Aim_And_Deviation_light(camera * C)
+void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 {
-    int o, p, idx, t, v;
+    int o, p, q, q0, idx, t, v, L;
 
     vertex * V;
     object * O;
     polygon * P;
+    quadrant * Q, * Q0;
+    //edge * E;
     triangle * T;
 
     aim polyAim, vertexAim;
@@ -650,75 +652,331 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C)
 
     float BACKFACE_QUALIFIER = 0.0; // -0.5 // 0.0
 
+/*
+    normal D;
+    D.x = C->T->rotVec_[2][0];
+    D.y = C->T->rotVec_[2][1];
+    D.z = C->T->rotVec_[2][2];
+*/
+
+    int l, l0;
+
+    if (level > 3) level = 3;
+
     for (o = 0; o < C->object_count; o ++)
     {
         O = objects[C->objects[o]];
 
-        for (v = 0; v < O->vertcount; v ++)
+        if (level > O->subdlevel)
         {
-            V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
-
-            vertexAim = vector3d_T(V, C->T->pos);
-
-            V->aim_vec[0] = vertexAim.vec[0];
-            V->aim_vec[1] = vertexAim.vec[1];
-            V->aim_vec[2] = vertexAim.vec[2];
+            L = O->subdlevel;
+        }
+        else
+        {
+            L = level;
         }
 
-        for (p = 0; p < O->polycount; p ++)
+        if (O->subdlevel == -1)
         {
-            P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
-
-            polyAim = vector3d(P->B, C->T->pos);
-
-            Dot = 1.0;
-
-            for (v = 0; v < P->edgecount; v ++)
+            for (v = 0; v < O->vertcount; v ++)
             {
-                idx = P->verts[v];
+                V = &O->verts[v / ARRAYSIZE][v % ARRAYSIZE];
 
-                V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                vertexAim = vector3d_T(V, C->T->pos);
 
-                dot = dot_productFF(V->aim_vec, polyAim.vec);
+                V->aim_vec[0] = vertexAim.vec[0];
+                V->aim_vec[1] = vertexAim.vec[1];
+                V->aim_vec[2] = vertexAim.vec[2];
+            }
 
-                if (dot < Dot)
+            for (p = 0; p < O->polycount; p ++)
+            {
+                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+                polyAim = vector3d(P->B_light, C->T->pos);
+
+                Dot = 1.0;
+
+                for (v = 0; v < P->edgecount; v ++)
                 {
-                    Dot = dot;
+                    idx = P->verts[v];
+
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    dot = dot_productFF(V->aim_vec, polyAim.vec);
+
+                    if (dot < Dot)
+                    {
+                        Dot = dot;
+                    }
+                }
+
+                P->B_light.deviation = acos(Dot);
+                P->B_light.Aim.dist = polyAim.dist;
+                P->B_light.Aim.vec[0] = polyAim.vec[0];
+                P->B_light.Aim.vec[1] = polyAim.vec[1];
+                P->B_light.Aim.vec[2] = polyAim.vec[2];
+
+                P->B_light.backface = 1;
+
+                for (t = 0; t < P->tripcount; t ++)
+                {
+                    idx = P->trips[t];
+
+                    T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    polyAim = vector3d(T->B_light, C->T->pos);
+
+                    T->B_light.Aim.dist = polyAim.dist;
+
+                    polynormal.x = -T->N.Tx;
+                    polynormal.y = -T->N.Ty;
+                    polynormal.z = -T->N.Tz;
+
+                    dot = dot_productN(&polynormal, polyAim.vec);
+
+                    if (dot > BACKFACE_QUALIFIER)
+                    {
+                        T->B_light.backface = 0;
+                        P->B_light.backface = 0;
+                    }
+                    else
+                    {
+                        T->B_light.backface = 1;
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (l = L; l >= 0; l --)
+            {
+                if (O->subdlevel < l)
+                {
+                    continue;
+                }
+
+                for (v = 0; v < O->vertcount_[l]; v ++)
+                {
+                    V = &O->verts_[l][v / ARRAYSIZE][v % ARRAYSIZE];
+
+                    vertexAim = vector3d_T(V, C->T->pos);
+
+                    V->aim_vec[0] = vertexAim.vec[0];
+                    V->aim_vec[1] = vertexAim.vec[1];
+                    V->aim_vec[2] = vertexAim.vec[2];
+                }
+
+                for (q = 0; q < O->quadcount_[l]; q ++)
+                {
+                    Q = &O->quads_[l][q / ARRAYSIZE][q % ARRAYSIZE];
+
+                    if (Q->subdivs && l < L)
+                    {
+                        idx = O->vertcount_[l] + O->edgecount_[l] + q;
+
+                        V = &O->verts_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                        l0 = l + 1;
+
+                        while (l0 < L) // delegates to current subdivision
+                        {
+                            l0 ++;
+                            V = V->vert;
+                        }
+
+                        polyAim = vector3d_T(V, C->T->pos);
+
+                        Dot = 1.0;
+
+                        for (v = 0; v < 4; v ++)
+                        {
+                            idx = Q->verts[v];
+
+                            V = &O->verts_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            l0 = l;
+
+                            while (l0 < L) // delegates to current subdivision
+                            {
+                                l0 ++;
+                                V = V->vert;
+                            }
+
+                            dot = dot_productFF(V->aim_vec, polyAim.vec);
+
+                            if (dot < Dot)
+                            {
+                                Dot = dot;
+                            }
+                        }
+
+                        Q->B_light.deviation = acos(Dot) + C->Pixel_Size_In_Radians; // adding slight radius
+                        Q->B_light.Aim.dist = polyAim.dist;
+                        Q->B_light.Aim.vec[0] = polyAim.vec[0];
+                        Q->B_light.Aim.vec[1] = polyAim.vec[1];
+                        Q->B_light.Aim.vec[2] = polyAim.vec[2];
+
+                        /* if deviation is less than View Radius in Radians divided by Resolution Radius
+                        we have a one pixel size */
+
+                        Q->B_light.backface = 1;
+
+                        for (q0 = 0; q0 < 4; q0 ++)
+                        {
+                            idx = Q->quads[q0];
+
+                            Q0 = &O->quads_[l + 1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            if (Q0->B_light.backface == 0)
+                            {
+                                Q->B_light.backface = 0;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        polyAim = vector3d(Q->B_light, C->T->pos);
+
+                        Dot = 1.0;
+
+                        for (v = 0; v < 4; v ++)
+                        {
+                            idx = Q->verts[v];
+
+                            V = &O->verts_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            dot = dot_productFF(V->aim_vec, polyAim.vec);
+
+                            if (dot < Dot)
+                            {
+                                Dot = dot;
+                            }
+                        }
+
+                        Q->B_light.deviation = acos(Dot) + C->Pixel_Size_In_Radians; // adding slight radius
+                        Q->B_light.Aim.dist = polyAim.dist;
+                        Q->B_light.Aim.vec[0] = polyAim.vec[0];
+                        Q->B_light.Aim.vec[1] = polyAim.vec[1];
+                        Q->B_light.Aim.vec[2] = polyAim.vec[2];
+
+                        Q->B_light.backface = 1;
+
+                        for (t = 0; t < 2; t ++)
+                        {
+                            idx = Q->trips[t];
+
+                            T = &O->trips_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            polyAim = vector3d(T->B_light, C->T->pos);
+
+                            T->B_light.Aim.dist = polyAim.dist;
+
+                            polynormal.x = -T->N.Tx;
+                            polynormal.y = -T->N.Ty;
+                            polynormal.z = -T->N.Tz;
+
+                            dot = dot_productN(&polynormal, polyAim.vec);
+
+                            if (dot > BACKFACE_QUALIFIER)
+                            {
+                                T->B_light.backface = 0;
+                                Q->B_light.backface = 0;
+                            }
+                            else
+                            {
+                                T->B_light.backface = 1;
+                            }
+                        }
+                    }
                 }
             }
 
-            P->B.deviation = acos(Dot);
-            P->B.Aim.dist = polyAim.dist;
-            P->B.Aim.vec[0] = polyAim.vec[0];
-            P->B.Aim.vec[1] = polyAim.vec[1];
-            P->B.Aim.vec[2] = polyAim.vec[2];
+            /* level -1 */
 
-            P->B.backface = 1;
-
-            for (t = 0; t < P->tripcount; t ++)
+            for (p = 0; p < O->polycount; p ++)
             {
-                idx = P->trips[t];
+                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
 
-                T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                idx = O->vertcount + O->edgecount + p;
 
-                polyAim = vector3d(T->B, C->T->pos);
+                V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                T->B.Aim.dist = polyAim.dist;
+                l = 1;
 
-                polynormal.x = -T->N.Tx;
-                polynormal.y = -T->N.Ty;
-                polynormal.z = -T->N.Tz;
-
-                dot = dot_productN(&polynormal, polyAim.vec);
-
-                if (dot > BACKFACE_QUALIFIER)
+                while (l < L) // delegates to current subdivision
                 {
-                    T->B.backface = 0;
-                    P->B.backface = 0;
+                    l ++;
+                    V = V->vert;
                 }
-                else
+
+                polyAim = vector3d_T(V, C->T->pos);
+
+                Dot = 1.0;
+
+                for (v = 0; v < P->edgecount; v ++)
                 {
-                    T->B.backface = 1;
+                    idx = O->vertcount + P->edges[v];
+
+                    V = &O->verts_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    l = 0;
+
+                    while (l < L) // delegates to current subdivision
+                    {
+                        l ++;
+                        V = V->vert;
+                    }
+
+                    dot = dot_productFF(V->aim_vec, polyAim.vec);
+
+                    if (dot < Dot)
+                    {
+                        Dot = dot;
+                    }
+
+                    /////
+
+                    idx = P->verts[v];
+
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    l = -1;
+
+                    while (l < L) // delegates to current subdivision
+                    {
+                        l ++;
+                        V = V->vert;
+                    }
+
+                    dot = dot_productFF(V->aim_vec, polyAim.vec);
+
+                    if (dot < Dot)
+                    {
+                        Dot = dot;
+                    }
+                }
+
+                P->B_light.deviation = acos(Dot);
+                P->B_light.Aim.dist = polyAim.dist;
+                P->B_light.Aim.vec[0] = polyAim.vec[0];
+                P->B_light.Aim.vec[1] = polyAim.vec[1];
+                P->B_light.Aim.vec[2] = polyAim.vec[2];
+
+                P->B_light.backface = 1;
+
+                for (q = 0; q < P->edgecount; q ++)
+                {
+                    idx = P->quads[q];
+
+                    Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (Q->B_light.backface == 0)
+                    {
+                        P->B_light.backface = 0;
+                        break;
+                    }
                 }
             }
         }
@@ -1068,23 +1326,105 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
             Cancel.cancel = 1;
             Cancel.preak = 1;
         }
+        /*
+        else
+        {
+            shadow[0] = SHADOW / 4; // poly radius
+        }
+        */
     }
 
     return Cancel;
 }
 
-float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx, triangle * Pixel_Triangle, object * Pixel_Object)
+trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Light0, normal * D, int L, object * O, object * Pixel_Object, triangle * T, float * shadow)
+{
+    trianges_cancel Cancel;
+    Cancel.preak = 0;
+    Cancel.cancel = 0;
+
+    int idx, c;
+    float dot, dist;
+    normal polynormal;
+    vertex * V;
+    polyplane plane;
+    float polypoints[3][3];
+    float intersection_Point[3];
+    float shadow_intensity = 1.0;
+
+    polynormal.x = -T->N.Tx;
+    polynormal.y = -T->N.Ty;
+    polynormal.z = -T->N.Tz;
+
+    dot = dot_product(&polynormal, D);
+
+    idx = T->verts[0];
+    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    polypoints[0][0] = V->Tx;
+    polypoints[0][1] = V->Ty;
+    polypoints[0][2] = V->Tz;
+    idx = T->verts[1];
+    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    polypoints[1][0] = V->Tx;
+    polypoints[1][1] = V->Ty;
+    polypoints[1][2] = V->Tz;
+    idx = T->verts[2];
+    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+    polypoints[2][0] = V->Tx;
+    polypoints[2][1] = V->Ty;
+    polypoints[2][2] = V->Tz;
+
+    plane = init_plane(polypoints[1], &polynormal);
+    dist = nearest(Light0->T->pos, plane);
+
+    dist /= dot;
+
+    if (dist < Dist - 0.0001)
+    {
+        intersection_Point[0] = Light0->T->pos[0] + D->x * dist;
+        intersection_Point[1] = Light0->T->pos[1] + D->y * dist;
+        intersection_Point[2] = Light0->T->pos[2] + D->z * dist;
+
+        c = cull(intersection_Point, polypoints);
+
+        if (c > 0)
+        {
+            shadow_intensity = dist / Dist;
+            shadow_intensity = pow(shadow_intensity, 4.0);
+
+            if (O == Pixel_Object) // self shadow
+            {
+                shadow_intensity *= 0.5;
+            }
+
+            shadow[0] = SHADOW * shadow_intensity; // * dot
+            Cancel.cancel = 1;
+            Cancel.preak = 1;
+        }
+        /*
+        else
+        {
+            shadow[0] = SHADOW / 4; // poly radius
+        }
+        */
+    }
+
+    return Cancel;
+}
+
+float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx, int L, triangle * Pixel_Triangle, object * Pixel_Object)
 {
     trianges_cancel Cancel;
 
     float shadow = 0.0;
 
-    int t, p, h;
+    int t, p, h, q, q0, q1, q2;
     HexG * H;
 
     object * O;
     polygon * P0;
     triangle * T;
+    quadrant * Q, * Q0, * Q1, * Q2;
 
     float aim_deviation;
 
@@ -1123,35 +1463,215 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
             idx = PP->idx;
 
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
-            aim_deviation = acos(dot_productF(D.vec, (normal *)PP->Aim.vec));
+            aim_deviation = acos(dot_productF(D.vec, (normal *)P0->B_light.Aim.vec));
 
-            if (aim_deviation > PP->deviation)
+            if (aim_deviation > P0->B_light.deviation) // P0->B.deviation)
             {
                 continue;
             }
 
-            for (t = 0; t < P0->tripcount; t ++)
+            if (P0->subdivs && O->subdlevel > -1)
             {
-                if (Preak)
-                    break;
-
-                idx = P0->trips[t];
-
-                T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
-
-                if (T == Pixel_Triangle)
+                for (q = 0; q < P0->edgecount; q ++)
                 {
-                    continue;
-                }
-
-                if (!PP->backface) //(!T->B.backface) // Light0 overrides it
-                {
-                    Cancel = render_Triangles_light(D.distance, P_pos, Light0, (normal *)D.vec, O, Pixel_Object, T, &shadow);
-
-                    Preak = Cancel.preak;
-
-                    if (Cancel.cancel)
+                    if (Preak)
                         break;
+
+                    idx = P0->quads[q];
+
+                    Q = &O->quads_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (Q->B_light.backface)
+                    {
+                        continue;
+                    }
+
+                    aim_deviation = acos(dot_productF(D.vec, (normal *)Q->B_light.Aim.vec));
+
+                    if (aim_deviation > Q->B_light.deviation)
+                    {
+                        continue;
+                    }
+
+                    if (Q->subdivs && L >= 1)
+                    {
+                        for (q0 = 0; q0 < 4; q0 ++)
+                        {
+                            if (Preak)
+                                break;
+
+                            idx = Q->quads[q0];
+                            Q0 = &O->quads_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            if (Q0->B_light.backface)
+                            {
+                                continue;
+                            }
+
+                            aim_deviation = acos(dot_productF(D.vec, (normal *)Q0->B_light.Aim.vec));
+
+                            if (aim_deviation > Q0->B_light.deviation)
+                            {
+                                continue;
+                            }
+
+                            if (Q0->subdivs && L >= 2)
+                            {
+                                for (q1 = 0; q1 < 4; q1 ++)
+                                {
+                                    if (Preak)
+                                        break;
+
+                                    idx = Q0->quads[q1];
+                                    Q1 = &O->quads_[2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                    if (Q1->B_light.backface)
+                                    {
+                                        continue;
+                                    }
+
+                                    aim_deviation = acos(dot_productF(D.vec, (normal *)Q1->B_light.Aim.vec));
+
+                                    if (aim_deviation > Q1->B_light.deviation)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (Q1->subdivs && L >= 3)
+                                    {
+                                        for (q2 = 0; q2 < 4; q2 ++)
+                                        {
+                                            if (Preak)
+                                                break;
+
+                                            idx = Q1->quads[q2];
+                                            Q2 = &O->quads_[3][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                            if (Q2->B_light.backface)
+                                            {
+                                                continue;
+                                            }
+
+                                            aim_deviation = acos(dot_productF(D.vec, (normal *)Q2->B_light.Aim.vec));
+
+                                            if (aim_deviation > Q2->B_light.deviation)
+                                            {
+                                                continue;
+                                            }
+
+                                            for (t = 0; t < 2; t ++)
+                                            {
+                                                if (Preak)
+                                                    break;
+
+                                                idx = Q2->trips[t];
+
+                                                T = &O->trips_[3][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                                if (!T->B_light.backface)
+                                                {
+                                                    Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 3, O, Pixel_Object, T, &shadow);
+
+                                                    Preak = Cancel.preak;
+
+                                                    if (Cancel.cancel)
+                                                        break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        for (t = 0; t < 2; t ++)
+                                        {
+                                            if (Preak)
+                                                break;
+
+                                            idx = Q1->trips[t];
+
+                                            T = &O->trips_[2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                            if (!T->B_light.backface)
+                                            {
+                                                Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 2, O, Pixel_Object, T, &shadow);
+
+                                                Preak = Cancel.preak;
+
+                                                if (Cancel.cancel)
+                                                    break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (t = 0; t < 2; t ++)
+                                {
+                                    if (Preak)
+                                        break;
+
+                                    idx = Q0->trips[t];
+
+                                    T = &O->trips_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                    if (!T->B_light.backface)
+                                    {
+                                        Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 1, O, Pixel_Object, T, &shadow);
+
+                                        Preak = Cancel.preak;
+
+                                        if (Cancel.cancel)
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (t = 0; t < 2; t ++)
+                        {
+                            if (Preak)
+                                break;
+
+                            idx = Q->trips[t];
+
+                            T = &O->trips_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                            if (!T->B_light.backface)
+                            {
+                                Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 0, O, Pixel_Object, T, &shadow);
+
+                                Preak = Cancel.preak;
+
+                                if (Cancel.cancel)
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (t = 0; t < P0->tripcount; t ++)
+                {
+                    if (Preak)
+                        break;
+
+                    idx = P0->trips[t];
+
+                    T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (!T->B_light.backface) // Light0 overrides it
+                    {
+                        Cancel = render_Triangles_light(D.distance, P_pos, Light0, (normal *)D.vec, O, Pixel_Object, T, &shadow);
+
+                        Preak = Cancel.preak;
+
+                        if (Cancel.cancel)
+                            break;
+                    }
                 }
             }
         }
@@ -1555,9 +2075,9 @@ RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, HexG ** G, int g
 
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-            aim_deviation = acos(dot_productN(D, PP->Aim.vec)); // P0->B.Aim.vec));
+            aim_deviation = acos(dot_productN(D, P0->B.Aim.vec)); // P0->B.Aim.vec));
 
-            if (aim_deviation > PP->deviation) // P0->B.deviation)
+            if (aim_deviation > P0->B.deviation) // P0->B.deviation)
             {
                 continue;
             }
@@ -1803,7 +2323,7 @@ RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, HexG ** G, int g
 
                     T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    if (!PP->backface) //(!T->B.backface) // Light0 overrides it
+                    if (!T->B.backface) // Light0 overrides it
                     {
                         Cancel = render_Triangles(P, C, D, O, T, volume_counter, t, shading_normal);
 
@@ -1888,7 +2408,7 @@ RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, HexG ** G, int g
     if (aim_deviation < light_cone)
     {
         HP = collect_Hexa_Groups_light(D_0.D, G0, g_idx_0);
-        shadow = cast_ray_from_Light0(P_pos, Light0, HP.G, HP.g_idx, Pixel_Triangle, Pixel_Object); // index 0
+        shadow = cast_ray_from_Light0(P_pos, Light0, HP.G, HP.g_idx, L, Pixel_Triangle, Pixel_Object); // index 0
     }
 
     P->R[idx] -= shadow;
@@ -2165,9 +2685,9 @@ RGBA come_With_Pixel(pixel * P, camera * C, normal * D, HexG ** G, int g_idx)
 
             P0 = &O->polys[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-            aim_deviation = acos(dot_productN(D, PP->Aim.vec)); // P0->B.Aim.vec));
+            aim_deviation = acos(dot_productN(D, P0->B.Aim.vec)); // P0->B.Aim.vec));
 
-            if (aim_deviation > PP->deviation) // P0->B.deviation)
+            if (aim_deviation > P0->B.deviation) // P0->B.deviation)
             {
                 continue;
             }
@@ -2185,7 +2705,7 @@ RGBA come_With_Pixel(pixel * P, camera * C, normal * D, HexG ** G, int g_idx)
 
                 T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                if (!PP->backface) //(!T->B.backface) // Light0 overrides it
+                if (!T->B.backface) // Light0 overrides it
                 {
                         Cancel = render_Triangles(P, C, D, O, T, volume_counter, t, shading_normal);
 
@@ -2269,7 +2789,7 @@ RGBA come_With_Pixel(pixel * P, camera * C, normal * D, HexG ** G, int g_idx)
     if (aim_deviation < light_cone)
     {
         HP = collect_Hexa_Groups_light(D_0.D, G0, g_idx_0);
-        shadow = cast_ray_from_Light0(P_pos, Light0, HP.G, HP.g_idx, Pixel_Triangle, Pixel_Object); // index 0
+        shadow = cast_ray_from_Light0(P_pos, Light0, HP.G, HP.g_idx, -1, Pixel_Triangle, Pixel_Object); // index 0
     }
 
     P->R[idx] -= shadow;

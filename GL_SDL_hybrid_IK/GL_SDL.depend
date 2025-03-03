@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1740994318 source:c:\gl_sdl_hybrid_ik\main.c
+1741006718 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -74,7 +74,7 @@
 
 1740041174 c:\gl_sdl_hybrid_ik\transformer.h
 
-1740769754 c:\gl_sdl_hybrid_ik\object.h
+1741006701 c:\gl_sdl_hybrid_ik\object.h
 
 1739038829 c:\gl_sdl_hybrid_ik\curves.h
 
@@ -135,13 +135,13 @@
 
 1740142952 c:\gl_sdl_hybrid_ik\cubedata.h
 
-1740945306 c:\gl_sdl_hybrid_ik\transforms.h
+1741008918 c:\gl_sdl_hybrid_ik\transforms.h
 
 1636367110 c:\gl_sdl_hybrid_ik\arrays.h
 
 1740929714 c:\gl_sdl_hybrid_ik\lights.h
 
-1740993913 c:\gl_sdl_hybrid_ik\rendering.h
+1741009097 c:\gl_sdl_hybrid_ik\rendering.h
 
 1737116074 c:\gl_sdl_hybrid_ik\hierarchys.h
 
@@ -153,5 +153,5 @@
 
 1740051626 c:\gl_sdl_hybrid_ik\trajectories.h
 
-1740937137 c:\gl_sdl_hybrid_ik\hexagon.h
+1741008801 c:\gl_sdl_hybrid_ik\hexagon.h
 

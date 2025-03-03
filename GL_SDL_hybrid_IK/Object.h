@@ -195,6 +195,7 @@ typedef struct
     float tangent[4];
     normal N;
     box_3d B;
+    box_3d B_light;
     box_2d B2;
 }
 triangle;
@@ -328,6 +329,7 @@ typedef struct
     float tangent[4];
     normal N;
     box_3d B;
+    box_3d B_light;
     box_2d B2;
 
     int patch;
@@ -379,6 +381,7 @@ typedef struct
     float tangent[4];
     normal N;
     box_3d B;
+    box_3d B_light;
     box_2d B2;
 
     int patch;

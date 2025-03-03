@@ -123,10 +123,11 @@ int place_Polygon_Into_HexG(camera * C, object * O, polygon * P, HexG * H, HexG 
                 PP = &H->Polygons[H->polypacks];
                 PP->O = O;
                 PP->idx = P->index;
-                PP->deviation = P->B.deviation;
-                memcpy(&PP->Aim, &P->B.Aim, sizeof(aim));
-                PP->backface = P->B.backface;
                 H->polypacks ++;
+            }
+            else
+            {
+                H->polypacks = 0;
             }
 
             cancel[0] = 1;
@@ -211,9 +212,9 @@ int place_Polygon_Into_HexG_light(camera * C, object * O, polygon * P, HexG * H,
     float deviation;
     polyPack * PP;
 
-    deviation = acos(dot_productN((normal *)&H->D_light0, P->B.Aim.vec));
+    deviation = acos(dot_productN((normal *)&H->D_light0, P->B_light.Aim.vec));
 
-    if (H->Radius > P->B.deviation && deviation < H->Radius - P->B.deviation)
+    if (H->Radius > P->B_light.deviation && deviation < H->Radius - P->B_light.deviation)
     {
         if (H->subdivided)
         {
@@ -236,10 +237,11 @@ int place_Polygon_Into_HexG_light(camera * C, object * O, polygon * P, HexG * H,
                 PP = &H->Lights[H->lightpacks];
                 PP->O = O;
                 PP->idx = P->index;
-                PP->deviation = P->B.deviation;
-                memcpy(&PP->Aim, &P->B.Aim, sizeof(aim));
-                PP->backface = P->B.backface;
                 H->lightpacks ++;
+            }
+            else
+            {
+                H->lightpacks = 0;
             }
 
             cancel[0] = 1;
