@@ -21017,6 +21017,8 @@ int main(int argc, char * args[])
 
                                         rotate_Camera_Aim(CAM);
 
+                                        update_camera_ratio(CAM, screen_width, screen_height);
+
                                         find_objects_in_frame(CAM);
                                         update_Items_List(1, 0);
                                     }
