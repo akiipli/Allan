@@ -300,7 +300,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
 
     normal polynormal;
 
-    float BACKFACE_QUALIFIER = -0.5; // 0.0
+    float BACKFACE_QUALIFIER = 0.0; // 0.0
 
 /*
     normal D;
