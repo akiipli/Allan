@@ -283,6 +283,32 @@ HexPack collect_Hexa_Groups(direction D, HexG ** G, int g_idx)
     return HP;
 }
 
+/*inline*/ polyplane init_plane(float points[3], normal * N)
+{
+    polyplane p = {points[0], points[1], points[2], N->x, N->y, N->z};
+    return p;
+}
+
+/*inline*/ float nearest(float point[3], polyplane  plane)
+{
+    float dist;
+    float h_norm[3] = {plane.x - point[0], plane.y - point[1], plane.z - point[2]};
+    float h = length(h_norm);
+    if (h > 0)
+    {
+        h_norm[0] /= h;
+        h_norm[1] /= h;
+        h_norm[2] /= h;
+        float dot = h_norm[0] * plane.nx + h_norm[1] * plane.ny + h_norm[2] * plane.nz;
+        dist = dot * h;
+    }
+    else
+    {
+        dist = 0;
+    }
+    return dist;
+}
+
 void populate_box_3d_Aim_And_Deviation(camera * C, int level)
 {
     int o, p, q, q0, idx, t, v, L;
@@ -300,7 +326,11 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
 
     normal polynormal;
 
-    float BACKFACE_QUALIFIER = 0.0; // 0.0
+    polyplane plane;
+
+    float polypoints[3];
+
+    float BACKFACE_QUALIFIER = -0.5; // 0.0
 
 /*
     normal D;
@@ -377,11 +407,21 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
 
                     polyAim = vector3d(T->B, C->T->pos);
 
-                    T->B.Aim.dist = polyAim.dist;
+                    idx = T->verts[1];
+
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                     polynormal.x = -T->N.Tx;
                     polynormal.y = -T->N.Ty;
                     polynormal.z = -T->N.Tz;
+
+                    polypoints[0] = V->Tx;
+                    polypoints[1] = V->Ty;
+                    polypoints[2] = V->Tz;
+
+                    plane = init_plane(polypoints, &polynormal);
+
+                    T->B.Aim.dist = nearest(C->T->pos, plane); // polyAim.dist;
 
                     dot = dot_productN(&polynormal, polyAim.vec);
 
@@ -521,11 +561,21 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
 
                             polyAim = vector3d(T->B, C->T->pos);
 
-                            T->B.Aim.dist = polyAim.dist;
+                            idx = T->verts[1];
+
+                            V = &O->verts_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                             polynormal.x = -T->N.Tx;
                             polynormal.y = -T->N.Ty;
                             polynormal.z = -T->N.Tz;
+
+                            polypoints[0] = V->Tx;
+                            polypoints[1] = V->Ty;
+                            polypoints[2] = V->Tz;
+
+                            plane = init_plane(polypoints, &polynormal);
+
+                            T->B.Aim.dist = nearest(C->T->pos, plane); // polyAim.dist;
 
                             dot = dot_productN(&polynormal, polyAim.vec);
 
@@ -650,6 +700,10 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
     normal polynormal;
 
+    polyplane plane;
+
+    float polypoints[3];
+
     float BACKFACE_QUALIFIER = -0.5; // 0.0
 
 /*
@@ -727,11 +781,21 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
                     polyAim = vector3d(T->B, C->T->pos);
 
-                    T->B_light.Aim.dist = polyAim.dist;
+                    idx = T->verts[1];
+
+                    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                     polynormal.x = -T->N.Tx;
                     polynormal.y = -T->N.Ty;
                     polynormal.z = -T->N.Tz;
+
+                    polypoints[0] = V->Tx;
+                    polypoints[1] = V->Ty;
+                    polypoints[2] = V->Tz;
+
+                    plane = init_plane(polypoints, &polynormal);
+
+                    T->B_light.Aim.dist = nearest(C->T->pos, plane); // polyAim.dist;
 
                     dot = dot_productN(&polynormal, polyAim.vec);
 
@@ -871,11 +935,21 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
                             polyAim = vector3d(T->B, C->T->pos);
 
-                            T->B_light.Aim.dist = polyAim.dist;
+                            idx = T->verts[1];
+
+                            V = &O->verts_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
                             polynormal.x = -T->N.Tx;
                             polynormal.y = -T->N.Ty;
                             polynormal.z = -T->N.Tz;
+
+                            polypoints[0] = V->Tx;
+                            polypoints[1] = V->Ty;
+                            polypoints[2] = V->Tz;
+
+                            plane = init_plane(polypoints, &polynormal);
+
+                            T->B_light.Aim.dist = nearest(C->T->pos, plane); // polyAim.dist;
 
                             dot = dot_productN(&polynormal, polyAim.vec);
 
@@ -1018,32 +1092,6 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
     {
         return 0;
     }
-}
-
-/*inline*/ polyplane init_plane(float points[3], normal * N)
-{
-    polyplane p = {points[0], points[1], points[2], N->x, N->y, N->z};
-    return p;
-}
-
-/*inline*/ float nearest(float point[3], polyplane  plane)
-{
-    float dist;
-    float h_norm[3] = {plane.x - point[0], plane.y - point[1], plane.z - point[2]};
-    float h = length(h_norm);
-    if (h > 0)
-    {
-        h_norm[0] /= h;
-        h_norm[1] /= h;
-        h_norm[2] /= h;
-        float dot = h_norm[0] * plane.nx + h_norm[1] * plane.ny + h_norm[2] * plane.nz;
-        dist = dot * h;
-    }
-    else
-    {
-        dist = 0;
-    }
-    return dist;
 }
 
 /*inline*/ void cross_product(float * N, float A[3], float B[3], float C[3])
@@ -1272,7 +1320,7 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
     float dot, dist, Dot;
     normal polynormal;
     vertex * V;
-    polyplane plane;
+    //polyplane plane;
     float polypoints[3][3];
     float polynormals[3][3];
     float intersection_Point[3];
@@ -1285,38 +1333,38 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
 
     dot = dot_product(&polynormal, D);
 
-    idx = T->verts[0];
-    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polypoints[0][0] = V->Tx;
-    polypoints[0][1] = V->Ty;
-    polypoints[0][2] = V->Tz;
-    polynormals[0][0] = V->N.Tx;
-    polynormals[0][1] = V->N.Ty;
-    polynormals[0][2] = V->N.Tz;
-    idx = T->verts[1];
-    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polypoints[1][0] = V->Tx;
-    polypoints[1][1] = V->Ty;
-    polypoints[1][2] = V->Tz;
-    polynormals[1][0] = V->N.Tx;
-    polynormals[1][1] = V->N.Ty;
-    polynormals[1][2] = V->N.Tz;
-    idx = T->verts[2];
-    V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polypoints[2][0] = V->Tx;
-    polypoints[2][1] = V->Ty;
-    polypoints[2][2] = V->Tz;
-    polynormals[2][0] = V->N.Tx;
-    polynormals[2][1] = V->N.Ty;
-    polynormals[2][2] = V->N.Tz;
-
-    plane = init_plane(polypoints[1], &polynormal);
-    dist = nearest(Light0->T->pos, plane);
+    //plane = init_plane(polypoints[1], &polynormal);
+    dist = T->B_light.Aim.dist; //nearest(Light0->T->pos, plane);
 
     dist /= dot;
 
     if (dist < Dist - 0.0001)
     {
+        idx = T->verts[0];
+        V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+        polypoints[0][0] = V->Tx;
+        polypoints[0][1] = V->Ty;
+        polypoints[0][2] = V->Tz;
+        polynormals[0][0] = V->N.Tx;
+        polynormals[0][1] = V->N.Ty;
+        polynormals[0][2] = V->N.Tz;
+        idx = T->verts[1];
+        V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+        polypoints[1][0] = V->Tx;
+        polypoints[1][1] = V->Ty;
+        polypoints[1][2] = V->Tz;
+        polynormals[1][0] = V->N.Tx;
+        polynormals[1][1] = V->N.Ty;
+        polynormals[1][2] = V->N.Tz;
+        idx = T->verts[2];
+        V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
+        polypoints[2][0] = V->Tx;
+        polypoints[2][1] = V->Ty;
+        polypoints[2][2] = V->Tz;
+        polynormals[2][0] = V->N.Tx;
+        polynormals[2][1] = V->N.Ty;
+        polynormals[2][2] = V->N.Tz;
+
         intersection_Point[0] = Light0->T->pos[0] + D->x * dist;
         intersection_Point[1] = Light0->T->pos[1] + D->y * dist;
         intersection_Point[2] = Light0->T->pos[2] + D->z * dist;
@@ -1337,7 +1385,7 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
             //shadow_intensity = dist / Dist;
             //shadow_intensity = pow(shadow_intensity, 4.0);  // fade to distance
 
-            if (O == Pixel_Object) // self shadow
+            if (O == Pixel_Object) // self shadow, no obsticle between light and incident
             {
                 shadow_intensity *= Dot;
             }
@@ -1367,7 +1415,7 @@ trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Lig
     float dot, dist, Dot;
     normal polynormal;
     vertex * V;
-    polyplane plane;
+    //polyplane plane;
     float polypoints[3][3];
     float polynormals[3][3];
     float intersection_Point[3];
@@ -1380,38 +1428,38 @@ trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Lig
 
     dot = dot_product(&polynormal, D);
 
-    idx = T->verts[0];
-    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polypoints[0][0] = V->Tx;
-    polypoints[0][1] = V->Ty;
-    polypoints[0][2] = V->Tz;
-    polynormals[0][0] = V->N.Tx;
-    polynormals[0][1] = V->N.Ty;
-    polynormals[0][2] = V->N.Tz;
-    idx = T->verts[1];
-    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polypoints[1][0] = V->Tx;
-    polypoints[1][1] = V->Ty;
-    polypoints[1][2] = V->Tz;
-    polynormals[1][0] = V->N.Tx;
-    polynormals[1][1] = V->N.Ty;
-    polynormals[1][2] = V->N.Tz;
-    idx = T->verts[2];
-    V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polypoints[2][0] = V->Tx;
-    polypoints[2][1] = V->Ty;
-    polypoints[2][2] = V->Tz;
-    polynormals[2][0] = V->N.Tx;
-    polynormals[2][1] = V->N.Ty;
-    polynormals[2][2] = V->N.Tz;
-
-    plane = init_plane(polypoints[1], &polynormal);
-    dist = nearest(Light0->T->pos, plane);
+    //plane = init_plane(polypoints[1], &polynormal);
+    dist = T->B_light.Aim.dist; // nearest(Light0->T->pos, plane);
 
     dist /= dot;
 
     if (dist < Dist - 0.0001)
     {
+        idx = T->verts[0];
+        V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+        polypoints[0][0] = V->Tx;
+        polypoints[0][1] = V->Ty;
+        polypoints[0][2] = V->Tz;
+        polynormals[0][0] = V->N.Tx;
+        polynormals[0][1] = V->N.Ty;
+        polynormals[0][2] = V->N.Tz;
+        idx = T->verts[1];
+        V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+        polypoints[1][0] = V->Tx;
+        polypoints[1][1] = V->Ty;
+        polypoints[1][2] = V->Tz;
+        polynormals[1][0] = V->N.Tx;
+        polynormals[1][1] = V->N.Ty;
+        polynormals[1][2] = V->N.Tz;
+        idx = T->verts[2];
+        V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+        polypoints[2][0] = V->Tx;
+        polypoints[2][1] = V->Ty;
+        polypoints[2][2] = V->Tz;
+        polynormals[2][0] = V->N.Tx;
+        polynormals[2][1] = V->N.Ty;
+        polynormals[2][2] = V->N.Tz;
+
         intersection_Point[0] = Light0->T->pos[0] + D->x * dist;
         intersection_Point[1] = Light0->T->pos[1] + D->y * dist;
         intersection_Point[2] = Light0->T->pos[2] + D->z * dist;
@@ -1761,7 +1809,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
     normal polynormal;
     vertex * V;
     uv * UV;
-    polyplane plane;
+//    polyplane plane;
     float polypoints[3][3];
     float polynormals[3][3];
     float polytexts[3][2];
@@ -1803,8 +1851,8 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
 
     //P->R[volume_counter] = 255;
 
-    plane = init_plane(polypoints[1], &polynormal);
-    dist = nearest(C->T->pos, plane);
+    // plane = init_plane(polypoints[1], &polynormal);
+    dist = T->B.Aim.dist; // nearest(C->T->pos, plane);
 
     dist /= dot;
 
@@ -1925,7 +1973,7 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
     normal polynormal;
     vertex * V;
     uv * UV;
-    polyplane plane;
+//    polyplane plane;
     float polypoints[3][3];
     float polynormals[3][3];
     float polytexts[3][2];
@@ -1967,8 +2015,8 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
 
     //P->R[volume_counter] = 255;
 
-    plane = init_plane(polypoints[1], &polynormal);
-    dist = nearest(C->T->pos, plane);
+    //plane = init_plane(polypoints[1], &polynormal);
+    dist = T->B.Aim.dist; // nearest(C->T->pos, plane);
 
     dist /= dot;
 
