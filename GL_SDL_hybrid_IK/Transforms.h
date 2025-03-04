@@ -212,9 +212,11 @@ int place_Polygon_Into_HexG_light(camera * C, object * O, polygon * P, HexG * H,
     float deviation;
     polyPack * PP;
 
+    float H_Radius = H->Radius * LIGHT_CONE_FIT;
+
     deviation = acos(dot_productN((normal *)&H->D_light0, P->B_light.Aim.vec));
 
-    if (H->Radius > P->B_light.deviation && deviation < H->Radius - P->B_light.deviation)
+    if (H_Radius > P->B_light.deviation && deviation < H_Radius - P->B_light.deviation)
     {
         if (H->subdivided)
         {
@@ -282,8 +284,8 @@ void generate_Hexa_Groups_light(camera * C)
         H = Hexas[h];
         H->lightpacks = 0;
 
-        H_Mark = H->Center[0];
-        V_Mark = H->Center[1];
+        H_Mark = H->Center[0] * LIGHT_CONE_FIT;
+        V_Mark = H->Center[1] * LIGHT_CONE_FIT;
 
         R = cos(V_Mark);
         D.D.y = sin(V_Mark);

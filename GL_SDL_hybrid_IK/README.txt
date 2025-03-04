@@ -1,7 +1,21 @@
 /*README*/
 
+/*CAUTION, do not overwrite older directory structures, when they differ from current file format.
+In the course of time file format changes. Folders may be added.
+Make not exsisting scene with new name, or delete current one manually before saving.
+Such overwrites tend to corrupt these scenes*/
+
 Author here is:
 Allan Kiipli
+
+9:56 AM 3/4/2025
+Shift + H switches Hexagons on display drawing. Hexagons should cover camera view good to act as polypack
+encapsulators when rendering. Light0 uses also same hexagons, and its cone is modified with LIGHT_CONE_FIT variable.
+Also Light0 is repositioned when switching Light themes. Shadows in view and in render should match almost.
+Light0 is moved back when rendering to the distance of twice of Camera distance. Light0 is also camera.
+
+8:36 PM 3/3/2025
+Ctrl + L switches light shadow render when F11 or F12 is used to render animation or a frame.
 
 10:03 PM 2/13/2025
 R Alt + Del in Timeline Indi erases selected Transformers keyframes.

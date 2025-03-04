@@ -22,9 +22,11 @@ Copyright <2018> <Allan Kiipli>
 
 #define PIXEL_SIZE_ADJUSTMENT 1.5
 
+int RENDER_LIGHT0 = 1;
 float LightDist = 30.0;
 float light_cone = 0.2;
 float SHADOW = 255 / 2;
+float LIGHT_CONE_FIT = 0.5;
 
 float CamDist = 10;
 float CamDist_Camera = 10;

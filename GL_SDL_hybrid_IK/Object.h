@@ -75,6 +75,14 @@ box_3d;
 
 typedef struct
 {
+    float deviation;
+    aim Aim;
+    int backface;
+}
+box_l0;
+
+typedef struct
+{
     int * indices;
     int indices_count;
 }
@@ -195,7 +203,7 @@ typedef struct
     float tangent[4];
     normal N;
     box_3d B;
-    box_3d B_light;
+    box_l0 B_light;
     box_2d B2;
 }
 triangle;
@@ -329,7 +337,7 @@ typedef struct
     float tangent[4];
     normal N;
     box_3d B;
-    box_3d B_light;
+    box_l0 B_light;
     box_2d B2;
 
     int patch;
@@ -381,7 +389,7 @@ typedef struct
     float tangent[4];
     normal N;
     box_3d B;
-    box_3d B_light;
+    box_l0 B_light;
     box_2d B2;
 
     int patch;

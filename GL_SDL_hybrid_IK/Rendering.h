@@ -300,7 +300,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
 
     normal polynormal;
 
-    float BACKFACE_QUALIFIER = 0.0; // -0.5 // 0.0
+    float BACKFACE_QUALIFIER = -0.5; // 0.0
 
 /*
     normal D;
@@ -693,7 +693,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
             {
                 P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
 
-                polyAim = vector3d(P->B_light, C->T->pos);
+                polyAim = vector3d(P->B, C->T->pos);
 
                 Dot = 1.0;
 
@@ -725,7 +725,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
                     T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                    polyAim = vector3d(T->B_light, C->T->pos);
+                    polyAim = vector3d(T->B, C->T->pos);
 
                     T->B_light.Aim.dist = polyAim.dist;
 
@@ -837,7 +837,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
                     }
                     else
                     {
-                        polyAim = vector3d(Q->B_light, C->T->pos);
+                        polyAim = vector3d(Q->B, C->T->pos);
 
                         Dot = 1.0;
 
@@ -869,7 +869,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
                             T = &O->trips_[l][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
-                            polyAim = vector3d(T->B_light, C->T->pos);
+                            polyAim = vector3d(T->B, C->T->pos);
 
                             T->B_light.Aim.dist = polyAim.dist;
 
@@ -1608,6 +1608,11 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
 
                                                 T = &O->trips_[3][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
+                                                if (T == Pixel_Triangle)
+                                                {
+                                                    continue;
+                                                }
+
                                                 if (!T->B_light.backface)
                                                 {
                                                     Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 3, O, Pixel_Object, T, &shadow);
@@ -1630,6 +1635,11 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
                                             idx = Q1->trips[t];
 
                                             T = &O->trips_[2][idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                                            if (T == Pixel_Triangle)
+                                            {
+                                                continue;
+                                            }
 
                                             if (!T->B_light.backface)
                                             {
@@ -1655,6 +1665,11 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
 
                                     T = &O->trips_[1][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
+                                    if (T == Pixel_Triangle)
+                                    {
+                                        continue;
+                                    }
+
                                     if (!T->B_light.backface)
                                     {
                                         Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 1, O, Pixel_Object, T, &shadow);
@@ -1679,6 +1694,11 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
 
                             T = &O->trips_[0][idx / ARRAYSIZE][idx % ARRAYSIZE];
 
+                            if (T == Pixel_Triangle)
+                            {
+                                continue;
+                            }
+
                             if (!T->B_light.backface)
                             {
                                 Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 0, O, Pixel_Object, T, &shadow);
@@ -1702,6 +1722,11 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
                     idx = P0->trips[t];
 
                     T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+
+                    if (T == Pixel_Triangle)
+                    {
+                        continue;
+                    }
 
                     if (!T->B_light.backface) // Light0 overrides it
                     {
@@ -2407,57 +2432,60 @@ RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, HexG ** G, int g
 
     // shadow light
 
-    union Dir D_0 = {{0.0, 0.0, -1.0}};
-    float shadow = SHADOW;
-    HexG * G0[HEXAS];
-    int g_idx_0;
-    HexPack HP;
-    g_idx_0 = 0;
-
-    object * Pixel_Object = NULL;
-    triangle * Pixel_Triangle = NULL;
-
-    idx = volume_index[0];
-
-    if (P->O[idx] != NULL)
+    if (RENDER_LIGHT0)
     {
-        Pixel_Object = P->O[idx];
+        union Dir D_0 = {{0.0, 0.0, -1.0}};
+        float shadow = SHADOW;
+        HexG * G0[HEXAS];
+        int g_idx_0;
+        HexPack HP;
+        g_idx_0 = 0;
+
+        object * Pixel_Object = NULL;
+        triangle * Pixel_Triangle = NULL;
+
+        idx = volume_index[0];
+
+        if (P->O[idx] != NULL)
+        {
+            Pixel_Object = P->O[idx];
+        }
+
+        if (P->T[idx] != NULL)
+        {
+            Pixel_Triangle = P->T[idx];
+        }
+
+        float P_pos[3];
+
+        P_pos[0] = P->X[idx];
+        P_pos[1] = P->Y[idx];
+        P_pos[2] = P->Z[idx];
+
+        direction_Pack DP;
+
+        DP = length_AB(Light0->T->pos, P_pos);
+
+        D_0.D.x = DP.vec[0];
+        D_0.D.y = DP.vec[1];
+        D_0.D.z = DP.vec[2];
+
+        aim_deviation = acos(dot_productN((normal *)DP.vec, Light0->T->aim));
+
+        if (aim_deviation < light_cone)
+        {
+            HP = collect_Hexa_Groups_light(D_0.D, G0, g_idx_0);
+            shadow = cast_ray_from_Light0(P_pos, Light0, HP.G, HP.g_idx, L, Pixel_Triangle, Pixel_Object); // index 0
+        }
+
+        P->R[idx] -= shadow;
+        P->G[idx] -= shadow;
+        P->B[idx] -= shadow;
+
+        if (P->R[idx] < 0) P->R[idx] = 0;
+        if (P->G[idx] < 0) P->G[idx] = 0;
+        if (P->B[idx] < 0) P->B[idx] = 0;
     }
-
-    if (P->T[idx] != NULL)
-    {
-        Pixel_Triangle = P->T[idx];
-    }
-
-    float P_pos[3];
-
-    P_pos[0] = P->X[idx];
-    P_pos[1] = P->Y[idx];
-    P_pos[2] = P->Z[idx];
-
-    direction_Pack DP;
-
-    DP = length_AB(Light0->T->pos, P_pos);
-
-    D_0.D.x = DP.vec[0];
-    D_0.D.y = DP.vec[1];
-    D_0.D.z = DP.vec[2];
-
-    aim_deviation = acos(dot_productN((normal *)DP.vec, Light0->T->aim));
-
-    if (aim_deviation < light_cone)
-    {
-        HP = collect_Hexa_Groups_light(D_0.D, G0, g_idx_0);
-        shadow = cast_ray_from_Light0(P_pos, Light0, HP.G, HP.g_idx, L, Pixel_Triangle, Pixel_Object); // index 0
-    }
-
-    P->R[idx] -= shadow;
-    P->G[idx] -= shadow;
-    P->B[idx] -= shadow;
-
-    if (P->R[idx] < 0) P->R[idx] = 0;
-    if (P->G[idx] < 0) P->G[idx] = 0;
-    if (P->B[idx] < 0) P->B[idx] = 0;
 
     //composite_Pixels(P, volume_counter);
 
@@ -2788,57 +2816,60 @@ RGBA come_With_Pixel(pixel * P, camera * C, normal * D, HexG ** G, int g_idx)
 
     // shadow light
 
-    union Dir D_0 = {{0.0, 0.0, -1.0}};
-    float shadow = SHADOW;
-    HexG * G0[HEXAS];
-    int g_idx_0;
-    HexPack HP;
-    g_idx_0 = 0;
-
-    object * Pixel_Object = NULL;
-    triangle * Pixel_Triangle = NULL;
-
-    idx = volume_index[0];
-
-    if (P->O[idx] != NULL)
+    if (RENDER_LIGHT0)
     {
-        Pixel_Object = P->O[idx];
+        union Dir D_0 = {{0.0, 0.0, -1.0}};
+        float shadow = SHADOW;
+        HexG * G0[HEXAS];
+        int g_idx_0;
+        HexPack HP;
+        g_idx_0 = 0;
+
+        object * Pixel_Object = NULL;
+        triangle * Pixel_Triangle = NULL;
+
+        idx = volume_index[0];
+
+        if (P->O[idx] != NULL)
+        {
+            Pixel_Object = P->O[idx];
+        }
+
+        if (P->T[idx] != NULL)
+        {
+            Pixel_Triangle = P->T[idx];
+        }
+
+        float P_pos[3];
+
+        P_pos[0] = P->X[idx];
+        P_pos[1] = P->Y[idx];
+        P_pos[2] = P->Z[idx];
+
+        direction_Pack DP;
+
+        DP = length_AB(Light0->T->pos, P_pos);
+
+        D_0.D.x = DP.vec[0];
+        D_0.D.y = DP.vec[1];
+        D_0.D.z = DP.vec[2];
+
+        aim_deviation = acos(dot_productN((normal *)DP.vec, Light0->T->aim));
+
+        if (aim_deviation < light_cone)
+        {
+            HP = collect_Hexa_Groups_light(D_0.D, G0, g_idx_0);
+            shadow = cast_ray_from_Light0(P_pos, Light0, HP.G, HP.g_idx, -1, Pixel_Triangle, Pixel_Object); // index 0
+        }
+
+        P->R[idx] -= shadow;
+        P->G[idx] -= shadow;
+        P->B[idx] -= shadow;
+
+        if (P->R[idx] < 0) P->R[idx] = 0;
+        if (P->G[idx] < 0) P->G[idx] = 0;
+        if (P->B[idx] < 0) P->B[idx] = 0;
     }
-
-    if (P->T[idx] != NULL)
-    {
-        Pixel_Triangle = P->T[idx];
-    }
-
-    float P_pos[3];
-
-    P_pos[0] = P->X[idx];
-    P_pos[1] = P->Y[idx];
-    P_pos[2] = P->Z[idx];
-
-    direction_Pack DP;
-
-    DP = length_AB(Light0->T->pos, P_pos);
-
-    D_0.D.x = DP.vec[0];
-    D_0.D.y = DP.vec[1];
-    D_0.D.z = DP.vec[2];
-
-    aim_deviation = acos(dot_productN((normal *)DP.vec, Light0->T->aim));
-
-    if (aim_deviation < light_cone)
-    {
-        HP = collect_Hexa_Groups_light(D_0.D, G0, g_idx_0);
-        shadow = cast_ray_from_Light0(P_pos, Light0, HP.G, HP.g_idx, -1, Pixel_Triangle, Pixel_Object); // index 0
-    }
-
-    P->R[idx] -= shadow;
-    P->G[idx] -= shadow;
-    P->B[idx] -= shadow;
-
-    if (P->R[idx] < 0) P->R[idx] = 0;
-    if (P->G[idx] < 0) P->G[idx] = 0;
-    if (P->B[idx] < 0) P->B[idx] = 0;
 
     //composite_Pixels(P, volume_counter);
 

@@ -26326,6 +26326,12 @@ int main(int argc, char * args[])
                     }
                 }
             }
+            else if (mod & KMOD_CTRL)
+            {
+                RENDER_LIGHT0 = !RENDER_LIGHT0;
+                sprintf(bottom_message, "SHADOW LIGHT 0 is %d", RENDER_LIGHT0);
+                display_bottom_message(bottom_message, screen_width, screen_height);
+            }
             else
             {
                 DRAW_LOCATORS = !DRAW_LOCATORS;
@@ -26495,12 +26501,18 @@ int main(int argc, char * args[])
             populate_box_3d_Aim_And_Deviation(Camera, subdLevel);
             generate_Hexa_Groups(Camera);
 
-            find_objects_in_frame(Light0);
+            if (RENDER_LIGHT0)
+            {
+                rotate_Camera_Aim(Light0);
+                move_Back(Light0->T, CamDist * 2);
 
-            printf("Light0 %d\n", Light0->object_count);
+                find_objects_in_frame(Light0);
 
-            populate_box_3d_Aim_And_Deviation_light(Light0, subdLevel); // level -1
-            generate_Hexa_Groups_light(Light0);
+                printf("Light0 %d\n", Light0->object_count);
+
+                populate_box_3d_Aim_And_Deviation_light(Light0, subdLevel); // level -1
+                generate_Hexa_Groups_light(Light0);
+            }
 
             render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 0);
         }
@@ -26532,12 +26544,18 @@ int main(int argc, char * args[])
                 populate_box_3d_Aim_And_Deviation(Camera, subdLevel);
                 generate_Hexa_Groups(Camera);
 
-                find_objects_in_frame(Light0);
+                if (RENDER_LIGHT0)
+                {
+                    rotate_Camera_Aim(Light0);
+                    move_Back(Light0->T, CamDist * 2);
 
-                printf("Light0 %d\n", Light0->object_count);
+                    find_objects_in_frame(Light0);
 
-                populate_box_3d_Aim_And_Deviation_light(Light0, subdLevel); // level -1
-                generate_Hexa_Groups_light(Light0);
+                    printf("Light0 %d\n", Light0->object_count);
+
+                    populate_box_3d_Aim_And_Deviation_light(Light0, subdLevel); // level -1
+                    generate_Hexa_Groups_light(Light0);
+                }
 
                 render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 1);
 
