@@ -1212,7 +1212,7 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
 
     Uint32 pix;
     Uint8 r, g, b, a;
-    unsigned int R, G, B;//, A;
+    unsigned int R, G, B, A;
     float a0, b0, mean;
 
     int idx, x, y;
@@ -1258,12 +1258,12 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
         R = r * a0 + Material.RGBA.R * b0;
         G = g * a0 + Material.RGBA.G * b0;
         B = b * a0 + Material.RGBA.B * b0;
-        //A = a * a0 + Material.RGBA.A * b0;
+        A = a * a0 + Material.RGBA.A * b0;
 
         r = R / mean;
         g = G / mean;
         b = B / mean;
-        //a = A / mean;
+        a = A / mean;
     }
     else
     {
@@ -2088,7 +2088,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
 
     Uint32 pix;
     Uint8 r, g, b, a;
-    unsigned int R, G, B;//, A;
+    unsigned int R, G, B, A;
     float a0, b0, mean;
 
     int idx, c, x, y;
@@ -2187,12 +2187,12 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
             R = r * a0 + Material.RGBA.R * b0;
             G = g * a0 + Material.RGBA.G * b0;
             B = b * a0 + Material.RGBA.B * b0;
-            //A = a * a0 + Material.RGBA.A * b0;
+            A = a * a0 + Material.RGBA.A * b0;
 
             r = R / mean;
             g = G / mean;
             b = B / mean;
-            //a = A / mean;
+            a = A / mean;
         }
         else
         {
@@ -2253,7 +2253,7 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
 
     Uint32 pix;
     Uint8 r, g, b, a;
-    unsigned int R, G, B;//, A;
+    unsigned int R, G, B, A;
     float a0, b0, mean;
 
     int idx, c, x, y;
@@ -2352,12 +2352,12 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
             R = r * a0 + Material.RGBA.R * b0;
             G = g * a0 + Material.RGBA.G * b0;
             B = b * a0 + Material.RGBA.B * b0;
-            //A = a * a0 + Material.RGBA.A * b0;
+            A = a * a0 + Material.RGBA.A * b0;
 
             r = R / mean;
             g = G / mean;
             b = B / mean;
-            //a = A / mean;
+            a = A / mean;
         }
         else
         {
