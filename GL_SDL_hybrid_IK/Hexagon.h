@@ -52,6 +52,7 @@ typedef struct
 {
     object * O;
     int idx;
+    float dist;
 }
 polyPack;
 

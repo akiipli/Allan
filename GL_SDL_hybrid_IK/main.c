@@ -20946,23 +20946,23 @@ int main(int argc, char * args[])
                             {
                                 if (strcmp(item_type, ITEM_TYPE_OBJECT) == 0)
                                 {
-                                    ItemIndex = index + item_start;
-
                                     if (mouse_x > SIDEBAR + (DIALOG_WIDTH - 20) && mouse_x < SIDEBAR + DIALOG_WIDTH)
                                     {
-                                        if (loaded_objects[ItemIndex])
+                                        if (loaded_objects[index + item_start])
                                         {
-                                            hide_Object(ItemIndex);
+                                            hide_Object(index + item_start);
                                         }
                                         else
                                         {
-                                            unhide_Object(ItemIndex);
+                                            unhide_Object(index + item_start);
                                         }
                                         find_Camera_Objects();
                                         update_Items_List(1, 0);
                                     }
                                     else
                                     {
+                                        ItemIndex = index + item_start;
+
                                         if (ItemIndex < objectIndex && ItemIndex >= 0)
                                         {
                                             if (controlDown)

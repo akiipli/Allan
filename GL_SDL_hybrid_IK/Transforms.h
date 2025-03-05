@@ -208,7 +208,7 @@ void generate_Hexa_Groups(camera * C)
 int place_Polygon_Into_HexG_light(camera * C, object * O, polygon * P, HexG * H, HexG * Super, int result, int * cancel)
 {
     HexG * H_0;
-    int h;
+    int h, idx, i;
     float deviation;
     polyPack * PP;
 
@@ -236,10 +236,38 @@ int place_Polygon_Into_HexG_light(camera * C, object * O, polygon * P, HexG * H,
 
             if (H->Lights != NULL)
             {
-                PP = &H->Lights[H->lightpacks];
-                PP->O = O;
-                PP->idx = P->index;
-                H->lightpacks ++;
+                if (H->lightpacks == 0)
+                {
+                    PP = &H->Lights[H->lightpacks];
+                    PP->O = O;
+                    PP->idx = P->index;
+                    PP->dist = P->B_light.Aim.dist;
+                    H->lightpacks ++;
+                }
+                else // sort closer polygons first
+                {
+                    idx = H->lightpacks;
+                    // /*
+                    for (i = H->lightpacks - 1; i >= 0; i --)
+                    {
+                        if (P->B_light.Aim.dist < H->Lights[i].dist)
+                        {
+                            idx = i;
+                            break;
+                        }
+                    }
+
+                    for (i = H->lightpacks; i > idx; i --)
+                    {
+                        memcpy(&H->Lights[i], &H->Lights[i - 1], sizeof(polyPack));
+                    }
+                    //*/
+                    PP = &H->Lights[idx];
+                    PP->O = O;
+                    PP->idx = P->index;
+                    PP->dist = P->B_light.Aim.dist;
+                    H->lightpacks ++;
+                }
             }
             else
             {

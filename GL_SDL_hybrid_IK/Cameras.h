@@ -27,6 +27,7 @@ float LightDist = 30.0;
 float light_cone = 0.2;
 float SHADOW = 255 / 2;
 float LIGHT_CONE_FIT = 0.5;
+float SHADOW_DIST = 0.0001;
 
 float CamDist = 10;
 float CamDist_Camera = 10;
@@ -180,8 +181,8 @@ void update_light_ratio(camera * C, int hres, int vres)
         C->view_major = C->h_view;
     }
 
-    C->View_Radius = sqrt(C->h_view * C->h_view + C->v_view * C->v_view);
-    C->Resolution_Radius = sqrt(C->width * C->width + C->height * C->height);
+    C->View_Radius = sqrt(C->h_view * C->h_view + C->v_view * C->v_view) * PIXEL_SIZE_ADJUSTMENT;
+    C->Resolution_Radius = sqrt(C->width * C->width + C->height * C->height) * PIXEL_SIZE_ADJUSTMENT;
     C->Pixel_Size_In_Radians = C->View_Radius / C->Resolution_Radius;
 
     //printf("Pixel Size In Radians %f\n", C->Pixel_Size_In_Radians);

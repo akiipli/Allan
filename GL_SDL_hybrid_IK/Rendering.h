@@ -107,6 +107,13 @@ typedef struct
 }
 pixel;
 
+typedef struct
+{
+    float S[PIXEL_VOLUME]; // shadow
+    float D[PIXEL_VOLUME];
+}
+light_pixel;
+
 /*inline*/ float length(float V[3])
 {
     float l = sqrt(V[0] * V[0] + V[1] * V[1] + V[2] * V[2]);
@@ -766,7 +773,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
                 }
 
                 P->B_light.deviation = acos(Dot);
-                P->B_light.Aim.dist = polyAim.dist;
+                P->B_light.Aim.dist = polyAim.dist * P->B_light.deviation;
                 P->B_light.Aim.vec[0] = polyAim.vec[0];
                 P->B_light.Aim.vec[1] = polyAim.vec[1];
                 P->B_light.Aim.vec[2] = polyAim.vec[2];
@@ -1033,7 +1040,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
                 }
 
                 P->B_light.deviation = acos(Dot);
-                P->B_light.Aim.dist = polyAim.dist;
+                P->B_light.Aim.dist = polyAim.dist * P->B_light.deviation;
                 P->B_light.Aim.vec[0] = polyAim.vec[0];
                 P->B_light.Aim.vec[1] = polyAim.vec[1];
                 P->B_light.Aim.vec[2] = polyAim.vec[2];
@@ -1310,7 +1317,61 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
     return Cancel;
 }
 
-trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Light0, normal * D, object * O, object * Pixel_Object, triangle * T, float * shadow)
+trianges_cancel render_Pixel_light(float Dist, camera * Light0, normal * D, int L, object * O,
+            object * Pixel_Object, quadrant * Q, float * shadow, light_pixel * LP, int volume_counter)
+{
+    trianges_cancel Cancel;
+    Cancel.preak = 0;
+    Cancel.cancel = 0;
+
+    float dist, Dot;
+
+    float shadow_intensity = 1.0;
+
+    float Q_Normal[3];
+
+    Q_Normal[0] = -Q->N.Tx;
+    Q_Normal[1] = -Q->N.Ty;
+    Q_Normal[2] = -Q->N.Tz;
+
+    Dot = dot_productFF(Q_Normal, light_vec);
+
+    dist = Q->B_light.Aim.dist;
+
+    if (dist < Dist - SHADOW_DIST)
+    {
+        if (Dot < 0.0)
+        {
+            Dot = - Dot;
+        }
+
+        //shadow_intensity = dist / Dist;
+        //shadow_intensity = pow(shadow_intensity, 4.0);  // fade to distance
+
+        if (O == Pixel_Object) // self shadow, no obsticle between light and incident
+        {
+            shadow_intensity *= Dot;
+        }
+
+        shadow[0] = SHADOW * shadow_intensity; // * dot
+
+        LP->S[volume_counter] = shadow[0];
+        LP->D[volume_counter] = Q->B_light.Aim.dist;
+        volume_counter ++;
+
+        Cancel.cancel = 1;
+
+        if (volume_counter == PIXEL_VOLUME)
+            Cancel.preak = 1;
+        //Cancel.preak = 1;
+    }
+
+    Cancel.volume_counter = volume_counter;
+    return Cancel;
+}
+
+trianges_cancel render_Triangles_light(float Dist, camera * Light0, normal * D, object * O, object * Pixel_Object,
+                                       triangle * T, float * shadow, light_pixel * LP, int volume_counter)
 {
     trianges_cancel Cancel;
     Cancel.preak = 0;
@@ -1338,7 +1399,7 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
 
     dist /= dot;
 
-    if (dist < Dist - 0.0001)
+    if (dist < Dist - SHADOW_DIST)
     {
         idx = T->verts[0];
         V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1391,8 +1452,16 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
             }
 
             shadow[0] = SHADOW * shadow_intensity; // * dot
+
+            LP->S[volume_counter] = shadow[0];
+            LP->D[volume_counter] = dist;
+            volume_counter ++;
+
             Cancel.cancel = 1;
-            Cancel.preak = 1;
+
+            if (volume_counter == PIXEL_VOLUME)
+                Cancel.preak = 1;
+            //Cancel.preak = 1;
         }
         /*
         else
@@ -1402,10 +1471,12 @@ trianges_cancel render_Triangles_light(float Dist, float P_pos[3], camera * Ligh
         */
     }
 
+    Cancel.volume_counter = volume_counter;
     return Cancel;
 }
 
-trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Light0, normal * D, int L, object * O, object * Pixel_Object, triangle * T, float * shadow)
+trianges_cancel render_Triangles_light_(float Dist, camera * Light0, normal * D, int L, object * O, object * Pixel_Object,
+                                        triangle * T, float * shadow, light_pixel * LP, int volume_counter)
 {
     trianges_cancel Cancel;
     Cancel.preak = 0;
@@ -1433,7 +1504,7 @@ trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Lig
 
     dist /= dot;
 
-    if (dist < Dist - 0.0001)
+    if (dist < Dist - SHADOW_DIST)
     {
         idx = T->verts[0];
         V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1477,6 +1548,11 @@ trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Lig
                 Dot = - Dot;
             }
 
+            //if (dot < 0.0)
+            //{
+            //    dot = - dot;
+            //}
+
             //shadow_intensity = dist / Dist;
             //shadow_intensity = pow(shadow_intensity, 4.0); // fade to distance
 
@@ -1485,9 +1561,16 @@ trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Lig
                 shadow_intensity *= Dot;
             }
 
-            shadow[0] = SHADOW * shadow_intensity; // * dot
+            shadow[0] = SHADOW * shadow_intensity; // * dot;
+
+            LP->S[volume_counter] = shadow[0];
+            LP->D[volume_counter] = dist;
+            volume_counter ++;
+
             Cancel.cancel = 1;
-            Cancel.preak = 1;
+
+            if (volume_counter == PIXEL_VOLUME)
+                Cancel.preak = 1;
         }
         /*
         else
@@ -1497,12 +1580,15 @@ trianges_cancel render_Triangles_light_(float Dist, float P_pos[3], camera * Lig
         */
     }
 
+    Cancel.volume_counter = volume_counter;
     return Cancel;
 }
 
 float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx, int L, triangle * Pixel_Triangle, object * Pixel_Object)
 {
     trianges_cancel Cancel;
+    Cancel.preak = 0;
+    Cancel.cancel = 0;
 
     float shadow = 0.0;
 
@@ -1513,6 +1599,14 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
     polygon * P0;
     triangle * T;
     quadrant * Q, * Q0, * Q1, * Q2;
+
+    light_pixel LP;
+
+    int i, k, s, d;
+    int volume_index[PIXEL_VOLUME];
+    float d_index[PIXEL_VOLUME];
+
+    int volume_counter = 0;
 
     float aim_deviation;
 
@@ -1532,7 +1626,7 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
 
         H = G[h];
 
-        for (p = 0; p < H->lightpacks; p ++)
+        for (p = 0; p < H->lightpacks; p ++) // (p = H->lightpacks - 1; p >= 0; p --) // distant first
         {
             if (Preak)
                 break;
@@ -1580,7 +1674,15 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
                     {
                         continue;
                     }
-
+/*
+                    if (Q->B_light.deviation < Light0->Pixel_Size_In_Radians)
+                    {
+                        Cancel = render_Pixel_light(D.distance, Light0, (normal *)D.vec, 0, O, Pixel_Object, Q, &shadow, &LP, volume_counter);
+                        volume_counter = Cancel.volume_counter;
+                        Preak = Cancel.preak;
+                        continue;
+                    }
+*/
                     if (Q->subdivs && L >= 1)
                     {
                         for (q0 = 0; q0 < 4; q0 ++)
@@ -1602,7 +1704,15 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
                             {
                                 continue;
                             }
-
+/*
+                            if (Q0->B_light.deviation < Light0->Pixel_Size_In_Radians)
+                            {
+                                Cancel = render_Pixel_light(D.distance, Light0, (normal *)D.vec, 1, O, Pixel_Object, Q0, &shadow, &LP, volume_counter);
+                                volume_counter = Cancel.volume_counter;
+                                Preak = Cancel.preak;
+                                continue;
+                            }
+*/
                             if (Q0->subdivs && L >= 2)
                             {
                                 for (q1 = 0; q1 < 4; q1 ++)
@@ -1624,7 +1734,15 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
                                     {
                                         continue;
                                     }
-
+/*
+                                    if (Q1->B_light.deviation < Light0->Pixel_Size_In_Radians)
+                                    {
+                                        Cancel = render_Pixel_light(D.distance, Light0, (normal *)D.vec, 2, O, Pixel_Object, Q1, &shadow, &LP, volume_counter);
+                                        volume_counter = Cancel.volume_counter;
+                                        Preak = Cancel.preak;
+                                        continue;
+                                    }
+*/
                                     if (Q1->subdivs && L >= 3)
                                     {
                                         for (q2 = 0; q2 < 4; q2 ++)
@@ -1646,7 +1764,15 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
                                             {
                                                 continue;
                                             }
-
+/*
+                                            if (Q2->B_light.deviation < Light0->Pixel_Size_In_Radians)
+                                            {
+                                                Cancel = render_Pixel_light(D.distance, Light0, (normal *)D.vec, 3, O, Pixel_Object, Q2, &shadow, &LP, volume_counter);
+                                                volume_counter = Cancel.volume_counter;
+                                                Preak = Cancel.preak;
+                                                continue;
+                                            }
+*/
                                             for (t = 0; t < 2; t ++)
                                             {
                                                 if (Preak)
@@ -1663,7 +1789,9 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
 
                                                 if (!T->B_light.backface)
                                                 {
-                                                    Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 3, O, Pixel_Object, T, &shadow);
+                                                    Cancel = render_Triangles_light_(D.distance, Light0, (normal *)D.vec, 3, O, Pixel_Object, T, &shadow, &LP, volume_counter);
+
+                                                    volume_counter = Cancel.volume_counter;
 
                                                     Preak = Cancel.preak;
 
@@ -1691,7 +1819,9 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
 
                                             if (!T->B_light.backface)
                                             {
-                                                Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 2, O, Pixel_Object, T, &shadow);
+                                                Cancel = render_Triangles_light_(D.distance, Light0, (normal *)D.vec, 2, O, Pixel_Object, T, &shadow, &LP, volume_counter);
+
+                                                volume_counter = Cancel.volume_counter;
 
                                                 Preak = Cancel.preak;
 
@@ -1720,7 +1850,9 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
 
                                     if (!T->B_light.backface)
                                     {
-                                        Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 1, O, Pixel_Object, T, &shadow);
+                                        Cancel = render_Triangles_light_(D.distance, Light0, (normal *)D.vec, 1, O, Pixel_Object, T, &shadow, &LP, volume_counter);
+
+                                        volume_counter = Cancel.volume_counter;
 
                                         Preak = Cancel.preak;
 
@@ -1749,7 +1881,9 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
 
                             if (!T->B_light.backface)
                             {
-                                Cancel = render_Triangles_light_(D.distance, P_pos, Light0, (normal *)D.vec, 0, O, Pixel_Object, T, &shadow);
+                                Cancel = render_Triangles_light_(D.distance, Light0, (normal *)D.vec, 0, O, Pixel_Object, T, &shadow, &LP, volume_counter);
+
+                                volume_counter = Cancel.volume_counter;
 
                                 Preak = Cancel.preak;
 
@@ -1778,7 +1912,9 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
 
                     if (!T->B_light.backface) // Light0 overrides it
                     {
-                        Cancel = render_Triangles_light(D.distance, P_pos, Light0, (normal *)D.vec, O, Pixel_Object, T, &shadow);
+                        Cancel = render_Triangles_light(D.distance, Light0, (normal *)D.vec, O, Pixel_Object, T, &shadow, &LP, volume_counter);
+
+                        volume_counter = Cancel.volume_counter;
 
                         Preak = Cancel.preak;
 
@@ -1789,6 +1925,35 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
             }
         }
     }
+
+    if (volume_counter == 0)
+    {
+        return shadow;
+    }
+
+    for (i = 0; i < volume_counter; i ++)
+    {
+        volume_index[i] = i;
+        d_index[i] = LP.D[i];
+    }
+
+    for (i = 1; i < volume_counter; i ++)
+    {
+        for (k = 0; k < volume_counter - i; k ++)
+        {
+            if (d_index[k] > d_index[k + 1]) // to reverse use other comparison
+            {
+                s = d_index[k + 1];
+                d_index[k + 1] = d_index[k];
+                d_index[k] = s;
+                d = volume_index[k + 1];
+                volume_index[k + 1] = volume_index[k];
+                volume_index[k] = d;
+            }
+        }
+    }
+
+    shadow = LP.S[volume_index[0]]; // 0 is closest light pixel
 
     return shadow;
 }
