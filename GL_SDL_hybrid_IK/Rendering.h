@@ -1212,7 +1212,7 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
 
     Uint32 pix;
     Uint8 r, g, b, a;
-    unsigned int R, G, B, A;
+    unsigned int R, G, B;//, A;
     float a0, b0, mean;
 
     int idx, x, y;
@@ -1232,17 +1232,17 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
     Material = Materials[idx];
     texture = Surf_Text[Material.texture];
 
-    idx = Q->texts[0];
-    UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polytexts[0][0] = UV->u;
-    polytexts[0][1] = UV->v;
-    idx = Q->texts[2];
-    UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-    polytexts[1][0] = UV->u;
-    polytexts[1][1] = UV->v;
-
     if (texture != NULL)//(Material.use_texture && texture != NULL)
     {
+        idx = Q->texts[0];
+        UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+        polytexts[0][0] = UV->u;
+        polytexts[0][1] = UV->v;
+        idx = Q->texts[2];
+        UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+        polytexts[1][0] = UV->u;
+        polytexts[1][1] = UV->v;
+
         Q_UV = uv_value_mean(polytexts);
         x = abs((int)(texture->w * Q_UV.uv[0])) % texture->w;
         y = abs((int)(texture->h * Q_UV.uv[1])) % texture->h;
@@ -1252,17 +1252,18 @@ trianges_cancel render_Pixel(pixel * P, camera * C, normal * D, int L, object * 
         a0 = (float)a / (float)255;
         b0 = (float)Material.RGBA.A / (float)255;
 
+        a0 *= 2;
         mean = a0 + b0;
 
         R = r * a0 + Material.RGBA.R * b0;
         G = g * a0 + Material.RGBA.G * b0;
         B = b * a0 + Material.RGBA.B * b0;
-        A = a * a0 + Material.RGBA.A * b0;
+        //A = a * a0 + Material.RGBA.A * b0;
 
         r = R / mean;
         g = G / mean;
         b = B / mean;
-        a = A / mean;
+        //a = A / mean;
     }
     else
     {
@@ -1324,11 +1325,23 @@ trianges_cancel render_Pixel_light(float Dist, camera * Light0, normal * D, int 
     Cancel.preak = 0;
     Cancel.cancel = 0;
 
+    Uint32 pix;
+    Uint8 r, g, b, a;
+    int idx, x, y;
+    float A;
+
     float dist, Dot;
 
-    float shadow_intensity = 1.0;
+    uv * UV;
 
+    float polytexts[2][2];
+
+    uvPack Q_UV;
     float Q_Normal[3];
+    SDL_Surface * texture;
+    surface_Material Material;
+
+    float shadow_intensity = 1.0;
 
     Q_Normal[0] = -Q->N.Tx;
     Q_Normal[1] = -Q->N.Ty;
@@ -1340,6 +1353,32 @@ trianges_cancel render_Pixel_light(float Dist, camera * Light0, normal * D, int 
 
     if (dist < Dist - SHADOW_DIST)
     {
+        idx = Q->surface;
+        Material = Materials[idx];
+        texture = Surf_Text[Material.texture];
+
+        if (texture != NULL)//(Material.use_texture && texture != NULL)
+        {
+            idx = Q->texts[0];
+            UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+            polytexts[0][0] = UV->u;
+            polytexts[0][1] = UV->v;
+            idx = Q->texts[2];
+            UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+            polytexts[1][0] = UV->u;
+            polytexts[1][1] = UV->v;
+
+            Q_UV = uv_value_mean(polytexts);
+            x = abs((int)(texture->w * Q_UV.uv[0])) % texture->w;
+            y = abs((int)(texture->h * Q_UV.uv[1])) % texture->h;
+            pix = get_pixel32(texture, x, y);
+            SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+        }
+        else
+        {
+            a = Material.RGBA.A;
+        }
+
         if (Dot < 0.0)
         {
             Dot = - Dot;
@@ -1353,7 +1392,9 @@ trianges_cancel render_Pixel_light(float Dist, camera * Light0, normal * D, int 
             shadow_intensity *= Dot;
         }
 
-        shadow[0] = SHADOW * shadow_intensity; // * dot
+        A = (float)a / 255.0;
+
+        shadow[0] = SHADOW * shadow_intensity * A; // * dot
 
         LP->S[volume_counter] = shadow[0];
         LP->D[volume_counter] = Q->B_light.Aim.dist;
@@ -1377,15 +1418,25 @@ trianges_cancel render_Triangles_light(float Dist, camera * Light0, normal * D, 
     Cancel.preak = 0;
     Cancel.cancel = 0;
 
-    int idx, c;
+    Uint32 pix;
+    Uint8 r, g, b, a;
+
+    float A;
+
+    int idx, c, x, y;
     float dot, dist, Dot;
     normal polynormal;
     vertex * V;
+    uv * UV;
     //polyplane plane;
     float polypoints[3][3];
     float polynormals[3][3];
+    float polytexts[3][2];
     float intersection_Point[3];
     texelPack T_uvNormal;
+    SDL_Surface * texture;
+    surface_Material Material;
+
     float shadow_intensity = 1.0;
 
     polynormal.x = -T->N.Tx;
@@ -1434,7 +1485,36 @@ trianges_cancel render_Triangles_light(float Dist, camera * Light0, normal * D, 
 
         if (c > 0)
         {
-            normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);
+            idx = T->surface;
+            Material = Materials[idx];
+            texture = Surf_Text[Material.texture];
+
+            if (texture != NULL)//(Material.use_texture && texture != NULL)
+            {
+                idx = T->texts[0];
+                UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polytexts[0][0] = UV->u;
+                polytexts[0][1] = UV->v;
+                idx = T->texts[1];
+                UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polytexts[1][0] = UV->u;
+                polytexts[1][1] = UV->v;
+                idx = T->texts[2];
+                UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polytexts[2][0] = UV->u;
+                polytexts[2][1] = UV->v;
+
+                T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
+                x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
+                y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
+                pix = get_pixel32(texture, x, y);
+                SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+            }
+            else
+            {
+                a = Material.RGBA.A;
+                normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);
+            }
 
             Dot = dot_productF(T_uvNormal.normal, D);
 
@@ -1451,7 +1531,9 @@ trianges_cancel render_Triangles_light(float Dist, camera * Light0, normal * D, 
                 shadow_intensity *= Dot;
             }
 
-            shadow[0] = SHADOW * shadow_intensity; // * dot
+            A = (float)a / 255.0;
+
+            shadow[0] = SHADOW * shadow_intensity * A; // * dot
 
             LP->S[volume_counter] = shadow[0];
             LP->D[volume_counter] = dist;
@@ -1482,15 +1564,25 @@ trianges_cancel render_Triangles_light_(float Dist, camera * Light0, normal * D,
     Cancel.preak = 0;
     Cancel.cancel = 0;
 
-    int idx, c;
+    Uint32 pix;
+    Uint8 r, g, b, a;
+
+    float A;
+
+    int idx, c, x, y;
     float dot, dist, Dot;
     normal polynormal;
     vertex * V;
+    uv * UV;
     //polyplane plane;
     float polypoints[3][3];
     float polynormals[3][3];
+    float polytexts[3][2];
     float intersection_Point[3];
     texelPack T_uvNormal;
+    SDL_Surface * texture;
+    surface_Material Material;
+
     float shadow_intensity = 1.0;
 
     polynormal.x = -T->N.Tx;
@@ -1539,7 +1631,36 @@ trianges_cancel render_Triangles_light_(float Dist, camera * Light0, normal * D,
 
         if (c > 0)
         {
-            normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);
+            idx = T->surface;
+            Material = Materials[idx];
+            texture = Surf_Text[Material.texture];
+
+            if (texture != NULL)//(Material.use_texture && texture != NULL)
+            {
+                idx = T->texts[0];
+                UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polytexts[0][0] = UV->u;
+                polytexts[0][1] = UV->v;
+                idx = T->texts[1];
+                UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polytexts[1][0] = UV->u;
+                polytexts[1][1] = UV->v;
+                idx = T->texts[2];
+                UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+                polytexts[2][0] = UV->u;
+                polytexts[2][1] = UV->v;
+
+                T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
+                x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
+                y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
+                pix = get_pixel32(texture, x, y);
+                SDL_GetRGBA(pix, texture->format, &r, &g, &b, &a);
+            }
+            else
+            {
+                a = Material.RGBA.A;
+                normal_value(intersection_Point, polypoints, polynormals, T_uvNormal.normal);
+            }
 
             Dot = dot_productF(T_uvNormal.normal, D);
 
@@ -1561,7 +1682,9 @@ trianges_cancel render_Triangles_light_(float Dist, camera * Light0, normal * D,
                 shadow_intensity *= Dot;
             }
 
-            shadow[0] = SHADOW * shadow_intensity; // * dot;
+            A = (float)a / 255.0;
+
+            shadow[0] = SHADOW * shadow_intensity * A; // * dot;
 
             LP->S[volume_counter] = shadow[0];
             LP->D[volume_counter] = dist;
@@ -1966,7 +2089,7 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
 
     Uint32 pix;
     Uint8 r, g, b, a;
-    unsigned int R, G, B, A;
+    unsigned int R, G, B;//, A;
     float a0, b0, mean;
 
     int idx, c, x, y;
@@ -2035,21 +2158,21 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
         Material = Materials[idx];
         texture = Surf_Text[Material.texture];
 
-        idx = T->texts[0];
-        UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-        polytexts[0][0] = UV->u;
-        polytexts[0][1] = UV->v;
-        idx = T->texts[1];
-        UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-        polytexts[1][0] = UV->u;
-        polytexts[1][1] = UV->v;
-        idx = T->texts[2];
-        UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
-        polytexts[2][0] = UV->u;
-        polytexts[2][1] = UV->v;
-
         if (texture != NULL)//(Material.use_texture && texture != NULL)
         {
+            idx = T->texts[0];
+            UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            polytexts[0][0] = UV->u;
+            polytexts[0][1] = UV->v;
+            idx = T->texts[1];
+            UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            polytexts[1][0] = UV->u;
+            polytexts[1][1] = UV->v;
+            idx = T->texts[2];
+            UV = &O->uvtex[idx / ARRAYSIZE][idx % ARRAYSIZE];
+            polytexts[2][0] = UV->u;
+            polytexts[2][1] = UV->v;
+
             T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
             x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
             y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
@@ -2059,17 +2182,18 @@ trianges_cancel render_Triangles(pixel * P, camera * C, normal * D, object * O, 
             a0 = (float)a / (float)255;
             b0 = (float)Material.RGBA.A / (float)255;
 
+            a0 *= 2;
             mean = a0 + b0;
 
             R = r * a0 + Material.RGBA.R * b0;
             G = g * a0 + Material.RGBA.G * b0;
             B = b * a0 + Material.RGBA.B * b0;
-            A = a * a0 + Material.RGBA.A * b0;
+            //A = a * a0 + Material.RGBA.A * b0;
 
             r = R / mean;
             g = G / mean;
             b = B / mean;
-            a = A / mean;
+            //a = A / mean;
         }
         else
         {
@@ -2130,7 +2254,7 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
 
     Uint32 pix;
     Uint8 r, g, b, a;
-    unsigned int R, G, B, A;
+    unsigned int R, G, B;//, A;
     float a0, b0, mean;
 
     int idx, c, x, y;
@@ -2199,21 +2323,21 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
         Material = Materials[idx];
         texture = Surf_Text[Material.texture];
 
-        idx = T->texts[0];
-        UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-        polytexts[0][0] = UV->u;
-        polytexts[0][1] = UV->v;
-        idx = T->texts[1];
-        UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-        polytexts[1][0] = UV->u;
-        polytexts[1][1] = UV->v;
-        idx = T->texts[2];
-        UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
-        polytexts[2][0] = UV->u;
-        polytexts[2][1] = UV->v;
-
         if (texture != NULL)//(Material.use_texture && texture != NULL)
         {
+            idx = T->texts[0];
+            UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+            polytexts[0][0] = UV->u;
+            polytexts[0][1] = UV->v;
+            idx = T->texts[1];
+            UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+            polytexts[1][0] = UV->u;
+            polytexts[1][1] = UV->v;
+            idx = T->texts[2];
+            UV = &O->uvtex_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
+            polytexts[2][0] = UV->u;
+            polytexts[2][1] = UV->v;
+
             T_uvNormal = uv_value(intersection_Point, polypoints, polynormals, polytexts);
             x = abs((int)(texture->w * T_uvNormal.uv[0])) % texture->w;
             y = abs((int)(texture->h * T_uvNormal.uv[1])) % texture->h;
@@ -2223,17 +2347,18 @@ trianges_cancel render_Triangles_(pixel * P, camera * C, normal * D, int L, obje
             a0 = (float)a / (float)255;
             b0 = (float)Material.RGBA.A / (float)255;
 
+            a0 *= 2;
             mean = a0 + b0;
 
             R = r * a0 + Material.RGBA.R * b0;
             G = g * a0 + Material.RGBA.G * b0;
             B = b * a0 + Material.RGBA.B * b0;
-            A = a * a0 + Material.RGBA.A * b0;
+            //A = a * a0 + Material.RGBA.A * b0;
 
             r = R / mean;
             g = G / mean;
             b = B / mean;
-            a = A / mean;
+            //a = A / mean;
         }
         else
         {
@@ -2315,7 +2440,7 @@ RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, HexG ** G, int g
     rgba.R = 100;
     rgba.G = 100;
     rgba.B = 100;
-    rgba.A = 100;
+    rgba.A = 0;
 
     int d;
     float s;
@@ -2712,7 +2837,7 @@ RGBA come_With_Pixel_(pixel * P, camera * C, normal * D, int L, HexG ** G, int g
         rgba.R = rgba.R * b + P->R[idx] * a;
         rgba.G = rgba.G * b + P->G[idx] * a;
         rgba.B = rgba.B * b + P->B[idx] * a;
-        rgba.A = 255;
+        rgba.A = rgba.A * b + P->A[idx] * a;
     }
 
     //rgba.A /= volume_counter;
@@ -2931,7 +3056,7 @@ RGBA come_With_Pixel(pixel * P, camera * C, normal * D, HexG ** G, int g_idx)
     rgba.R = 100;
     rgba.G = 100;
     rgba.B = 100;
-    rgba.A = 100;
+    rgba.A = 0;
 
     int d;
     float s;
@@ -3096,7 +3221,7 @@ RGBA come_With_Pixel(pixel * P, camera * C, normal * D, HexG ** G, int g_idx)
         rgba.R = rgba.R * b + P->R[idx] * a;
         rgba.G = rgba.G * b + P->G[idx] * a;
         rgba.B = rgba.B * b + P->B[idx] * a;
-        rgba.A = 255;
+        rgba.A = rgba.A * b + P->A[idx] * a; // 255;
     }
 
     //rgba.A /= volume_counter;
