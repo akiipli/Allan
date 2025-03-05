@@ -399,7 +399,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
                 }
 
                 P->B.deviation = acos(Dot);
-                P->B.Aim.dist = polyAim.dist * P->B.deviation;
+                P->B.Aim.dist = polyAim.dist + P->B.deviation;
                 P->B.Aim.vec[0] = polyAim.vec[0];
                 P->B.Aim.vec[1] = polyAim.vec[1];
                 P->B.Aim.vec[2] = polyAim.vec[2];
@@ -666,7 +666,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
                 }
 
                 P->B.deviation = acos(Dot);
-                P->B.Aim.dist = polyAim.dist * P->B.deviation;;
+                P->B.Aim.dist = polyAim.dist + P->B.deviation;;
                 P->B.Aim.vec[0] = polyAim.vec[0];
                 P->B.Aim.vec[1] = polyAim.vec[1];
                 P->B.Aim.vec[2] = polyAim.vec[2];
@@ -773,7 +773,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
                 }
 
                 P->B_light.deviation = acos(Dot);
-                P->B_light.Aim.dist = polyAim.dist * P->B_light.deviation;
+                P->B_light.Aim.dist = polyAim.dist + P->B_light.deviation;
                 P->B_light.Aim.vec[0] = polyAim.vec[0];
                 P->B_light.Aim.vec[1] = polyAim.vec[1];
                 P->B_light.Aim.vec[2] = polyAim.vec[2];
@@ -1040,7 +1040,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
                 }
 
                 P->B_light.deviation = acos(Dot);
-                P->B_light.Aim.dist = polyAim.dist * P->B_light.deviation;
+                P->B_light.Aim.dist = polyAim.dist + P->B_light.deviation;
                 P->B_light.Aim.vec[0] = polyAim.vec[0];
                 P->B_light.Aim.vec[1] = polyAim.vec[1];
                 P->B_light.Aim.vec[2] = polyAim.vec[2];
@@ -1384,8 +1384,8 @@ trianges_cancel render_Pixel_light(float Dist, camera * Light0, normal * D, int 
             Dot = - Dot;
         }
 
-        //shadow_intensity = dist / Dist;
-        //shadow_intensity = pow(shadow_intensity, 4.0);  // fade to distance
+        shadow_intensity = dist / Dist;
+        shadow_intensity = pow(shadow_intensity, 4.0);  // fade to distance
 
         if (O == Pixel_Object) // self shadow, no obsticle between light and incident
         {
@@ -1404,7 +1404,6 @@ trianges_cancel render_Pixel_light(float Dist, camera * Light0, normal * D, int 
 
         if (volume_counter == PIXEL_VOLUME)
             Cancel.preak = 1;
-        //Cancel.preak = 1;
     }
 
     Cancel.volume_counter = volume_counter;
@@ -1523,8 +1522,8 @@ trianges_cancel render_Triangles_light(float Dist, camera * Light0, normal * D, 
                 Dot = - Dot;
             }
 
-            //shadow_intensity = dist / Dist;
-            //shadow_intensity = pow(shadow_intensity, 4.0);  // fade to distance
+            shadow_intensity = dist / Dist;
+            shadow_intensity = pow(shadow_intensity, 4.0);  // fade to distance
 
             if (O == Pixel_Object) // self shadow, no obsticle between light and incident
             {
@@ -1674,8 +1673,8 @@ trianges_cancel render_Triangles_light_(float Dist, camera * Light0, normal * D,
             //    dot = - dot;
             //}
 
-            //shadow_intensity = dist / Dist;
-            //shadow_intensity = pow(shadow_intensity, 4.0); // fade to distance
+            shadow_intensity = dist / Dist;
+            shadow_intensity = pow(shadow_intensity, 4.0); // fade to distance
 
             if (O == Pixel_Object) // self shadow
             {
