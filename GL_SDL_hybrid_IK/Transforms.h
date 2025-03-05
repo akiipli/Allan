@@ -88,7 +88,7 @@ union Dir
 int place_Polygon_Into_HexG(camera * C, object * O, polygon * P, HexG * H, HexG * Super, int result, int * cancel)
 {
     HexG * H_0;
-    int h;
+    int h, i, idx;
     float deviation;
     polyPack * PP;
 
@@ -120,10 +120,38 @@ int place_Polygon_Into_HexG(camera * C, object * O, polygon * P, HexG * H, HexG 
             }
             if (H->Polygons != NULL)
             {
-                PP = &H->Polygons[H->polypacks];
-                PP->O = O;
-                PP->idx = P->index;
-                H->polypacks ++;
+                if (H->polypacks == 0)
+                {
+                    PP = &H->Polygons[H->polypacks];
+                    PP->O = O;
+                    PP->idx = P->index;
+                    PP->dist = P->B.Aim.dist;
+                    H->polypacks ++;
+                }
+                else // sort closer polygons first
+                {
+                    idx = H->polypacks;
+                    // /*
+                    for (i = H->polypacks - 1; i >= 0; i --)
+                    {
+                        if (P->B.Aim.dist < H->Polygons[i].dist)
+                        {
+                            idx = i;
+                            break;
+                        }
+                    }
+
+                    for (i = H->polypacks; i > idx; i --)
+                    {
+                        memcpy(&H->Polygons[i], &H->Polygons[i - 1], sizeof(polyPack));
+                    }
+                    //*/
+                    PP = &H->Polygons[idx];
+                    PP->O = O;
+                    PP->idx = P->index;
+                    PP->dist = P->B.Aim.dist;
+                    H->polypacks ++;
+                }
             }
             else
             {

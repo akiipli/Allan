@@ -399,7 +399,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
                 }
 
                 P->B.deviation = acos(Dot);
-                P->B.Aim.dist = polyAim.dist;
+                P->B.Aim.dist = polyAim.dist * P->B.deviation;
                 P->B.Aim.vec[0] = polyAim.vec[0];
                 P->B.Aim.vec[1] = polyAim.vec[1];
                 P->B.Aim.vec[2] = polyAim.vec[2];
@@ -666,7 +666,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
                 }
 
                 P->B.deviation = acos(Dot);
-                P->B.Aim.dist = polyAim.dist;
+                P->B.Aim.dist = polyAim.dist * P->B.deviation;;
                 P->B.Aim.vec[0] = polyAim.vec[0];
                 P->B.Aim.vec[1] = polyAim.vec[1];
                 P->B.Aim.vec[2] = polyAim.vec[2];
