@@ -1451,7 +1451,7 @@ trianges_cancel render_Triangles_light(float Dist, camera * Light0, normal * D, 
 
     dist /= dot;
 
-    if (dist < Dist + SHADOW_DIST)
+    if (dist < Dist - SHADOW_DIST)
     {
         idx = T->verts[0];
         V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1598,7 +1598,7 @@ trianges_cancel render_Triangles_light_(float Dist, camera * Light0, normal * D,
 
     dist /= dot;
 
-    if (dist < Dist + SHADOW_DIST) // + sign change
+    if (dist < Dist - SHADOW_DIST) // + sign change
     {
         idx = T->verts[0];
         V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
