@@ -4,7 +4,7 @@ The MIT License
 Copyright <2018> <2022> <Allan Kiipli>
 */
 
-#define TOLERANCE 100
+#define TOLERANCE 1000
 
 #define POLYGON_ID_COLORS 2
 #define OBJECT_ID_COLORS 1
@@ -110,7 +110,8 @@ pixel;
 typedef struct
 {
     float S[PIXEL_VOLUME]; // shadow
-    float D[PIXEL_VOLUME];
+    //float A[PIXEL_VOLUME]; // alpha
+    float D[PIXEL_VOLUME]; // depth
 }
 light_pixel;
 
@@ -711,7 +712,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
     float polypoints[3];
 
-    float BACKFACE_QUALIFIER = -0.5; // 0.0
+    float BACKFACE_QUALIFIER = 0.0; // -0.5; // 0.0 // could be frontface qualifier when dot term is reversed and negated
 
 /*
     normal D;
@@ -806,7 +807,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
                     dot = dot_productN(&polynormal, polyAim.vec);
 
-                    if (dot > BACKFACE_QUALIFIER)
+                    if (dot < BACKFACE_QUALIFIER) // reversed
                     {
                         T->B_light.backface = 0;
                         P->B_light.backface = 0;
@@ -960,7 +961,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
                             dot = dot_productN(&polynormal, polyAim.vec);
 
-                            if (dot > BACKFACE_QUALIFIER)
+                            if (dot < BACKFACE_QUALIFIER) // reversed
                             {
                                 T->B_light.backface = 0;
                                 Q->B_light.backface = 0;
@@ -1397,6 +1398,7 @@ trianges_cancel render_Pixel_light(float Dist, camera * Light0, normal * D, int 
         shadow[0] = SHADOW * shadow_intensity * A; // * dot
 
         LP->S[volume_counter] = shadow[0];
+        // LP->A[volume_counter] = A;
         LP->D[volume_counter] = Q->B_light.Aim.dist;
         volume_counter ++;
 
@@ -1449,7 +1451,7 @@ trianges_cancel render_Triangles_light(float Dist, camera * Light0, normal * D, 
 
     dist /= dot;
 
-    if (dist < Dist - SHADOW_DIST)
+    if (dist < Dist + SHADOW_DIST)
     {
         idx = T->verts[0];
         V = &O->verts[idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1535,7 +1537,8 @@ trianges_cancel render_Triangles_light(float Dist, camera * Light0, normal * D, 
             shadow[0] = SHADOW * shadow_intensity * A; // * dot
 
             LP->S[volume_counter] = shadow[0];
-            LP->D[volume_counter] = dist;
+            // LP->A[volume_counter] = A;
+            LP->D[volume_counter] = -dist;
             volume_counter ++;
 
             Cancel.cancel = 1;
@@ -1595,7 +1598,7 @@ trianges_cancel render_Triangles_light_(float Dist, camera * Light0, normal * D,
 
     dist /= dot;
 
-    if (dist < Dist - SHADOW_DIST)
+    if (dist < Dist + SHADOW_DIST) // + sign change
     {
         idx = T->verts[0];
         V = &O->verts_[L][idx / ARRAYSIZE][idx % ARRAYSIZE];
@@ -1686,7 +1689,8 @@ trianges_cancel render_Triangles_light_(float Dist, camera * Light0, normal * D,
             shadow[0] = SHADOW * shadow_intensity * A; // * dot;
 
             LP->S[volume_counter] = shadow[0];
-            LP->D[volume_counter] = dist;
+            // LP->A[volume_counter] = A;
+            LP->D[volume_counter] = -dist; // negate to reverse
             volume_counter ++;
 
             Cancel.cancel = 1;
@@ -1713,6 +1717,7 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
     Cancel.cancel = 0;
 
     float shadow = 0.0;
+    float Shadow = 0.0;
 
     int t, p, h, q, q0, q1, q2;
     HexG * H;
@@ -2075,7 +2080,18 @@ float cast_ray_from_Light0(float P_pos[3], camera * Light0, HexG ** G, int g_idx
         }
     }
 
-    shadow = LP.S[volume_index[0]]; // 0 is closest light pixel
+    /* combining shadows */
+
+    for (k = volume_counter - 1; k >= 0; k --)
+    {
+        idx = volume_index[k];
+        if (LP.S[idx] > Shadow)
+        {
+            Shadow = LP.S[idx];
+        }
+    }
+
+    shadow = Shadow; // LP.S[volume_index[0]]; // 0 is closest light pixel
 
     return shadow;
 }

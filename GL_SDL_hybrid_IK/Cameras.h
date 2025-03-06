@@ -27,7 +27,7 @@ float LightDist = 30.0;
 float light_cone = 0.2;
 float SHADOW = 255 / 2;
 float LIGHT_CONE_FIT = 0.5;
-float SHADOW_DIST = 0.0001;
+float SHADOW_DIST = 0.0005;
 
 float CamDist = 10;
 float CamDist_Camera = 10;

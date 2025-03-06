@@ -1,8 +1,7 @@
 /*README*/
 
 /*CAUTION, do not overwrite older directory structures, when they differ from current file format.
-In the course of time file format changes. Folders may be added.
-Make not exsisting scene with new name, or delete current one manually before saving.
+In the course of time file format changes. Folders may be added. Make not exsisting scene with new name. 
 Such overwrites tend to corrupt these scenes*/
 
 Author here is:
