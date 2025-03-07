@@ -1399,7 +1399,7 @@ trianges_cancel render_Pixel_light(float Dist, camera * Light0, normal * D, int 
 
         LP->S[volume_counter] = shadow[0];
         // LP->A[volume_counter] = A;
-        LP->D[volume_counter] = Q->B_light.Aim.dist;
+        LP->D[volume_counter] = -Q->B_light.Aim.dist; // negate to reverse
         volume_counter ++;
 
         Cancel.cancel = 1;
@@ -1538,7 +1538,7 @@ trianges_cancel render_Triangles_light(float Dist, camera * Light0, normal * D, 
 
             LP->S[volume_counter] = shadow[0];
             // LP->A[volume_counter] = A;
-            LP->D[volume_counter] = -dist;
+            LP->D[volume_counter] = -dist; // negate to reverse
             volume_counter ++;
 
             Cancel.cancel = 1;
