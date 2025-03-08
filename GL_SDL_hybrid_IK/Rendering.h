@@ -807,7 +807,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
                     dot = dot_productN(&polynormal, polyAim.vec);
 
-                    if (dot > BACKFACE_QUALIFIER) // backreversed
+                    if (dot < BACKFACE_QUALIFIER) // reversed
                     {
                         T->B_light.backface = 0;
                         P->B_light.backface = 0;
@@ -961,7 +961,7 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 
                             dot = dot_productN(&polynormal, polyAim.vec);
 
-                            if (dot > BACKFACE_QUALIFIER) // backreversed
+                            if (dot < BACKFACE_QUALIFIER) // reversed
                             {
                                 T->B_light.backface = 0;
                                 Q->B_light.backface = 0;
@@ -1668,7 +1668,7 @@ trianges_cancel render_Triangles_light_(float Dist, camera * Light0, normal * D,
 
             if (Dot < 0.0)
             {
-                Dot = - Dot;
+                Dot = -Dot;
             }
 
             //if (dot < 0.0)
