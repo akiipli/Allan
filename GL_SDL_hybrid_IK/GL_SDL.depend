@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1741171938 source:c:\gl_sdl_hybrid_ik\main.c
+1741712326 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -141,7 +141,7 @@
 
 1741019973 c:\gl_sdl_hybrid_ik\lights.h
 
-1741427880 c:\gl_sdl_hybrid_ik\rendering.h
+1741713192 c:\gl_sdl_hybrid_ik\rendering.h
 
 1737116074 c:\gl_sdl_hybrid_ik\hierarchys.h
 

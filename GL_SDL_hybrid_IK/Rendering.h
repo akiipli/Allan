@@ -9559,8 +9559,13 @@ void load_id_colors_Fan(int * Objects, int Objects_count, int mode)
 void load_id_colors_No_Surface(camera * C, int l)
 {
     int e, o, v, q, idx, L;
+    int t, p;
+
     object * O;
     quadrant * Q;
+
+    polygon * P;
+    triangle * T;
 
     float R, G, B, A;
 
@@ -9625,6 +9630,50 @@ void load_id_colors_No_Surface(camera * C, int l)
                     O->cols_array_[L][0][c_c ++] = A;
                 }
 //                }
+            }
+        }
+        else if (O->vertex_array)
+        {
+            for (p = 0; p < O->polycount; p++)
+            {
+                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+
+                if (P->selected == 1)
+                {
+                    R = 0;
+                    G = 0;
+                    B = 1;
+                    A = 1;
+                }
+                else
+                {
+                    R = Materials[P->surface].RGBA.R / 255;
+                    G = Materials[P->surface].RGBA.G / 255;
+                    B = Materials[P->surface].RGBA.B / 255;
+                    A = Materials[P->surface].RGBA.A / 255;
+                }
+
+                for (t = 0; t < P->tripcount; t ++)
+                {
+                    idx = P->trips[t];
+                    T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    for (v = 0; v < 3; v ++)
+                    {
+                        idx = T->texts[v];
+                        c_c1 = idx * 4;
+                        O->cols_array[1][c_c1 ++] = R;
+                        O->cols_array[1][c_c1 ++] = G;
+                        O->cols_array[1][c_c1 ++] = B;
+                        O->cols_array[1][c_c1 ++] = A;
+                    }
+                }
+                for (e = 0; e < P->edgecount; e ++)
+                {
+                    O->cols_array[0][c_c ++] = R;
+                    O->cols_array[0][c_c ++] = G;
+                    O->cols_array[0][c_c ++] = B;
+                    O->cols_array[0][c_c ++] = A;
+                }
             }
         }
     }
@@ -9732,9 +9781,13 @@ void load_id_colors_current(object * O, int l, int mode)
 void load_id_colors_all(camera * C, int l, int mode)
 {
     int e, v, o, q, idx, idx0, idx1, idx2, L;
+    int t, p;
 
     object * O;
     quadrant * Q;
+
+    polygon * P;
+    triangle * T;
     id_color * I;
 
     float R, G, B, A;
@@ -9831,6 +9884,72 @@ void load_id_colors_all(camera * C, int l, int mode)
                     O->cols_array_[L][0][c_c ++] = A;
                 }
 //                }
+            }
+        }
+        else if (O->vertex_array)
+        {
+            if (mode == OBJECT_ID_COLORS)
+            {
+                R = (float)(idx / M0) / (float)255;
+                idx0 = idx % M0;
+                G = (float)(idx0 / M1) / (float)255;
+                idx1 = idx0 % M1;
+                B = (float)(idx1 / 255) / (float)255;
+                idx2 = idx1 % 255;
+                A = (float)(idx2) / (float)255;
+            }
+
+            for (p = 0; p < O->polycount; p++)
+            {
+                P = &O->polys[p / ARRAYSIZE][p % ARRAYSIZE];
+                if (mode == POLYGON_ID_COLORS)
+                {
+                    idx = P->color;
+                    I = &O->icols[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    R = I->R;
+                    G = I->G;
+                    B = I->B;
+                    A = I->A;
+                }
+                else if (mode == OBJECT_COLORS)
+                {
+                    if (P->selected == 1)
+                    {
+                        R = 0;
+                        G = 0;
+                        B = 1;
+                        A = 1;
+                    }
+                    else
+                    {
+                        R = Materials[P->surface].RGBA.R / 255;
+                        G = Materials[P->surface].RGBA.G / 255;
+                        B = Materials[P->surface].RGBA.B / 255;
+                        A = Materials[P->surface].RGBA.A / 255;
+                    }
+                }
+
+                for (t = 0; t < P->tripcount; t ++)
+                {
+                    idx = P->trips[t];
+                    T = &O->trips[idx / ARRAYSIZE][idx % ARRAYSIZE];
+                    for (v = 0; v < 3; v ++)
+                    {
+                        idx = T->texts[v];
+                        c_c1 = idx * 4;
+                        O->cols_array[1][c_c1 ++] = R;
+                        O->cols_array[1][c_c1 ++] = G;
+                        O->cols_array[1][c_c1 ++] = B;
+                        O->cols_array[1][c_c1 ++] = A;
+                    }
+                }
+                for (e = 0; e < P->edgecount; e ++)
+                {
+                    O->cols_array[0][c_c ++] = R;
+                    O->cols_array[0][c_c ++] = G;
+                    O->cols_array[0][c_c ++] = B;
+                    O->cols_array[0][c_c ++] = A;
+                }
             }
         }
     }
