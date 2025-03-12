@@ -1040,7 +1040,7 @@ void rotate_verts_(object * O, transformer T, int l)
             V->N.Tz = T.rotVec_[0][2] * V->N.x + T.rotVec_[1][2] * V->N.y + T.rotVec_[2][2] * V->N.z;
         }
 
-        update_bounding_box_for_transformed_Trips_(O, L, 0); // does not update radius
+        //update_bounding_box_for_transformed_Trips_(O, L, 0); // does not update radius
         update_bounding_box_for_transformed_Quads(O, L, 1);
         update_bounding_box_for_transformed_Edges_(O, L, 1);
         update_transformed_Triangles_level_(O, L); // updates also quad normals
