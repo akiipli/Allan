@@ -3305,19 +3305,11 @@ void find_objects_in_frame(camera * C)
             continue;
         O = objects[o];
         update_Box_T(O);
-        objectradius = O->B.radius;
         objectAim = vector3d(O->B, C->T->pos);
 
-        if (objectAim.dist > objectradius)
-        {
-            deviation = atan2(objectradius * 2, objectAim.dist - objectradius);
-        }
-        else
-        {
-            deviation = pi;
-        }
+        objectradius = atan2(O->B.radius, objectAim.dist * 2.0);
 
-        deviation += C->view_minor;
+        deviation = C->view_major - objectradius;
 
         aim_deviation = acos(dot_productFF(C->T->aim, objectAim.vec));
 
