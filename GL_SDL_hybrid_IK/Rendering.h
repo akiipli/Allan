@@ -4,7 +4,7 @@ The MIT License
 Copyright <2018> <2022> <Allan Kiipli>
 */
 
-#define TOLERANCE 1000
+#define TOLERANCE 10
 
 #define POLYGON_ID_COLORS 2
 #define OBJECT_ID_COLORS 1
@@ -338,7 +338,7 @@ void populate_box_3d_Aim_And_Deviation(camera * C, int level)
 
     float polypoints[3];
 
-    float BACKFACE_QUALIFIER = -0.5; // 0.0
+    float BACKFACE_QUALIFIER = 0.0; //-0.5; // 0.0
 
 /*
     normal D;
@@ -1069,12 +1069,12 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
 {
     float angle = 0;
     float dot;
-    int on_edge = 0;
+    //int on_edge = 0;
 
 
     aim A, B;
 
-    int i, C, C0;
+    int i; // , C, C0;
 
     A = vector3dF(p_points[2], point);
 
@@ -1085,16 +1085,17 @@ void populate_box_3d_Aim_And_Deviation_light(camera * C, int level)
         A.vec[0] = B.vec[0];
         A.vec[1] = B.vec[1];
         A.vec[2] = B.vec[2];
-        if (dot < -0.98) on_edge = 1;
+        //if (dot < -0.98) on_edge = 1;
         angle += acos(dot);
     }
 
-    C = angle * TOLERANCE;
-    C0 = pi2 * TOLERANCE;
+//    C = angle * TOLERANCE;
+//    C0 = pi2 * TOLERANCE;
 
-    if (C == C0)
+    if (angle >= pi2_TOLERANCE)
     {
-        if (on_edge) return 2; else return 1;
+        //if (on_edge) return 2; else return 1;
+        return 1;
     }
     else
     {

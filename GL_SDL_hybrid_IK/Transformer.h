@@ -33,6 +33,8 @@ float pi10 = 3.141592653589793 / 10.0;
 float pi5 = 3.141592653589793 / 5.0;
 float pi4 = 3.141592653589793 / 4.0;
 
+float pi2_TOLERANCE = 3.141592653589793 * 2.0 - 0.0005;
+
 // to do
 // hierarchies, parenting
 
