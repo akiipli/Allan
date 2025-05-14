@@ -172,6 +172,34 @@ int place_Polygon_Into_HexG(camera * C, object * O, polygon * P, HexG * H, HexG 
     }
 }
 
+void generate_Hexa_Radius()
+{
+    int v, h;
+
+    HexG * H;
+
+    float R;
+
+    float V_Mark;
+
+    for (h = 0; h < hexaIndex; h ++)
+    {
+        H = Hexas[h];
+
+        V_Mark = H->Center[1];
+
+        R = cos(V_Mark);
+
+        H->Radius *= R; // since polar projection reduces hexagon size
+
+        for (v = 0; v < 6; v ++)
+        {
+            H->Verts[v][0] = (H->Verts[v][0] - H->Center[0]) * R + H->Center[0];
+            H->Verts[v][1] = (H->Verts[v][1] - H->Center[1]) * R + H->Center[1];
+        }
+    }
+}
+
 void generate_Hexa_Groups(camera * C)
 {
     int result, * cancel;

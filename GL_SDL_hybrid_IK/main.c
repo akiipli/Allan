@@ -19514,6 +19514,7 @@ int main(int argc, char * args[])
     init_HexasColor();
 
     create_Seven_Hexagons();
+    generate_Hexa_Radius();
 
     add_Item(TYPE_OBJECT, O->Name, O);
 
@@ -26298,9 +26299,14 @@ int main(int argc, char * args[])
 
             //print_Hexagons_Info();
             */
-
-            if (mod & KMOD_SHIFT)
+            if (mod & KMOD_CTRL)
             {
+                PLANAR = !PLANAR;
+                printf("PLANAR %d\n", PLANAR);
+            }
+            else if (mod & KMOD_SHIFT)
+            {
+                print_Hexa_Groups_Info();
                 DRAW_HEXAS = !DRAW_HEXAS;
             }
             else

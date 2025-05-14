@@ -64,7 +64,7 @@ struct HexG
     float Center[2];
     float Radius;
     float Verts[6][2];
-    float Edges[6][2];
+    float Edges[6][2]; // add 7 if center resides
     direction D;
     direction D_light0;
     HexG * super; // since subdivided hexagons share parents, super may mislead
@@ -128,6 +128,9 @@ float Hex_h_dim;
 int subdivide_Hexagon(HexG * H)
 {
     if (hexaIndex + 7 > HEXAS)
+        return 0;
+
+    if (H->subdivided)
         return 0;
 
     int e;
@@ -213,6 +216,7 @@ void init_HexG(HexG * SuperH, float Center[2], float Radius)
     SuperH->Edges[3][0] = (SuperH->Verts[3][0] + SuperH->Verts[4][0]) / 2; SuperH->Edges[3][1] = (SuperH->Verts[3][1] + SuperH->Verts[4][1]) / 2;
     SuperH->Edges[4][0] = (SuperH->Verts[4][0] + SuperH->Verts[5][0]) / 2; SuperH->Edges[4][1] = (SuperH->Verts[4][1] + SuperH->Verts[5][1]) / 2;
     SuperH->Edges[5][0] = (SuperH->Verts[5][0] + SuperH->Verts[0][0]) / 2; SuperH->Edges[5][1] = (SuperH->Verts[5][1] + SuperH->Verts[0][1]) / 2;
+//    SuperH->Edges[6][0] = Center[0]; SuperH->Edges[6][1] = Center[1];
 
     if (SuperH->subdivided) // in main level 7 hexagons are created with their centers, dimensioning 6 units to cover almost full circle
                             // first is created center most hexagon and is subdivided (allocated), then neighbours are added and subdivided
@@ -317,7 +321,10 @@ int create_Seven_Hexagons()
     r = subdivide_Hexagon(H);
     if (r)
     {
-        H->subdivided = 1;
+        H->subdivided = 1; // with init neighbours become captured
+                           // however it makes the image rendering slower twice.
+                           // double hexagons render 2x faster
+//        init_HexG(H, (float[2]){0, 0}, 1.0);
 
         for (h = 6; h < 7; h ++)
         {
@@ -326,6 +333,7 @@ int create_Seven_Hexagons()
             if (r_0)
             {
                 H_0->subdivided = 1;
+//                init_HexG(H_0, H->Edges[h], H->Radius / 2);
             }
             // /*
             for (h1 = 0; h1 < 7; h1 ++)
@@ -335,6 +343,7 @@ int create_Seven_Hexagons()
                 if (r_1)
                 {
                     H_1->subdivided = 1;
+//                    init_HexG(H_1, H_0->Edges[h1], H_0->Radius / 2);
                 }
 
                 for (h2 = 0; h2 < 7; h2 ++)
@@ -344,6 +353,7 @@ int create_Seven_Hexagons()
                     if (r_2)
                     {
                         H_2->subdivided = 1;
+//                        init_HexG(H_2, H_1->Edges[h2], H_1->Radius / 2);
                     }
 
                     for (h3 = 0; h3 < 7; h3 ++)
@@ -353,6 +363,7 @@ int create_Seven_Hexagons()
                         if (r_3)
                         {
                             H_3->subdivided = 1;
+//                            init_HexG(H_3, H_2->Edges[h3], H_2->Radius / 2);
                         }
                         /*
                         for (h4 = 0; h4 < 7; h4 ++)

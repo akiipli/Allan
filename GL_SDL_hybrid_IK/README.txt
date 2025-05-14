@@ -7,6 +7,9 @@ Such overwrites tend to corrupt these scenes*/
 Author here is:
 Allan Kiipli
 
+10:34 AM 5/13/2025
+Ctrl + H switches Planar projection for rendering.
+
 9:56 AM 3/4/2025
 Shift + H switches Hexagons on display drawing. Hexagons should cover camera view good to act as polypack
 encapsulators when rendering. Light0 uses also same hexagons, and its cone is modified with LIGHT_CONE_FIT variable.

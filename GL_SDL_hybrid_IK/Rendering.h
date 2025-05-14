@@ -23,6 +23,7 @@ Copyright <2018> <2022> <Allan Kiipli>
 // make ray traced rendering progressive
 // develop lights, shadows, alpha for pixel textures
 
+int PLANAR = 1;
 int VAO = 0;
 
 typedef struct
@@ -11673,7 +11674,7 @@ void * perform_work(void * arguments)
     normalizeF((float *)&light_vec);
 
     int x, y, index; //gx, gy;
-    float R;
+    float R, l;
     pixel P;
 
     RGBA rgba;
@@ -11690,6 +11691,10 @@ void * perform_work(void * arguments)
     V_Mark += V_step / 2.0;
     H_Mark += pi;
     V_Mark += pi_2;
+
+    float w_points = (float)Args->width / 2.0;
+    float h_points = (float)Args->height / 2.0;
+    float camdist = w_points / tan(Args->C->h_view / 2.0);
 
 //    float Group_Width = Args->C->h_view / (float)OBJECT_GROUP_H;
 //    float Group_Height = Args->C->v_view / (float)OBJECT_GROUP_V;
@@ -11720,9 +11725,22 @@ void * perform_work(void * arguments)
 
 //            if (!Args->index && !(y % 10))
 //                printf(".");
-            D.D.y = DDy;
-            D.D.x = sin(H_Mark) * R;
-            D.D.z = cos(H_Mark) * R;
+            if (PLANAR)
+            {
+                D.D.x = x - w_points;
+                D.D.y = y - h_points;
+                D.D.z = -camdist;
+                l = sqrt(D.D.x * D.D.x + D.D.y * D.D.y + D.D.z * D.D.z);
+                D.D.x /= l;
+                D.D.y /= l;
+                D.D.z /= l;
+            }
+            else
+            {
+                D.D.y = DDy;
+                D.D.x = sin(H_Mark) * R;
+                D.D.z = cos(H_Mark) * R;
+            }
 
             rotate_Vector(Args->C->T, -D.D.x, D.D.y, -D.D.z, &D.D); // direction is submitted from union
             index = y * Args->width * 4 + x * 4;

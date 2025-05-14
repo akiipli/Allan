@@ -1331,7 +1331,7 @@ void update_transformed_Triangles_level_(object * O, int L)
         V1 = &O->verts_[L][T0->verts[1] / ARRAYSIZE][T0->verts[1] % ARRAYSIZE];
         V2 = &O->verts_[L][T0->verts[2] / ARRAYSIZE][T0->verts[2] % ARRAYSIZE];
         cross_T(&T0->N, V0, V1, V2);
-        boxt_3_T(&T0->B, V0, V1, V2, 1); // rendering
+        boxt_3_T(&T0->B, V0, V1, V2, 0); // rendering
 
         T1 = &O->trips_[L][t1 / ARRAYSIZE][t1 % ARRAYSIZE];
 
@@ -1339,7 +1339,7 @@ void update_transformed_Triangles_level_(object * O, int L)
         V1 = &O->verts_[L][T1->verts[1] / ARRAYSIZE][T1->verts[1] % ARRAYSIZE];
         V2 = &O->verts_[L][T1->verts[2] / ARRAYSIZE][T1->verts[2] % ARRAYSIZE];
         cross_T(&T1->N, V0, V1, V2);
-        boxt_3_T(&T1->B, V0, V1, V2, 1); // rendering
+        boxt_3_T(&T1->B, V0, V1, V2, 0); // rendering
 
         Q = &O->quads_[L][q / ARRAYSIZE][q % ARRAYSIZE];
 
