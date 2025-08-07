@@ -34,7 +34,7 @@ int h_index, v_index; // mouse index in lists
 #include <dirent.h>
 #include "Cursors.h"
 #include <sys/time.h>
-//#include <pthread.h>
+#include <pthread.h>
 #include <assert.h>
 
 #include "SDL/SDL_image.h"
@@ -26523,7 +26523,7 @@ int main(int argc, char * args[])
                 generate_Hexa_Groups_light(Light0);
             }
 
-//            render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 0);
+            render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 0);
         }
         else if (message == 79) // F11
         {
@@ -26566,7 +26566,7 @@ int main(int argc, char * args[])
                     generate_Hexa_Groups_light(Light0);
                 }
 
-//                render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 1);
+                render_and_save_Image(Path, Camera, screen_width, screen_height, subdLevel, 1);
 
                 if (Preak)
                 {

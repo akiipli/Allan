@@ -1,8 +1,5 @@
 /*README*/
 
-/*failed pthreads on amd ryzen processor, just disabled rendering functions to be able to compile and run in win 11.
-Disable pthreads include in main and rendering function, where it uses pthreads*/
-
 /*CAUTION, do not overwrite older directory structures, when they differ from current file format.
 In the course of time file format changes. Folders may be added. Make not exsisting scene with new name. 
 Such overwrites tend to corrupt these scenes*/
