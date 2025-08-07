@@ -11801,7 +11801,7 @@ void * perform_work(void * arguments)
 
     return NULL;
 }
-
+/*
 void render_Image(unsigned char * data, camera * C, int width, int height, int L, int Anim_frame)
 {
     light_vec[0] = -light.Position[0];
@@ -11929,7 +11929,7 @@ void render_and_save_Image(char * Path, camera * C, int width, int height, int L
 
     ilDeleteImages(1, &ImgId);
 }
-
+*/
 void draw_Curve_Segment_Recursive_ID(curve_segment * S, int level)
 {
     if (S->level + 1 == level)
