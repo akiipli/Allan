@@ -20156,7 +20156,7 @@ int main(int argc, char * args[])
                                         {
                                             snap_back_Deformer_Object_Cps_To_Pos(Constraint_Pack.IK->Deformer);
                                             update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
-                                            update_Deformer_object_Curves(T->Deformer, subdLevel);
+                                            update_Deformer_object_Curves(Constraint_Pack.IK->Deformer, subdLevel);
                                         }
                                         else if (Constraint_Pack.Camera != NULL)
                                         {
