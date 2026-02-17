@@ -24935,8 +24935,12 @@ int main(int argc, char * args[])
             }
             else if (mod & KMOD_SHIFT)
             {
-                transfer_Deformers_rotVec(T);
-                sprintf(bottom_message, "%s rotVec transfer done!", D->Name);
+                if (T != NULL)
+                {
+                    transfer_Deformers_rotVec(T);
+                    if (D != NULL)
+                        sprintf(bottom_message, "%s rotVec transfer done!", D->Name);
+                }
             }
             else if (mod & KMOD_CTRL)
             {

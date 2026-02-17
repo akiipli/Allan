@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1755272202 source:c:\gl_sdl_hybrid_ik\main.c
+1771314333 source:c:\gl_sdl_hybrid_ik\main.c
 	<Windows.h>
 	"Dialog.h"
 	<dirent.h>
@@ -57,7 +57,7 @@
 	<io.h>
 	<fcntl.h>
 
-1754389668 c:\gl_sdl_hybrid_ik\dialog.h
+1754386068 c:\gl_sdl_hybrid_ik\dialog.h
 	<ctype.h>
 	<stdio.h>
 	<stdlib.h>
@@ -67,91 +67,91 @@
 	<time.h>
 	<libgen.h>
 
-1754389668 c:\gl_sdl_hybrid_ik\cursors.h
+1754386068 c:\gl_sdl_hybrid_ik\cursors.h
 	"SDL/SDL.h"
 
-1754389668 c:\gl_sdl_hybrid_ik\timeline.h
+1754386068 c:\gl_sdl_hybrid_ik\timeline.h
 
-1754389668 c:\gl_sdl_hybrid_ik\transformer.h
+1754386068 c:\gl_sdl_hybrid_ik\transformer.h
 
-1754389668 c:\gl_sdl_hybrid_ik\object.h
+1754386068 c:\gl_sdl_hybrid_ik\object.h
 
-1754389668 c:\gl_sdl_hybrid_ik\curves.h
+1754386068 c:\gl_sdl_hybrid_ik\curves.h
 
-1754389668 c:\gl_sdl_hybrid_ik\userinterface.h
+1754386068 c:\gl_sdl_hybrid_ik\userinterface.h
 	<sys/types.h>
 	<sys/stat.h>
 	<unistd.h>
 	<errno.h>
 
-1754389668 c:\gl_sdl_hybrid_ik\materials.h
+1754386068 c:\gl_sdl_hybrid_ik\materials.h
 
-1754389668 c:\gl_sdl_hybrid_ik\items.h
+1754386068 c:\gl_sdl_hybrid_ik\items.h
 
-1754389668 c:\gl_sdl_hybrid_ik\iksolution.h
+1754386068 c:\gl_sdl_hybrid_ik\iksolution.h
 
-1754389668 c:\gl_sdl_hybrid_ik\deformer.h
+1754386068 c:\gl_sdl_hybrid_ik\deformer.h
 
-1754389668 c:\gl_sdl_hybrid_ik\poses.h
+1754386068 c:\gl_sdl_hybrid_ik\poses.h
 
-1754389668 c:\gl_sdl_hybrid_ik\bones.h
+1754386068 c:\gl_sdl_hybrid_ik\bones.h
 
-1754389668 c:\gl_sdl_hybrid_ik\subcharacters.h
+1754386068 c:\gl_sdl_hybrid_ik\subcharacters.h
 
-1754389668 c:\gl_sdl_hybrid_ik\morphs.h
+1754386068 c:\gl_sdl_hybrid_ik\morphs.h
 
-1754389668 c:\gl_sdl_hybrid_ik\properties.h
+1754386068 c:\gl_sdl_hybrid_ik\properties.h
 
-1754389668 c:\gl_sdl_hybrid_ik\shaders.h
+1754386068 c:\gl_sdl_hybrid_ik\shaders.h
 
-1754389668 c:\gl_sdl_hybrid_ik\file_io.h
+1754386068 c:\gl_sdl_hybrid_ik\file_io.h
 
-1754389668 c:\gl_sdl_hybrid_ik\imageload.h
+1754386068 c:\gl_sdl_hybrid_ik\imageload.h
 
-1754389668 c:\gl_sdl_hybrid_ik\mathfunctions.h
+1754386068 c:\gl_sdl_hybrid_ik\mathfunctions.h
 
-1754389668 c:\gl_sdl_hybrid_ik\cameras.h
+1754386068 c:\gl_sdl_hybrid_ik\cameras.h
 
-1754389668 c:\gl_sdl_hybrid_ik\selections.h
+1754386068 c:\gl_sdl_hybrid_ik\selections.h
 
-1754389668 c:\gl_sdl_hybrid_ik\saving.h
+1754386068 c:\gl_sdl_hybrid_ik\saving.h
 
-1754389668 c:\gl_sdl_hybrid_ik\initializingfunctions.h
+1754386068 c:\gl_sdl_hybrid_ik\initializingfunctions.h
 
-1754389668 c:\gl_sdl_hybrid_ik\extensionfunctions.h
+1754386068 c:\gl_sdl_hybrid_ik\extensionfunctions.h
 
-1754389668 c:\gl_sdl_hybrid_ik\subdivision.h
+1754386068 c:\gl_sdl_hybrid_ik\subdivision.h
 
-1754389668 c:\gl_sdl_hybrid_ik\generators.h
+1754386068 c:\gl_sdl_hybrid_ik\generators.h
 
-1754389668 c:\gl_sdl_hybrid_ik\creators.h
+1754386068 c:\gl_sdl_hybrid_ik\creators.h
 	"ZData.h"
 	"ZPlane.h"
 	"CubeData.h"
 
-1754389668 c:\gl_sdl_hybrid_ik\zdata.h
+1754386068 c:\gl_sdl_hybrid_ik\zdata.h
 
-1754389668 c:\gl_sdl_hybrid_ik\zplane.h
+1754386068 c:\gl_sdl_hybrid_ik\zplane.h
 
-1754389668 c:\gl_sdl_hybrid_ik\cubedata.h
+1754386068 c:\gl_sdl_hybrid_ik\cubedata.h
 
-1754389668 c:\gl_sdl_hybrid_ik\transforms.h
+1754386068 c:\gl_sdl_hybrid_ik\transforms.h
 
-1754389668 c:\gl_sdl_hybrid_ik\arrays.h
+1754386068 c:\gl_sdl_hybrid_ik\arrays.h
 
-1754389668 c:\gl_sdl_hybrid_ik\lights.h
+1754386068 c:\gl_sdl_hybrid_ik\lights.h
 
-1755271867 c:\gl_sdl_hybrid_ik\rendering.h
+1755268267 c:\gl_sdl_hybrid_ik\rendering.h
 
-1754389668 c:\gl_sdl_hybrid_ik\hierarchys.h
+1754386068 c:\gl_sdl_hybrid_ik\hierarchys.h
 
-1754389668 c:\gl_sdl_hybrid_ik\validators.h
+1754386068 c:\gl_sdl_hybrid_ik\validators.h
 
-1754389668 c:\gl_sdl_hybrid_ik\loading.h
+1754386068 c:\gl_sdl_hybrid_ik\loading.h
 
-1754389668 c:\gl_sdl_hybrid_ik\modeling.h
+1754386068 c:\gl_sdl_hybrid_ik\modeling.h
 
-1754389668 c:\gl_sdl_hybrid_ik\trajectories.h
+1754386068 c:\gl_sdl_hybrid_ik\trajectories.h
 
-1754389668 c:\gl_sdl_hybrid_ik\hexagon.h
+1754386068 c:\gl_sdl_hybrid_ik\hexagon.h
 
